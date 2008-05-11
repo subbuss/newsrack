@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+
+<digester-rules>
+	<call-method-rule pattern="*/category" methodname="SetNewsDir" paramcount="2" />
+	<call-param-rule  pattern="*/category" paramnumber="0" attrname="name" />
+	<call-param-rule  pattern="*/category" paramnumber="1" attrname="dir" />
+</digester-rules>

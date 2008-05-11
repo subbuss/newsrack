@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+ 
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+ 
+<web-app>
+  <display-name>NewsRack </display-name>
+  <description> News Rack -- newsrack.in installation </description>
+
+<!-- Set up a servlet listener so that we can initialize the web app! -->
+  <listener>
+    <listener-class> newsrack.NRServletContextListener </listener-class>
+  </listener>
+
+  <context-param>
+    <param-name>server-url</param-name>
+    <param-value>http://localhost:8180/newsrack</param-value>
+  </context-param>
+
+<!-- URLRewrite filter -->
+  <filter>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    <init-param>
+      <param-name>logLevel</param-name>
+      <param-value>DEBUG</param-value>
+    </init-param>
+    <init-param>
+      <param-name>confReloadCheckInterval</param-name>
+      <param-value>60</param-value>
+    </init-param>
+  </filter>
+
+<!-- Struts 2 filter -->
+  <filter>
+    <filter-name>struts2</filter-name>
+    <filter-class> org.apache.struts2.dispatcher.FilterDispatcher </filter-class>
+  </filter>
+
+<!-- filter mappings -->
+  <filter-mapping>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+<!-- Check the following message for why the dispatcher entries are required.  -SSS.
+     http://groups.google.com/group/urlrewrite/browse_thread/thread/f30375f99370fed9/6295ef4aba27b884?lnk=gst&q=filter+chain&rnum=1#6295ef4aba27b884
+  -->
+  <filter-mapping>
+    <filter-name>struts2</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher> forward </dispatcher>
+    <dispatcher> request </dispatcher>
+  </filter-mapping>
+
+  <servlet>
+    <servlet-name>jspSupportServlet</servlet-name>
+    <servlet-class>org.apache.struts2.views.JspSupportServlet</servlet-class>
+    <load-on-startup>10</load-on-startup>
+  </servlet>
+
+<!-- let the default servlet handle things like js, css, images, icons, etc. -->
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.js</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.css</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.jpg</url-pattern>
+  </servlet-mapping>  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.gif</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.ico</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.xml</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.html</url-pattern>
+  </servlet-mapping>
+
+<!-- Force the use of Xerces validating parser independent of which servlet container I use ...  -->
+  <system-property javax.xml.parsers.DocumentBuilderFactory="org.apache.xerces.jaxp.DocumentBuilderFactoryImpl" />
+  <system-property javax.xml.parsers.SAXParserFactory="org.apache.xerces.jaxp.SAXParserFactoryImpl" />
+  <system-property javax.xml.transform.TransformerFactory="org.apache.xalan.processor.TransformerFactoryImpl" />
+</web-app>

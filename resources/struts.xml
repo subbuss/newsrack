@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+  <constant name="struts.devMode" value="true" />
+  <constant name="struts.url.includeParams" value="none" />
+  <constant name="struts.enable.DynamicMethodInvocation" value="false"/>
+  <!-- <constant name="struts.action.extension" value=""/>  -->
+    
+  <package name="app-default" extends="struts-default">
+     <!-- Change the default result type to freemarker -->
+    <result-types>
+      <result-type name="freemarker" class="org.apache.struts2.views.freemarker.FreemarkerResult" default="true" />
+    </result-types>
+
+    <interceptors>  
+      <!-- Login Interceptor that handles authentication for actions that require a signed-in user -->
+      <interceptor name="login" class="newsrack.web.LoginInterceptor" />
+
+      <!-- Simple stack without authentication -->
+      <interceptor-stack name="simpleStack">
+        <interceptor-ref name="servletConfig" /> 
+        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+        <interceptor-ref name="conversionError" /> 
+        <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+        <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+      </interceptor-stack>
+
+      <!-- Simple stack with authentication -->
+      <interceptor-stack name="simpleLoginStack">
+        <interceptor-ref name="servletConfig" /> 
+        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+        <interceptor-ref name="login" />
+        <interceptor-ref name="conversionError" /> 
+        <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+        <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+      </interceptor-stack>      
+      
+        <!-- simple login stack with file upload capability -->  
+      <interceptor-stack name="simpleLoginFileStack">
+        <interceptor-ref name="servletConfig" /> 
+        <interceptor-ref name="fileUpload" />         
+        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+        <interceptor-ref name="login" />
+        <interceptor-ref name="conversionError" /> 
+        <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+        <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+      </interceptor-stack>        
+    </interceptors>   
+    
+    <default-interceptor-ref name="simpleLoginStack" />     
+  
+    <global-results>
+      <result name="unhandledException">/ftl/error.ftl</result>
+      <result name="login">/ftl/forms/login.ftl</result>
+      <result name="internal.app.error">/ftl/internal.error.ftl</result>
+      <result name="home" type="redirect-action">home</result>
+    </global-results>
+
+    <global-exception-mappings>
+      <exception-mapping exception="java.lang.Throwable" result="unhandledException"/>
+    </global-exception-mappings>
+  </package>
+
+    <!-- Default "root" package for newsrack --> 
+  <package name="newsrack" extends="app-default">
+    <default-interceptor-ref name="simpleStack" />
+
+    <action name="home" class="newsrack.web.BrowseAction">
+      <result name="browse.main">/ftl/browse.ftl</result> <!-- this is the only possible result! -->
+    </action>
+
+    <action name="selected-topics"> <result>/ftl/category.selection.ftl</result> </action>
+
+    <action name="register" class="newsrack.web.RegisterAction">
+      <result>/ftl/user/register.success.ftl</result>
+      <result name="input">/ftl/forms/register.ftl</result>
+    </action>
+
+    <action name="login" class="newsrack.web.LoginAction">
+      <result>/ftl/user/home.ftl</result>
+      <result name="admin.login">/ftl/admin.ftl</result>
+      <result name="input">/ftl/forms/login.ftl</result>
+    </action>
+
+    <action name="logout" class="newsrack.web.UserAction" method="logout">
+      <result type="redirect-action">home</result>
+    </action>
+
+    <action name="browse" class="newsrack.web.BrowseAction">
+      <result name="browse.main">/ftl/browse.ftl</result>
+      <result name="browse.issue">/ftl/browse.issue.ftl</result>
+      <result name="browse.cat">/ftl/browse.cat.ftl</result>
+      <result name="browse.news">/ftl/browse.news.ftl</result>
+      <result name="browse.user">/ftl/browse.user.ftl</result>
+      <result name="browse.source">/ftl/browse.source.ftl</result>
+    </action>
+
+    <action name="public-files" class="newsrack.web.PublicFilesAction">
+	   <result>/ftl/public.files.ftl</result>
+	 </action>
+  </package>
+
+  <package name="news" extends="app-default" namespace="/news">
+    <action name="delete" class="newsrack.web.DeleteArticlesAction">
+      <result>/ftl/browse.news.ftl</result>
+    </action>
+
+    <action name="display" class="newsrack.web.DisplayNewsItemAction">
+      <result>/ftl/display.newsitem.ftl</result>
+      <result name="error">/ftl/display.newsitem.ftl</result>
+    </action>
+
+    <action name="download" class="newsrack.web.DownloadNewsAction">
+      <result>/ftl/download.ftl</result>
+      <result name="error">/ftl/download.ftl</result>
+    </action>
+
+    <action name="reclassify" class="newsrack.web.ReclassifyAction">
+      <result>/ftl/user/home.ftl</result>
+      <result name="input">/ftl/forms/reclassify.news.ftl</result>
+      <result name="error">/ftl/forms/reclassify.news.ftl</result>
+    </action>
+  </package>
+
+    <!-- This package handles actions that present the user with various forms for signin, registration, etc. -->
+  <package name="forms" extends="app-default" namespace="/forms">
+    <default-interceptor-ref name="simpleStack" />
+
+    <action name="change-password">
+      <interceptor-ref name="simpleLoginStack" />
+      <result>/ftl/forms/change.password.ftl</result>
+    </action>
+
+    <action name="login"> <result>/ftl/forms/login.ftl</result> </action>
+    <action name="register"> <result>/ftl/forms/register.ftl</result> </action>
+    <action name="forgot-password"> <result>/ftl/forms/forgot.password.ftl</result> </action>
+    <action name="new-file"> <result>/ftl/forms/new.file.ftl</result> </action>
+    <action name="edit-file"> <result>/ftl/forms/edit.file.ftl</result> </action>
+    <action name="rename-file"> <result>/ftl/forms/rename.file.ftl</result> </action>
+    <action name="reclassify-news"> <result>/ftl/forms/reclassify.news.ftl</result> </action>
+    <action name="browse-source"> <result>/ftl/forms/browse.sources.ftl</result> </action>
+  </package>
+
+  <package name="user" extends="app-default" namespace="/user">
+    <action name="change-password" class="newsrack.web.UserAction" method="changePassword">
+      <result>/ftl/user/home.ftl</result>
+      <result name="error">/ftl/forms/change-password.ftl</result>
+    </action>
+
+    <action name="edit-profile" class="newsrack.web.EditProfileAction">
+      <result>/ftl/user/edit.profile.ftl</result>
+    </action>
+
+    <action name="home">
+      <result>/ftl/user/home.ftl</result>
+    </action>
+  </package>
+
+  <package name="password" extends="app-default" namespace="/password">
+    <default-interceptor-ref name="simpleStack" />
+
+    <action name="send-reset-key" class="newsrack.web.PasswordResetAction" method="sendPasswordResetKey">
+      <result>/ftl/user/password.key.sent.ftl</result>
+      <result name="input">/ftl/forms/forgot-password.ftl</result>
+    </action>
+
+    <action name="reset-form" class="newsrack.web.PasswordResetAction" method="checkPasswordResetKey">
+      <result>/ftl/user/reset.password.ftl</result>
+      <result name="error">/ftl/forms/forgot-password.ftl</result>
+    </action>
+
+    <action name="reset" class="newsrack.web.PasswordResetAction" method="resetPassword">
+      <interceptor-ref name="simpleLoginStack" />
+      <result>/ftl/user/home.ftl</result>
+      <result name="input">/ftl/user/reset.password.ftl</result>
+      <result name="error" type="redirect-action">home</result>
+    </action>
+  </package>
+
+    <!-- File related actions -->
+  <package name="file" extends="app-default" namespace="/file">
+    <global-results>
+      <result name="error">/ftl/user/edit-profile.ftl</result>
+      <result name="success">/ftl/user/edit-profile.ftl</result>
+    </global-results>
+
+    <action name="edit" class="newsrack.web.FileAction" method="edit">
+      <result>/ftl/file/edit.ftl</result>
+    </action>
+
+    <action name="upload" class="newsrack.web.FileAction" method="upload">
+      <interceptor-ref name="simpleLoginFileStack" />
+    </action>
+
+    <action name="display" class="newsrack.web.FileAction" method="display" />
+
+    <action name="save" class="newsrack.web.FileAction" method="save" />
+
+    <action name="new" class="newsrack.web.FileAction" method="createNew" />
+
+    <action name="rename" class="newsrack.web.FileAction" method="rename" />
+  </package>
+
+    <!-- Administrative actions -->
+  <package name="admin" extends="app-default" namespace="/admin">
+    <global-results>
+      <result name="error">/ftl/user/home.ftl</result>
+      <result name="success">/ftl/admin/home.ftl</result>
+    </global-results>
+
+    <action name="home">
+      <result>/ftl/admin/home.ftl</result>
+    </action>
+
+    <action name="change-user" class="newsrack.web.AdminAction" method="loginAsAnotherUser">
+      <result>/ftl/user/home.ftl</result>
+      <result name="input">/ftl/admin/home.ftl</result>
+    </action>
+
+    <action name="refresh-caching-rules" class="newsrack.web.AdminAction" method="refreshCachingRules" />
+
+    <action name="refresh-global-properties" class="newsrack.web.AdminAction" method="refreshGlobalProperties" />
+  </package>
+
+    <!-- Various api calls -->
+  <package name="api" extends="app-default" namespace="/api">
+    <action name="issue-taxonomy" class="newsrack.web.GetIssueTaxonomyAction" />
+  </package>
+
+    <!-- HELP! -->
+  <package name="help" extends="app-default" namespace="/help">
+    <default-interceptor-ref name="simpleStack" />
+    <action name="help"> <result>/ftl/help/help.ftl</result> </action>
+    <action name="user-guide"> <result>/ftl/help/user.guide.ftl</result> </action>
+    <action name="example1"> <result>/ftl/help/example1.ftl</result> </action>
+    <action name="example2"> <result>/ftl/help/example2.ftl</result> </action>
+    <action name="example3"> <result>/ftl/help/example3.ftl</result> </action>
+  </package>
+
+    <!-- Various about pages! -->
+  <package name="about" extends="app-default" namespace="/about">
+    <default-interceptor-ref name="simpleStack" />
+    <action name="about"> <result>/ftl/about/about.ftl</result> </action>
+    <action name="credits"> <result>/ftl/about/credits.ftl</result> </action>
+    <action name="contact"> <result>/ftl/about/contact.ftl</result> </action>
+    <action name="disclaimer"> <result>/ftl/about/disclaimer.ftl</result> </action>
+    <action name="faq"> <result>/ftl/about/faq.ftl</result> </action>
+    <action name="testimonials"> <result>/ftl/about/testimonials.ftl</result> </action>
+  </package>
+
+    <!-- Extras -->
+  <package name="extras" extends="app-default" namespace="/extras">
+    <default-interceptor-ref name="simpleStack" />
+    <action name="crawled-feeds"> <result>/ftl/extras/crawled.feeds.ftl</result> </action>
+    <action name="known-indian-feeds"> <result>/ftl/extras/known.indian.feeds.ftl</result> </action>
+  </package>
+</struts>

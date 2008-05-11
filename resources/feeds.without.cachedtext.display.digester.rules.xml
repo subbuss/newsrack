@@ -1,0 +1,9 @@
+<digester-rules>
+   <pattern value="cachedtext-nodisplay">
+      <call-method-rule pattern="feed" methodname="recordFeed" paramcount="1" />
+      <call-param-rule pattern="feed" paramnumber="0" attrname="val" />
+
+      <call-method-rule pattern="domain" methodname="recordDomain" paramcount="1" />
+      <call-param-rule pattern="domain" paramnumber="0" attrname="val" />
+   </pattern>
+</digester-rules>

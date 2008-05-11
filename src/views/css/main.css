@@ -1,0 +1,906 @@
+/* Default settings */
+* {
+	line-height : 130%; 
+	width       : auto;
+	font-family : verdana, sans-serif, arial, helvetica;
+	font-size   : 100%;
+}
+
+pre {
+	font-family : courier new, courier;
+}
+
+body {
+	margin      : 0px;
+	padding     : 0px;
+	min-width   : 760px;
+	background  : #442211;
+}
+
+table {
+/* The first two attributes are IE-specific hacks 
+ * since the enclosing div always use text-align: center to center
+ * divs, have to set text-align: left to overcome that alignment when
+ * other browsers see the text-align: center attribute */
+	text-align : left;
+	position   : relative;
+	margin     : 0px auto;
+	padding    : 0px;
+	border     : 0px solid black;
+	border-collapse : collapse;
+}
+
+tr, td {
+	margin  : 0px;
+	padding : 0px;
+	border  : 0px solid black;
+	border-collapse : collapse;
+}
+
+div {
+	position : relative;
+	border   : 0px solid black;
+	margin   : 0px;
+	padding  : 0px;
+}
+
+p {
+	margin  : 4px 1px;
+	padding : 4px 1px;
+}
+
+h1 {
+	font-size  : 18px;
+	text-align : center;
+	text-decoration : underline;
+	padding    : 2px 2px 10px 2px;
+	margin     : 2px;
+}
+
+h2 {
+	font-size  : 16px;
+	text-align : left;
+	padding    : 2px;
+	margin     : 2px;
+}
+
+h3 {
+	margin     : 0px 0px 5px 0px;
+	padding    : 1px 1px 5px 1px;
+	font-size  : 14px;
+	text-align : center;
+	text-decoration : underline;
+}
+
+ul, li {
+	line-height : 150%; 
+}
+
+form {
+/* The first two attributes are IE-specific hacks 
+ * since the enclosing div always use text-align: center to center
+ * divs, have to set text-align: left to overcome that alignment when
+ * other browsers see the text-align: center attribute */
+	text-align : left;
+	position   : relative;
+	margin     : 0px auto;
+}
+
+/* Define modifier classes */
+.bold {
+	font-weight : bold;
+}
+
+.normal {
+	font-weight : normal;
+}
+
+textarea.textarea {
+	margin-bottom: 10px;
+   font-size   : 12px;
+   font-family : monospace;
+}
+
+.left {
+	text-align : left;
+}
+
+.right {
+	text-align : right;
+}
+
+.ie_center_hack {
+	text-align : center;
+}
+
+.center {
+	text-align : center;
+}
+
+.justify {
+	text-align : justify;
+}
+
+.underline {
+	text-decoration : underline;
+}
+
+.s18 {
+	font-size : 18px;
+}
+
+.s16 {
+	font-size : 16px;
+}
+
+.s14 {
+	font-size : 14px;
+}
+
+.s13 {
+	font-size : 13px;
+}
+
+.brownish {
+	background-color : #eebb88;
+}
+
+.white {
+	background-color : white;
+}
+
+/* The following settings are for all pages in newsrack except a few
+ * which are for "newsrack.vm" and have been designated as such */
+div.main {
+	width            : 760px;
+	height           : auto;
+	font-size        : 14px;
+	background-color : #e6ccb3;
+	text-align       : left;
+	margin           : 5px auto;
+	padding          : 2px 15px;
+}
+
+table.userhome h1, div.main h1 {
+	margin-top      : 5px;
+}
+
+ /* class form.signin is used only in "newsrack.vm" */
+form.signin {
+	width           : 220px;
+	font-size       : 14px;
+	background-color: #aaccee;
+	border          : 1px solid #0088ff;
+	margin          : 20px auto;
+	padding         : 4px 0px;
+}
+
+div.formelt {
+	width           : auto;
+	margin          : 1px 1px 5px 1px;
+	padding         : 0px 1px 0px 5px;
+	font-weight     : bold;
+}
+
+div.formelt input.text {
+	position         : absolute;
+	right            : 2px;
+	height           : 18px;
+	width            : 120px;
+	margin           : 0px 2px 0px 0px;
+	padding          : 0px;
+	background-color : white;
+	border           : 1px solid #0088ff;
+}
+
+div.formelt input.file_browse {
+	position         : absolute;
+	right            : 0px;
+	margin           : 0px 2px 0px 0px;
+	padding          : 0px;
+	background-color : white;
+	border           : 1px solid #0088ff;
+}
+
+div.mandatory:after { 
+	font-size : 10px;
+	color     : red;
+	content   : "*";
+}
+
+div.forgot_password {
+   font-size  : 9px;
+   padding    : 15px 2px 2px 2px;
+   text-align : center;
+}
+
+div.forgot_password a {
+   font-weight : bold;
+}
+
+input.submit {
+	width            : auto;
+	background-color : #ffdd99;
+	border           : 1px;
+	margin           : 10px 5px 2px 5px;
+	padding          : 0px;
+
+/* Why does the submit button behave different from other input buttons?? 
+ * It behaves as if it does not belong to the form ... because absolute positioning
+ * doesn't work for it whereas it works great for the text elements.
+ * Also, inheritance works differently .. see comment below!  */
+/*
+	width            : 60px;
+	position         : relative;
+	left             : 70px;
+*/
+/* Why aren't these 3 properties inherited ?? */
+	font-family      : verdana, sans-serif, arial, helvetica;
+	font-size        : 14px;
+	font-weight      : bold;
+}
+
+hr.separator {
+	margin  : 0px;
+	padding : 0px;
+}
+
+div.description {
+	position        : relative;
+	top             : 0px;
+	left            : 25px;
+	width           : 710px;
+	height          : auto;
+	color           : black;
+	margin          : 0px 0px 10px 0px;
+	text-align      : justify;
+	padding         : 0px;
+}
+
+div.description h2 {
+	text-decoration  : underline;
+	padding          : 0px;
+	margin           : 5px 0px 5px 0px;
+}
+
+/* class div.links and other child classes are used only in "newsrack.vm" */
+div.links {
+	width      : 230px;
+	text-align : center;
+	margin     : 0px;
+	padding    : 2px;
+}
+
+div.links a.link {
+	font-size       : 14px;
+	font-weight     : bold;
+	padding         : 0px 3px 0px 3px;
+	text-decoration : none;
+	color           : #aa3333;
+}
+
+/* The following styles are for "register.vm" and "register.profile.vm" */ 
+h2.register {
+	text-decoration : underline;
+}
+
+form.register, form.upload {
+	width           : auto;
+	height          : auto;
+	font-size       : 14px;
+	background-color: #aaccee;
+	border          : 1px solid #0088ff;
+	padding         : 4px 0px;
+}
+
+form.register {
+	width  : 300px;
+	margin : 5px auto;
+}
+
+form.upload {
+	margin : 20px auto 15px auto;
+}
+
+div.public_files {
+	width           : auto;
+	border          : 1px solid #0088ff;
+	background-color: white;
+}
+
+div.publicfiletypes {
+	margin    : 10px auto;
+	font-size : 14px;
+}
+
+div.public_files ul {
+	margin       : 5px 0px 10px 0px;
+	padding-left : 30px;
+}
+
+div.public_files a, div.publicfiletypes a {
+	color           : #113399;
+	font-weight     : bold;
+	text-decoration : none;
+}
+
+div.public_files a:hover, div.publicfiletypes a:hover {
+	background      : #113399;
+	color           : white;
+}
+
+/* The following styles are for displaying errors */ 
+div.errors {
+	text-align : left;
+	margin  : 1px;
+	padding : 1px;
+	color   : #dd4444;
+}
+
+div.errors p {
+	margin   : 2px;
+	padding  : 2px;
+}
+
+div.errors span.filename {
+	color      : #4444dd; 
+}
+
+div.errors span.linenum {
+	color      : #4444dd; 
+}
+
+div.errors b {
+	font-weight : bold;
+	font-style  : italic;
+	color       : red;
+}
+
+div.bodymain {
+	margin : 5px auto;
+	text-align : center;
+}
+
+/* Userhome.vm: The following styles are for userhome.vm */ 
+table.userhome {
+	background-color : #e6ccb3;
+	width            : 760px;
+	height           : 100%;
+	margin           : 0px auto;
+	padding          : 0px;
+	font-family      : verdana, sans-serif, arial, helvetica;
+	font-size        : 13px;
+}
+
+table.userhome p {
+	margin     : 4px;
+	padding    : 4px 10px;
+	text-align : justify;
+}
+
+table.userhome ul li, table.userhome ol li {
+	padding-right : 15px;
+}
+
+table.userhome h2, table.userhome h3 {
+	padding-left : 7px;
+}
+
+td.site_header {
+	background-color : #aa6644;
+	height           : 60px;
+	border-bottom    : 4px solid #442211;
+}
+
+div.site_header {
+	font-family      : sans-serif;
+	font-weight      : bold;
+	text-align       : center;
+	font-size        : 30px;
+	color            : white;
+}
+
+a.sign_out {
+	position        : absolute;
+	right           : 5px;
+	bottom          : 1px;
+	padding         : 7px 10px;
+	font-size       : 13px;
+	color           : white;
+	text-decoration : none;
+}
+
+a.helplink {
+	font-weight : bold;
+}
+
+a.helplink:hover {
+	color            : white;
+	background-color : black;
+}
+
+td.left_menu {
+	padding          : 10px 0px;
+	width            : 115px;
+	background-color : #eebb88;
+	border-right     : 4px solid #442211;
+	text-align       : center;
+	vertical-align   : top;
+	font-family      : verdana, sans-serif, arial, helvetica;
+	font-size        : 12px;
+}
+
+div.menu_hdr {
+	background-color : #aa6644;
+	margin           : 0px 0px 5px 0px;
+	padding          : 2px;
+	text-align       : center;
+	font-weight      : bold;
+	font-size        : 16px;
+	color            : white;
+}
+
+div.menu_link {
+	margin          : 1px 2px;
+	padding         : 2px 4px;
+}
+
+div.menu_link a {
+	color           : black;
+	text-decoration : none;
+}
+
+div.menu_link a:hover {
+	color            : white;
+	background-color : black;
+}
+
+table.userhome td.user_space {
+	border           : none;
+	height           : 100%;
+	padding          : 15px 40px;
+	vertical-align   : top;
+}
+
+table.userhome td.user_news_space {
+	border           : none;
+	height           : 100%;
+	vertical-align   : top;
+}
+
+/* edit.profile.vm: The following styles are for displaying profiles */ 
+table.editprofile, table.publicfiles {
+	font-size    : 12px;
+	border       : 1px solid #88aacc;
+	background   : white;
+	margin-bottom : 25px;
+}
+
+table.editprofile td, table.publicfiles td {
+	border       : 1px solid #88aacc;
+	padding      : 2px 5px;
+}
+
+table.editprofile td.files {
+	text-align   : right;
+}
+
+table.editprofile td.actions {
+	vertical-align : top;
+}
+
+table.editprofile a.newfile {
+	text-decoration : none;
+	font-weight     : bold;
+	color           : #dd2222;
+}
+
+table.editprofile a.newfile:hover {
+	background      : #dd2222;
+	color           : white;
+}
+
+tr.tblhdr {
+	font-size        : 13px;
+	font-weight      : bold;
+	text-align       : center;
+	color            : black;
+}
+
+tr.tblhdr td {
+	background-color : #aaccee;
+	padding          : 1px 2px;
+	border           : 1px solid #88aacc;
+}
+
+td.hdrcol {
+	background-color : #aaccee;
+	font-size        : 13px;
+	font-weight      : bold;
+	text-align       : center;
+	padding          : 1px 2px;
+}
+
+table.editprofile a, table.publicfiles a {
+	text-decoration  : none;
+	color            : #113399;
+}
+
+table.editprofile a:hover, table.publicfiles a:hover {
+	background-color : #113399;
+	color            : white;
+}
+
+a.browsecat, a.browseleafcat {
+	padding          : 1px 2px;
+/*	font-weight      : bold; */
+	text-decoration  : none;
+}
+
+a.browsecat {
+	color            : #880000;
+}
+
+a.browseleafcat {
+	color            : #008800;
+}
+
+a.browsecat:hover {
+	background-color : #880000;
+	color            : white;
+}
+
+a.browseleafcat:hover {
+	background-color : #008800;
+	color            : white;
+}
+
+a.rssfeed {
+   font-weight      : bold;
+	text-decoration  : none;
+	padding          : 0px 2px;
+	color            : #ff3311;
+}
+
+a.rssfeed img {
+	vertical-align: middle;
+   border : none;
+}
+
+div.browsenewshdr {
+	font-size        : 13px;
+	text-align       : center;
+	margin           : 0px;
+	padding          : 10px 5px 5px 5px;
+	border           : 1px solid #ccddee;
+	background-color : #ddeeff;
+   color            : #777777;
+}
+
+div.browsenewshdr span.impHdrElt { 
+   color: black;
+   padding-right: 10px;
+}
+
+div.browsenewshdr div.catpath {
+   margin: 0px 0px 10px 0px;
+}
+
+div.browsenewshdr div.statusline {
+   text-align : left;
+   position   : relative;
+   color      : black;
+}
+
+div.browsenewshdr div.statusline a.rssfeed {
+   position   : absolute;
+   display    : block;
+   top        : 0px;
+   right      : 7px;
+	color      : #ff3311;
+}
+
+span.artcount {
+/*   font-weight : bold; */
+}
+
+span.newartcount {
+   font-weight : bold;
+	font-size   : 11px;
+	color       : black;
+}
+
+div.newsnavbar {
+	position         : relative;
+	left             : 0px;
+	top              : 0px;
+	text-align       : left;
+	border           : 0px solid #bbddff;
+	background-color : #aaccee;
+	padding          : 3px 10px;
+	font-weight      : bold;
+	color            : black;
+}
+
+div.newsnavbar input {
+   color       : red;
+   font-weight : bold;
+   font-size   : 10px;
+   margin      : 0px 5px 0px -5px;
+   padding     : 0px;
+	background-color : white;
+   border      : 1px solid black;
+}
+
+div.newsnavbar div.navbar {
+	position    : absolute;
+	right       : 5px;
+	top         : 3px;
+	color       : #777777;
+}
+
+div.newsnavbar div.navbar a {
+	font-weight    : bold;
+	color          : black;
+	text-decoration: none;
+}
+
+div.newsnavbar div.navbar a:hover {
+	color            : white;
+	background-color : black;
+}
+
+div.issuelisting {
+	width      : 100%;
+	margin     : 10px auto;
+	padding    : 0px 0px 15px 0px;
+	font-size  : 9px;
+	background : #f8f8f8;
+	line-height : 200%;
+}
+
+div.issuelisting h1 {
+	background  : #aaccee;
+	font-weight : normal;
+	margin      : 0px 0px 7px 0px;
+	padding     : 3px;
+	text-decoration: none;
+}
+
+div.issuelisting a {
+	font-size : 12px;
+}
+
+/* browse.vm and userhome.vm: The following styles are for displaying issues */ 
+table.issuelisting, table.userissuelisting, table.catlisting {
+	width      : 100%;
+	margin     : 10px auto;
+	font-size  : 12px;
+	background : #f8f8f0;
+}
+
+table.issuelisting tr.tblhdr td, table.userissuelisting tr.tblhdr td, table.catlisting tr.tblhdr td {
+	background  : #aaccee;
+	padding     : 1px 2px;
+	border      : 1px solid #88aacc;
+}
+
+table.issuelisting td, table.userissuelisting td, table.catlisting td {
+	padding      : 2px 3px;
+	border-right : 1px solid #88aacc;
+	border-left  : 1px solid #88aacc;
+}
+
+/* browse.news.vm and display.news.vm: The following styles are 
+ * for displaying categories and news */ 
+div.catlisting {
+	width  : 100%;
+}
+
+table.catlisting {
+	margin : 0px;
+}
+
+table.news, table.newsbysrc {
+	margin     : 0px;
+	padding    : 5px 0px;
+	font-size  : 11px;
+	background : #e6ccb3;
+}
+
+table.news, table.newsbysrc {
+	padding     : 1px 2px 2px 5px;
+	font-weight : normal;
+	width       : 100%;
+}
+
+table.news td {
+/*	font-weight : bold; */
+}
+
+table.newsbysrc td.unclassified {
+	text-align  : center;
+}
+
+table.news tr.tblhdr td, table.newsbysrc tr.tblhdr td {
+	font-size  : 15px;
+	border     : 0px;
+	padding    : 5px 0px;
+	background : #eebb88;
+}
+
+tr.newsbysrc {
+	border     : 1px dotted #bfbfbf;
+	background : #f0e0c0;
+   padding    : 2px 0px;
+}
+
+tr.newsbysrc td a {
+   font-weight : bold;
+}
+
+a.sortheader {
+	text-decoration : none;
+	color           : white;
+}
+
+a.sortheader img {
+	vertical-align: middle;
+	background: transparent;
+	border : none;
+}
+
+tr.newsbasic td {
+	border     : 1px solid #ffddaa;
+	background : #f0e0c0;
+}
+
+tr.newsdesc td {
+	margin      : 1px;
+	padding     : 5px 30px;
+	font-weight : normal;
+	font-style  : italic;
+}
+
+tr.newscats td {
+	margin      : 1px;
+	padding     : 1px 60px 10px 60px;
+	font-size   : 10px;
+}
+
+tr.newscats a {
+	text-decoration: none;
+	color          : #008800;
+}
+
+tr.newscats a:hover {
+	color            : white;
+	background-color : #008800;
+}
+
+td.newstitle {
+	width      : 400px;
+	padding    : 1px 2px 1px 5px;
+	text-align : left;
+	font-size  : 11px;
+}
+
+td.newstitle input.delbox {
+   border     : 1px solid black;
+   background : white;
+   margin     : 0px 13px 0px 17px;
+}
+
+td.newstitle a {
+	font-size       : 11px;
+	text-decoration : none;
+	padding         : 1px 1px;
+}
+
+a.filteredArt {
+	color : #880000;
+}
+
+a.filteredArt:hover {
+	color            : white;
+	background-color : #880000;
+}
+
+a.originalArt {
+	font-weight     : bold;
+	color : #000088;
+}
+
+a.originalArt:hover {
+	color            : white;
+	background-color : #224488;
+}
+
+a.originalArt span {
+   color: red;
+}
+
+a.originalArt:hover span {
+   color: white;
+}
+
+td.newsdate {
+	width        : 75px;
+	text-align   : center;
+}
+
+td.newssource {
+	width        : 145px;
+	text-align   : center;
+}
+
+div#newsItemCats {
+	padding          : 5px 10px;
+	background-color : white;
+}
+div#newsItemCats a {
+	text-decoration: none;
+	color          : #aa0000;
+	font-weight    : bold;
+}
+div#newsItemCats a:hover {
+	color            : white;
+	background-color : #226622;
+}
+
+div#newsItemHdr {
+	padding          : 5px 10px;
+	background-color : #88aacc;
+}
+div#newsItemHdr a {
+	text-decoration: none;
+	font-weight    : bold;
+	color          : white;
+}
+div#newsItemHdr a:hover {
+	color            : #88aacc;
+	background-color : white;
+}
+
+/* edit.file.vm */
+form.editfile {
+	width           : 600px;
+	height          : auto;
+/*	background-color: #ccccff; */
+	background-color: #aaccee;
+	border          : 1px solid #0088ff;
+	margin          : 10px 0px 20px 0px;
+	padding         : 4px 0px 4px 0px;
+}
+
+/* reclassify.vm */
+table.dates {
+	margin     : 5px auto;
+	font-size  : 13px;
+	background : transparent;
+}
+
+table.dates td {
+	padding  : 5px 10px;
+}
+
+table.dates td.tblhdr {
+	background-color : #aa6644;
+	color : white;
+}
+
+table.dates tr.tblhdr td {
+	background-color : #aaccee;
+	color            : black;
+	padding          : 1px 2px 1px 2px;
+}
+
+form.editfileform {
+	height          : auto;
+	font-size       : 14px;
+	background-color: #aaccee;
+	border          : 1px solid #0088ff;
+	margin          : 1px auto;
+	padding         : 0px;
+	padding-bottom  : 10px;
+}

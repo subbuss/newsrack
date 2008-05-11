@@ -1,0 +1,36 @@
+import sources {rss.feeds} from subbu
+
+DEFINE CONCEPTS {energy}
+   &lt;energy&gt; = energy, electricity, power
+   &lt;hydel&gt; = hydel, hydro, hydro-electricity, hydro-power, hydel-power
+   &lt;wind&gt; = wind-power, wind, wind-mill
+   &lt;coal&gt; = coal, lignite, coal-fired
+   &lt;oil&gt; = oil, petroleum
+   &lt;gas&gt; = gas, gas-fired, gas-powered
+   &lt;nuclear&gt; = nuclear, nuke-power
+   &lt;solar&gt; = solar
+   &lt;biomass&gt; = bio-mass, bio-gas
+   &lt;cogen&gt; = co-generation, cogen
+   &lt;ignore&gt; = iran, korea, iranian, korean
+   &lt;renewables&gt; = renewable, &lt;wind&gt;, &lt;solar&gt;, &lt;biomass&gt;
+END CONCEPTS
+
+DEFINE ISSUE Energy
+   MONITOR SOURCES {rss.feeds}
+   ORGANIZE NEWS INTO CATEGORIES
+   {
+      [Conventional] = {
+         [Coal] = coal AND energy
+         [Hydel] = hydel AND energy
+         [Nuclear] = nuclear AND energy AND -ignore
+         [Oil "and" Gas] = (oil OR gas) AND energy
+      }
+      [Non-Conventional] = {
+         [Biomass] = biomass AND energy
+         [Cogeneration] = cogen AND energy
+         [Solar] = solar AND energy
+         [Wind] = wind AND energy
+      }
+      [Renewables] = renewables AND energy
+   }
+END ISSUE

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 3.0//EN"
+        "http://tuckey.org/res/dtds/urlrewrite3.0.dtd">
+
+<!--
+    Configuration file for UrlRewriteFilter
+    http://tuckey.org/urlrewrite/
+-->
+<urlrewrite>
+  <rule>
+    <from>^/?$</from>
+	 </to>/home.action</to>
+  </rule>
+
+  <rule>
+    <from>^/([^\.]*)\?(.*)$</from>
+	 <to>/$1.action$2</to>
+  </rule>
+
+  <rule>
+    <from>^/([^\.]*)$</from>
+	 <to>/$1.action</to>
+  </rule>
+
+  <rule>
+    <from>(.*)</from>
+	 <to>$1</to>
+  </rule>
+
+  <outbound-rule>
+    <from>(.*).action(.*)</from>
+	 <to>$1$2</to>
+  </outbound-rule>
+</urlrewrite>

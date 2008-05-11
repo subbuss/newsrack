@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="NewsRack" default="help" basedir=".">
+   <description>
+     Build file for the NewsRack web application
+   </description>
+
+  <target name="help" description="Help">
+     <echo>
+    "ant build"    compiles all Java files
+    "ant compile"  compiles all Java files
+    "ant clean"    removes all class files
+    "ant rebuild"  rebuilds all class files (clean, compile)
+    "ant war"      builds the war file
+     </echo>
+  </target>
+  
+  <property name="container.dir"     value="/var/lib/tomcat5.5" />
+  <property name="webapp.name"       value="newsrack" />
+  <property name="home"              location="." />
+  <property name="srcdir"            location="${home}/src" />
+  <property name="javadir"           location="${srcdir}/${webapp.name}" />
+  <property name="viewdir"           location="${srcdir}/views" />
+  <property name="libdir"            location="${home}/lib" />
+  <property name="webapp.config"     location="${home}/config" />
+  <property name="webapp.resources"  location="${home}/resources" />
+  <property name="builddir"          location="${home}/build" />
+  <property name="wardir"            location="${builddir}/${webapp.name}" />
+  <property name="webinf"            location="${wardir}/WEB-INF/" />
+  <property name="classdir"          location="${wardir}/WEB-INF/classes" />
+  <property name="compiler.optimize" value="false" />
+  <property name="compiler.debug"    value="false" />
+  <property name="parser.dir"        location="${javadir}/filter/parser" />
+
+  <uptodate property="parser.src.uptodate"
+            srcfile="${parser.dir}/grammar.y"
+         targetfile="${parser.dir}/NRLanguageParser.java" />
+
+  <uptodate property="scanner.src.uptodate" targetfile="${parser.dir}/NRLanguageScanner.java">
+      <srcfiles dir="${parser.dir}">
+        <filename name="scanner.l" />
+        <filename name="NRLanguageParser.java" />
+      </srcfiles>
+  </uptodate>
+
+  <path id="build.classpath">
+    <fileset dir="${libdir}">
+      <include name="**/*.jar" />
+    </fileset>
+  </path>
+
+  <target name="beavertask" unless="beaver.available" description="creates Beaver Ant task">
+    <taskdef name="beaver" classname="beaver.comp.run.AntTask" classpath="${libdir}/beaver.jar"/>
+    <property name="beaver.available" value="yes"/>
+  </target>
+
+  <target name="jflextask" unless="jflex.available" description="creates JFlex Ant task">
+    <taskdef name="jflex" classname="JFlex.anttask.JFlexTask" classpath="${libdir}/JFlex.jar"/>
+    <property name="jflex.available" value="yes"/>
+  </target>
+
+  <target name="parser" depends="beavertask" description="generate parser">
+    <beaver file="${parser.dir}/grammar.y" />
+  </target>
+
+  <target name="scanner" unless="scanner.src.uptodate" depends="jflextask,beavertask" description="generate scanner">
+    <jflex file="${parser.dir}/scanner.l" nobak="yes" />
+  </target>
+
+  <target name="compile" description="Compile all sources.">
+    <mkdir dir="${classdir}" />
+    <javac srcdir="${srcdir}" 
+           destdir="${classdir}" 
+         includes="newsrack/**" 
+         debug="on"
+         excludes="**/attic/**,**/XML/**,**/NEW/**,**/old/**,**/test/**,**/db4o/**,**/sql.*/**,**/search/**,**/Zipped*">
+         <classpath refid="build.classpath" />
+      </javac>
+  </target>
+
+  <!-- "build" is an alias for "compile" -->
+  <target name="build" depends="parser,scanner,compile" description="Compile all sources." />
+
+  <target name="rebuild" depends="clean,build" description="Cleanly compiles all sources." />
+
+  <target name="prepare" description="Copies all necessary resources into the build dir">
+    <copy todir="${webinf}">          <fileset dir="${webapp.config}"/> </copy>
+    <copy todir="${webinf}/classes">  <fileset dir="${webapp.resources}"/> </copy>
+    <copy todir="${webinf}/lib">      <fileset dir="${libdir}"/> </copy>
+    <copy todir="${webinf}/crawlers"> <fileset dir="${home}/crawlers"/> </copy>
+    <copy todir="${wardir}">       <fileset dir="${viewdir}" /> </copy>
+  </target>
+
+  <target name="war" depends="build,prepare" description="Builds the war file">
+    <war destfile="${builddir}/${webapp.name}.war" webxml="${webinf}/web.xml"> <fileset dir="${wardir}" /> </war>
+  </target>
+
+  <target name="deploy" depends="war" description="Deploys the web application">
+     <copy file="${builddir}/${webapp.name}.war" todir="${container.dir}/webapps/" />
+  </target>
+
+  <target name="updateweb" description="Updates ftl files in the deployed app">
+     <copy todir="${container.dir}/webapps/${webapp.name}/"> <fileset dir="${viewdir}" /> </copy>
+  </target>
+
+  <target name="clean" description="Remove all generated class and build files.">
+    <delete file="${parser.dir}/NRLanguageParser.java" />
+    <delete file="${parser.dir}/NRLanguageScanner.java" />
+    <delete file="${builddir}/${webapp.name}.war" />
+    <delete dir="${wardir}" />
+  </target>
+</project>
