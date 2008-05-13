@@ -13,11 +13,11 @@
 <@s.if test="#user">
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
-<#include "/ftl/errors.ftl">
+<#include "/ftl/layout/errors.ftl">
 				<!-- Password change form -->
 		<h1> Renaming file <@s.property value="file" /></h1>
 		<div class="ie_center_hack">
@@ -32,7 +32,7 @@
 </table>
 </div>
 </@s.if>
-<@s.else> <#include "/ftl/no.user.ftl"> </@s.else>
-<#include "/ftl/footer.ftl" parse="n">
+<@s.else> <#include "/ftl/layout/no.user.ftl"> </@s.else>
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

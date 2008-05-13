@@ -9,11 +9,15 @@
 
 <body>
 
-<#if user><div class="bodymain">
+<#if user>
+<div class="bodymain">
 <table class="userhome" cellspacing="0">
-	<#include "/ftl/user.header.ftl"><tr>
-	<#include "/ftl/left.menu.ftl">	<td class="user_space">
-	<#include "/ftl/errors.ftl">	<#include "/ftl/messages.ftl">
+	<#include "/ftl/layout/header.ftl">
+  <tr>
+	<#include "/ftl/layout/left.menu.ftl">
+  <td class="user_space">
+	<#include "/ftl/layout/errors.ftl">
+  <#include "/ftl/layout/messages.ftl">
 	<h1 class="underline">Browse News By Source</h1>
 
 	<div class="ie_center_hack">
@@ -23,16 +27,21 @@
 	<tr> <td class="tblhdr center bold"> Sources </td> </tr>
 	<tr> <td class="brownish center">
 	<select name="source" size="10">
-<#assign srcs = user.getSources()><#foreach s in srcs>	<option value="${s.getTag()}">${s.getName()}</option>
-</#foreach>	</select>
+<#assign srcs = user.getSources()>
+<#foreach s in srcs>
+    <option value="${s.getTag()}">${s.getName()}</option>
+</#foreach>
+  </select>
 	</tr>
 
 	<tr> <td class="tblhdr center bold"> Date </td> </tr>
 	<tr>
 	<td class=" center brownish">
 	<select name="d">
-<#foreach num in 1..31>	<option value="${num}">${num}</option>
-</#foreach>	</select>
+<#foreach num in 1..31>
+    <option value="${num}">${num}</option>
+</#foreach>
+  </select>
 	<select name="m">
 	<option selected value="1">Jan</option>
 	<option value="2">Feb</option>
@@ -48,8 +57,10 @@
 	<option value="12">Dec</option>
 	</select>
 	<select name="y">
-<#foreach num in 2004..2006>	<option value="${num}">${num}</option>
-</#foreach>	<option selected value="2007">2007</option>
+<#foreach num in 2004..2006>
+    <option value="${num}">${num}</option>
+</#foreach>
+    <option selected value="2007">2007</option>
 	</select>
 	</td>
 	</tr>
@@ -65,7 +76,7 @@
 </tr>
 </table>
 </div>
-<#else><#include "/ftl/no.user.ftl"></#if>
-<#include "/ftl/footer.ftl" parse="n">
+<#else><#include "/ftl/layout/no.user.ftl"></#if>
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

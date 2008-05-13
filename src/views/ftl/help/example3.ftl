@@ -11,8 +11,8 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">	<td class="user_space">
+<#include "/ftl/layout/header.ftl"><tr>
+<#include "/ftl/layout/left.menu.ftl">	<td class="user_space">
 
 	<h1 class="underline center">Example 3: Cricket as well as Kashmir news from Rediff</h1>
 	<p>
@@ -29,7 +29,7 @@
 
 	<hr noshade="noshade">
 <pre>
-<#include "/ftl/example3.code"></pre>
+<#include "/ftl/help/example3.code"></pre>
 	<hr noshade="noshade">
 
 	</td>
@@ -37,6 +37,6 @@
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

@@ -27,9 +27,12 @@ function resetForm()
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl"><td class="user_space">
-<#include "/ftl/errors.ftl"><#include "/ftl/messages.ftl">
+<#include "/ftl/layout/header.ftl">
+<tr>
+<#include "/ftl/layout/left.menu.ftl">
+<td class="user_space">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 <div class="ie_center_hack">
 
 <@s.form name="editform" cssClass="editfileform" namespace="/file" action="new" method="post">
@@ -58,6 +61,6 @@ function resetForm()
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

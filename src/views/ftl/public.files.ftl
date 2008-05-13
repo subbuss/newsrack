@@ -11,9 +11,9 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
 <h1 class="underline"> Publicly available files </h1>
 
@@ -58,6 +58,6 @@
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

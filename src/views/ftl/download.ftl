@@ -14,12 +14,12 @@
 <@s.if test="#user">
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
-<#include "/ftl/errors.ftl">
-<#include "/ftl/messages.ftl">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 	<h1 class="underline"> Download news </h1>
 	<p>
 	Periodically (every 2 hours at this time), news is automatically
@@ -42,9 +42,9 @@
 </div>
 </@s.if>
 <@s.else>
-<#include "/ftl/no.user.ftl" parse="y">
+<#include "/ftl/layout/no.user.ftl" parse="y">
 <@/s.else>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

@@ -10,15 +10,15 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
 <#if signoutMessage><p style="color: blue; font-weight:bold; text-align:center"> ${signoutMessage} </p>
 <hr class="separator" noshade="noshade">
 </#if>
-<#include "/ftl/errors.ftl">
-<#include "/ftl/messages.ftl">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 <div>
 
 <p> Please enter your user id.  A password reset link will be sent to the email id you used to register. </p>
@@ -32,7 +32,7 @@
 
 <p>
 If you don't know your user id,
-<a href="<@s.url value="ftl/contact.ftl" />">send email</a>
+<a href="<@s.url namespace="/about" action="contact" />">send email</a>
 specifying the email you used to register, and we'll send you
 a password reset link, if possible, to your registered email id.
 </p>
@@ -44,6 +44,6 @@ a password reset link, if possible, to your registered email id.
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

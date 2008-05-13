@@ -34,24 +34,24 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-[#include "/ftl/user.header.ftl"]
+[#include "/ftl/layout/header.ftl"]
 <tr>
-[#include "/ftl/left.menu.ftl"]
+[#include "/ftl/layout/left.menu.ftl"]
 <td class="user_news_space">
-[#include "/ftl/messages.ftl"]
-[#include "/ftl/errors.ftl"]
+[#include "/ftl/layout/messages.ftl"]
+[#include "/ftl/layout/errors.ftl"]
 	<div class="ie_center_hack">
-      <div class="issuelisting" style="margin:0px auto">
+    <div class="issuelisting" style="margin:0px auto">
 [#call displayIssues(mostRecentUpdates, mostRecentUpdates.size(), "issues updated since " + lastDownloadTime)] <br /><br />
 [#call displayIssues(last24HourUpdates, last24HourUpdates.size(), "other issues updated within the last 24 hours")] <br /><br />
 [#call displayIssues(oldestUpdates, oldestUpdates.size(), "other issues updated more than 24 hours back")]
 		</div>
-   </div>
+  </div>
 </td>
 </tr>
 </table>
 </div>
 
-[#include "/ftl/footer.ftl" parse="n"]
+[#include "/ftl/layout/footer.ftl" parse="n"]
 </body>
 </html>

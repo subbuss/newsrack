@@ -10,10 +10,17 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl"><td class="user_space">
-<#include "/ftl/errors.ftl"><#include "/ftl/messages.ftl">
-<#assign readonly = false><#if readonly><#include "/ftl/maintenance.ftl"><#else><h1> Register with News Rack</h1>
+<#include "/ftl/layout/header.ftl">
+<tr>
+<#include "/ftl/layout/left.menu.ftl">
+<td class="user_space">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
+<#assign readonly = false>
+<#if readonly>
+<#include "/ftl/layout/maintenance.ftl">
+<#else>
+<h1> Register with News Rack</h1>
 
 <p>
 Please fill the form below to register yourself. Once you are registered
@@ -44,7 +51,7 @@ downloading news of your interest.
 <br />
 
 <p>
-If you have an user account, <a href="<@s.url value="ftl/signin.ftl" />"><strong>sign in</strong></a>
+If you have an user account, <a href="<@s.url namespace="/forms" action="login" />"><strong>sign in</strong></a>
 or, you can skip registration and <a href="<@s.url namespace="/" action="browse" />"><strong>browse publicly available
 issues</strong></a> of other registered users.
 </p>
@@ -56,6 +63,6 @@ issues</strong></a> of other registered users.
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

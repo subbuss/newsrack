@@ -13,11 +13,11 @@
 <@s.if test="#user">
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
-<#include "/ftl/errors.ftl">
+<#include "/ftl/layout/errors.ftl">
 		<h1>Password change form for <@s.property value="#user.uid" /></h1>
 
 				<!-- Password change form -->
@@ -35,8 +35,8 @@
 </div>
 </@s.if>
 <@s.else>
-<#include "/ftl/no.user.ftl">
+<#include "/ftl/layout/no.user.ftl">
 </@s.else>
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

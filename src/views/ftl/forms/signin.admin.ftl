@@ -10,11 +10,14 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl"><td class="user_space">
+<#include "/ftl/layout/header.ftl">
+<tr>
+<#include "/ftl/layout/left.menu.ftl">
+<td class="user_space">
 <#if signoutMessage><p style="color: blue; font-weight:bold; text-align:center"> ${signoutMessage} </p>
 <hr class="separator" noshade="noshade">
-</#if><#include "/ftl/errors.ftl"><#include "/ftl/messages.ftl">
+</#if><#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 <div class="ie_center_hack">
 
 <h1> Administrator sign in </h1>
@@ -31,6 +34,6 @@
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

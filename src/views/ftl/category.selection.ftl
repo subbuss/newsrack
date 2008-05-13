@@ -44,8 +44,8 @@ a.selcat:hover { padding: 2px 0px; text-decoration: none; background-color: #882
 
 <div class="bodymain")">
 <table class="userhome" cellspacing="0")">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl"><td class="user_space")">
+<#include "/ftl/layout/header.ftl"><tr>
+<#include "/ftl/layout/left.menu.ftl"><td class="user_space")">
 <div class="catselection")">
 <h1>Selected news categories</h1>
 <div>
@@ -205,6 +205,6 @@ for a complete listing of classified news across all users.
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

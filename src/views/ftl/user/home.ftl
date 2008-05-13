@@ -14,12 +14,12 @@
 <@s.if test="#user">
 <div class="bodymain">
 <table class="userhome">
-	<#include "/ftl/user.header.ftl">
+	<#include "/ftl/layout/header.ftl">
 	<tr>
-	<#include "/ftl/left.menu.ftl">
+	<#include "/ftl/layout/left.menu.ftl">
 	<td class="user_space">
-	<#include "/ftl/errors.ftl">
-	<#include "/ftl/messages.ftl">
+	<#include "/ftl/layout/errors.ftl">
+	<#include "/ftl/layout/messages.ftl">
 		<h1 class="underline"><@s.property value="#user.uid" />'s news space</h1>
 		<p> </p>
 	<@s.if test="!#user.validated">
@@ -87,8 +87,8 @@
 </div>
 </@s.if>
 <@s.else> <#-- user signed in -->
-<#include "/ftl/no.user.ftl">
+<#include "/ftl/layout/no.user.ftl">
 </@s.else>
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

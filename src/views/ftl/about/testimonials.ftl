@@ -10,8 +10,8 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">   <td class="user_space">
+<#include "/ftl/layout/header.ftl"><tr>
+<#include "/ftl/layout/left.menu.ftl">   <td class="user_space">
 	<h1 class="left"> Awards </h1>
 	<p>
 	NewsRack was one of the receipients of the <a href="http://www.manthanaward.org/NewsRack.asp">
@@ -114,6 +114,6 @@
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

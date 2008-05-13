@@ -11,8 +11,8 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">	<td class="user_space">
+<#include "/ftl/layout/header.ftl"><tr>
+<#include "/ftl/layout/left.menu.ftl">	<td class="user_space">
 	<h1 class="underline"> Credits </h1>
 	<p> This project was conceived in March 2004 and it has come this far
 	with the help of three FLOSS fellowships from Sarai.  Even though
@@ -38,6 +38,6 @@
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

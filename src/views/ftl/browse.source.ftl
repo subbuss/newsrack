@@ -46,10 +46,14 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">	<td class="user_news_space">
-<#include "/ftl/errors.ftl"><#include "/ftl/messages.ftl"><#if errorMessage>	<p style="font-size: 14px; text-align:center; color:red">${errorMessage}</p>
-</#if>		<!-- DISPLAY THE HEADER -->
+<#include "/ftl/layout/header.ftl">
+<tr>
+<#include "/ftl/layout/left.menu.ftl">
+<td class="user_news_space">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
+<#if errorMessage>	<p style="font-size: 14px; text-align:center; color:red">${errorMessage}</p> </#if>
+<!-- DISPLAY THE HEADER -->
 		<div class="browsenewshdr">
 			<span style="color:#777777">User:</span> ${userID} &nbsp;&nbsp;&nbsp;
 			<span style="color:#777777">Source:</span> ${src.getName()} &nbsp;&nbsp;&nbsp;
@@ -100,6 +104,6 @@
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

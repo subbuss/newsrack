@@ -117,12 +117,12 @@ function toggleCheckBoxes(divObj)
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-[#include "/ftl/user.header.ftl"]
+[#include "/ftl/layout/header.ftl"]
 <tr>
-[#include "/ftl/left.menu.ftl"]
+[#include "/ftl/layout/left.menu.ftl"]
 <td class="user_news_space">
-[#include "/ftl/errors.ftl"]
-[#include "/ftl/messages.ftl"]
+[#include "/ftl/layout/errors.ftl"]
+[#include "/ftl/layout/messages.ftl"]
 [#if dispDelFlag]
 <form action="[@s.url namespace="/news" action="delete" /]" method="post">
 <input type="hidden" name="issue" value="${issueName}">
@@ -152,7 +152,7 @@ function toggleCheckBoxes(divObj)
          </div>
       </div>
 
-      [#-- COMPUTE VARIOUS INDICES INTO THE LIST --]
+  [#-- COMPUTE VARIOUS INDICES INTO THE LIST --]
 [#assign numArts = cat.getNumArticles()]
 [#if start?exists]
 	[#assign startId = start?number]
@@ -185,7 +185,9 @@ function toggleCheckBoxes(divObj)
 [#else]
 		<!-- DISPLAY the navigation bar -->
   [#call displayNavigationBar]
+  [#if dispDelFlag]
   <div id="check_all_button" onclick="toggleCheckBoxes(this)">Check all</div>
+  [/#if]
 		<!-- DISPLAY NEWS -->
   [#assign startNewsId = startId-1]
 	[#assign news = cat.getNews(startNewsId, numArtsPerPage)]
@@ -199,7 +201,7 @@ function toggleCheckBoxes(divObj)
 			[#-- Display the news item  - title, date, source ### --]
 		<tr class="newsbasic">
          <td class="newstitle">
-         [#if !storyTitle?exists || storyTitle.length() == 0]
+      [#if !storyTitle?exists || storyTitle.length() == 0]
 				[#assign storyTitle = "<span>ERROR: Missing Story Title</span>"]
 			[/#if]
 			[#if addNTButton]
@@ -223,7 +225,7 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.getDate())}';
 			[/#if]
 			[#if ni.getDisplayCachedTextFlag()]
 					(<a target="_blank" rel="nofollow" class="filteredArt" href="[@s.url namespace="/news" action="display" ni="ni.getLocalCopyPath()" /]">Cached</a>)
-         [/#if]
+      [/#if]
 			</td>
          <td class="newsdate">${ni.getDateString()}</td> 
          <td class="newssource">${srcName}</td>
@@ -231,28 +233,21 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.getDate())}';
 [#-- Display the news item description ### --]
 			[#if ni.getDescription()?exists]
 		<tr class="newsdesc"> <td colspan="3"> ${ni.getDescription()} </td> </tr>
-         [/#if]
+      [/#if]
 			[#-- Display the other categories it belongs to ### --]
-			[#assign cats = ni.getCategories()]
-			[#if (cats.size()>1)]
+      [@s.set name="cats" value="${ni.categories}" /]
+      [@s.if test="cats.size() > 1"]
 		<tr class="newscats"> 
 			<td colspan="3">
 			<span class="normal underline">Also found in:</span>
-            [#foreach nc in cats]
-					[#assign ncCat = nc]
-					[#assign ncUid = ncCat.getUser().getUid()]
-					[#assign ncIssue = ncCat.getIssue().getName()]
-					[#assign ncCatID = ncCat.getCatId()]
-					[#assign ncCatName = ncCat.getName()]
-					[#if ncCat.getKey() != cat.getKey()]
-			[${ncUid} ::
-[#--          <a href="[@s.url namespace="/" action="browse" owner="$ncUid" issue="$ncIssue" /]">$ncIssue</a> : --]
-				<a href="[@s.url namespace="/" action="browse" owner="${ncUid}" issue="${ncIssue}" catID="${ncCatID}" /]">${ncCatName}</a>] &nbsp;
-               [/#if]
-				[/#foreach]
-			[/#if]
+        [@s.iterator value="cats"]
+					[@s.if test="!key.equals(cat.key)"]
+			[${ncUid} :: <a href="[@s.url namespace="/" action="browse" owner="${user.uid}" issue="${issue.name}" catID="${catId}" /]">${name}</a>] &nbsp;
+          [/@s.if]
+        [/@s.iterator]
+			[/@s.if]
 			</td>
-      </tr>
+    </tr>
       [/#if]
 	[/#foreach]
 		</table>
@@ -266,6 +261,6 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.getDate())}';
 </table>
 </div>
 
-[#include "/ftl/footer.ftl" parse="n"]
+[#include "/ftl/layout/footer.ftl" parse="n"]
 </body>
 </html>

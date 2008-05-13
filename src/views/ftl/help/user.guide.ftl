@@ -10,7 +10,7 @@ h3 { font-size: 14px; text-decoration: underline; text-align: left }
 h4 { font-size: 13px; text-decoration: underline; text-align: left }
 ul li { margin-bottom: 5px; }
 li em { font-weight: bold; font-style: normal; }
-* pre { background-color: <#call ddeeff>; border : 1px solid #0088ff; width: 600px; margin: 5px 0px 5px 30px; padding: 10px; font-family: monospace; font-size: 12px; }
+* pre { background-color:#ddeeff; border : 1px solid #0088ff; width: 600px; margin: 5px 0px 5px 30px; padding: 10px; font-family: monospace; font-size: 12px; }
 .nrcode { font-family: monospace; font-size: 12px; font-style: italic;}
 li pre { margin-left : -9px; }
 </style>
@@ -25,7 +25,7 @@ li pre { margin-left : -9px; }
 
 <p> The user guide is still being written.  It will continue
 to be updated and made more readable.  Please feel free to
-<a href="<@s.url value="ftl/contact.ftl" />"> email me your questions </a>.
+<a href="<@s.url namespace="/about" action="contact" />"> email me your questions </a>.
 </p>
 
 <ol>
@@ -440,6 +440,6 @@ and deleting them.  The delete option shows up when you are signed in and browse
 </div>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

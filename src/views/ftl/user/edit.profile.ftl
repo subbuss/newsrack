@@ -42,13 +42,13 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 <#assign user = Session.user>
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
 <#-- FIRST, DISPLAY ANY ERRORS AND MESSAGES -->
-<#include "/ftl/errors.ftl">
-<#include "/ftl/messages.ftl">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 	<#assign hasIssues = user.isValidated()>
 	<#assign issues = user.getIssues()>
 	<#-- NEXT, DISPLAY THE USER'S PROFILE TABLE -->
@@ -127,7 +127,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 	</td>
 </table>
 </div>
-<#else>	<#include "/ftl/no.user.ftl"></#if>
-<#include "/ftl/footer.ftl" parse="n">
+<#else>	<#include "/ftl/layout/no.user.ftl"></#if>
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

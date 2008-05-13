@@ -26,12 +26,12 @@ div#newsItemCats {
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
   <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
   <td class="user_news_space">
-<#include "/ftl/errors.ftl">
-<#include "/ftl/messages.ftl">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 <@s.if test="url">
   <div id="newsItemHdr">
 	This article was downloaded from: <@s.property value="url" />
@@ -62,6 +62,6 @@ div#newsItemCats {
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

@@ -29,12 +29,12 @@ function resetForm()
 <@s.if test="#user">
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
-<#include "/ftl/errors.ftl">
-<#include "/ftl/messages.ftl">
+<#include "/ftl/layout/errors.ftl">
+<#include "/ftl/layout/messages.ftl">
 <div class="ie_center_hack">
 <form name="editform" class="editfileform" action="<@s.url namespace="/file" action="save" />" method="post">
 <h1><span style="color:#777777">File:</span> <@s.property value="file" /></h1>
@@ -54,7 +54,7 @@ function resetForm()
 </table>
 </div>
 </@s.if>
-<@s.else> <#include "/ftl/no.user.ftl"> </@s.else>
-<#include "/ftl/footer.ftl" parse="n">
+<@s.else> <#include "/ftl/layout/no.user.ftl"> </@s.else>
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

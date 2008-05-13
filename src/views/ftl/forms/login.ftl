@@ -10,16 +10,19 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl">
+<#include "/ftl/layout/header.ftl">
 <tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
-<#include "/ftl/errors.ftl">
-<#include "/ftl/messages.ftl">
+<#include "/ftl/layout/errors.ftl">
+<div style="left:15px; width:auto"> testing errors: <@s.actionerror /> </div>
+<#include "/ftl/layout/messages.ftl">
 <div>
 
 <#assign readonly = false>
-<#if readonly><#include "/ftl/maintenance.ftl"><#else>
+<#if readonly>
+<#include "/ftl/layout/maintenance.ftl">
+<#else>
 <h1> Sign In </h1>
 
 <p>
@@ -49,6 +52,6 @@ yourself.  If you register, you monitor topics that interest you.
 </table>
 </div>
 
-<#include "/ftl/footer.ftl" parse="n">
+<#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

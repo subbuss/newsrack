@@ -16,8 +16,8 @@ p {
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">
+<#include "/ftl/layout/header.ftl"><tr>
+<#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
 	<h1 class="left">About NewsRack</h1>
 
@@ -30,7 +30,7 @@ p {
 	</p>
 
 	<p style="font-weight:bold; background:white">
-	Visit <a href="<@s.url value="ftl/category.selection.ftl" />">
+	Visit <a href="<@s.url namespace="/" action="selected-topics" />">
 	a selection of news categories</a> from profiles of various users or else
 	<a href="<@s.url action="browse" />">browse the entire public 
 	archives</a> to see some examples of news classification into categories.
@@ -82,7 +82,7 @@ p {
 	provide RSS feeds.  For sites without RSS feeds, work is ongoing to
 	provide support via site-specific crawlers.  For now, there is a
 	functioning crawler for
-	<a href="<@s.url value="ftl/extras.rss-feeds.ftl" />"> several
+	<a href="<@s.url namespace="/extras" action="crawled-feeds" />"> several
 	papers</a> (even though they
 	do not provide RSS feeds).  But, there is no generic solution for other
 	sites yet.  This mean that news from such newspapers cannot be monitored
@@ -99,5 +99,6 @@ p {
 </tr>
 </table>
 </div>
-<#include "/ftl/footer.ftl" parse="n"></body>
+<#include "/ftl/layout/footer.ftl" parse="n">
+</body>
 </html>

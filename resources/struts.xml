@@ -89,7 +89,7 @@
     </action>
 
     <action name="browse" class="newsrack.web.BrowseAction">
-      <result name="browse.main">/ftl/browse.ftl</result>
+      <result name="browse.main">/ftl/browse.main.ftl</result>
       <result name="browse.issue">/ftl/browse.issue.ftl</result>
       <result name="browse.cat">/ftl/browse.cat.ftl</result>
       <result name="browse.news">/ftl/browse.news.ftl</result>
@@ -133,14 +133,11 @@
       <result>/ftl/forms/change.password.ftl</result>
     </action>
 
+	 	<!-- forgot-password, new-file, edit-file, rename-file, reclassify-news, browse-sources -->
+    <action name="*-*"> <result>/ftl/forms/{1}.{2}.ftl</result> </action>
+	 	<!-- login, register -->
     <action name="login"> <result>/ftl/forms/login.ftl</result> </action>
     <action name="register"> <result>/ftl/forms/register.ftl</result> </action>
-    <action name="forgot-password"> <result>/ftl/forms/forgot.password.ftl</result> </action>
-    <action name="new-file"> <result>/ftl/forms/new.file.ftl</result> </action>
-    <action name="edit-file"> <result>/ftl/forms/edit.file.ftl</result> </action>
-    <action name="rename-file"> <result>/ftl/forms/rename.file.ftl</result> </action>
-    <action name="reclassify-news"> <result>/ftl/forms/reclassify.news.ftl</result> </action>
-    <action name="browse-source"> <result>/ftl/forms/browse.sources.ftl</result> </action>
   </package>
 
   <package name="user" extends="app-default" namespace="/user">
@@ -194,13 +191,9 @@
       <interceptor-ref name="simpleLoginFileStack" />
     </action>
 
-    <action name="display" class="newsrack.web.FileAction" method="display" />
-
-    <action name="save" class="newsrack.web.FileAction" method="save" />
-
     <action name="new" class="newsrack.web.FileAction" method="createNew" />
-
-    <action name="rename" class="newsrack.web.FileAction" method="rename" />
+	 	<!-- display, download, copy, save, rename -->
+    <action name="*" class="newsrack.web.FileAction" method="{1}" />
   </package>
 
     <!-- Administrative actions -->
@@ -220,7 +213,6 @@
     </action>
 
     <action name="refresh-caching-rules" class="newsrack.web.AdminAction" method="refreshCachingRules" />
-
     <action name="refresh-global-properties" class="newsrack.web.AdminAction" method="refreshGlobalProperties" />
   </package>
 
@@ -232,22 +224,16 @@
     <!-- HELP! -->
   <package name="help" extends="app-default" namespace="/help">
     <default-interceptor-ref name="simpleStack" />
-    <action name="help"> <result>/ftl/help/help.ftl</result> </action>
     <action name="user-guide"> <result>/ftl/help/user.guide.ftl</result> </action>
-    <action name="example1"> <result>/ftl/help/example1.ftl</result> </action>
-    <action name="example2"> <result>/ftl/help/example2.ftl</result> </action>
-    <action name="example3"> <result>/ftl/help/example3.ftl</result> </action>
+	 	<!-- help, example1, example2, example3 -->
+    <action name="*"> <result>/ftl/help/{1}.ftl</result> </action>
   </package>
 
     <!-- Various about pages! -->
   <package name="about" extends="app-default" namespace="/about">
     <default-interceptor-ref name="simpleStack" />
-    <action name="about"> <result>/ftl/about/about.ftl</result> </action>
-    <action name="credits"> <result>/ftl/about/credits.ftl</result> </action>
-    <action name="contact"> <result>/ftl/about/contact.ftl</result> </action>
-    <action name="disclaimer"> <result>/ftl/about/disclaimer.ftl</result> </action>
-    <action name="faq"> <result>/ftl/about/faq.ftl</result> </action>
-    <action name="testimonials"> <result>/ftl/about/testimonials.ftl</result> </action>
+	 	<!-- about, credits, contact, disclaimer, faq, testimonials -->
+    <action name="*"> <result>/ftl/about/{1}.ftl</result> </action>
   </package>
 
     <!-- Extras -->
