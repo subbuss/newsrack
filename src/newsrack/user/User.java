@@ -5,6 +5,7 @@ import newsrack.database.DB_Interface;
 import newsrack.filter.Issue;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
+import newsrack.filter.PublicFile;
 import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
 import newsrack.util.PasswordService;
@@ -144,7 +145,7 @@ public class User
 		return u;
 	}
 
-	public static List<String> getPublicFiles()
+	public static List<PublicFile> getPublicFiles()
 	{
 		return _db.getAllPublicUserFiles();
 	}

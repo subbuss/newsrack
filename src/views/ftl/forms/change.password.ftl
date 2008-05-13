@@ -9,12 +9,16 @@
 
 <body>
 
-<#if user><div class="bodymain">
+<@s.set name="user" value="#session.user" />
+<@s.if test="#user">
+<div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">	<td class="user_space">
+<#include "/ftl/user.header.ftl">
+<tr>
+<#include "/ftl/left.menu.ftl">
+<td class="user_space">
 <#include "/ftl/errors.ftl">
-		<h1>Password change form for ${user.uid}</h1>
+		<h1>Password change form for <@s.property value="#user.uid" /></h1>
 
 				<!-- Password change form -->
 		<div class="ie_center_hack">
@@ -29,7 +33,10 @@
 </tr>
 </table>
 </div>
-<#else><#include "/ftl/no.user.ftl"></#if>
+</@s.if>
+<@s.else>
+<#include "/ftl/no.user.ftl">
+</@s.else>
 <#include "/ftl/footer.ftl" parse="n">
 </body>
 </html>

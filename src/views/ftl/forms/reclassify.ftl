@@ -9,11 +9,16 @@
 
 <body>
 
-<#if user><div class="bodymain">
+<@s.set name="user" value="#session.user" />
+<@s.if test="#user">
+<div class="bodymain">
 <table class="userhome" cellspacing="0">
-	<#include "/ftl/user.header.ftl"><tr>
-	<#include "/ftl/left.menu.ftl">	<td class="user_space">
-	<#include "/ftl/errors.ftl">	<#include "/ftl/messages.ftl">
+<#include "/ftl/user.header.ftl">
+<tr>
+<#include "/ftl/left.menu.ftl">
+<td class="user_space">
+<#include "/ftl/errors.ftl">
+<#include "/ftl/messages.ftl">
 	<h1 class="underline">Reclassify news from archive</h1>
 	<p>
 	You can reclassify news from the available news archive.  You might be interested
@@ -21,12 +26,16 @@
 	want to find any related news items from the archive. 
 	</p>
 
-<#assign xxx = request.setCharacterEncoding("UTF-8")><#assign issue = request.getParameter("issue")>	<#--#
--->	<#--# If no issues are specified as a parameter
--->	<#--# simply display a list of issues that are defined for this user
--->	<#--# and let the user pick one!
--->	<#--#
---><#if !issue><#assign issues = user.getIssues()>	<div class="ie_center_hack">
+<#assign xxx = request.setCharacterEncoding("UTF-8")>
+<#assign issue = request.getParameter("issue")>
+<#--
+ # If no issues are specified as a parameter
+ # simply display a list of issues that are defined for this user
+ # and let the user pick one!
+ # -->
+<#if !issue>
+<#assign issues = user.getIssues()>
+<div class="ie_center_hack">
 	<form class="ie_center_hack" method="post" action="<@s.url value="ftl/reclassify.ftl" />">
 	<table class="dates">
 	<tr> <td class="tblhdr center bold"> Issues </td> </tr>
@@ -41,12 +50,13 @@
 	</table>
 	</form>
 	</div>
-<#else>	<#--#
--->	<#--# If some issues is specified as a parameter,
--->	<#--# simply display the list of sources that are defined for the issue
--->	<#--# and let the user pick the sources and dates for reclassification.
--->	<#--#
--->	<div class="ie_center_hack">
+<#else>
+<#--
+ # If some issues is specified as a parameter,
+ # simply display the list of sources that are defined for the issue
+ # and let the user pick the sources and dates for reclassification.
+ # -->
+<div class="ie_center_hack">
 	<form class="ie_center_hack" method="post" action="<@s.url namespace="/news" action="reclassify" />">
 	<table class="dates">
 
@@ -167,7 +177,8 @@
 </tr>
 </table>
 </div>
-<#else><#include "/ftl/no.user.ftl"></#if>
+</@s.if>
+<@s.else> <#include "/ftl/no.user.ftl"> </@s.else>
 <#include "/ftl/footer.ftl" parse="n">
 </body>
 </html>

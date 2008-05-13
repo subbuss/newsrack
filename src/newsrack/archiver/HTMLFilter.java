@@ -1,7 +1,6 @@
 package newsrack.archiver;
 
 import newsrack.util.IOUtils;
-import newsrack.util.StringUtils;
 
 import org.htmlparser.Parser;
 import org.htmlparser.Tag;

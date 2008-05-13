@@ -11,11 +11,14 @@
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl"><td class="user_space">
+<#include "/ftl/user.header.ftl">
+<tr>
+<#include "/ftl/left.menu.ftl">
+<td class="user_space">
 <h1 class="underline"> Publicly available files </h1>
 
-<#if publicFiles>	<p class="justify">
+<@s.if test="publicFiles">
+<p class="justify">
 	The following table lists all public files that are available.
 	You can download any of them onto your computer, edit them to suit your needs 
 	and then upload your versions of the files into your user space to create your profile.
@@ -32,20 +35,24 @@
 		</tr>
 	</thead>
 	<tbody>
-	<#foreach fff in publicFiles><#assign o = fff.getFileOwner()><#assign f = fff.getFileName()><#assign s = fff.toString()>		<tr>
-			<td style="padding: 2px 20px 2px 20px"> ${o} </td>
+  <@s.iterator value="publicFiles">
+    <tr>
+			<td style="padding: 2px 20px 2px 20px"> <@s.property value="fileOwner" /> </td>
 			<td> 
-			${f} [
-			<a target="_blank" href="<@s.url namespace="/file" action="display" owner="o" file="f" />">View</a>,
-			<a href="<@s.url namespace="/file" action="copy" owner="o" file="f" />">Copy</a>,
-			<a href="<@s.url namespace="/file" action="download" owner="o" file="f" />">Download</a>
+			<@s.property value="fileName" /> [
+			<a target="_blank" href="<@s.url namespace="/file" action="display" owner="${fileOwner}" file="${fileName}" />">View</a>,
+			<a href="<@s.url namespace="/file" action="copy" owner="${fileOwner}" file="${fileName}" />">Copy</a>,
+			<a href="<@s.url namespace="/file" action="download" owner="${fileOwner}" file="${fileName}" />">Download</a>
 			] </td>
 		</tr>
-	</#foreach>	</tbody>
+	</@s.iterator>
+  </tbody>
 	</table>
 	</div>
-<#else><p> Sorry, there are no publicly available files yet. </p>
-</#if>
+</@s.if>
+<@s.else>
+<p> Sorry, there are no publicly available files yet. </p>
+</@s.else>
 </tr>
 </td>
 </table>

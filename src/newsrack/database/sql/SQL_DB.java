@@ -19,6 +19,7 @@ import newsrack.filter.Filter;
 import newsrack.filter.Filter.FilterOp;
 import newsrack.filter.Filter.RuleTerm;
 import newsrack.filter.Issue;
+import newsrack.filter.PublicFile;
 import newsrack.filter.Privacy;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
@@ -954,9 +955,9 @@ public class SQL_DB extends DB_Interface
       return (List<String>)GET_ALL_FILES_BY_USER_KEY.execute(new Object[]{u.getKey()});
    }
 
-   public List<String> getAllPublicUserFiles()
+   public List<PublicFile> getAllPublicUserFiles()
    {
-      return (List<String>)GET_ALL_PUBLIC_FILES.execute(EMPTY_ARGS);
+      return (List<PublicFile>)GET_ALL_PUBLIC_FILES.execute(EMPTY_ARGS);
    }
 
 	public void invalidateUserProfile(User u)

@@ -3,6 +3,8 @@ package newsrack.web;
 import java.io.IOException;
 import java.util.List;
 
+import newsrack.filter.PublicFile;
+
 import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
@@ -22,10 +24,10 @@ public class PublicFilesAction extends BaseAction
    private static Log _log = LogFactory.getLog(PublicFilesAction.class);	/* Logger for this action class */
 
 	private User _user;
-	private List<String> _publicFiles;
+	private List<PublicFile> _publicFiles;
 
 	public User getUser() { return _user; }
-	public List<String> getPublicFiles() { return _publicFiles; }
+	public List<PublicFile> getPublicFiles() { return _publicFiles; }
 
    public String execute()
 	{

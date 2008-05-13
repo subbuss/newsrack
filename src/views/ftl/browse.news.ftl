@@ -1,8 +1,8 @@
 [#ftl]
-[#assign cat = stack.findValue('cat')]
-[#assign issueName = stack.findValue('issue.name')]
-[#assign ownerID = stack.findValue('owner.uid')]
-[#assign ancestors = stack.findValue('catAncestors')]
+[#assign cat = stack.findValue("cat")]
+[#assign issueName = stack.findValue("issue.name")]
+[#assign ownerID = stack.findValue("owner.uid")]
+[#assign ancestors = stack.findValue("catAncestors")]
 
 [#if Parameters.count?exists]
 	[#assign numArtsPerPage = Parameters.count?number]
@@ -73,6 +73,44 @@
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
 <link rel="alternate" type="application/rss+xml" title="RSS feed for ${cat.getName()}" href="${cat.getRSSFeedURL()}" />
 <title>News archived in the [#if cat?exists] ${cat.getName()} category in the [/#if] ${issueName} topic for user ${ownerID}</title>
+<style>
+div#check_all_button { 
+  width:58px;
+  margin-left:5px;
+  padding:2px 0;
+  text-align:center;
+  background:white;
+  color:red;
+  font-size:10px;
+  font-weight:bold;
+  border:1px solid black;
+  cursor:pointer;
+}
+</style>
+<script type="text/javascript">
+var checked = false;
+function toggleCheckBoxes(divObj)
+{
+  var boxes = document.getElementsByTagName('input');
+  for (i = 0; i < boxes.length; i++) {
+    var box = boxes[i];
+    if (box.type == "checkbox") {
+      box.checked = !checked; /* !box.checked; */
+    }
+  }
+
+  if (!checked) {
+    checked = true;
+    divObj.innerHTML = "Uncheck All";
+    divObj.style.width = "70px";
+  }
+  else {
+    checked = false;
+    divObj.innerHTML = "Check All";
+    divObj.style.width = "58px";
+  }
+}
+</script>
 </head>
 
 <body>
@@ -146,12 +184,13 @@
 		<p class="bold center"> No news yet in this category! </p>
 [#else]
 		<!-- DISPLAY the navigation bar -->
-   [#call displayNavigationBar]
+  [#call displayNavigationBar]
+  <div id="check_all_button" onclick="toggleCheckBoxes(this)">Check all</div>
 		<!-- DISPLAY NEWS -->
-   [#assign startNewsId = startId-1]
+  [#assign startNewsId = startId-1]
 	[#assign news = cat.getNews(startNewsId, numArtsPerPage)]
 		<table class="news">
-   [#foreach nc in 1..numArtsPerPage]
+  [#foreach nc in 1..numArtsPerPage]
 		[#if news.hasNext()]
 			[#assign ni = news.next()]
 			[#assign url = ni.getURL()]

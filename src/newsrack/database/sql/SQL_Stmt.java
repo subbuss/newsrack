@@ -22,6 +22,7 @@ import newsrack.filter.Category;
 import newsrack.filter.Filter;
 import newsrack.filter.Filter.*;
 import newsrack.filter.Issue;
+import newsrack.filter.PublicFile;
 import newsrack.user.User;
 import newsrack.filter.NR_CollectionType;
 import newsrack.filter.NR_Collection;
@@ -104,6 +105,21 @@ class GetUserResultProcessor extends AbstractResultProcessor
 		u.setName(rs.getString(4));
 		u.setEmail(rs.getString(5));
 		return u;
+	}
+}
+
+class GetPublicFilesResultProcessor extends AbstractResultProcessor
+{
+	public Object processResultSet(ResultSet rs) throws SQLException { return new Tuple<String, Long>(rs.getString(1), rs.getLong(2)); }
+
+	public List processOutputList(List l)
+	{
+		List ol = new ArrayList();
+		for (Object o: l) {
+			Tuple<String, Long> t = (Tuple<String, Long>)o;
+			ol.add(new PublicFile(t._a, SQL_Stmt._db.getUser(t._b).getUid()));
+		}
+		return ol;
 	}
 }
 
@@ -833,13 +849,11 @@ public enum SQL_Stmt
 		false
 	),
    GET_ALL_PUBLIC_FILES(
-      "SELECT file_name FROM user_files_table ORDER BY file_name",
+      "SELECT file_name, u_key FROM user_files_table ORDER BY u_key",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
-		new AbstractResultProcessor() {
-			public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return rs.getString(1); }
-		},
+		new GetPublicFilesResultProcessor(),
 		false
    ),
 	GET_ALL_ACTIVE_FEEDS(

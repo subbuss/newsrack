@@ -9,16 +9,20 @@
 
 <body>
 
-<#if user><#assign file = request.getParameter("file")><div class="bodymain">
+<@s.set name="user" value="#session.user" />
+<@s.if test="#user">
+<div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">	<td class="user_space">
+<#include "/ftl/user.header.ftl">
+<tr>
+<#include "/ftl/left.menu.ftl">
+<td class="user_space">
 <#include "/ftl/errors.ftl">
 				<!-- Password change form -->
-		<h1> Renaming file ${file} </h1>
+		<h1> Renaming file <@s.property value="file" /></h1>
 		<div class="ie_center_hack">
 		<form class="register" style="width:260px" action="<@s.url namespace="/file" action="rename" />" method="post">
-		<input type="hidden" name="name" value="${file}"> 
+		<input type="hidden" name="name" value="<@s.property value="file" />"> 
 		<div class="formelt"> New Name : <input class="text" name="newname"> </div>
 		<div align="center"> <input class="submit" name="submit" value="Rename" type="submit"> </div>
 		</form>
@@ -27,7 +31,8 @@
 </tr>
 </table>
 </div>
-<#else><#include "/ftl/no.user.ftl"></#if>
+</@s.if>
+<@s.else> <#include "/ftl/no.user.ftl"> </@s.else>
 <#include "/ftl/footer.ftl" parse="n">
 </body>
 </html>

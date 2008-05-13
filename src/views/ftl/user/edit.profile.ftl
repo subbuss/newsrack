@@ -27,7 +27,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 			<a target="_blank" href="<@s.url namespace="/file" action="display" file="${f}" />">View</a>,
 			<a href="<@s.url namespace="/forms" action="rename-file" file="${f}" />">Rename</a>,
 			<a href="<@s.url namespace="/forms" action="edit-file" file="${f}" />">Edit</a>,
-			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="${f}" /></@s.url>">Delete</a>
+			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f}'" /></@s.url>">Delete</a>
 			]
 			<br />
 	</#foreach>
@@ -76,7 +76,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 			<a class="newfile" href="<@s.url namespace="/forms" action="new-file" />">Create New File</a>
 
 			<form class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
-			<input class="file_browse" size="10" name="file" type="file" />
+			<input class="file_browse" size="10" name="uploadedFile" type="file" />
 			<div align="center"><input class="submit" name="submit" value="Upload" type="submit"></div>
 			</form>
 

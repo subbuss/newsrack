@@ -1,7 +1,7 @@
 [#ftl]
-[#assign issue = stack.findValue('issue')]
-[#assign issueName = stack.findValue('issue.name')]
-[#assign ownerID = stack.findValue('owner.uid')]
+[#assign issue = stack.findValue("issue")]
+[#assign issueName = stack.findValue("issue.name")]
+[#assign ownerID = stack.findValue("owner.uid")]
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>

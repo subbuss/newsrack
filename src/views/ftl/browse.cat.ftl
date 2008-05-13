@@ -1,8 +1,8 @@
 [#ftl]
-[#assign cat = stack.findValue('cat')]
-[#assign issueName = stack.findValue('issue.name')]
-[#assign ownerID = stack.findValue('owner.uid')]
-[#assign ancestors = stack.findValue('catAncestors')]
+[#assign cat = stack.findValue("cat")]
+[#assign issueName = stack.findValue("issue.name")]
+[#assign ownerID = stack.findValue("owner.uid")]
+[#assign ancestors = stack.findValue("catAncestors")]
 
 [#-- #################################### --]
 [#-- Recursive macro to display ancestors --]

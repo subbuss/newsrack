@@ -19,6 +19,7 @@ import newsrack.filter.Category;
 import newsrack.filter.Concept;
 import newsrack.filter.Filter;
 import newsrack.filter.Issue;
+import newsrack.filter.PublicFile;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
 
@@ -291,7 +292,7 @@ public abstract class DB_Interface
    public abstract List<String> getFiles(User u);
 
 	/** Get a list of all public user file names */
-   public abstract List<String> getAllPublicUserFiles();
+   public abstract List<PublicFile> getAllPublicUserFiles();
 
 /* #### Support for Issue #### */
 	public abstract Issue getIssue(Long key);

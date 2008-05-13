@@ -1,5 +1,4 @@
-<#-- VIM hack to allow syntax highlighting (the DOCTYPE below screws up VIM)
---><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 
 <head>
@@ -10,12 +9,17 @@
 
 <body>
 
-<#--#if ($user) -->
+<@s.set name="user" value="#session.user" />
+
+<@s.if test="#user">
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-<#include "/ftl/user.header.ftl"><tr>
-<#include "/ftl/left.menu.ftl">	<td class="user_space">
-<#include "/ftl/errors.ftl"><#include "/ftl/messages.ftl">
+<#include "/ftl/user.header.ftl">
+<tr>
+<#include "/ftl/left.menu.ftl">
+<td class="user_space">
+<#include "/ftl/errors.ftl">
+<#include "/ftl/messages.ftl">
 	<h1 class="underline"> Download news </h1>
 	<p>
 	Periodically (every 2 hours at this time), news is automatically
@@ -36,9 +40,10 @@
 </tr>
 </table>
 </div>
-<#--#else-->
-<#--#parse("/ftl/no.user.ftl") -->
-<#--#end -->
+</@s.if>
+<@s.else>
+<#include "/ftl/no.user.ftl" parse="y">
+<@/s.else>
 
 <#include "/ftl/footer.ftl" parse="n">
 </body>

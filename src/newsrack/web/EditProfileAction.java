@@ -22,15 +22,9 @@ public class EditProfileAction extends BaseAction
    private static final Log _log = LogFactory.getLog(EditProfileAction.class); /* Logger for this action class */
 
 	private User   _user;
-	private String _fileBaseName;
 
 	public User   getUser() { return _user; }
-
 	public String getUserHome() { return _user.getFileUploadArea(); }
-
-	public String getBaseFileName() { return _fileBaseName; }
-
-	public String getFileName() { return _user.getRelativeFilePath(_fileBaseName); }
 
    public String execute()
 	{
@@ -39,7 +33,7 @@ public class EditProfileAction extends BaseAction
 		String action = getParam("action");
 		if (action != null) {
 			if (action.equals("deleteFile")) {
-				String name = getParam("name");
+				String name = getParam("file");
 				try {
 					_user.deleteFile(name);
 				}
@@ -77,9 +71,6 @@ public class EditProfileAction extends BaseAction
 			else if (action.equals("disableActiveProfile")) {
             try { _user.invalidateAllIssues(); }
             finally { BrowseAction.setIssueUpdateLists(); }
-			}
-			else if (action.equals("displayFile")) {
-				_fileBaseName = getParam("name");
 			}
 			else if (action.equals("freeze")) {
 				String iname = getParam("issue");

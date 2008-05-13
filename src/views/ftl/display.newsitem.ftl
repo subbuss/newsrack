@@ -1,11 +1,10 @@
-<#-- VIM hack to allow syntax highlighting (the DOCTYPE below screws up VIM)
---><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<#-- Prevent crawlers from caching the content
---><meta name="ROBOTS" content="NOARCHIVE,NOINDEX">
+<#-- Prevent crawlers from caching the content -->
+<meta name="ROBOTS" content="NOARCHIVE,NOINDEX">
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 <title>${title}</title>
 <style>
@@ -13,7 +12,7 @@
 td.user_news_space pre {
    margin : 5px 10px;
 }
-div<#call newsItemCats> {
+div#newsItemCats {
 	width       : auto;
 	background  : white;
 	font-weight : normal;
@@ -27,25 +26,37 @@ div<#call newsItemCats> {
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
-	<#include "/ftl/user.header.ftl"><tr>
-	<#include "/ftl/left.menu.ftl">	<td class="user_news_space">
-	<#include "/ftl/errors.ftl">	<#include "/ftl/messages.ftl"><#if url>	<div id="newsItemHdr">
-	This article was downloaded from: ${url}
+<#include "/ftl/user.header.ftl">
+  <tr>
+<#include "/ftl/left.menu.ftl">
+  <td class="user_news_space">
+<#include "/ftl/errors.ftl">
+<#include "/ftl/messages.ftl">
+<@s.if test="url">
+  <div id="newsItemHdr">
+	This article was downloaded from: <@s.property value="url" />
 	</div>
-</#if><#if ni>	<div id="newsItemCats">
-<#--	This article has been classified in the following NewsRack categories [USER : ISSUE : CATEGORY] <br />
--->	This article has been classified in the following NewsRack categories [USER :: CATEGORY] <br />
+</@s.if>
+<@s.if test="ni">
+  <div id="newsItemCats">
+<#--	This article has been classified in the following NewsRack categories [USER : ISSUE : CATEGORY] <br /> -->
+  This article has been classified in the following NewsRack categories [USER :: CATEGORY] <br />
 	<span style="font-weight:bold">
-	<#assign cats = ni.getCategories()>	<#foreach nc in cats><#assign cat = nc><#assign uid = cat.getUser().getUid()><#assign issue = cat.getIssue().getName()><#assign catID = cat.getCatId()><#assign catName = cat.getName()>	[${uid} ::
-<#--	 <a href="<@s.url namespace="/" action="browse" owner="uid" issue="issue" />">$issue</a> : -->
-	<a href="<@s.url namespace="/" action="browse" owner="uid" issue="issue" catID="catID" />">${catName}</a>] &nbsp;
-	</#foreach>	</span>
+  <@s.iterator value="ni.categories">
+    [<@s.property value="user.uid" /> ::
+     <a href="<@s.url namespace="/" action="browse" owner="user.uid" issue="issue.name" catID="catId" />">name</a>] &nbsp;
+    <#--	 <a href="<@s.url namespace="/" action="browse" owner="uid" issue="issue" />">$issue</a> : -->
+	</@s.iterator>
+  </span>
 	</div>
-<#else>	<div id = "newsItemCats">
+</@s.if>
+<@s.else>
+  <div id = "newsItemCats">
 	FOUND NO CLASSIFIED CATS!
 	</div>
-</#if>	<h1> ${title} </h1>
-	${body}
+</@s.else>
+  <h1> <@s.property value="title" /> </h1>
+  <@s.property value="body"  </h1>
 	</td>
 </tr>
 </table>

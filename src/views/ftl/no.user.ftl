@@ -6,12 +6,11 @@
 You can do one of the following:
 <ul>
 <li> If you were signed in, then the session has probably expired!  Please
-    <a href=${vsLink.setForward("signin.failure")}>sign in</a> again to access your 
-	 user space. </li>
+    <a href="<@s.url namespace="/forms" action="login" />">log in</a> again to access your user space. </li>
 <li> If you do not have an user account, you can <a href="${vsLink.setForward("goto.register")}">register</a> for one. </li>
-<#--<li> Else, you can <a href="$vsLink.setAction("Search")">search</a> the
---><#--	  news archives made publicly available by other users. </li>
---><li> Or, you can <a href="${vsLink.setAction("Browse")}">browse</a> the publicly available news archives instead.</li>
+<#--<li> Else, you can <a href="$vsLink.setAction("Search")">search</a> the -->
+<#--	  news archives made publicly available by other users. </li> -->
+<li> Or, you can <a href="<@s.url namespace="/" action="browse" />">browse</a> the publicly available news archives instead.</li>
 </ul>
 </p>
 </div> <!-- class = "main" -->
