@@ -9,6 +9,8 @@
 
 <body>
 
+<#assign months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]>
+
 <@s.set name="user" value="#session.user" />
 <@s.if test="#user">
 <div class="bodymain">
@@ -26,24 +28,27 @@
 	want to find any related news items from the archive. 
 	</p>
 
-<#assign xxx = request.setCharacterEncoding("UTF-8")>
-<#assign issue = request.getParameter("issue")>
-<#--
- # If no issues are specified as a parameter
- # simply display a list of issues that are defined for this user
- # and let the user pick one!
- # -->
-<#if !issue>
-<#assign issues = user.getIssues()>
+<#assign user = stack.findValue("#user")>
+<#if !Parameters.issue?exists>
+  <#--
+   # If no issues are specified as a parameter
+   # simply display a list of issues that are defined for this user
+   # and let the user pick one!
+   # -->
+  <#assign issues = user.getIssues()>
 <div class="ie_center_hack">
 	<form class="ie_center_hack" method="post" action="<@s.url value="ftl/reclassify.ftl" />">
 	<table class="dates">
 	<tr> <td class="tblhdr center bold"> Issues </td> </tr>
 	<tr>
 	<td>
-		<center><select name="issue" size="5">
-	<#foreach i in issues>		<option value="${i.getName()}">${i.getName()}</option>
-	</#foreach>		</select></center>
+		<center>
+    <select name="issue" size="5">
+	<#foreach i in issues>
+    <option value="${i.getName()}">${i.getName()}</option>
+	</#foreach>
+    </select>
+    </center>
 	</td>
 	</tr>
 	<tr> <td class="brownish center"> <input type="submit" name="Reclassify" value="Reclassify News"> </td> </tr>
@@ -51,11 +56,12 @@
 	</form>
 	</div>
 <#else>
-<#--
- # If some issues is specified as a parameter,
- # simply display the list of sources that are defined for the issue
- # and let the user pick the sources and dates for reclassification.
- # -->
+  <#assign issue = Parameters.issue>
+  <#--
+   # If some issues is specified as a parameter,
+   # simply display the list of sources that are defined for the issue
+   # and let the user pick the sources and dates for reclassification.
+   # -->
 <div class="ie_center_hack">
 	<form class="ie_center_hack" method="post" action="<@s.url namespace="/news" action="reclassify" />">
 	<table class="dates">
@@ -71,57 +77,49 @@
 	<tr> <td class="brownish center" colspan="2">
 	<b>All Sources</b> <input type="checkbox" name="allSources"> <hr />
 	<select name="srcs" multiple size="10">
-<#assign srcs = user.getIssue(issue).getMonitoredSources()><#foreach s in srcs>	<option value="${s.getTag()}">${s.getName()}</option>
-</#foreach>	</select>
+  <#assign srcs = user.getIssue(issue).getMonitoredSources()>
+  <#foreach s in srcs>
+  <option value="${s.getTag()}">${s.getName()}</option>
+  </#foreach>
+  </select>
 	</tr>
 
 	<tr> <td class="tblhdr bold"> From </td> <td class="tblhdr bold"> To </td> </tr>
 	<tr>
 	<td class="brownish">
 	<select name="sd">
-<#foreach num in 1..31>	<option value="${num}">${num}</option>
-</#foreach>	</select>
+  <#foreach num in 1..31>
+    <option value="${num}">${num}</option>
+  </#foreach>
+  </select>
 	<select name="sm">
-	<option value="1">Jan</option>
-	<option value="2">Feb</option>
-	<option value="3">Mar</option>
-	<option value="4">Apr</option>
-	<option value="5">May</option>
-	<option value="6">Jun</option>
-	<option value="7">Jul</option>
-	<option value="8">Aug</option>
-	<option value="9">Sep</option>
-	<option value="10">Oct</option>
-	<option value="11">Nov</option>
-	<option value="12">Dec</option>
+  <#foreach month in months>
+    <option value="${months?seq_index_of(month)}">${month}</option>
+  </#foreach>
 	</select>
 	<select name="sy">
-<#foreach num in 2004..2008>	<option value="${num}">${num}</option>
-</#foreach>	</select>
+  <#foreach num in 2004..2008>
+    <option value="${num?c}">${num?c}</option>
+  </#foreach>
+  </select>
 	</td>
 
 	<!-- NOW, the END DATE -->
 	<td class="brownish">
 	<select name="ed">
-<#foreach num in 1..31>	<option value="${num}">${num}</option>
-</#foreach>	</select>
+  <#foreach num in 1..31>
+    <option value="${num}">${num}</option>
+  </#foreach>
+  </select>
 	<select name="em">
-	<option selected value="1">Jan</option>
-	<option value="2">Feb</option>
-	<option value="3">Mar</option>
-	<option value="4">Apr</option>
-	<option value="5">May</option>
-	<option value="6">Jun</option>
-	<option value="7">Jul</option>
-	<option value="8">Aug</option>
-	<option value="9">Sep</option>
-	<option value="10">Oct</option>
-	<option value="11">Nov</option>
-	<option value="12">Dec</option>
+  <#foreach month in months>
+    <option value="${months?seq_index_of(month)}">${month}</option>
+  </#foreach>
 	</select>
 	<select name="ey">
-<#foreach num in 2004..2007>	<option value="${num}">${num}</option>
-</#foreach>	<option selected value="2008">2008</option>
+  <#foreach num in 2004..2008>
+    <option value="${num?c}">${num?c}</option>
+  </#foreach>
 	</select>
 	</td>
 	</tr>
@@ -136,12 +134,11 @@
 	</table>
 	</form>
 	</div>
-</#if> <#--# if (!$issue)
--->
+</#if>
 	<p>
 	<b class="underline">Note:</b>
 	<ul>
-	<li style="color:<#call ff4400>; font-weight: bold">
+	<li style="color:#ff4400; font-weight: bold">
 	In the current design and implementation of NewsRack, this is a VERY slow process!
 	Sometimes, classifying from all known 250 sources for the entire archive (currently
 	over 9 months) might take upto an hour.  So, start this process, do other work and 
@@ -151,7 +148,7 @@
 	For the dates selected, articles from the news sources you select are used.
 	The set of news sources displayed are whatever you specified in your profile
 	</li>
-<!--
+<#--
 	<li>
 	Select the dates between which archived news articles have to be classified.
 	If you check the "<b>Entire Archive</b>" radio button, all articles from the

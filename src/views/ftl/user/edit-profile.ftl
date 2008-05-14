@@ -26,7 +26,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 		${f} [
 			<a target="_blank" href="<@s.url namespace="/file" action="display" file="${f}" />">View</a>,
 			<a href="<@s.url namespace="/forms" action="rename-file" file="${f}" />">Rename</a>,
-			<a href="<@s.url namespace="/forms" action="edit-file" file="${f}" />">Edit</a>,
+			<a href="<@s.url namespace="/file" action="edit" file="${f}" />">Edit</a>,
 			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f}'" /></@s.url>">Delete</a>
 			]
 			<br />
@@ -98,7 +98,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
       <@s.else>
 				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="name" /></@s.url>">Unfreeze</a>,
       </@s.else>
-				<a href="<@s.url namespace="/forms" action="reclassify-news" issue="name" />">Reclassify</a>
+				<a href="<@s.url namespace="/forms" action="reclassify-news"><@s.param name="issue" value="name" /></@s.url>">Reclassify</a>
 			</td>
     </tr>
     </@s.iterator> <#-- for each issue -->

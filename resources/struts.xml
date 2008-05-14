@@ -133,7 +133,7 @@
       <result>/ftl/forms/change-password.ftl</result>
     </action>
 
-	 	<!-- login, register, forgot-password, new-file, edit-file, rename-file, reclassify-news, browse-sources -->
+	 	<!-- login, register, forgot-password, new-file, rename-file, reclassify-news, browse-sources -->
     <action name="*"> <result>/ftl/forms/{1}.ftl</result> </action>
   </package>
 
@@ -181,7 +181,7 @@
     </global-results>
 
     <action name="edit" class="newsrack.web.FileAction" method="edit">
-      <result>/ftl/file/edit.ftl</result>
+      <result>/ftl/forms/edit-file.ftl</result>
     </action>
 
     <action name="upload" class="newsrack.web.FileAction" method="upload">
