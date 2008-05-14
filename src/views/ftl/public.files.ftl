@@ -37,9 +37,9 @@
 	<tbody>
   <@s.iterator value="publicFiles">
     <tr>
-			<td style="padding: 2px 20px 2px 20px"> <@s.property value="fileOwner" /> </td>
+			<td style="padding: 2px 20px 2px 20px">${fileOwner}</td>
 			<td> 
-			<@s.property value="fileName" /> [
+			${fileName} [
 			<a target="_blank" href="<@s.url namespace="/file" action="display" owner="${fileOwner}" file="${fileName}" />">View</a>,
 			<a href="<@s.url namespace="/file" action="copy" owner="${fileOwner}" file="${fileName}" />">Copy</a>,
 			<a href="<@s.url namespace="/file" action="download" owner="${fileOwner}" file="${fileName}" />">Download</a>

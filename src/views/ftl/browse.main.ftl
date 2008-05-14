@@ -9,12 +9,12 @@
    <table style="width:100%" cellspacing="0">
       <tr><td style="vertical-align:top; width:33%; padding:2px 7px; line-height:17px">
 [#foreach i in issueList]
-	[#assign uid = i.getUser().getUid()]
+	[#assign uid = i.user.uid]
 	[#if count == c1?int || count == c2?int]
 		</td>
 		<td style="vertical-align:top; width:33%; padding:2px 7px; line-height:17px">
    [/#if]
-			<a class="browsecat" href="[@s.url action="browse" owner="${uid}" issue="${i.getName()}" /]">${i.getName()}</a> (${uid}) <br />
+			<a class="browsecat" href="[@s.url action="browse" owner="${uid}" issue="${i.name}" /]">${i.name}</a> (${uid}) <br />
    [#assign count = count + 1]
 [/#foreach]
 		</td></tr>

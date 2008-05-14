@@ -68,12 +68,11 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 	</@s.if>
 		<table class="editprofile" cellspacing="0">
 		<tr class="tblhdr">
-			<td class="s18 tblhdr"> <@s.property value="#user.uid" />'s files </td>
+			<td class="s18 tblhdr"> ${user.uid}'s files </td>
 			<td class="s18 tblhdr"> Add more ...  </td>
       </tr>
 		<tr>
-      <#assign ufiles = stack.findValue("#user.files")>
-			<td class="files"> <#call displayFiles(ufiles)> </td>
+			<td class="files"> <#call displayFiles(user.files)> </td>
 			<td class="center s14">
 			<a class="newfile" href="<@s.url namespace="/forms" action="new-file" />">Create New File</a>
 
@@ -89,7 +88,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 		<tr class="tblhdr"> <td class="s18 tblhdr" colspan="2"> Issues </td> </tr>
     <@s.iterator value="#user.issues">
 		<tr>
-			<td class="right"> <@s.property value="name" /> <span class="artcount">[<@s.property value="numArticles" />]</span> </td>
+			<td class="right"> ${name} <span class="artcount">[${numArticles}]</span> </td>
 			<td class="left">
 				<a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="name" />">Browse</a>, 
       <@s.if test="frozen == false">

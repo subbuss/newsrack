@@ -37,11 +37,11 @@ function resetForm()
 <#include "/ftl/layout/messages.ftl">
 <div class="ie_center_hack">
 <form name="editform" class="editfileform" action="<@s.url namespace="/file" action="save" />" method="post">
-<h1><span style="color:#777777">File:</span> <@s.property value="file" /></h1>
+<h1><span style="color:#777777">File:</span>${file}</h1>
 <div class="center">
-<textarea class="textarea" name="content" rows="36" cols="76"><@s.property value="fileContent" /></textarea>
+<textarea class="textarea" name="content" rows="36" cols="76">${fileContent}</textarea>
 <br />
-<input type="hidden" name="file" value="<@s.property value="file" />">
+<input type="hidden" name="file" value="${file}">
 <input type="button" class="submit" onclick="cancelEdit('<@s.url namespace="/user" action="edit-profile"/>')" value="Cancel">
 <input type="button" class="submit" onclick="resetForm()" value="Reset">
 <input type="submit" class="submit" name="submit" value="Save">

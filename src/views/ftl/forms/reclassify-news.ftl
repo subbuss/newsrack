@@ -35,7 +35,6 @@
    # simply display a list of issues that are defined for this user
    # and let the user pick one!
    # -->
-  <#assign issues = user.getIssues()>
 <div class="ie_center_hack">
 	<form class="ie_center_hack" method="post" action="<@s.url value="ftl/reclassify.ftl" />">
 	<table class="dates">
@@ -44,8 +43,8 @@
 	<td>
 		<center>
     <select name="issue" size="5">
-	<#foreach i in issues>
-    <option value="${i.getName()}">${i.getName()}</option>
+	<#foreach i in user.issues>
+    <option value="${i.name}">${i.name}</option>
 	</#foreach>
     </select>
     </center>
@@ -77,9 +76,9 @@
 	<tr> <td class="brownish center" colspan="2">
 	<b>All Sources</b> <input type="checkbox" name="allSources"> <hr />
 	<select name="srcs" multiple size="10">
-  <#assign srcs = user.getIssue(issue).getMonitoredSources()>
+  <#assign srcs = user.getIssue(issue).monitoredSources>
   <#foreach s in srcs>
-  <option value="${s.getTag()}">${s.getName()}</option>
+  <option value="${s.tag}">${s.name}</option>
   </#foreach>
   </select>
 	</tr>

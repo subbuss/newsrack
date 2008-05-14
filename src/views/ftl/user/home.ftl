@@ -20,7 +20,7 @@
 	<td class="user_space">
 	<#include "/ftl/layout/errors.ftl">
 	<#include "/ftl/layout/messages.ftl">
-		<h1 class="underline"><@s.property value="#user.uid" />'s news space</h1>
+		<h1 class="underline">${user.uid}'s news space</h1>
 		<p> </p>
 	<@s.if test="!#user.validated">
 		<p class="center bold">
@@ -41,30 +41,28 @@
 		<tr class="tblhdr">
 			<td>Issue</td>
 			<td style="width:60px">RSS feed</td>
-			<td style="width:90px">New since <br><@s.property value="#user.lastDownloadTime" /></td>
+			<td style="width:90px">New since <br>${user.lastDownloadTime}</td>
 			<td>Time of <br>last update</td>
 		</tr>
 			<@s.iterator value="#issues">
 			<tr>
 			<td style="text-align:right">
-				<a class="browsecat" href="<@s.url namespace="/" action="browse"><@s.param name="owner" value="#user.uid" /><@s.param name="issue" value="name" /></@s.url>"><@s.property value="name" /></a>
-				<span class="artcount">[<@s.property value="numArticles" />]</span>
+				<a class="browsecat" href="<@s.url namespace="/" action="browse"><@s.param name="owner" value="#user.uid" /><@s.param name="issue" value="name" /></@s.url>">${name}</a>
+				<span class="artcount">[${numArticles}]</span>
 			</td>
 			<td>
-				<a class="rssfeed" href="<@s.property value="getRSSFeedURL()" />">RSS 2.0</a>
+				<a class="rssfeed" href="${rSSFeedURL}">RSS 2.0</a>
 			</td>
 			<td class="center">
-				<@s.set name="numNew" value="numItemsSinceLastDownload" />
-				<@s.if test="#numNew > 0">
-				(<span class="newartcount"><@s.property value="#numNew" /> new</span>) &nbsp;
-				</@s.if>
-				<@s.else>
+        <#if (numItemsSinceLastDownload > 0)>
+				(<span class="newartcount">${numItemsSinceLastDownload} new</span>) &nbsp;
+				<#else>
 				(None) &nbsp;
-				</@s.else>
+				</#if>
 			</td>
 			<td class="center">
 				<@s.set name="lut" value="lastUpdateTime_String" />
-				<@s.if test="#lut != null"> <@s.property value="#lut" /> </@s.if><@s.else> -- </@s.else>
+        <#if lut?exists> ${lut} <#else> -- </#if>
 			</td>
 			</tr>
 			</@s.iterator>

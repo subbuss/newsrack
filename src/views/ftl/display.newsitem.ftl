@@ -6,7 +6,7 @@
 <#-- Prevent crawlers from caching the content -->
 <meta name="ROBOTS" content="NOARCHIVE,NOINDEX">
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
-<title><@s.property value="newsItem.title" /></title>
+<title>${newsItem.title}</title>
 <style>
 <!--
 td.user_news_space pre {
@@ -33,7 +33,7 @@ div#newsItemCats {
 <#include "/ftl/layout/errors.ftl">
 <#include "/ftl/layout/messages.ftl">
   <div id="newsItemHdr">
-  This article was downloaded from: <a href="<@s.property value="newsItem.uRL" />"><@s.property value="newsItem.uRL" /></a>
+  This article was downloaded from: <a href="${newsItem.getURL()}">${newsItem.getURL()}</a>
   </div>
 <@s.if test="newsItem.categories">
   <div id="newsItemCats">
@@ -41,8 +41,8 @@ div#newsItemCats {
   This article has been classified in the following NewsRack categories [USER :: CATEGORY] <br />
 	<span style="font-weight:bold">
   <@s.iterator value="newsItem.categories">
-    [<@s.property value="user.uid" /> ::
-     <a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${issue.name}" catID="${catId}" />"><@s.property value="name" /></a>] &nbsp;
+    [${user.uid} ::
+     <a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${issue.name}" catID="${catId}" />">${name}</a>] &nbsp;
 	</@s.iterator>
   </span>
 	</div>
@@ -50,8 +50,8 @@ div#newsItemCats {
 <@s.else>
   <div id="newsItemCats"> FOUND NO CLASSIFIED CATS!  </div>
 </@s.else>
-  <h1> <@s.property value="newsItem.title" /> </h1>
-  <pre> <@s.property value="body" /> </pre>
+  <h1> ${newsItem.title} </h1>
+  <pre> ${body} </pre>
 	</td>
 </tr>
 </table>

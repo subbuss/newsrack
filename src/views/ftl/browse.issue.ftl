@@ -1,7 +1,6 @@
 [#ftl]
-[#assign issue = stack.findValue("issue")]
-[#assign issueName = stack.findValue("issue.name")]
-[#assign ownerID = stack.findValue("owner.uid")]
+[#assign issueName = issue.name]
+[#assign ownerID = owner.uid]
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
@@ -9,7 +8,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
-<link rel="alternate" type="application/rss+xml" title="RSS feed for ${issue.getName()}" href="${issue.getRSSFeedURL()}" />
+<link rel="alternate" type="application/rss+xml" title="RSS feed for ${issue.name}" href="${issue.getRSSFeedURL()}" />
 <title>News archived in the ${issueName} topic for user ${ownerID}</title>
 </head>
 
@@ -30,12 +29,12 @@
          Topic: <a class="browsecat" href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" /]">${issueName}</a>
 			<br /><br />
 			<div class="statusline">
-[#assign numNew = issue.getNumItemsSinceLastDownload()]
+[#assign numNew = issue.numItemsSinceLastDownload]
 [#if (numNew>0)]
 			<span class="newartcount">${numNew} new</span> since ${lastDownloadTime}
 [#else]
-	[#if issue.getLastUpdateTime()?exists]
-			<span style="color:#777777; font-weight:bold">Last updated</span>: ${issue.getLastUpdateTime_String()}
+	[#if issue.lastUpdateTime?exists]
+			<span style="color:#777777; font-weight:bold">Last updated</span>: ${issue.lastUpdateTime_String}
    [#else]
 			0 new since ${lastDownloadTime}
    [/#if]
@@ -44,7 +43,6 @@
          </div>
       </div>
 
-[#assign cats = issue.getCategories()]
 		
 		<!-- DISPLAY CATEGORIES IN CURRENT CATEGORY -->
       <div class="catlisting ie_center_hack">
@@ -54,28 +52,29 @@
             <td style="width: 125px">New since <br>${lastDownloadTime}</td>
             <td>Time of <br>last update</td>
          </tr>
+[#assign cats = issue.categories]
 [#foreach cat in cats]
 			<tr>
             <td style="border-right: 0px; text-align:right;">
-   [#if cat.isLeafCategory()]
-				<a class="browseleafcat" href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.getCatId()}" /]">${cat.getName()}</a>
-   [#else]
-				<a class="browsecat" href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.getCatId()}" /]">${cat.getName()} [+]</a>
-   [/#if]
+  [#if cat.isLeafCategory()]
+				<a class="browseleafcat" href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]">${cat.name}</a>
+  [#else]
+				<a class="browsecat" href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]">${cat.name} [+]</a>
+  [/#if]
 				</td>
             <td style="border-left: 0px; text-align:right">
-            <span class="artcount">[${cat.getNumArticles()}]</span>
+            <span class="artcount">[${cat.numArticles}]</span>
             <a class="rssfeed" href="${cat.getRSSFeedURL()}"><img src="/icons/rss-12x12.jpg" alt="RSS 2.0"></a>
             </td>
             <td class="center">
-   [#assign numNew = cat.getNumItemsSinceLastDownload()] 
+  [#assign numNew = cat.numItemsSinceLastDownload] 
 	[#if (numNew>0)]
 				(<span class="newartcount">${numNew} new</span>) &nbsp;
-   [#else]
+  [#else]
 				(None) &nbsp;
-   [/#if]
+  [/#if]
 				</td>
-            <td class="center"> ${cat.getLastUpdateTime_String()} </td>
+            <td class="center"> ${cat.lastUpdateTime_String} </td>
          </tr>
 [/#foreach]
 		</table>
