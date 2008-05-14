@@ -15,7 +15,6 @@
 <#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
 <#include "/ftl/layout/errors.ftl">
-<div style="left:15px; width:auto"> testing errors: <@s.actionerror /> </div>
 <#include "/ftl/layout/messages.ftl">
 <div>
 

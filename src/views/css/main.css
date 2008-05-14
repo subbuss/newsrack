@@ -330,30 +330,38 @@ div.public_files a:hover, div.publicfiletypes a:hover {
 }
 
 /* The following styles are for displaying errors */ 
+div.errors, div.messages {
+  text-align  : left;
+  font-weight : bold;
+}
+
+div.errors ul, div.messages ul {
+  background : white;
+  padding    : 10px;
+  list-style : none;
+}
+
 div.errors {
-	text-align : left;
-	margin  : 1px;
-	padding : 1px;
-	color   : #dd4444;
+	color : #bb4444;
 }
 
-div.errors p {
-	margin   : 2px;
-	padding  : 2px;
+div.messages {
+	color : #44bb44;
 }
 
-div.errors span.filename {
-	color      : #4444dd; 
+div.errors ul {
+  border     : 1px solid red;
 }
 
-div.errors span.linenum {
-	color      : #4444dd; 
+div.messages ul {
+  border     : 1px solid #00aa00;
 }
 
-div.errors b {
-	font-weight : bold;
-	font-style  : italic;
-	color       : red;
+div.errors ul {
+  background : white;
+  padding    : 10px;
+  border     : 1px solid #aa0000;
+  list-style : none;
 }
 
 div.bodymain {

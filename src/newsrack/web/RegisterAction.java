@@ -38,7 +38,7 @@ public class RegisterAction extends BaseAction
       String uid  = getParam("username");
 		if (uid == null || uid.trim().equals(""))
 			addFieldError("username", getText("error.username.required"));
-		if (!User.userIdAvailable(uid))
+		else if (!User.userIdAvailable(uid))
 			addFieldError("username", getText("error.uid.unavailable", new String[]{uid}));
 
       String pass = getParam("password");
@@ -50,11 +50,16 @@ public class RegisterAction extends BaseAction
 		if (!pass.equals(pass2))
 			addFieldError("passwordConfirm", getText("error.password.mismatch"));
 
-			/* This is one way to handle robot registrations */
+			/* This is one crude way to handle robot registrations */
 		String hsv = getParam("humanSumValue");
 		String hsr = getParam("humanSumResponse");
-      if ((hsr == null) || !Integer.valueOf(hsv).equals(Integer.valueOf(hsr)))
-         addFieldError("humansum", "If you are a human trying to register, please enter " + hsv + " in the box asking for the sum.");
+		try {
+			if ((hsr == null) || !Integer.valueOf(hsv).equals(Integer.valueOf(hsr)))
+				addFieldError("humansum", "If you are a human trying to register, please enter " + hsv + " in the box asking for the sum.");
+		}
+		catch (NumberFormatException e) {
+			addFieldError("humansum", "If you are a human trying to register, please enter " + hsv + " in the box asking for the sum.");
+		}
 
 		String emailid = getParam("emailid");
 		if (emailid == null || emailid.trim().equals(""))

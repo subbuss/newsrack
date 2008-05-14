@@ -68,7 +68,7 @@
     <default-interceptor-ref name="simpleStack" />
 
     <action name="home" class="newsrack.web.BrowseAction">
-      <result name="browse.main">/ftl/browse.ftl</result> <!-- this is the only possible result! -->
+      <result name="browse.main">/ftl/browse.main.ftl</result> <!-- this is the only possible result! -->
     </action>
 
     <action name="selected-topics"> <result>/ftl/category.selection.ftl</result> </action>
@@ -84,9 +84,7 @@
       <result name="input">/ftl/forms/login.ftl</result>
     </action>
 
-    <action name="logout" class="newsrack.web.UserAction" method="logout">
-      <result type="redirect-action">home</result>
-    </action>
+    <action name="logout" class="newsrack.web.UserAction" method="logout" />
 
     <action name="browse" class="newsrack.web.BrowseAction">
       <result name="browse.main">/ftl/browse.main.ftl</result>

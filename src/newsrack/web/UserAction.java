@@ -40,6 +40,6 @@ public class UserAction extends BaseAction
 	{
 			// The ClearSessionInterceptor clears the session, so, nothing else to do here!
 		_session.remove(GlobalConstants.USER_KEY);
-		return Action.SUCCESS;
+		return "home";
 	}
 }
