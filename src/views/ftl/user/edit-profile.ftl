@@ -38,8 +38,9 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
     # THIS IS THE CODE THAT DISPLAYS THE EDIT PROFILE PAGE #
     ######################################################## -->
 
-<#if Session.user?exists>
-<#assign user = Session.user>
+<@s.set name="user" value="#session.user" />
+
+<@s.if test="#user">
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
 <#include "/ftl/layout/header.ftl">
@@ -49,29 +50,30 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 <#-- FIRST, DISPLAY ANY ERRORS AND MESSAGES -->
 <#include "/ftl/layout/errors.ftl">
 <#include "/ftl/layout/messages.ftl">
-	<#assign hasIssues = user.isValidated()>
-	<#assign issues = user.getIssues()>
+  <@s.set name="hasIssues" value="#user.validated" />
 	<#-- NEXT, DISPLAY THE USER'S PROFILE TABLE -->
 		<div class="ie_center_hack">
 		<p style="margin-bottom: 20px">
 		All your files and defined issues are shown below.  You can add a new file by
 		(a) Create a new file using the "Create New File" link (b) uploading a file from your disk, 
 		(c) or by getting a file from other users and editing it to meet your needs. <br/> <br/>
-	<#if !hasIssues>		<span class="underline bold"> NOTE: </span><br />
+	<@s.if test="#hasIssues == false">
+    <span class="underline bold"> NOTE: </span><br />
 		1. The files have to conform to what NewsRack understands (see example below). 
 		<b>Do not upload Word docs, html files, images, etc.</b>. <br/>
 		2. You have to build your issues by clicking on "Build all issues" link below
 		after creating these files.
 		3. News will start getting added to your issues next time news is downloaded (news is downloaded 10 times a day).
 		</p>
-	</#if>
+	</@s.if>
 		<table class="editprofile" cellspacing="0">
 		<tr class="tblhdr">
-			<td class="s18 tblhdr"> ${user.getUid()}'s files </td>
+			<td class="s18 tblhdr"> <@s.property value="#user.uid" />'s files </td>
 			<td class="s18 tblhdr"> Add more ...  </td>
       </tr>
 		<tr>
-			<td class="files"> <#call displayFiles(user.getFiles())> </td>
+      <#assign ufiles = stack.findValue("#user.files")>
+			<td class="files"> <#call displayFiles(ufiles)> </td>
 			<td class="center s14">
 			<a class="newfile" href="<@s.url namespace="/forms" action="new-file" />">Create New File</a>
 
@@ -83,38 +85,44 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 			<a class="newfile" href="<@s.url namespace="/" action="public-files" />">Get from other users</a>
 			</td>
 		</tr>
-		<#if hasIssues>
-			<tr class="tblhdr"> <td class="s18 tblhdr" colspan="2"> Issues </td> </tr>
-			<#foreach i in issues>
-			<tr>
-			<td class="right"> ${i.getName()} <span class="artcount">[${i.getNumArticles()}]</span> </td>
+  <@s.if test="#hasIssues == true">
+		<tr class="tblhdr"> <td class="s18 tblhdr" colspan="2"> Issues </td> </tr>
+    <@s.iterator value="#user.issues">
+		<tr>
+			<td class="right"> <@s.property value="name" /> <span class="artcount">[<@s.property value="numArticles" />]</span> </td>
 			<td class="left">
-				<a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${i.name}" />">Browse</a>, 
-			<#if !i.isFrozen()>
-				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="i.name" /></@s.url>">Freeze</a>,
-			<#else>
-				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="i.name" /></@s.url>">Unfreeze</a>,
-			</#if>
-				<a href="<@s.url namespace="/news" action="reclassify" issue="i.name" />">Reclassify</a>
+				<a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="name" />">Browse</a>, 
+      <@s.if test="frozen == false">
+				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="name" /></@s.url>">Freeze</a>,
+      </@s.if>
+      <@s.else>
+				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="name" /></@s.url>">Unfreeze</a>,
+      </@s.else>
+				<a href="<@s.url namespace="/forms" action="reclassify-news" issue="name" />">Reclassify</a>
 			</td>
-		</tr>
-			</#foreach> <#-- for each issue -->
-			</#if>		<tr>
+    </tr>
+    </@s.iterator> <#-- for each issue -->
+	</@s.if>
+    <tr>
 			<td class="center s14" colspan="2" style="padding:10px 0">
-	<#if hasIssues>			<a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> &nbsp; &nbsp; &nbsp;
-   <#else>			<a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Build issues</a>
-   </#if>			</td>
-		</tr>
-		<#if !hasIssues>
+  <@s.if test="#hasIssues == true">
+      <a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> &nbsp; &nbsp; &nbsp;
+  </@s.if>
+  <@s.else>
+      <a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Build issues</a>
+  </@s.else>
+      </td>
+    </tr>
+  <@s.if test="#hasIssues == false">
 		<tr> <td colspan="2">
       <h1> Example (Copy, paste, and edit) </h1>
 			<pre>
 <#include "/ftl/issue.template">		
 			</pre>
 		</td> </tr>
-		</#if>
+	</@s.if>
 		</table>
-		<#if hasIssues>
+  <@s.if test="#hasIssues == true">
 		<p>
 		<b> Freeze </b>: Once an issue is frozen, no new articles are downloaded
 		into it.  But, old news in the issue continues to be available.  This is
@@ -123,11 +131,13 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 		to your issue and want those changes reflected.  Or, when you have created a new issue and 
 		want to see what kind of news it will capture, use this feature to find out!
 		</p>
-		</#if>		</div>
+	</@s.if>
+    </div>
 	</td>
 </table>
 </div>
-<#else>	<#include "/ftl/layout/no.user.ftl"></#if>
+</@s.if>
+<@s.else> <#include "/ftl/layout/no.user.ftl"></@s.else>
 <#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

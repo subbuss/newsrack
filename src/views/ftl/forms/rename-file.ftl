@@ -19,10 +19,10 @@
 <td class="user_space">
 <#include "/ftl/layout/errors.ftl">
 				<!-- Password change form -->
-		<h1> Renaming file <@s.property value="file" /></h1>
+		<h1> Renaming file ${Parameters.file}</h1>
 		<div class="ie_center_hack">
 		<form class="register" style="width:260px" action="<@s.url namespace="/file" action="rename" />" method="post">
-		<input type="hidden" name="name" value="<@s.property value="file" />"> 
+		<input type="hidden" name="name" value="${Parameters.file}"> 
 		<div class="formelt"> New Name : <input class="text" name="newname"> </div>
 		<div align="center"> <input class="submit" name="submit" value="Rename" type="submit"> </div>
 		</form>

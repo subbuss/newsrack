@@ -119,8 +119,8 @@
 
     <action name="reclassify" class="newsrack.web.ReclassifyAction">
       <result>/ftl/user/home.ftl</result>
-      <result name="input">/ftl/forms/reclassify.news.ftl</result>
-      <result name="error">/ftl/forms/reclassify.news.ftl</result>
+      <result name="input">/ftl/forms/reclassify-news.ftl</result>
+      <result name="error">/ftl/forms/reclassify-news.ftl</result>
     </action>
   </package>
 
@@ -130,14 +130,11 @@
 
     <action name="change-password">
       <interceptor-ref name="simpleLoginStack" />
-      <result>/ftl/forms/change.password.ftl</result>
+      <result>/ftl/forms/change-password.ftl</result>
     </action>
 
-	 	<!-- forgot-password, new-file, edit-file, rename-file, reclassify-news, browse-sources -->
-    <action name="*-*"> <result>/ftl/forms/{1}.{2}.ftl</result> </action>
-	 	<!-- login, register -->
-    <action name="login"> <result>/ftl/forms/login.ftl</result> </action>
-    <action name="register"> <result>/ftl/forms/register.ftl</result> </action>
+	 	<!-- login, register, forgot-password, new-file, edit-file, rename-file, reclassify-news, browse-sources -->
+    <action name="*"> <result>/ftl/forms/{1}.ftl</result> </action>
   </package>
 
   <package name="user" extends="app-default" namespace="/user">
@@ -147,7 +144,7 @@
     </action>
 
     <action name="edit-profile" class="newsrack.web.EditProfileAction">
-      <result>/ftl/user/edit.profile.ftl</result>
+      <result>/ftl/user/edit-profile.ftl</result>
     </action>
 
     <action name="home">
@@ -164,14 +161,14 @@
     </action>
 
     <action name="reset-form" class="newsrack.web.PasswordResetAction" method="checkPasswordResetKey">
-      <result>/ftl/user/reset.password.ftl</result>
+      <result>/ftl/user/reset-password.ftl</result>
       <result name="error">/ftl/forms/forgot-password.ftl</result>
     </action>
 
     <action name="reset" class="newsrack.web.PasswordResetAction" method="resetPassword">
       <interceptor-ref name="simpleLoginStack" />
       <result>/ftl/user/home.ftl</result>
-      <result name="input">/ftl/user/reset.password.ftl</result>
+      <result name="input">/ftl/user/reset-password.ftl</result>
       <result name="error" type="redirect-action">home</result>
     </action>
   </package>
@@ -224,8 +221,7 @@
     <!-- HELP! -->
   <package name="help" extends="app-default" namespace="/help">
     <default-interceptor-ref name="simpleStack" />
-    <action name="user-guide"> <result>/ftl/help/user.guide.ftl</result> </action>
-	 	<!-- help, example1, example2, example3 -->
+	 	<!-- user-guide, help, example1, example2, example3 -->
     <action name="*"> <result>/ftl/help/{1}.ftl</result> </action>
   </package>
 
