@@ -21,22 +21,18 @@ import org.apache.commons.logging.LogFactory;
  */
 public class DisplayNewsItemAction extends BaseAction implements ServletResponseAware
 {
-   private static final Log log = LogFactory.getLog(DisplayNewsItemAction.class); /* Logger for this action class */
+   private static final Log _log = LogFactory.getLog(DisplayNewsItemAction.class); /* Logger for this action class */
 
 		// ServletResponseAware
    private HttpServletResponse _response;
    public void setServletResponse(HttpServletResponse r) { _response = r; }
 
 		// Values needed by the UI
-	private String _niPath;
-	private String _url;
-	private String _title;
-	private String _body;
+	private NewsItem _ni;
+	private String   _body;
 
-	public String getNewsItemPath() { return _niPath; }
-	public String getTitle() { return _title; }
-	public String getBody() { return _body; }
-	public String getURL() { return _url; }
+	public NewsItem getNewsItem() { return _ni; }
+	public String   getBody() { return _body; }
 
    public String execute()
 	{
@@ -48,41 +44,36 @@ public class DisplayNewsItemAction extends BaseAction implements ServletResponse
 		try {
 			niPath = getParam("ni");
 			if (niPath == null) {
-				log.error("News item path not specified");
+				_log.error("News item path not specified");
 				return Action.ERROR;
 			}
 			else {
-				NewsItem ni = Source.getNewsItemFromLocalCopyPath(niPath);
-				Reader       fr   = ni.getReader();
+				_ni = Source.getNewsItemFromLocalCopyPath(niPath);
+				Reader       fr   = _ni.getReader();
 				StringBuffer csb  = new StringBuffer();
 				char[]       cbuf = new char[256];
 				while (fr.read(cbuf) != -1) {
 					csb.append(cbuf);
 				}
 				fr.close();
+
 /* FIXME: The code below assumes a particular structure of the HTML file .. Perhaps should ask
  * newsrack.util.HTMLFilter to handle this functionality so that everything remains consistent!  */
-				String sb   = csb.toString();
-				int    tb   = sb.indexOf("<title>");
-				int    te   = sb.indexOf("</title>");
-				int    urlb = sb.indexOf("<a href");
-				int    urle = sb.indexOf("</a>");
-				int    bb   = sb.indexOf("<pre>");
-				int    be   = sb.indexOf("</pre>");
-				_title = sb.substring(tb+7, te); 
-				_url   = ((urlb > 0) && (urlb < bb)) ? sb.substring(urlb, urle+4) : null;
-				_body  = sb.substring(bb, be+6);
+				String sb = csb.toString();
+				int    bb = sb.indexOf("<pre>");
+				int    be = sb.indexOf("</pre>");
+				_body  = sb.substring(bb+5, be);
 				return Action.SUCCESS;
 			}
 		}
 		catch (Exception e) {
-			log.error("Error displaying news item - " + niPath, e);
+			_log.error("Error displaying news item - " + niPath, e);
 			addActionError(getText("error.news.display"));
 			try {
 				_response.sendError(HttpServletResponse.SC_GONE, "Sorry! The news item has been moved and the new location is not known!");
 			}
 			catch (Exception ee) {
-				log.error("HMM!! Could not send 410 error message to client in response to request for news item " + niPath);
+				_log.error("HMM!! Could not send 410 error message to client in response to request for news item " + niPath);
 			}
 
 			return null;

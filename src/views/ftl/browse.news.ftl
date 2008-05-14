@@ -132,7 +132,8 @@ function toggleCheckBoxes(divObj)
 <input type="hidden" name="catID" value="${cat.getCatId()}">
 <input type="hidden" name="globalCatKey" value="${cat.getKey()}">
 	[/#if]
-[/#if]      <!-- DISPLAY THE HEADER -->
+[/#if]
+        [#-- DISPLAY THE HEADER --]
       <div class="browsenewshdr">
          User: <span class="impHdrElt">${ownerID}</span>
          Topic: <a class="browsecat" href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" /]">${issueName}</a>
@@ -219,12 +220,12 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.getDate())}';
 				<input class="delbox" type="checkbox" name="key${nc}" value="${ni.getKey()}">
 			[/#if]
 			[#if url == ""]
-					${storyTitle}
+				${storyTitle}
 			[#else]
-					<a target="_blank" class="originalArt" href="${ni.getURL()}">${storyTitle}</a>
+				<a target="_blank" class="originalArt" href="${ni.getURL()}">${storyTitle}</a>
 			[/#if]
 			[#if ni.getDisplayCachedTextFlag()]
-					(<a target="_blank" rel="nofollow" class="filteredArt" href="[@s.url namespace="/news" action="display" ni="ni.getLocalCopyPath()" /]">Cached</a>)
+				(<a target="_blank" rel="nofollow" class="filteredArt" href="[@s.url namespace="/news" action="display" ni="${ni.getLocalCopyPath()}" /]">Cached</a>)
       [/#if]
 			</td>
          <td class="newsdate">${ni.getDateString()}</td> 
@@ -235,20 +236,18 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.getDate())}';
 		<tr class="newsdesc"> <td colspan="3"> ${ni.getDescription()} </td> </tr>
       [/#if]
 			[#-- Display the other categories it belongs to ### --]
-      [@s.set name="cats" value="${ni.categories}" /]
-      [@s.if test="cats.size() > 1"]
+      [#assign cats = ni.getCategories()]
+      [#if cats.size() > 1]
 		<tr class="newscats"> 
 			<td colspan="3">
 			<span class="normal underline">Also found in:</span>
-        [@s.iterator value="cats"]
-					[@s.if test="!key.equals(cat.key)"]
-			[${ncUid} :: <a href="[@s.url namespace="/" action="browse" owner="${user.uid}" issue="${issue.name}" catID="${catId}" /]">${name}</a>] &nbsp;
-          [/@s.if]
-        [/@s.iterator]
-			[/@s.if]
+        [#foreach c in cats]
+			[${c.user.uid} :: <a href="[@s.url namespace="/" action="browse" owner="${c.user.uid}" issue="${c.issue.name}" catID="${c.catId}" /]">${c.name}</a>] &nbsp;
+        [/#foreach]
+			[/#if]
 			</td>
     </tr>
-      [/#if]
+    [/#if]
 	[/#foreach]
 		</table>
    [#call displayNavigationBar]

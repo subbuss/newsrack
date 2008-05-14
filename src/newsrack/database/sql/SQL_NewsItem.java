@@ -201,17 +201,4 @@ public class SQL_NewsItem extends NewsItem
 	}
 
 	public void printCategories(PrintWriter pw) { /* nothing to do for now */ }
-
-	public static void main(String[] args)
-	{
-		try {
-			Date x = DATE_PARSER.parse("1.3.2005");
-			System.out.println("x is " + x);
-			x = DATE_PARSER.parse("15.8.2005");
-			System.out.println("x is " + x);
-			x = new Date();
-			System.out.println("x is " + x);
-		}
-		catch(Exception e) { }
-	}
 }

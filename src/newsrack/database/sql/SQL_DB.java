@@ -287,7 +287,7 @@ public class SQL_DB extends DB_Interface
 
 		Source s = (Source)_cache.get(key, Source.class);
 		if (s == null) {
-			s = (Source)GET_SOURCE_BY_KEY.execute(new Object[]{key});
+			s = (Source)GET_SOURCE.fetchByKey(key);
 			if (s != null) {
 				_cache.add(s.getUserKey(), key, Source.class, s);
 				_cache.add(s.getUserKey(), s.getTag(), Source.class, s);
@@ -305,7 +305,7 @@ public class SQL_DB extends DB_Interface
 
 		Feed f = (Feed)_cache.get(key, Feed.class);
 		if (f == null) {
-			f = (Feed)GET_FEED_BY_KEY.execute(new Object[]{key});
+			f = (Feed)GET_FEED.fetchByKey(key);
 			if (f != null)
 				_cache.add((Long)null, key, Feed.class, f);
 		}
@@ -321,7 +321,7 @@ public class SQL_DB extends DB_Interface
 
 		User u = (User)_cache.get(key, User.class);
 		if (u == null) {
-			u = (User)GET_USER_BY_KEY.execute(new Object[]{key});
+			u = (User)GET_USER.fetchByKey(key);
 			if (u != null)
 				_cache.add((Long)null, key, User.class, u);
 		}
@@ -338,7 +338,7 @@ public class SQL_DB extends DB_Interface
 
 		Issue i = (Issue)_cache.get(key, Issue.class);
 		if (i == null) {
-			i = (Issue)GET_ISSUE_BY_KEY.execute(new Object[]{key});
+			i = (Issue)GET_ISSUE.fetchByKey(key);
 			if (i != null)
 				_cache.add(i.getUserKey(), key, Issue.class, i);
 		}
@@ -354,7 +354,7 @@ public class SQL_DB extends DB_Interface
 
 		Concept c = (Concept)_cache.get(key, Concept.class);
 		if (c == null) {
-			Tuple<Long, Concept> t = (Tuple<Long, Concept>)GET_CONCEPT_BY_KEY.execute(new Object[]{key});
+			Tuple<Long, Concept> t = (Tuple<Long, Concept>)GET_CONCEPT.fetchByKey(key);
 			if (t != null) {
 				_cache.add(t._a, key, Concept.class, t._b);
 				c = t._b;
@@ -372,7 +372,7 @@ public class SQL_DB extends DB_Interface
 
 		Filter f = (Filter)_cache.get(key, Filter.class);
 		if (f == null) {
-			Tuple<Long, Filter> t = (Tuple<Long, Filter>)GET_FILTER_BY_KEY.execute(new Object[]{key});
+			Tuple<Long, Filter> t = (Tuple<Long, Filter>)GET_FILTER.fetchByKey(key);
 			if (t != null) {
 				f = t._b;
 				_cache.add(t._a, key, Filter.class, f);
@@ -390,13 +390,18 @@ public class SQL_DB extends DB_Interface
 
 		Category c = (Category)_cache.get(key, Category.class);
 		if (c == null) {
-			Tuple<Long, Category> t = (Tuple<Long, Category>)GET_CATEGORY_BY_KEY.execute(new Object[]{key});
+			Tuple<Long, Category> t = (Tuple<Long, Category>)GET_CATEGORY.fetchByKey(key);
 			if (t != null) {
 				c = t._b;
 				_cache.add(t._a, key, Category.class, c);
 			}
 		}
 		return c;
+	}
+
+	public NewsItem getNewsItem(Long key)
+	{
+		return (NewsItem)GET_NEWS_ITEM.fetchByKey(key);
 	}
 
 	/**
@@ -458,9 +463,10 @@ public class SQL_DB extends DB_Interface
 			return (String)tag;
 		}
 		else {
-			Object intKey = INSERT_FEED.execute(new Object[] {sTag, feedName, t._a, t._b});
-				// FIXME: Can this logic of appending these two elements be moved to the Feed class somehow??
-			return intKey + "." + sTag;
+			Object intKey = INSERT_FEED.execute(new Object[] {feedName, t._a, t._b});
+			String fTag = intKey + "." + sTag;
+			SET_FEED_TAG.execute(new Object[] {fTag, intKey});
+			return fTag;
 		}
 	}
 
@@ -602,7 +608,7 @@ public class SQL_DB extends DB_Interface
 
 	public List<Source> getAllSourcesFromCollection(long collectionKey)
 	{
-		return (List<Source>)GET_ALL_SOURCES_FROM_USER_COLLECTION.execute(new Object[] { collectionKey });
+		return (List<Source>)GET_ALL_SOURCES_FROM_USER_COLLECTION.fetchByKey(collectionKey);
 	}
 
 	public Source getSourceFromCollection(long collKey, String userSrcTag)
@@ -612,7 +618,7 @@ public class SQL_DB extends DB_Interface
 
 	public List<Concept> getAllConceptsFromCollection(long collectionKey)
 	{
-		return (List<Concept>)GET_ALL_CONCEPTS_FROM_USER_COLLECTION.execute(new Object[] { collectionKey });
+		return (List<Concept>)GET_ALL_CONCEPTS_FROM_USER_COLLECTION.fetchByKey(collectionKey);
 	}
 
 	public Concept getConceptFromCollection(long collKey, String cptName)
@@ -638,7 +644,7 @@ public class SQL_DB extends DB_Interface
 
 	public List<Filter> getAllFiltersFromCollection(long collectionKey)
 	{
-		return (List<Filter>)GET_ALL_FILTERS_FROM_USER_COLLECTION.execute(new Object[] { collectionKey });
+		return (List<Filter>)GET_ALL_FILTERS_FROM_USER_COLLECTION.fetchByKey(collectionKey);
 	}
 
 	public Filter getFilterFromCollection(long collKey, String filterName)
@@ -649,7 +655,7 @@ public class SQL_DB extends DB_Interface
 
 	public List<Category> getAllCategoriesFromCollection(long collectionKey)
 	{
-		return (List<Category>)GET_ALL_CATEGORIES_FROM_USER_COLLECTION.execute(new Object[] { collectionKey });
+		return (List<Category>)GET_ALL_CATEGORIES_FROM_USER_COLLECTION.fetchByKey(collectionKey);
 	}
 
 	private void fetchChildren(Long collKey, Category parent)
@@ -1081,9 +1087,9 @@ public class SQL_DB extends DB_Interface
 	{
 		Triple t = getLocalPathTerms(path);
 		String localName = (String)t._c;
-		String feedId    = (String)t._b;
+		String feedTag   = (String)t._b;
 		String dateStr   = (String)t._a;
-      return (NewsItem)GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_CACHEDNAME.execute(new Object[] {localName, feedId, dateStr});
+      return (NewsItem)GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_CACHEDNAME.execute(new Object[] {localName, dateStr, feedTag});
 	}
 
 	/**
@@ -1126,7 +1132,7 @@ public class SQL_DB extends DB_Interface
 
 		SQL_NewsIndex ni = (SQL_NewsIndex)_cache.get(niKey, SQL_NewsIndex.class);
 		if (ni == null) {
-			ni = (SQL_NewsIndex)GET_NEWS_INDEX_BY_KEY.execute(new Object[]{niKey});
+			ni = (SQL_NewsIndex)GET_NEWS_INDEX.fetchByKey(niKey);
 			if (ni != null)
 				_cache.add((Long)null, niKey, SQL_NewsIndex.class, ni);
 		}
@@ -1622,7 +1628,7 @@ public class SQL_DB extends DB_Interface
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
 	{
 		// No need to cache this since this will be part of the news item's field!
-      List<Category> cats = (List<Category>)GET_CATS_FOR_NEWSITEM.execute(new Object[] {ni.getKey()});
+      List<Category> cats = (List<Category>)GET_CATS_FOR_NEWSITEM.fetchByKey(ni.getKey());
 		if (cats == null)
 			cats = new ArrayList<Category>();
 		if (_log.isDebugEnabled()) _log.debug("For news item: " + ni.getKey() + ", found " + cats.size() + " categories!");
@@ -1631,7 +1637,7 @@ public class SQL_DB extends DB_Interface
 
 	protected int getClassifiedCatCountForNewsItem(SQL_NewsItem ni)
 	{
-      Integer numArts = (Integer)GET_CATCOUNT_FOR_NEWSITEM.execute(new Object[] {ni.getKey()});
+      Integer numArts = (Integer)GET_CATCOUNT_FOR_NEWSITEM.fetchByKey(ni.getKey());
 		return (numArts == null) ? 0 : numArts;
 	}
 
@@ -1952,7 +1958,7 @@ public class SQL_DB extends DB_Interface
 			_log.info("End  : " + ed);
 		}
 		List<NewsIndex>     res = new ArrayList<NewsIndex>();
-		List<SQL_NewsIndex> nis = (List<SQL_NewsIndex>)GET_ALL_NEWS_INDEXES_FROM_FEED_ID.execute(new Object[] {s.getFeed().getKey()});
+		List<SQL_NewsIndex> nis = (List<SQL_NewsIndex>)GET_ALL_NEWS_INDEXES_FROM_FEED_ID.fetchByKey(s.getFeed().getKey());
 		for (SQL_NewsIndex si: nis) {
 			String[] flds  = si.getDateString().split("\\.");
 			if (inBetweenDates(flds[2], flds[1], flds[0], sd, ed)) {

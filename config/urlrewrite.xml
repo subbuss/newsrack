@@ -7,63 +7,97 @@
     http://tuckey.org/urlrewrite/
 -->
 <urlrewrite>
+  <!-- ###################################################################### 
+       The first set of rules match urls from the current installation and
+		 sends a 301 permanent redirect to the new urls.  This should ensure
+		 that all old urls seamless work
+       ###################################################################### -->
+  <rule>
+    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
+    <from>^/Browse.do(.*)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse$1</to>
+  </rule>
+
+  <rule>
+    <note> Generic rewriting rule!  Issue a 301 redirect </note>
+    <from>^/DisplayNewsItem.do(.*)</from>
+	 <to type="permanent-redirect">%{context-path}/news/display$1</to>
+  </rule>
+
+  <rule>
+    <note> Generic rewriting rule for *.do actions!  Issue a 301 redirect. FIXME: Is this rule required at all? </note>
+    <from>^/(.*)\.do(.*)$</from>
+	 <to type="permanent-redirect">%{context-path}/$1$2</to>
+  </rule>
+
+  <rule>
+    <note> For crawled feeds!  Issue a 301 redirect </note>
+    <from>^/vm/extras.rss-feeds.vm</from>
+	 <to type="permanent-redirect">%{context-path}/extras/crawled-feeds</to>
+  </rule>
+
+  <rule>
+    <note> For selected topics!  Issue a 301 redirect </note>
+    <from>^/vm/category.selection.vm</from>
+	 <to type="permanent-redirect">%{context-path}/selected-topics</to>
+  </rule>
+
+  <rule>
+    <note> For list of known indian feeds!  Issue a 301 redirect </note>
+    <from>^/vm/known.indian.rss-feeds.vm</from>
+	 <to type="permanent-redirect">%{context-path}/extras/known-indian-feeds</to>
+  </rule>
+
+  <rule>
+    <note> Login! Issue a 301 redirect. FIXME: Is this rule required? </note>
+    <from>^/vm/signin.vm$</from>
+	 <to type="permanent-redirect">%{context-path}/forms/login</to>
+  </rule>
+
+  <rule>
+    <note> Registration! Issue a 301 redirect. FIXME: Is this rule required? </note>
+    <from>^/vm/register.vm$</from>
+	 <to type="permanent-redirect">%{context-path}/forms/register</to>
+  </rule>
+
+  <rule>
+    <note> Generic rewriting rule!  Issue a 301 redirect </note>
+    <from>^/vm/(.*)\.vm$</from>
+	 <to type="permanent-redirect">%{context-path}/about/$1</to>
+  </rule>
+
+  <!-- ######################################################################
+       These rules below serve 'clean-looking' urls and translate them to
+		 what struts2 is encoded to understand
+       ###################################################################### -->
   <rule>
     <from>^/?$</from>
 	 <to>/home.action</to>
   </rule>
 
-<!--
   <rule>
-    <from>^/browse/([^/\.]+)/?$</from>
-	 <to>/browse.action?owner=$1</to>
-  </rule>
-
-  <rule>
-    <from>^/browse/([^/\.]+)/([^/\.]+)/?$</from>
-	 <to>/browse.action?owner=$1&amp;issue=$2</to>
-  </rule>
-
-  <rule>
-    <from>^/browse/([^/\.]+)/([^/\.]+)/([^/\.]+)/?$</from>
-	 <to>/browse.action?owner=$1&amp;issue=$2&amp;catID=$3</to>
-  </rule>
--->
-
-  <rule>
-    <from>^/([^/\.]+)\?(.+)$</from>
+    <note> Generic rewrite that appends the ".action" -- with url parameters</note>
+    <from>^/([^\.]+)\?(.+)$</from>
 	 <to>/$1.action$2</to>
   </rule>
 
   <rule>
-    <from>^/([^/\.]+)/?$</from>
+    <note> Generic rewrite that appends the ".action" -- without url parameters </note>
+    <from>^/([^\.]+)/?$</from>
 	 <to>/$1.action</to>
   </rule>
 
   <rule>
+    <note> Catch all rule! </note>
     <from>(.*)</from>
 	 <to>$1</to>
   </rule>
 
-<!--
+  <!-- ######################################################################
+       The only outbound rule at this time.  Strips the ".action" suffix in urls
+       ###################################################################### -->
   <outbound-rule>
-    <from>^browse.action\?issue=(.*)&amp;catID=(.*)&amp;owner=(.*)$</from>
-	 <to>browse/$3/$1/$2</to>
-  </outbound-rule>
-
-  <outbound-rule>
-    <from>^browse.action\?issue=(.*)&amp;owner=(.*)$</from>
-	 <to>browse/$2/$1</to>
-  </outbound-rule>
-
-  <outbound-rule>
-    <from>^browse.action\?owner=(.*)$</from>
-	 <to>browse/$1</to>
-  </outbound-rule>
--->
-
-  <outbound-rule>
-    <from>(.*).action(.*)$</from>
+    <from>(.*)\.action(.*)$</from>
 	 <to>$1$2</to>
   </outbound-rule>
-
 </urlrewrite>

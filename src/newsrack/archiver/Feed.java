@@ -47,7 +47,6 @@ public class Feed
 
    // NOTE: For the same _feedTag, there can be multiple Source objects.
    // because different users might refer to the feeds using different tags and/or names.
-   // * _uniqSources maintains a map from a feedId to the first source object using that feed
 
 	private static final HashMap<URL, File> _rssFeedCache = new HashMap<URL, File>();
 
@@ -235,7 +234,7 @@ public class Feed
 	public boolean getCachedTextDisplayFlag() { return _cachedTextDisplayFlag; }
 
 	public void setCacheableFlag(boolean flag) { _cacheableFlag = flag; }
-	public void setShowCachedTextDisplayFlag(boolean flag) { _cacheableFlag = flag; }
+	public void setShowCachedTextDisplayFlag(boolean flag) { _cachedTextDisplayFlag = flag; }
 
    /** 
     * For this news source, decide whether the cached news text has to be displayed or not 

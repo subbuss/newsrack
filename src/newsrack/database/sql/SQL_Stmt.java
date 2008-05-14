@@ -351,8 +351,7 @@ class GetFeedResultProcessor extends AbstractResultProcessor
 		String feedTag   = rs.getString(2);
 		String feedName  = rs.getString(3);
 		String rssFeed   = rs.getString(4) + rs.getString(5);
-		// FIXME: Can this logic of appending these two elements be moved to the Feed class somehow??
-		Feed f = new Feed(feedKey, feedKey + "." + feedTag, feedName, rssFeed);
+		Feed f = new Feed(feedKey, feedTag, feedName, rssFeed);
 		f.setCacheableFlag(rs.getBoolean(6));
 		f.setShowCachedTextDisplayFlag(rs.getBoolean(7));
 		return f;
@@ -386,8 +385,8 @@ class GetNewsItemResultProcessor extends AbstractResultProcessor
 		String dateStr   = rs.getString(9);
 		Long   feedKey   = rs.getLong(10);
 		SQL_NewsItem ni = new SQL_NewsItem(urlRoot, urlTail, localName, title, desc, author, feedKey, dateStr);
-		ni.setKey(rs.getLong(2));
-		ni.setNewsIndexKey(rs.getLong(1));
+		ni.setKey(rs.getLong(1));
+		ni.setNewsIndexKey(rs.getLong(2));
 
 		return ni;
 	}
@@ -395,8 +394,18 @@ class GetNewsItemResultProcessor extends AbstractResultProcessor
 
 public enum SQL_Stmt 
 {
+	GET_NEWS_ITEM(
+		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
+			" FROM news_item_table n1, news_index_table n2" +
+			" WHERE n1.n_key = ? AND n1.primary_ni_key = n2.ni_key",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetNewsItemResultProcessor(),
+		false
+	),
    GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_URL(
-		"SELECT n1.primary_ni_key, n1.n_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
+		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
 			" FROM news_item_table n1, news_index_table n2" +
 			" WHERE n1.url_root = ? AND n1.url_tail = ? AND n1.primary_ni_key = n2.ni_key",
 		new SQL_ValType[] {STRING, STRING},
@@ -405,17 +414,19 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
+		// FIXME: This humonguous query is a result of bad design of how news item local paths are displayed on the listing page
+		// Ideally, the listing should use a news item id, in which case, the fetch will be simple!
    GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_CACHEDNAME(
-		"SELECT n1.primary_ni_key, n1.n_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
+		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
 			" FROM news_item_table n1, news_index_table n2, feed_table f " +
-			" WHERE n1.cached_item_name = ? AND n2.date_string = ? AND f.feed_tag = ?",
+			" WHERE n1.cached_item_name = ? AND n1.primary_ni_key = n2.ni_key AND n2.date_string = ? AND n2.feed_key = f.feed_key AND f.feed_tag = ?",
 		new SQL_ValType[] {STRING, STRING, STRING},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
 		true
 	),
-	GET_NEWS_INDEX_BY_KEY(
+	GET_NEWS_INDEX(
 		"SELECT ni_key, date_string FROM news_index_table WHERE ni_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
@@ -429,14 +440,6 @@ public enum SQL_Stmt
       SQL_StmtType.QUERY,
 		null,
 		new GetLongResultProcessor(),
-		true
-	),
-	GET_NEWS_INDEX(
-		"SELECT ni_key, date_string FROM news_index_table WHERE feed_key = ? AND date_string = ?",
-		new SQL_ValType[] {LONG, STRING},
-      SQL_StmtType.QUERY,
-		null,
-		new GetNewsIndexResultProcessor(),
 		true
 	),
 	GET_ALL_NEWS_INDEXES_FROM_FEED_ID(
@@ -458,7 +461,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NEWS_FROM_CAT(
-		"SELECT n.primary_ni_key, n.n_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_item_table n, news_index_table ni, cat_news_table cn" +
 		   " WHERE (cn.c_key = ?) AND (cn.n_key = n.n_key) AND (cn.ni_key = ni.ni_key) " +
 		   " ORDER BY ni.date_stamp DESC, cn.n_key DESC LIMIT ?, ?",
@@ -514,11 +517,11 @@ public enum SQL_Stmt
       // very very bad timing!  It is better to run the 2 queries
       // as independent ones and union the result sets
 	GET_NEWS_FROM_NEWSINDEX(
-		"SELECT n.primary_ni_key, n.n_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_item_table n, news_index_table ni" +
 		   " WHERE (n.primary_ni_key = ? AND n.primary_ni_key = ni.ni_key) " +
 		   " UNION " +
-		"SELECT n.primary_ni_key, n.n_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_item_table n, news_index_table ni, news_collections_table sn" +
 		   " WHERE (sn.ni_key = ? AND sn.n_key = n.n_key AND n.primary_ni_key = ni.ni_key)",
 		new SQL_ValType[] {LONG, LONG},
@@ -527,7 +530,7 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
-	GET_FEED_BY_KEY(
+	GET_FEED(
 		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feed_table WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -543,7 +546,7 @@ public enum SQL_Stmt
 		new GetFeedResultProcessor(),
 		false
 	),
-	GET_SOURCE_BY_KEY(
+	GET_SOURCE(
 		"SELECT src_key, u_key, feed_key, src_name, src_tag, cacheable, show_cache_links FROM user_source_table WHERE src_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -560,14 +563,11 @@ public enum SQL_Stmt
 		true
 	),
    GET_UNIQUE_FEED_TAG(
-		"SELECT feed_key, feed_tag FROM feed_table WHERE url_root = ? AND url_tail = ?",
+		"SELECT feed_tag FROM feed_table WHERE url_root = ? AND url_tail = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
-		new AbstractResultProcessor() {
-				// FIXME: Can this logic of appending these two elements be moved to the Feed class somehow??
-         public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return rs.getLong(1) + "." + rs.getString(2); }
-      },
+		new GetStringResultProcessor(),
 		true
 	),
    GET_USER_FROM_UID(
@@ -578,7 +578,7 @@ public enum SQL_Stmt
       new GetUserResultProcessor(),
 		true
    ),
-   GET_USER_BY_KEY(
+   GET_USER(
       "SELECT * FROM user_table WHERE u_key = ?",	// simpler to select all fields rather than ignoring a single field
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -614,7 +614,7 @@ public enum SQL_Stmt
 		},
 		true
 	),
-   GET_ISSUE_BY_KEY(
+   GET_ISSUE(
       "SELECT * FROM topic_table WHERE t_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -707,9 +707,7 @@ public enum SQL_Stmt
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
-		new AbstractResultProcessor() {
-			public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return rs.getString(1); }
-		},
+		new GetStringResultProcessor(),
 		false
    ),
 	GET_ALL_SOURCES_FROM_USER_COLLECTION(
@@ -752,7 +750,7 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		false
 	),
-	GET_CONCEPT_BY_KEY(
+	GET_CONCEPT(
 		"SELECT u_key, cpt_key, name, defn, token FROM concept_table WHERE cpt_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -800,7 +798,7 @@ public enum SQL_Stmt
 		new GetFilterResultProcessor(false),
 		true
 	),
-	GET_FILTER_BY_KEY(
+	GET_FILTER(
 		"SELECT f_key, name, rule_string, rule_key, u_key FROM filter_table WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -824,7 +822,7 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(false, true, false),
 		true
 	),
-	GET_CATEGORY_BY_KEY(
+	GET_CATEGORY(
 		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cat_table WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
@@ -882,10 +880,10 @@ public enum SQL_Stmt
 		true
 	),
    INSERT_FEED(
-		"INSERT INTO feed_table (feed_tag, feed_name, url_root, url_tail) VALUES (?,?,?,?)",
-		new SQL_ValType[] {STRING, STRING, STRING, STRING},
+		"INSERT INTO feed_table (feed_name, url_root, url_tail) VALUES (?,?,?)",
+		new SQL_ValType[] {STRING, STRING, STRING},
       SQL_StmtType.INSERT,
-      new SQL_ColumnSize[] {FEED_TBL_FEEDTAG, NONE, FEED_TBL_FEEDURLROOT, FEED_TBL_FEEDURLTAIL},
+      new SQL_ColumnSize[] {NONE, FEED_TBL_FEEDURLROOT, FEED_TBL_FEEDURLTAIL},
 		new GetLongResultProcessor(),
 		true
 	),
@@ -1013,6 +1011,14 @@ public enum SQL_Stmt
 	UPDATE_FEED_CACHEABILITY(
 		"UPDATE feed_table SET cacheable = ?, show_cache_links = ? WHERE feed_key = ?",
       new SQL_ValType[] {BOOLEAN, BOOLEAN, LONG}, 
+		SQL_StmtType.UPDATE,
+		null,
+		null,
+		true
+	),
+	SET_FEED_TAG(
+		"UPDATE feed_table SET feed_tag = ? WHERE feed_key = ?",
+      new SQL_ValType[] {STRING, LONG}, 
 		SQL_StmtType.UPDATE,
 		null,
 		null,
@@ -1371,4 +1377,9 @@ public enum SQL_Stmt
    {
 		return SQL_StmtExecutor.execute(_stmtString, _argTypes, args, _stmtType, _colSizes, _rp, _singleRowOutput);
    }
+
+	Object fetchByKey(Long key)
+	{
+		return SQL_StmtExecutor.execute(_stmtString, _argTypes, new Object[]{key}, _stmtType, _colSizes, _rp, _singleRowOutput);
+	}
 }

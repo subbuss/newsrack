@@ -6,7 +6,7 @@
 <#-- Prevent crawlers from caching the content -->
 <meta name="ROBOTS" content="NOARCHIVE,NOINDEX">
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
-<title>${title}</title>
+<title><@s.property value="newsItem.title" /></title>
 <style>
 <!--
 td.user_news_space pre {
@@ -27,36 +27,31 @@ div#newsItemCats {
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
 <#include "/ftl/layout/header.ftl">
-  <tr>
+<tr>
 <#include "/ftl/layout/left.menu.ftl">
   <td class="user_news_space">
 <#include "/ftl/layout/errors.ftl">
 <#include "/ftl/layout/messages.ftl">
-<@s.if test="url">
   <div id="newsItemHdr">
-	This article was downloaded from: <@s.property value="url" />
-	</div>
-</@s.if>
-<@s.if test="ni">
+  This article was downloaded from: <a href="<@s.property value="newsItem.uRL" />"><@s.property value="newsItem.uRL" /></a>
+  </div>
+<@s.if test="newsItem.categories">
   <div id="newsItemCats">
 <#--	This article has been classified in the following NewsRack categories [USER : ISSUE : CATEGORY] <br /> -->
   This article has been classified in the following NewsRack categories [USER :: CATEGORY] <br />
 	<span style="font-weight:bold">
-  <@s.iterator value="ni.categories">
+  <@s.iterator value="newsItem.categories">
     [<@s.property value="user.uid" /> ::
-     <a href="<@s.url namespace="/" action="browse" owner="user.uid" issue="issue.name" catID="catId" />">name</a>] &nbsp;
-    <#--	 <a href="<@s.url namespace="/" action="browse" owner="uid" issue="issue" />">$issue</a> : -->
+     <a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${issue.name}" catID="${catId}" />"><@s.property value="name" /></a>] &nbsp;
 	</@s.iterator>
   </span>
 	</div>
 </@s.if>
 <@s.else>
-  <div id = "newsItemCats">
-	FOUND NO CLASSIFIED CATS!
-	</div>
+  <div id="newsItemCats"> FOUND NO CLASSIFIED CATS!  </div>
 </@s.else>
-  <h1> <@s.property value="title" /> </h1>
-  <@s.property value="body"  </h1>
+  <h1> <@s.property value="newsItem.title" /> </h1>
+  <pre> <@s.property value="body" /> </pre>
 	</td>
 </tr>
 </table>
