@@ -9,16 +9,33 @@
 <urlrewrite>
   <rule>
     <from>^/?$</from>
-	 </to>/home.action</to>
+	 <to>/home.action</to>
+  </rule>
+
+<!--
+  <rule>
+    <from>^/browse/([^/\.]+)/?$</from>
+	 <to>/browse.action?owner=$1</to>
   </rule>
 
   <rule>
-    <from>^/([^\.]*)\?(.*)$</from>
+    <from>^/browse/([^/\.]+)/([^/\.]+)/?$</from>
+	 <to>/browse.action?owner=$1&amp;issue=$2</to>
+  </rule>
+
+  <rule>
+    <from>^/browse/([^/\.]+)/([^/\.]+)/([^/\.]+)/?$</from>
+	 <to>/browse.action?owner=$1&amp;issue=$2&amp;catID=$3</to>
+  </rule>
+-->
+
+  <rule>
+    <from>^/([^/\.]+)\?(.+)$</from>
 	 <to>/$1.action$2</to>
   </rule>
 
   <rule>
-    <from>^/([^\.]*)$</from>
+    <from>^/([^/\.]+)/?$</from>
 	 <to>/$1.action</to>
   </rule>
 
@@ -27,8 +44,26 @@
 	 <to>$1</to>
   </rule>
 
+<!--
   <outbound-rule>
-    <from>(.*).action(.*)</from>
+    <from>^browse.action\?issue=(.*)&amp;catID=(.*)&amp;owner=(.*)$</from>
+	 <to>browse/$3/$1/$2</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <from>^browse.action\?issue=(.*)&amp;owner=(.*)$</from>
+	 <to>browse/$2/$1</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <from>^browse.action\?owner=(.*)$</from>
+	 <to>browse/$1</to>
+  </outbound-rule>
+-->
+
+  <outbound-rule>
+    <from>(.*).action(.*)$</from>
 	 <to>$1$2</to>
   </outbound-rule>
+
 </urlrewrite>

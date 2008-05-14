@@ -109,4 +109,10 @@
     <delete file="${builddir}/${webapp.name}.war" />
     <delete dir="${wardir}" />
   </target>
+
+  <target name="urlrewrite-doc" depends="compile" description="UrlRewriteFilter validation and documenting">
+    <taskdef name="urlrewritedoc" classname="org.tuckey.web.filters.urlrewrite.UrlRewriteDocTask" />
+    <urlrewritedoc conf="${home}/config/urlrewrite.xml" dest="urlrewrite-conf-overview.html" />
+  </target>
+
 </project>
