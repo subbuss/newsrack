@@ -44,15 +44,15 @@
 		${rangeBegin} to ${rangeEnd} of ${numArts} &nbsp;&nbsp;&nbsp;
 		<div class="navbar">
 	<#if (startId > 1)>
-		<a href="<@s.url namespace="/" action="browse" source="${src.id}" d="${d}" m="${m}" y="${y}" />"> |&lt; First</a> &nbsp;
-		<a href="<@s.url namespace="/" action="browse" source="${src.id}" d="${d}" m="${m}" y="${y}" start="${prevId}" />"> &laquo; Previous</a>
+		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" />"> |&lt; First</a> &nbsp;
+		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" start="${prevId}" />"> &laquo; Previous</a>
 	<#else>
 		|&lt; First &nbsp; &laquo; Previous
 	</#if>
 		&nbsp;
 	<#if (nextId <= numArts)>
-		<a href="<@s.url namespace="/" action="browse" source="${src.id}" d="${d}" m="${m}" y="${y}" start="${nextId}" />">Next &raquo;</a> &nbsp;
-		<a href="<@s.url namespace="/" action="browse" source="${src.id}" d="${d}" m="${m}" y="${y}" start="${lastId}" />">Last &gt;|</a>
+		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" start="${nextId}" />">Next &raquo;</a> &nbsp;
+		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" start="${lastId}" />">Last &gt;|</a>
 	<#else>
     Next &raquo; &nbsp; Last &gt;|
 	</#if>
@@ -68,8 +68,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
-<link rel="alternate" type="application/rss+xml" title="RSS feed for ${src.name}" href="${src.feed}" />
-<title>News downloaded from source ${src.name}</title>
+<link rel="alternate" type="application/rss+xml" title="RSS feed for ${source.name}" href="${source.feed.url}" />
+<title>News downloaded from source ${source.name}</title>
 </head>
 
 <body>
@@ -85,9 +85,9 @@
 <!-- DISPLAY THE HEADER -->
 		<div class="browsenewshdr">
 			<span style="color:#777777">User:</span> ${userID} &nbsp;&nbsp;&nbsp;
-			<span style="color:#777777">Source:</span> ${src.name} &nbsp;&nbsp;&nbsp;
+			<span style="color:#777777">Source:</span> ${source.name} &nbsp;&nbsp;&nbsp;
 			<span style="color:#777777">Date:</span> ${d}/${m}/${y}
-			<a style="position: absolute; right:10px" class="rssfeed" href="${src.feed}">RSS 2.0</a>
+			<a style="position: absolute; right:10px" class="rssfeed" href="${source.feed.url}">RSS 2.0</a>
 		</div>
 <#if numArts == 0>
   <p class="bold center"> No news in this source for this date! </p>
@@ -112,7 +112,7 @@
       <#if url == "">
         ${ni.getTitle()}
 			<#else>
-        <a target="_blank" class="originalArt" href="${url)}">${ni.title}</a>
+        <a target="_blank" class="originalArt" href="${url}">${ni.title}</a>
 			</#if>
       <#if ni.displayCachedTextFlag>
         (<a target="_blank" class="filteredArt" href="<@s.url namespace="/news" action="display" ni="${ni.localCopyPath}" />">Cached</a>)
