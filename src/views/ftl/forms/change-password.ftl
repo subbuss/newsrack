@@ -22,7 +22,7 @@
 
 				<!-- Password change form -->
 		<div class="ie_center_hack">
-		<form class="register" style="width:260px" action="<@s.url namespace="/password" action="change-password" />" method="post">
+		<form class="register" style="width:260px" action="<@s.url namespace="/user" action="change-password" />" method="post">
 		<div class="formelt mandatory"> Old <input class="text" name="oldPassword" type="password" /> </div>
 		<div class="formelt mandatory"> New <input class="text" name="newPassword" type="password"> </div>
 		<div class="formelt mandatory"> New (confirm) <input class="text" name="newPasswordConfirm" type="password"> </div>

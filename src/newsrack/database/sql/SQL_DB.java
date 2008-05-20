@@ -1920,7 +1920,8 @@ public class SQL_DB extends DB_Interface
 
 		_log.info("REQUESTED NEWS for " + s._name + ":" + dateStr);
 
-		return getNewsForIndex(getNewsIndexKey(feedId, dateStr));
+		Long niKey = getNewsIndexKey(feedId, dateStr);
+		return ((niKey == null) || (niKey == -1)) ? null : getNewsForIndex(niKey);
 	}
 
 	/**

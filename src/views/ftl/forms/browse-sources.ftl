@@ -9,7 +9,10 @@
 
 <body>
 
-<#if user>
+<#assign months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]>
+
+<@s.set name="user" value="#session.user" />
+<#if user?exists>
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
 	<#include "/ftl/layout/header.ftl">
@@ -26,10 +29,10 @@
 
 	<tr> <td class="tblhdr center bold"> Sources </td> </tr>
 	<tr> <td class="brownish center">
-	<select name="source" size="10">
-<#assign srcs = user.getSources()>
+	<select name="srcId" size="10">
+<#assign srcs = user.sources>
 <#foreach s in srcs>
-    <option value="${s.getTag()}">${s.getName()}</option>
+    <option value="${s.tag}">${s.name}</option>
 </#foreach>
   </select>
 	</tr>
@@ -43,24 +46,14 @@
 </#foreach>
   </select>
 	<select name="m">
-	<option selected value="1">Jan</option>
-	<option value="2">Feb</option>
-	<option value="3">Mar</option>
-	<option value="4">Apr</option>
-	<option value="5">May</option>
-	<option value="6">Jun</option>
-	<option value="7">Jul</option>
-	<option value="8">Aug</option>
-	<option value="9">Sep</option>
-	<option value="10">Oct</option>
-	<option value="11">Nov</option>
-	<option value="12">Dec</option>
+  <#foreach month in months>
+    <option value="${1+months?seq_index_of(month)}">${month}</option>
+  </#foreach>
 	</select>
 	<select name="y">
-<#foreach num in 2004..2006>
-    <option value="${num}">${num}</option>
+<#foreach num in 2004..2008>
+    <option value="${num?c}">${num?c}</option>
 </#foreach>
-    <option selected value="2007">2007</option>
 	</select>
 	</td>
 	</tr>

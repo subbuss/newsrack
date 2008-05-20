@@ -93,7 +93,7 @@
   </select>
 	<select name="sm">
   <#foreach month in months>
-    <option value="${months?seq_index_of(month)}">${month}</option>
+    <option value="${1+months?seq_index_of(month)}">${month}</option>
   </#foreach>
 	</select>
 	<select name="sy">
@@ -112,7 +112,7 @@
   </select>
 	<select name="em">
   <#foreach month in months>
-    <option value="${months?seq_index_of(month)}">${month}</option>
+    <option value="${1+months?seq_index_of(month)}">${month}</option>
   </#foreach>
 	</select>
 	<select name="ey">

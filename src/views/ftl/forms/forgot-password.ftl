@@ -14,9 +14,6 @@
 <tr>
 <#include "/ftl/layout/left.menu.ftl">
 <td class="user_space">
-<#if signoutMessage><p style="color: blue; font-weight:bold; text-align:center"> ${signoutMessage} </p>
-<hr class="separator" noshade="noshade">
-</#if>
 <#include "/ftl/layout/errors.ftl">
 <#include "/ftl/layout/messages.ftl">
 <div>
@@ -24,8 +21,8 @@
 <p> Please enter your user id.  A password reset link will be sent to the email id you used to register. </p>
 
 <div class="ie_center_hack">
-<form class="signin" action="<@s.url namespace="/password" action="forgot-password" />" method="post">
-<div class="formelt mandatory">User-id<input class="text" type="text" name="username"></div>
+<form class="signin" action="<@s.url namespace="/password" action="send-reset-key" />" method="post">
+<div class="formelt mandatory">User-id<input class="text" type="text" name="uid"></div>
 <div align="center"> <input class="submit" type="submit" name="submit" value="Submit"> </div>
 </form>
 </div>

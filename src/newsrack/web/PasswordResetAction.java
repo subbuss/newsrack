@@ -40,6 +40,7 @@ public class PasswordResetAction extends BaseAction
 		String message   = "Please click on the link below to reset your password for your account on " + serverUrl + ". \n\n " + resetUrl + "\n\n If you got this email in error, please send an email to " + GlobalConstants.getProperty("email.admin.emailid") + "\n"; 
 		try {
 			MailUtils.sendEmail(u.getEmail(), "Password reset request on " + serverUrl, message);
+			addActionMessage(getText("msg.password.resetkey.sent"));
 			return Action.SUCCESS;
 		}
 		catch (javax.mail.MessagingException e) {
@@ -49,7 +50,7 @@ public class PasswordResetAction extends BaseAction
 		}
 	}
 
-	public String checkResetPasswordKey()
+	public String checkPasswordResetKey()
 	{
       String uid = getParam("uid");
       User u = User.getUser(uid);
@@ -61,11 +62,11 @@ public class PasswordResetAction extends BaseAction
       String key = getParam("key");
 		if ((key == null) || !PasswordService.isAValidPasswordResetKey(uid, key)) {
 			addActionError(getText("error.invalid.key"));
-         _session.put(GlobalConstants.USER_KEY, u);
 			return Action.ERROR;
 		}
 
 			// All is well!
+      _session.put(GlobalConstants.USER_KEY, u);
 		return Action.SUCCESS;
 	}
 
@@ -73,9 +74,16 @@ public class PasswordResetAction extends BaseAction
 	{
 		_user = getSessionUser();
 
+      String pass = getParam("newPassword");
+      String pass2 = getParam("newPasswordConfirm");
+		if (pass == null || pass.equals("") || pass2 == null || pass2.equals("") || !pass.equals(pass2)) {
+			addFieldError("passwordConfirm", getText("error.password.mismatch"));
+			return Action.INPUT;
+		}
+
 			// Reset the password
 		try {
-			_user.resetPassword(getParam("password"));
+			_user.resetPassword(getParam("newPassword"));
 			PasswordService.invalidatePasswordResetKey(_user.getUid());
 			return Action.SUCCESS;
 		}

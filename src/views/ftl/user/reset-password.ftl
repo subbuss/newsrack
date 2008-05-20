@@ -9,7 +9,8 @@
 
 <body>
 
-<#if user>
+<@s.set name="user" value="#session.user" />
+<#if user?exists>
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
 <#include "/ftl/layout/header.ftl">
@@ -21,7 +22,7 @@
 
 				<!-- Password change form -->
 		<div class="ie_center_hack">
-		<form class="register" style="width:260px" action="<@s.url namespace="/password" action="reset-password" />" method="post">
+		<form class="register" style="width:260px" action="<@s.url namespace="/password" action="reset" />" method="post">
 		<div class="formelt mandatory"> New <input class="text" name="newPassword" type="password"> </div>
 		<div class="formelt mandatory"> New (confirm) <input class="text" name="newPasswordConfirm" type="password"> </div>
 		<div align="center"> <input class="submit" name="submit" value="Reset Password" type="submit"> </div>
