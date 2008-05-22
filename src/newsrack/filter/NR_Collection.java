@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 public abstract class NR_Collection
 {
 // ############### STATIC FIELDS AND METHODS ############
-   protected static Log _log = LogFactory.getLog("newsrack.database.NR_Collection.class");
+   protected static Log _log = LogFactory.getLog(NR_Collection.class);
 
 	protected static DB_Interface _db;
 

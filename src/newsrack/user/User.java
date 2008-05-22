@@ -50,7 +50,7 @@ public class User
 {
 // ############### STATIC FIELDS AND METHODS ############
    	// Logging output for this class
-   private static Log _log = LogFactory.getLog("newsrack.user.User.class");
+   private static Log _log = LogFactory.getLog(User.class);
 
 	// These are user ids that are not available and are used by
 	// NewsRack itself to provide administrative and library functionality

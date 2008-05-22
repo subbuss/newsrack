@@ -921,7 +921,8 @@ public class Issue
 		else
 			scanAndClassifyNewsItems(f, newsTable, false);
 
-		_db.printStats();
+		if (GlobalConstants.inDebugMode())
+			_db.printStats();
 	}
 
 	private void scanAndClassifyNewsItems(Feed f, Hashtable newsTable, boolean skipProcessed)

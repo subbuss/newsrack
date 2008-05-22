@@ -56,7 +56,7 @@
 	private Stack _scopeStack;
 
    	/* Logging output for this plug in instance. */
-   private static Log _log = LogFactory.getLog("newsrack.filter.parser.NRLanguageParser.class");
+   private static Log _log = LogFactory.getLog(NRLanguageParser.class);
 
 		// Keeps track of profiles in the process of being parsed
 		// (to prevent infinite recursion)

@@ -296,7 +296,7 @@ public class Feed
 			else {
 					// Download the feed into a temporary file and record the location in the cache
 					// NOTE: 
-					// 1. Before we download and parse the feed, we won't its final location!
+					// 1. Before we download and parse the feed, we won't know its final location!
 					// 2. We cannot use the "WireFeedOutput" to output the feeds directly to the location
 					//    after parsing, because if the input feeds do not conform to the standard
 					//    (Hindustan Times, Times Now), then, the output modules that are strict in

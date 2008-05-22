@@ -133,7 +133,7 @@ public class DownloadNewsTask extends TimerTask
    }
 
    /* Logging output for this class. */
-   private static Log _log = LogFactory.getLog("newsrack.archiver.DownloadNewsTask.class");
+   private static Log _log = LogFactory.getLog(DownloadNewsTask.class);
     
    /** Initial delay after system startup before news is downloaded. */
    public static long INIT_DELAY = 10 * 60 * 1000;
@@ -183,6 +183,7 @@ public class DownloadNewsTask extends TimerTask
       MAX_ATTEMPTS = loadPropertyValue("download.feed.max_attempts", 10);
       DOWNLOAD_MAX_THREADS  = loadPropertyValue("download.max_threads", 20);
       CLASSIFY_MAX_THREADS  = loadPropertyValue("classify.max_threads", 5);
+		_log.info("Initialized DNT");
    }
 
 	public static boolean shutDownThreadPool(ExecutorService tpool)
@@ -212,7 +213,7 @@ public class DownloadNewsTask extends TimerTask
    {
       if (GlobalConstants.testing() || GlobalConstants.isTrue("readonly"))
          return;
-      
+
          // Check if the site crawlers file has been modified 
          // since last read.  If so, cancel all tasks and reschedule!
       if (SiteCrawlerTask.checkCrawlersFile())

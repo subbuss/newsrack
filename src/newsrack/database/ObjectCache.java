@@ -37,7 +37,7 @@ public class ObjectCache
 
 		synchronized void add(String[] groups, String key, Object o)
 		{
-			if (_log.isInfoEnabled()) _log.info(_name + " CACHE: adding key " + key);
+			if (_log.isDebugEnabled()) _log.debug(_name + " CACHE: adding key " + key);
 			if (groups == null)
 				_osCacheAdmin.putInCache(key, o);
 			else
@@ -176,7 +176,7 @@ public class ObjectCache
 
 /**
  * Problem with these is when different object types are added / queried 
- * for the same abstract class.  Ex: SQL_IssueStub vs. Issue; ArrayList vs. List
+ * for the same abstract class.  Ex: SQL_IssueStub vs. Issue; ArrayList vs. LinkedList
  *
 	public void add(Long userKey, Object key, Object o)
 	{

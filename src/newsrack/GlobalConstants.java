@@ -157,16 +157,6 @@ public final class GlobalConstants
 	/** Returns the base directory for where RSS feed files are stored */ 
 	public static String getBaseRssDir() { return _webappPath + File.separator + getProperty("rssDir"); }
 
-	public static boolean testing()
-	{
-		String t = getProperty("testing");
-		if ((t != null) && t.equalsIgnoreCase("true"))
-			return true;
-		else
-			return false;
-	}
-
-
 	/** Gets the property value for a named property
 	 *  @param pname Property whose value is requested
 	 *  @return the requested property value
@@ -195,4 +185,8 @@ public final class GlobalConstants
       String p = _nrProps.getProperty(pname);
       return ((p != null) && (p.compareToIgnoreCase("false") == 0));
    }
+
+	public static boolean testing() { return isTrue("testing"); }
+
+	public static boolean inDebugMode() { return isTrue("debugging"); }
 }

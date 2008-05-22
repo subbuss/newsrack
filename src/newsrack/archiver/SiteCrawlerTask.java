@@ -49,15 +49,14 @@ public class SiteCrawlerTask extends TimerTask
 			_timer.cancel(); 	// Cancel all scheduled tasks
 			_tm.initialize(_crawlersFile);
 			return true;
-		} else
+		}
+		else {
 			return false;
+		}
 	}
 
 	public static void registerSiteCrawlers(final ThreadManager tm, final Timer t, final File crawlersFile)
 	{
-		if (!crawlersFile.exists())
-			return;
-
 		_crawlersFile = crawlersFile;
 		_timer        = t;
 		_tm           = tm;
@@ -65,6 +64,9 @@ public class SiteCrawlerTask extends TimerTask
 			// Set the time when this file was last read!
 			// If the file is modified after this, the file will be read again!
 		_lastReadTime = (new Date()).getTime();
+
+		if (!crawlersFile.exists())
+			return;
 
 			// Get a date object set to 6 am -- this is the default time
 			// for running site crawlers
@@ -137,11 +139,10 @@ public class SiteCrawlerTask extends TimerTask
 				}
 			}
 		}
-		catch (final java.io.IOException e) {
-			System.err.println("Exception while loading crawlers file: " + crawlersFile);
-			System.err.println(e.toString());
-			e.printStackTrace();
+		catch (Exception e) {
+			_log.error("Exception while loading crawlers file: " + crawlersFile, e);
 		}
+		_log.info("SCT: Initialized!");
 	}
 
 	private String _name;	// What crawler does this object represent?

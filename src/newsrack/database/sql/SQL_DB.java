@@ -1013,8 +1013,8 @@ public class SQL_DB extends DB_Interface
 	public void initializeNewsDownload(Feed f, Date pubDate)
 	{
 			// Create the output directories, if they don't exist
-		getArchiveDirForOrigArticle(f, pubDate);
-		getArchiveDirForFilteredArticle(f, pubDate);
+		getArchiveDirForOrigArticles(f, pubDate);
+		getArchiveDirForFilteredArticles(f, pubDate);
 	}
 
 	private Triple getLocalPathTerms(String path)
@@ -1686,7 +1686,7 @@ public class SQL_DB extends DB_Interface
 	 * @param f        Feed from which article is being downloaded
 	 * @param artDate  Date when the article is published -- provided by the RSS feed 
 	 */
-	private String getArchiveDirForOrigArticle(Feed f, Date artDate)
+	private String getArchiveDirForOrigArticles(Feed f, Date artDate)
 	{
 		String d = "orig" + File.separator + getArchiveDir(f, artDate);
 		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + d);
@@ -1702,7 +1702,7 @@ public class SQL_DB extends DB_Interface
 	 * @param f        Feed from which article is being downloaded
 	 * @param artDate  Date when the article is published -- provided by the RSS feed 
 	 */
-	private String getArchiveDirForFilteredArticle(Feed f, Date artDate)
+	private String getArchiveDirForFilteredArticles(Feed f, Date artDate)
 	{
 		String d = "filtered" + File.separator + getArchiveDir(f, artDate);
 		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + d);

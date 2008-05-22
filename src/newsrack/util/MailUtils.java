@@ -13,7 +13,7 @@ import org.apache.commons.logging.LogFactory;
 
 public class MailUtils
 {
-   private static Log _log = LogFactory.getLog("newsrack.util.Mail.class");
+   private static Log _log = LogFactory.getLog(MailUtils.class);
 
    public static final String SMTP_PORT = "25";
 
