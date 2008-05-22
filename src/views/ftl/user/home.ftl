@@ -32,8 +32,8 @@
 		<#include "/ftl/monitoring.steps.ftl">
 	</@s.if>
 	<@s.else>
-		<@s.set name="issues" value="#user.issues" />
-		<@s.if test="#issues"> <!-- NOW, DISPLAY THE NEWS ITEMS -->
+    <#assign issues=user.issues>
+    <#if issues?exists>
 
 		<#--### DISPLAY ISSUES ##### -->
 		<div class="ie_center_hack">
@@ -44,32 +44,31 @@
 			<td style="width:90px">New since <br>${user.lastDownloadTime}</td>
 			<td>Time of <br>last update</td>
 		</tr>
-			<@s.iterator value="#issues">
+      <#foreach i in issues>
 			<tr>
 			<td style="text-align:right">
-				<a class="browsecat" href="<@s.url namespace="/" action="browse"><@s.param name="owner" value="#user.uid" /><@s.param name="issue" value="name" /></@s.url>">${name}</a>
-				<span class="artcount">[${numArticles}]</span>
+				<a class="browsecat" href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${i.name}" />">${i.name}</a>
+				<span class="artcount">[${i.numArticles}]</span>
 			</td>
 			<td>
-				<a class="rssfeed" href="${rSSFeedURL}">RSS 2.0</a>
+				<a class="rssfeed" href="${i.getRSSFeedURL()}">RSS 2.0</a>
 			</td>
 			<td class="center">
-        <#if (numItemsSinceLastDownload > 0)>
-				(<span class="newartcount">${numItemsSinceLastDownload} new</span>) &nbsp;
+        <#if (i.numItemsSinceLastDownload > 0)>
+				(<span class="newartcount">${i.numItemsSinceLastDownload} new</span>) &nbsp;
 				<#else>
 				(None) &nbsp;
 				</#if>
 			</td>
 			<td class="center">
-				<@s.set name="lut" value="lastUpdateTime_String" />
+        <#assign lut=i.lastUpdateTime_String>
         <#if lut?exists> ${lut} <#else> -- </#if>
 			</td>
 			</tr>
-			</@s.iterator>
+			</#foreach>
 		</table>
 		</div>
-		</@s.if> <#-- of #if issues -->
-		<@s.else>
+		<#else>
 		<p class="bold center">You have not built your issues yet!</p>
 		<p class="justify">Without that, you cannot monitor news and add them to your issues. </p>
 		<p>
@@ -77,7 +76,7 @@
 		<a href="<@s.url namespace="/user" action="edit-profile" />">edit issues page</a> 
 		and build your issues.
 		</p>
-		</@s.else> <#-- of #if issues -->
+		</#if> <#-- of #if issues -->
 	</@s.else> <#-- of #if active-profile exists -->
 	</td>
 </tr>

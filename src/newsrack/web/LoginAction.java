@@ -14,6 +14,12 @@ public class LoginAction extends BaseAction
 {
    private static final Log _log = LogFactory.getLog(LoginAction.class); /* Logger for this action class */
 
+	private String _username;
+
+		/** Set this param so that it is available in the form when there are errors */ 
+	public void setUsername(String u) { _username = u; }
+	public String getUsername() { return _username; }
+
 	public void validate()
 	{
       String uid  = getParam("username");
@@ -29,6 +35,7 @@ public class LoginAction extends BaseAction
 	{
       String uid  = getParam("username");
       String pass = getParam("password");
+
 		try {
 			User u = User.signInUser(uid, pass);
 			_session.put(GlobalConstants.USER_KEY, u);
@@ -44,11 +51,6 @@ public class LoginAction extends BaseAction
 		catch (InvalidPasswordException e) {
 			addFieldError("password", getText("error.invalid.password"));
 			return Action.INPUT;
-		}
-		catch (Exception e) {
-			addActionError(getText("internal.app.error"));
-			_log.error("Exception signing in user!", e);
-			return "internal.app.error";
 		}
 	}
 }

@@ -36,11 +36,11 @@ downloading news of your interest.
 
 <div class="ie_center_hack">
 <@s.form cssClass="register" namespace="/" action="register" method="post">
-<div class="formelt">           Name     <input class="text" name="name" type="text"> </div>
-<div class="formelt mandatory"> User-id  <input class="text" name="username" type="text"> </div>
+<div class="formelt">           Name     <input class="text" name="name" type="text"<#if name?exists> value="${name}"</#if>> </div>
+<div class="formelt mandatory"> User-id  <input class="text" name="username" type="text"<#if username?exists> value="${username}"</#if>> </div>
 <div class="formelt mandatory"> Password <input class="text" name="password" type="password"> </div>
 <div class="formelt mandatory"> Password (confirm) <input class="text" name="passwordConfirm" type="password"> </div>
-<div class="formelt mandatory"> Email id <input class="text" name="emailid" type="text"> </div>
+<div class="formelt mandatory"> Email id <input class="text" name="emailid" type="text"<#if emailid?exists> value="${emailid}"</#if>> </div>
 <div style="padding:10px 5px; text-align: center; color:red"> The next line is to prevent automated registration by spambots! </div>
 <input name="humanSumValue" value="19" type="hidden">
 <div class="formelt mandatory"> What is 7 + 12? <input class="text" name="humanSumResponse" type="humanSumResponse"> </div>
@@ -56,8 +56,7 @@ or, you can skip registration and <a href="<@s.url namespace="/" action="browse"
 issues</strong></a> of other registered users.
 </p>
 
-</#if> <#-- read-only
--->
+</#if> <#-- read-only -->
 </td>
 </tr>
 </table>

@@ -39,4 +39,16 @@ public abstract class BaseAction extends ActionSupport implements SessionAware, 
 	{
 		return (String[])_params.get(key);
 	}
+
+	void validatePasswordPair(String fieldName1, String fieldName2)
+	{
+      String pass1 = getParam(fieldName1);
+      String pass2 = getParam(fieldName2);
+		if (pass1 == null || pass1.equals(""))
+			addFieldError(fieldName1, getText("error.password.required"));
+		if (pass2 == null || pass2.equals(""))
+			addFieldError(fieldName2, getText("error.password.required"));
+		if (!pass1.equals(pass2))
+			addFieldError(fieldName2, getText("error.password.mismatch"));
+	}
 }

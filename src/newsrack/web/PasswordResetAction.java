@@ -70,27 +70,18 @@ public class PasswordResetAction extends BaseAction
 		return Action.SUCCESS;
 	}
 
+	public void validateResetPassword()
+	{
+		validatePasswordPair("newPassword", "newPasswordConfirm");
+	}
+
 	public String resetPassword()
 	{
 		_user = getSessionUser();
 
-      String pass = getParam("newPassword");
-      String pass2 = getParam("newPasswordConfirm");
-		if (pass == null || pass.equals("") || pass2 == null || pass2.equals("") || !pass.equals(pass2)) {
-			addFieldError("passwordConfirm", getText("error.password.mismatch"));
-			return Action.INPUT;
-		}
-
 			// Reset the password
-		try {
-			_user.resetPassword(getParam("newPassword"));
-			PasswordService.invalidatePasswordResetKey(_user.getUid());
-			return Action.SUCCESS;
-		}
-		catch (Exception e) {
-			addActionError(getText("internal.app.error"));
-			_log.error("Exception resetting password!", e);
-			return "internal.app.error";
-		}
+		_user.resetPassword(getParam("newPassword"));
+		PasswordService.invalidatePasswordResetKey(_user.getUid());
+		return Action.SUCCESS;
 	}
 }

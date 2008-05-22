@@ -17,6 +17,15 @@ public class UserAction extends BaseAction
 {
    private static final Log _log = LogFactory.getLog(UserAction.class); /* Logger for this action class */
 
+	public void validateChangePassword()
+	{
+		String oldPass  = getParam("oldPassword");
+		if (oldPass == null || oldPass.equals(""))
+			addFieldError("password", getText("error.password.required"));
+
+		validatePasswordPair("newPassword", "newPasswordConfirm");
+	}
+
 	public String changePassword()
 	{
 		User u = getSessionUser();
@@ -28,11 +37,6 @@ public class UserAction extends BaseAction
 		catch (InvalidPasswordException e) {
 			addActionError(getText("error.invalid.password"));
 			return Action.ERROR;
-		}
-		catch (Exception e) {
-			addActionError(getText("internal.app.error"));
-			_log.error("Exception changing password!", e);
-			return "internal.app.error";
 		}
 	}
 

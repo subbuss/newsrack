@@ -88,7 +88,13 @@
     <copy todir="${webinf}/crawlers"> <fileset dir="${home}/crawlers"/> </copy>
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
     <copy todir="${classdir}">        <fileset dir="${webapp.resources}"/> </copy>
-	 <copy todir="${classdir}">        <fileset dir="${srcdir}"> <exclude name="**/attic/*" /> <include name="**/*.properties" /> </fileset> </copy>
+	 <copy todir="${classdir}">
+	 	<fileset dir="${srcdir}">
+			<exclude name="**/attic/*" />
+			<include name="**/*.properties" />
+			<include name="**/*.xml" />
+		</fileset>
+	 </copy>
   </target>
 
   <target name="war" depends="build,prepare" description="Builds the war file">

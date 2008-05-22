@@ -28,7 +28,7 @@ public final class PasswordService
    private static final int RESET_KEY_VALIDITY = 30;  // 30 minute validity of password reset keys
 
    	// Logging output for this class
-   private static Log _log = LogFactory.getLog("newsrack.database.PasswordService.class");
+   private static Log _log = LogFactory.getLog(PasswordService.class);
 
       // How long is a password reset key valid (in minutes)?
    private static int _resetKeyValidityTime = 0;
@@ -63,12 +63,18 @@ public final class PasswordService
 
    private PasswordService() { }
 
-   public static synchronized String encrypt(String plaintext) throws Exception
+   public static synchronized String encrypt(String plaintext)
    {
-      MessageDigest md = MessageDigest.getInstance("MD5");
-      md.update(plaintext.getBytes("UTF-8"));
-      byte raw[] = md.digest();
-      return (new BASE64Encoder()).encode(raw);
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(plaintext.getBytes("UTF-8"));
+			byte raw[] = md.digest();
+			return (new BASE64Encoder()).encode(raw);
+		}
+		catch (Exception e) {
+			_log.error("PasswordService", e);
+			throw new RuntimeException(e);
+		}
    }
 
    public static String getRandomKey()

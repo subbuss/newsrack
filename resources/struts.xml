@@ -6,7 +6,6 @@
   <constant name="struts.devMode" value="true" />
   <constant name="struts.url.includeParams" value="none" />
   <constant name="struts.enable.DynamicMethodInvocation" value="false"/>
-  <!-- <constant name="struts.action.extension" value=""/>  -->
     
   <package name="app-default" extends="struts-default">
      <!-- Change the default result type to freemarker -->
@@ -52,7 +51,7 @@
     <default-interceptor-ref name="simpleLoginStack" />     
   
     <global-results>
-      <result name="unhandledException">/ftl/error.ftl</result>
+      <result name="unhandledException">/ftl/internal.error.ftl</result>
       <result name="login">/ftl/forms/login.ftl</result>
       <result name="internal.app.error">/ftl/internal.error.ftl</result>
       <result name="home" type="redirect-action">home</result>
@@ -74,7 +73,7 @@
     <action name="selected-topics"> <result>/ftl/category.selection.ftl</result> </action>
 
     <action name="register" class="newsrack.web.RegisterAction">
-      <result>/ftl/user/register.success.ftl</result>
+      <result>/ftl/user/registration-success.ftl</result>
       <result name="input">/ftl/forms/register.ftl</result>
     </action>
 
@@ -139,6 +138,7 @@
   <package name="user" extends="app-default" namespace="/user">
     <action name="change-password" class="newsrack.web.UserAction" method="changePassword">
       <result>/ftl/user/home.ftl</result>
+      <result name="input">/ftl/forms/change-password.ftl</result>
       <result name="error">/ftl/forms/change-password.ftl</result>
     </action>
 

@@ -12,11 +12,37 @@ import newsrack.user.User;
 
 public class RegisterAction extends BaseAction
 {
+	private static final int UID_MAX_LENGTH = 15;
+
    private static final Log _log = LogFactory.getLog(RegisterAction.class); /* Logger for this action class */
+
+		/** Set these three params so that they are available in the form when there are errors */ 
+	private String _name;
+	private String _username;
+	private String _emailid;
+
+	public void setName(String n) {  _name = n; }
+	public String getName() { return _name; }
+
+	public void setUsername(String n) {  _username = n; }
+	public String getUsername() { return _username; }
+
+	public void setEmailid(String e) {  _emailid = e; }
+	public String getEmailid() { return _emailid; }
 
 	private void validateUserId(String uid)
 	{
-		int    n  = uid.length();
+		if (!User.userIdAvailable(uid)) {
+			addFieldError("username", getText("error.uid.unavailable", new String[]{uid}));
+			return;
+		}
+
+		int n = uid.length();
+		if (n > UID_MAX_LENGTH) {
+			addFieldError("username", getText("error.string.toolong", new String[]{uid}));
+			return;
+		}
+
 		char[] cs = uid.toCharArray();
 		for (int i = 0; i < n; i++) {
 			char c = cs[i];
@@ -35,22 +61,15 @@ public class RegisterAction extends BaseAction
 
 	public void validate()
 	{
-      String uid  = getParam("username");
+      String uid = getParam("username");
 		if (uid == null || uid.trim().equals(""))
 			addFieldError("username", getText("error.username.required"));
-		else if (!User.userIdAvailable(uid))
-			addFieldError("username", getText("error.uid.unavailable", new String[]{uid}));
+		else
+			validateUserId(_username);
 
-      String pass = getParam("password");
-      String pass2 = getParam("passwordConfirm");
-		if (pass == null || pass.equals(""))
-			addFieldError("password", getText("error.password.required"));
-		if (pass2 == null || pass2.equals(""))
-			addFieldError("passwordConfirm", getText("error.password.required"));
-		if (!pass.equals(pass2))
-			addFieldError("passwordConfirm", getText("error.password.mismatch"));
+		validatePasswordPair("password", "passwordConfirm");
 
-			/* This is one crude way to handle robot registrations */
+			// This is one crude way to handle robot registrations
 		String hsv = getParam("humanSumValue");
 		String hsr = getParam("humanSumResponse");
 		try {
@@ -68,21 +87,8 @@ public class RegisterAction extends BaseAction
 
 	public String execute()
 	{
-      String name     = getParam("name");
-      String username = getParam("username");
-      String password = getParam("password");
-      String pc       = getParam("passwordConfirm");
-      String emailid  = getParam("emailid");
-
-		try {
-			User u = User.registerUser(username, password, name, emailid);
-			assert(u != null);
-			return Action.SUCCESS;
-		}
-		catch (Exception e) {
-			addActionError(getText("internal.app.error"));
-			_log.error("Exception registering user!", e);
-			return "internal.app.error";
-		}
+		User u = User.registerUser(getParam("username"), getParam("password"), getParam("name"), getParam("emailid"));
+		assert(u != null);
+		return Action.SUCCESS;
 	}
 }

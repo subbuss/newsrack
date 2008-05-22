@@ -4,6 +4,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Hashtable;
+import java.util.Date;
+
 import newsrack.user.User;
 import newsrack.database.NewsItem;
 import newsrack.filter.Issue;
@@ -11,7 +13,6 @@ import newsrack.filter.Filter;
 import newsrack.filter.Count;
 import newsrack.filter.Category;
 import newsrack.filter.Concept;
-import java.util.Date;
 
 class SQL_CategoryStub extends Category
 {

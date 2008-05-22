@@ -31,12 +31,25 @@ with your user id and password to enter your personal user space.
 
 <div class="ie_center_hack">
 <form class="signin" action="<@s.url namespace="/" action="login" />" method="post">
-<div class="formelt mandatory">User-id<input class="text" type="text" name="username"></div>
+<div class="formelt mandatory">User-id<input class="text" type="text" name="username"<#if username?exists> value="${username}"</#if>></div>
 <div class="formelt mandatory">Password<input class="text" type="password" name="password"></div>
 <div align="center"> <input class="submit" type="submit" name="submit" value="Sign in"> </div>
 <div class="forgot_password"> <a href="<@s.url namespace="/forms" action="forgot-password" />">Forgot Password?</a></div>
 </form>
 </div>
+<#--
+<@s.form namespace="/" action="login" method="post">
+<#if username?exists>
+<@s.textfield key="label.uid" name="username" value="${username}" />
+<#else>
+<@s.textfield key="label.uid" name="username" />
+</#if>
+<@s.password key="label.pwd" name="password" />
+<@s.submit key="label.signin" />
+<@s.url id="url" namespace="/forms" action="forgot-password" />
+<@s.a href="${url}">Forgot Password?</@s.a>
+</@s.form>
+-->
 
 <p>
 If you don't have an account, you can <a href="<@s.url namespace="/forms" action="register" />">register</a>
@@ -44,8 +57,7 @@ yourself.  If you register, you monitor topics that interest you.
 </p>
 </div>
 
-</#if> <#-- read-only
--->
+</#if> <#-- read-only -->
 </td>
 </tr>
 </table>

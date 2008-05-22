@@ -100,7 +100,7 @@ public class User
 	 * @throws UnknownUserException if the user name is unknown
 	 * @throws InvalidPasswordException if the specified password is incorrect
 	 */
-	public synchronized static User signInUser(final String uname, final String passwd) throws UnknownUserException, InvalidPasswordException, Exception
+	public synchronized static User signInUser(final String uname, final String passwd) throws UnknownUserException, InvalidPasswordException
 	{
 		final User u = getUser(uname);
 		if (u == null)
@@ -132,7 +132,7 @@ public class User
 	 * @returns a user object if registration is successful
 	 *          null otherwise (for example, if the user id is not available)
 	 */
-	public synchronized static User registerUser(String uid, String password, String name, String emailId) throws Exception
+	public synchronized static User registerUser(String uid, String password, String name, String emailId)
 	{
 		if (!userIdAvailable(uid))
 			return null;
@@ -217,7 +217,7 @@ public class User
 	/**
 	 * Change the password for the user!
 	 */
-	public void changePassword(final String oldPwd, final String newPwd) throws InvalidPasswordException, Exception
+	public void changePassword(final String oldPwd, final String newPwd) throws InvalidPasswordException
 	{
 			// Match password
 		if (!passwordMatches(oldPwd))
@@ -231,7 +231,7 @@ public class User
 	/**
 	 * Reset the password for the user!
 	 */
-	public void resetPassword(final String newPwd) throws Exception
+	public void resetPassword(final String newPwd)
 	{
 			// Set new password
 		_password = PasswordService.encrypt(newPwd);
@@ -777,7 +777,7 @@ public class User
 	 * This method verifies if the specified passwords the user's password
 	 * @param p  The password to be checked
 	 */
-	public boolean passwordMatches(final String p) throws Exception
+	public boolean passwordMatches(final String p)
 	{
 		final String encPassword = PasswordService.encrypt(p);
 		_log.info("user password - " + _password + "; p - " + p + "enc - " + encPassword);
