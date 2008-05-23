@@ -155,7 +155,7 @@
     <default-interceptor-ref name="simpleStack" />
 
     <action name="send-reset-key" class="newsrack.web.PasswordResetAction" method="sendPasswordResetKey">
-      <result type="redirect-action">home</result>
+      <result>/ftl/forms/login.ftl</result>
       <result name="input">/ftl/forms/forgot-password.ftl</result>
     </action>
 

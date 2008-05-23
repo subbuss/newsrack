@@ -20,20 +20,23 @@ public class PasswordResetAction extends BaseAction
 
 	public User getUser() { return _user; }
 
+	public void validateSendPasswordResetKey()
+	{
+      String uid = getParam("uid");
+		if ((uid == null) || uid.trim().equals(""))
+			addFieldError("username", getText("error.missing.username"));
+	}
+
 	public String sendPasswordResetKey()
 	{
       String uid = getParam("uid");
-		if (uid == null) {
-			addFieldError("username", getText("error.missing.username"));
-			_log.error("User name not provided!");
-			return Action.INPUT;
-		}
 		User u = User.getUser(uid);
 		if (u == null) {
 			addFieldError("username", getText("error.invalid.uid", new String[]{uid}));
 			return Action.INPUT;
 		}
 
+			/** FIXME: Fetch the body of the email by evaluating a FTL template **/
 		String serverUrl = GlobalConstants.getServerURL();
 		String resetKey  = PasswordService.getPasswordResetKey(uid);
 		String resetUrl  = serverUrl + "/password/reset-form?uid=" + uid + "&key=" + resetKey;

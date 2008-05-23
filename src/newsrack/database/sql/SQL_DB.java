@@ -1739,7 +1739,7 @@ public class SQL_DB extends DB_Interface
       // is to get rid of the Download button or at least not allow 2 threads to process the same
       // new source!
 
-      String dir     = GLOBAL_NEWS_ARCHIVE_DIR + File.separator + getArchiveDirForFilteredArticle(f, d);
+      String dir     = GLOBAL_NEWS_ARCHIVE_DIR + File.separator + getArchiveDirForFilteredArticles(f, d);
       String urlBase = StringUtils.getBaseFileName(url);
       String prefix  = (urlBase.length() > 0) ? "" : "ni0";
       int    count   = 0;
@@ -1766,7 +1766,7 @@ public class SQL_DB extends DB_Interface
 	public PrintWriter getWriterForOrigArticle(String url, Feed feed, Date d, String baseName)
 	{
 		String fpath =   GLOBAL_NEWS_ARCHIVE_DIR + File.separator 
-					      + getArchiveDirForOrigArticle(feed, d) + File.separator + baseName;
+					      + getArchiveDirForOrigArticles(feed, d) + File.separator + baseName;
       File f = new File(fpath);
 			// Allow overwriting for empty files
       if (f.exists() && (f.length() > 0))
@@ -1795,7 +1795,7 @@ public class SQL_DB extends DB_Interface
 	public PrintWriter getWriterForFilteredArticle(String url, Feed feed, Date d, String baseName)
 	{
 		String fpath =  GLOBAL_NEWS_ARCHIVE_DIR + File.separator 
-					     + getArchiveDirForFilteredArticle(feed, d) + File.separator + baseName;
+					     + getArchiveDirForFilteredArticles(feed, d) + File.separator + baseName;
       File f = new File(fpath);
 			// Allow overwriting for empty files
       if (f.exists() && (f.length() > 0))
@@ -1822,7 +1822,7 @@ public class SQL_DB extends DB_Interface
 	public void deleteFilteredArticle(String url, Feed feed, Date d, String baseName)
 	{
 		String fpath =  GLOBAL_NEWS_ARCHIVE_DIR + File.separator 
-					     + getArchiveDirForFilteredArticle(feed, d) + File.separator + baseName;
+					     + getArchiveDirForFilteredArticles(feed, d) + File.separator + baseName;
 		File f = new File(fpath);
 		if (f.exists()) {
 			if (!f.delete())

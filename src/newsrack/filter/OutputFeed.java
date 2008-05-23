@@ -136,20 +136,19 @@ public class OutputFeed
 		}
 	}
 
-
 	public void addNewsItem(final NewsItem ni, final List<Category> cats)
 	{
 		if (_log.isInfoEnabled()) _log.info("RSS: ADDING " + ni.getTitle() + " to " + _name);
 
 		final SyndEntry si = new SyndEntryImpl();
-		si.setTitle(StringUtils.filterForXMLOutput(ni.getTitle()));
-		si.setLink(StringUtils.filterForXMLOutput(ni.getURL()));
+		si.setTitle(ni.getTitle());
+		si.setLink(ni.getURL());
 		final Date d = ni.getDate();
 		if (d != null)
 			si.setPublishedDate(d);
 		final String auth = ni.getAuthor();
 		if (auth != null)
-			si.setAuthor(StringUtils.filterForXMLOutput(auth));
+			si.setAuthor(auth);
 
 			// Set up categories
 		final Category  firstCat = cats.get(0);
@@ -169,7 +168,7 @@ public class OutputFeed
       description.setType("text/plain");
 		final String desc = ni.getDescription();
 		if (desc != null)
-			description.setValue(src + StringUtils.filterForXMLOutput(desc));
+			description.setValue(src + desc);
 		else
 			description.setValue(src);
       si.setDescription(description);
