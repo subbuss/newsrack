@@ -1177,10 +1177,24 @@ public class SQL_DB extends DB_Interface
 
 			// Add it to the db, if necessary
 		if (!sni.inTheDB()) {
-         Long key = (Long)INSERT_NEWS_ITEM.execute(
-               new Object[] {niKey, sni._urlRoot, sni._urlTail, sni._localCopyName, sni._title, sni._description, sni._author});
-         sni.setKey(key);
-			sni.setNewsIndexKey(niKey); // Record the news index that the news item belongs to!
+				// Synchronize over an unique String object of the url so that 2 threads operating on the same url
+				// get serialized, but, other threads can go ahead without a problemo!
+			String u = sni.getURL().intern();
+			synchronized(u) {
+				SQL_NewsItem x = (SQL_NewsItem)getNewsItemFromURL(u);
+				if (x == null) {
+					Long key = (Long)INSERT_NEWS_ITEM.execute(
+							new Object[] {niKey, sni._urlRoot, sni._urlTail, sni._localCopyName, sni._title, sni._description, sni._author});
+					sni.setKey(key);
+					sni.setNewsIndexKey(niKey); // Record the news index that the news item belongs to!
+				}
+				else {
+						// Some other thread has beat me to it!  So, don't add the news item to the db
+						// Copy over the attributes of that item ...
+					sni.copy(x);
+					_log.info("Aha! Prevented a duplicate news object problem for url: " + u);
+				}
+			}
 		}
 		else if (_log.isDebugEnabled()) {
 			_log.debug("news item: " + sni._title + ": already in the DB " + sni.getKey() + " in index " + sni._newsIndexKey);

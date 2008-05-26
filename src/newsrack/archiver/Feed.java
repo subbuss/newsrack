@@ -463,7 +463,7 @@ public class Feed
          String baseName = _db.getFileNameForArticle(this, date, url);
 
 				// 3. Check if the article has already been downloaded previously
-			ni = _db.getNewsItem(url, this, date, baseName);
+			ni = _db.getNewsItemFromURL(url);
 			if (ni != null) {
 				if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getLocalCopyPath());
 				return ni;

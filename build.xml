@@ -102,7 +102,7 @@
   </target>
 
   <target name="deploy" depends="war" description="Deploys the web application">
-     <copy file="${builddir}/${webapp.name}.war" todir="${container.dir}/webapps/" />
+    <copy file="${builddir}/${webapp.name}.war" todir="${container.dir}/webapps/" />
   </target>
 
   <target name="updateweb" description="Updates ftl files in the deployed app">

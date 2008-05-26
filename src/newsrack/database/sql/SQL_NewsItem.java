@@ -53,12 +53,13 @@ public class SQL_NewsItem extends NewsItem
 	String  _title;			// Title of the article
 	String  _description;	// Description provided
 	Long    _feedKey;			// DB key of the feed that this news item belongs to!
-	Long          _newsIndexKey;	// Key of the news index that this news item belongs to
-	SQL_NewsIndex _newsIndex;		// news index that this news item belongs to
+	Long           _newsIndexKey;	// Key of the news index that this news item belongs to
+	SQL_NewsIndex  _newsIndex;		// news index that this news item belongs to
 	List<Category> _cats;			// Categories that this news item belongs to
 
 	private void init(String urlRoot, String urlTail, String baseName)
 	{
+		_nKey    = null;
 		_urlRoot = urlRoot;
 		_urlTail = urlTail;
 			// At one point, the localcopy path had some relevance in terms of where the
@@ -135,12 +136,13 @@ public class SQL_NewsItem extends NewsItem
 			_urlTail = u.substring(i);
 		}
 	}
-	public void  setLocalCopy(String p)	
+	public void  setLocalCopyName(String p)	
 	{
 		if (p != null) {
 			_localCopyName = p.substring(1 + p.lastIndexOf('/'));
 		}
 	}
+	public String getLocalCopyName() { return _localCopyName; }
 
 	public Long     getKey()         { return _nKey; }
 	public boolean  inTheDB()        { return _nKey != null; }
@@ -201,4 +203,19 @@ public class SQL_NewsItem extends NewsItem
 	}
 
 	public void printCategories(PrintWriter pw) { /* nothing to do for now */ }
+
+	void copy(SQL_NewsItem ni)
+	{
+		this._nKey          = ni._nKey;
+		this._localCopyName = ni._localCopyName;
+		this._newsIndexKey  = ni._newsIndexKey;
+		this._newsIndex     = ni._newsIndex;
+		this._feedKey       = ni._feedKey;
+	   this._urlRoot       = ni._urlRoot;
+	   this._urlTail       = ni._urlTail;
+	   this._date          = ni._date;
+	   this._author        = ni._author;
+	   this._title         = ni._title;
+	   this._description   = ni._description;
+	}
 }

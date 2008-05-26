@@ -143,6 +143,7 @@ public class SQL_StmtExecutor
 			Object retVal = null;
 			if (rs.next()) {
 				retVal = rp.processResultSet(rs);
+					// FIXME: Can we pass along the result too??
 				if (rs.next()) // Since this is supposed to be a single row result there cannot be multiple rows!
 					throw new SQL_UniquenessConstraintViolationException("Multiple results found!");
 			}

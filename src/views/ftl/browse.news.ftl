@@ -241,7 +241,9 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.date)}';
 			<td colspan="3">
 			<span class="normal underline">Also found in:</span>
         [#foreach c in cats]
+          [#if !cat.key.equals(c.key)]
 			[${c.user.uid} :: <a href="[@s.url namespace="/" action="browse" owner="${c.user.uid}" issue="${c.issue.name}" catID="${c.catId}" /]">${c.name}</a>] &nbsp;
+          [/#if]
         [/#foreach]
 			[/#if]
 			</td>

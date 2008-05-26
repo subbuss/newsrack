@@ -35,7 +35,8 @@ abstract public class NewsItem
 	abstract public String   getDateString();
 	abstract public String   getAuthor();
 	abstract public String   getDescription();
-	abstract public String   getLocalCopyPath();
+	abstract public String   getLocalCopyName();	// File name for the local copy
+	abstract public String   getLocalCopyPath();	// Full path for the local copy
 	/** Returns a reader object to read the contents of the news item */
 	abstract public Reader   getReader() throws Exception;
 	abstract public int      getNumCats();
@@ -52,7 +53,7 @@ abstract public class NewsItem
 	abstract public void     setDescription(String d);
 	abstract public void     setAuthor(String a);
 	abstract public void     setURL(String u);
-	abstract public void     setLocalCopy(String p);
+	abstract public void     setLocalCopyName(String p);
 
 	public boolean olderThan(NewsItem n)
 	{

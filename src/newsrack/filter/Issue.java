@@ -927,9 +927,7 @@ public class Issue
 
 	private void scanAndClassifyNewsItems(Feed f, Hashtable newsTable, boolean skipProcessed)
 	{
-		_log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f._feedName));
-
-		_log.debug("... DONE reading in current rss feed!");
+		if (_log.isDebugEnabled()) _log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f._feedName));
 
 		Long maxNewsId = (long)0;
 		String workDir = _user.getWorkDir();
