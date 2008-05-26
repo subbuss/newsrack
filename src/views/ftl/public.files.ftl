@@ -17,6 +17,8 @@
 <td class="user_space">
 <h1 class="underline"> Publicly available files </h1>
 
+<@s.set name="user" value="#session.user" />
+
 <@s.if test="publicFiles">
 <p class="justify">
 	The following table lists all public files that are available.
@@ -36,6 +38,7 @@
 	</thead>
 	<tbody>
   <@s.iterator value="publicFiles">
+    <#if !fileOwner.equals(user.uid)>
     <tr>
 			<td style="padding: 2px 20px 2px 20px">${fileOwner}</td>
 			<td> 
@@ -45,6 +48,7 @@
 			<a href="<@s.url namespace="/file" action="download" owner="${fileOwner}" file="${fileName}" />">Download</a>
 			] </td>
 		</tr>
+    </#if>
 	</@s.iterator>
   </tbody>
 	</table>

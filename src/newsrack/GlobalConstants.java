@@ -154,16 +154,18 @@ public final class GlobalConstants
 	/** Returns the full path of the webapp */
 	public static String getWebappPath() { return _webappPath; }
 
-	/** Returns the base directory for where RSS feed files are stored */ 
-	public static String getBaseRssDir() { return _webappPath + File.separator + getProperty("rssDir"); }
-
 	/** Gets the property value for a named property
 	 *  @param pname Property whose value is requested
 	 *  @return the requested property value
 	 */ 
-	public static String getProperty(String pname)
+	public static String getProperty(String pname) { return _nrProps.getProperty(pname); }
+
+	public static String getDirPathProperty(String pname)
 	{
-		return _nrProps.getProperty(pname);
+		String v = getProperty(pname);
+		if (!v.endsWith(File.separator))
+			v += File.separator;
+		return v;
 	}
 
 	/** Checks is the property value is set to true
@@ -185,6 +187,9 @@ public final class GlobalConstants
       String p = _nrProps.getProperty(pname);
       return ((p != null) && (p.compareToIgnoreCase("false") == 0));
    }
+
+	/** Returns the base directory for where RSS feed files are stored */ 
+	public static String getBaseRssDir() { return _webappPath + File.separator + getDirPathProperty("rssDir"); }
 
 	public static boolean testing() { return isTrue("testing"); }
 

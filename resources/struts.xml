@@ -95,8 +95,9 @@
     </action>
 
     <action name="public-files" class="newsrack.web.PublicFilesAction">
-	   <result>/ftl/public.files.ftl</result>
-	 </action>
+      <interceptor-ref name="simpleLoginStack" />
+      <result>/ftl/public.files.ftl</result>
+    </action>
   </package>
 
   <package name="news" extends="app-default" namespace="/news">
@@ -183,11 +184,10 @@
       <result>/ftl/forms/edit-file.ftl</result>
     </action>
 
-    <action name="upload" class="newsrack.web.FileAction" method="upload">
-      <interceptor-ref name="simpleLoginFileStack" />
-    </action>
+    <action name="upload" class="newsrack.web.FileAction" method="upload" />
 
     <action name="new" class="newsrack.web.FileAction" method="createNew" />
+
 	 	<!-- display, download, copy, save, rename -->
     <action name="*" class="newsrack.web.FileAction" method="{1}" />
   </package>

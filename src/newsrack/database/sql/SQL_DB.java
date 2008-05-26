@@ -71,7 +71,6 @@ public class SQL_DB extends DB_Interface
 	private static String GLOBAL_USERS_ROOTDIR;
 	private static String GLOBAL_NEWS_ARCHIVE_DIR;
 	private static String USER_INFO_DIR;
-	private static String USER_TABLE;
 	private static String DB_NAME;
 	private static String DB_USER;
 	private static String DB_PASSWORD;
@@ -159,10 +158,9 @@ public class SQL_DB extends DB_Interface
 
 	private void initDirPaths() 
 	{
-		GLOBAL_USERS_ROOTDIR    = GlobalConstants.getProperty("sql.userHome");
-		GLOBAL_NEWS_ARCHIVE_DIR = GlobalConstants.getProperty("sql.archiveHome");
-		USER_TABLE              = GlobalConstants.getProperty("sql.userTable");
-		USER_INFO_DIR           = GlobalConstants.getProperty("sql.userInfoDir");
+		GLOBAL_USERS_ROOTDIR    = GlobalConstants.getDirPathProperty("sql.userHome");
+		GLOBAL_NEWS_ARCHIVE_DIR = GlobalConstants.getDirPathProperty("sql.archiveHome");
+		USER_INFO_DIR           = GlobalConstants.getDirPathProperty("sql.userInfoDir");
 	}
 
 	private SQL_DB() 
@@ -173,9 +171,9 @@ public class SQL_DB extends DB_Interface
 		try {
 			IOUtils.createDir(GLOBAL_USERS_ROOTDIR);
 			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR);
-			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + "orig");
-			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + "filtered");
-			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + "tmp");
+			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + "orig");
+			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + "filtered");
+			IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + "tmp");
 		}
 		catch (Exception e) {
 			_log.error(e);
@@ -236,7 +234,7 @@ public class SQL_DB extends DB_Interface
 
 	private String getUserHome(User u)
 	{
-		return GLOBAL_USERS_ROOTDIR + File.separator + u.getUid();
+		return GLOBAL_USERS_ROOTDIR + u.getUid() + File.separator;
 	}
 
 	/**
@@ -258,7 +256,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public String getFileUploadArea(User u)
 	{
-		return getUserHome(u) + File.separator + USER_INFO_DIR + File.separator;
+		return getUserHome(u) + USER_INFO_DIR;
 	}
 
 	/**
@@ -267,7 +265,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public String getUserSpaceWorkDir(User u)
 	{
-		return (u == null) ? "" : getFileUploadArea(u);
+		return (u == null) ? "" : getFileUploadArea(u) + GlobalConstants.getDirPathProperty("sql.userWorkDir");
 	}
 
 	/**
@@ -728,7 +726,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public String getRelativeFilePath(User u, String fname)
 	{
-		return GLOBAL_USERS_ROOTDIR + File.separator + u.getUid() + File.separator + USER_INFO_DIR + File.separator + fname;
+		return GLOBAL_USERS_ROOTDIR + u.getUid() + File.separator + USER_INFO_DIR + fname;
 	}
 
 	/**
@@ -850,7 +848,7 @@ public class SQL_DB extends DB_Interface
 			// So, before using the path, appropriately process it to make it usable on the OS
 			// that this installation is running on!
 		String newPath  = normalizeLocalCopyPath(niPath);
-		String fullPath = GLOBAL_NEWS_ARCHIVE_DIR + File.separator + "filtered" + File.separator + newPath;
+		String fullPath = GLOBAL_NEWS_ARCHIVE_DIR + "filtered" + File.separator + newPath;
       if (_log.isDebugEnabled()) _log.debug("Got " + niPath + "; looking for " + newPath + "; FULLPATH is " + fullPath);
 		return IOUtils.getUTF8Reader(fullPath);
 	}
@@ -867,10 +865,10 @@ public class SQL_DB extends DB_Interface
 
 			// Move the file to the attic!
 		String fua   = getFileUploadArea(u);
-		String attic = fua + File.separator + "attic";
+		String attic = fua + "attic" + File.separator;
 		IOUtils.createDir(attic);
-		File f1 = new File(fua + File.separator + name);
-		File f2 = new File(attic + File.separator + name);
+		File f1 = new File(fua + name);
+		File f2 = new File(attic + name);
 		f1.renameTo(f2);
 	}
 
@@ -1689,7 +1687,7 @@ public class SQL_DB extends DB_Interface
 	private String getArchiveDir(Feed f, Date d)
 	{
 			// Get the directory name for the source
-		return getDateString(d) + File.separator + f.getTag();
+		return getDateString(d) + File.separator + f.getTag() + File.separator;
 	}
 
 	/**
@@ -1703,7 +1701,7 @@ public class SQL_DB extends DB_Interface
 	private String getArchiveDirForOrigArticles(Feed f, Date artDate)
 	{
 		String d = "orig" + File.separator + getArchiveDir(f, artDate);
-		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + d);
+		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + d);
 		return d;
 	}
 
@@ -1719,7 +1717,7 @@ public class SQL_DB extends DB_Interface
 	private String getArchiveDirForFilteredArticles(Feed f, Date artDate)
 	{
 		String d = "filtered" + File.separator + getArchiveDir(f, artDate);
-		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + d);
+		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + d);
 		return d;
 	}
 
@@ -1732,8 +1730,8 @@ public class SQL_DB extends DB_Interface
 	 */
 	public String getArchiveDirForIndexFiles(Feed f, Date date)
 	{
-		String d = "filtered" + File.separator + getArchiveDir(f, date) + File.separator + "index";
-		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + File.separator + d);
+		String d = "filtered" + File.separator + getArchiveDir(f, date) + "index";
+		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + d);
 		return d;
 	}
 
@@ -1753,7 +1751,7 @@ public class SQL_DB extends DB_Interface
       // is to get rid of the Download button or at least not allow 2 threads to process the same
       // new source!
 
-      String dir     = GLOBAL_NEWS_ARCHIVE_DIR + File.separator + getArchiveDirForFilteredArticles(f, d);
+      String dir     = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(f, d);
       String urlBase = StringUtils.getBaseFileName(url);
       String prefix  = (urlBase.length() > 0) ? "" : "ni0";
       int    count   = 0;
@@ -1762,7 +1760,7 @@ public class SQL_DB extends DB_Interface
          baseName = prefix + urlBase;
          count++;
          prefix   = "ni" + count + ".";
-      } while ((new File(dir + File.separator + baseName)).exists());
+      } while ((new File(dir + baseName)).exists());
 
       return baseName;
    }
@@ -1779,8 +1777,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public PrintWriter getWriterForOrigArticle(String url, Feed feed, Date d, String baseName)
 	{
-		String fpath =   GLOBAL_NEWS_ARCHIVE_DIR + File.separator 
-					      + getArchiveDirForOrigArticles(feed, d) + File.separator + baseName;
+		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + baseName;
       File f = new File(fpath);
 			// Allow overwriting for empty files
       if (f.exists() && (f.length() > 0))
@@ -1808,8 +1805,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public PrintWriter getWriterForFilteredArticle(String url, Feed feed, Date d, String baseName)
 	{
-		String fpath =  GLOBAL_NEWS_ARCHIVE_DIR + File.separator 
-					     + getArchiveDirForFilteredArticles(feed, d) + File.separator + baseName;
+		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) + baseName;
       File f = new File(fpath);
 			// Allow overwriting for empty files
       if (f.exists() && (f.length() > 0))
@@ -1835,8 +1831,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void deleteFilteredArticle(String url, Feed feed, Date d, String baseName)
 	{
-		String fpath =  GLOBAL_NEWS_ARCHIVE_DIR + File.separator 
-					     + getArchiveDirForFilteredArticles(feed, d) + File.separator + baseName;
+		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) + baseName;
 		File f = new File(fpath);
 		if (f.exists()) {
 			if (!f.delete())

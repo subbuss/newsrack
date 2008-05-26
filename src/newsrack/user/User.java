@@ -187,7 +187,7 @@ public class User
       try {
          _uid      = uname;
          _password = pwd;
-         _workDir  = (_db == null) ? "": _db.getUserSpaceWorkDir(this);
+         _workDir  = (_db == null) ? "" : _db.getUserSpaceWorkDir(this);
          _isInitialized = initialized;
       }
       catch (Exception e) {
