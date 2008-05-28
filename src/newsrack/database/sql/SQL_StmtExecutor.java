@@ -143,9 +143,9 @@ public class SQL_StmtExecutor
 			Object retVal = null;
 			if (rs.next()) {
 				retVal = rp.processResultSet(rs);
-					// FIXME: Can we pass along the result too??
-				if (rs.next()) // Since this is supposed to be a single row result there cannot be multiple rows!
-					throw new SQL_UniquenessConstraintViolationException("Multiple results found!");
+					// Since this is supposed to be a single row result there cannot be multiple rows!
+				if (rs.next())
+					throw new SQL_UniquenessConstraintViolationException(retVal, "Multiple results found!");
 			}
 
 				// Close all db resources before doing further post-processing
@@ -179,15 +179,21 @@ public class SQL_StmtExecutor
 	}
 
    /**
-    * This method executes a prepared sql statement using arguments passe in
-    * and pushes the result set thorough a result processor, if any.  The result
-    * processor is just a cumbersome way of passing in a closure since Java
-    * does not support closures yet.
+    * This method executes a prepared sql statement using arguments passed in
+    * and pushes the result set thorough a result processor, if any.
     *
-    * @param args   Argument array for this sql statement
+    * @param stmtString  SQL stmt string
+    * @param stmtType    Type of statement this is (SELECT, DELETE, INSERT, UPDATE)
+    * @param args        Argument array for this sql statement
+    * @param argTypes    Argument types for the arguments being passed in
+	 * 							FIXME: colSizes is not used right now ...
+	 * @param colSizes    Width of the column data -- used for checking whether the inserted data is too big to fit!
+	 * @param resultProcessor  How should the result set be processed?  The result processor is just a cumbersome way of passing in a closure since Java does not support closures yet.
+	 * @param singleRowOutput  Are we expecting a single row or multiple rows?
+	 *
 	 * @returns the result of executing the query, if any 
     */
-   public static Object execute(String stmtString, SQL_ValType[] argTypes, Object[] args, SQL_StmtType stmtType, SQL_ColumnSize[] colSizes, ResultProcessor rp, boolean singleRowOutput)
+   public static Object execute(String stmtString, SQL_StmtType stmtType, Object[] args, SQL_ValType[] argTypes, SQL_ColumnSize[] colSizes, ResultProcessor rp, boolean singleRowOutput)
    {
       int n = -1;
 		Connection c = null;
@@ -297,4 +303,14 @@ public class SQL_StmtExecutor
 			closeConnection(c);
       }
    }
+
+   public static Object update(String stmtString, SQL_ValType[] argTypes, Object[] args)
+	{
+		return execute(stmtString, SQL_StmtType.UPDATE, args, argTypes, null, null, true);
+	}
+
+   public static Object delete(String stmtString, SQL_ValType[] argTypes, Object[] args)
+	{
+		return execute(stmtString, SQL_StmtType.DELETE, args, argTypes, null, null, true);
+	}
 }

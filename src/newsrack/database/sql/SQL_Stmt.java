@@ -412,6 +412,14 @@ public enum SQL_Stmt
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
+		true
+	),
+	GET_ALL_NEWS_ITEMS_WITH_URL(
+		"SELECT n_key FROM news_item_table WHERE url_root = ? AND url_tail = ?",
+		new SQL_ValType[] {STRING, STRING},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
 		false
 	),
 		// FIXME: This humonguous query is a result of bad design of how news item local paths are displayed on the listing page
@@ -906,10 +914,7 @@ public enum SQL_Stmt
 	INSERT_INTO_SHARED_NEWS_TABLE(
 		"INSERT INTO news_collections_table (ni_key, n_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
-      SQL_StmtType.INSERT,
-      null,
-		null,
-		true
+      SQL_StmtType.INSERT
 	),
 	INSERT_CAT(
 		"INSERT INTO cat_table (name, u_key, t_key, cat_id, parent_cat, f_key, taxonomy_path) VALUES (?,?,?,?,?,?,?)",
@@ -938,18 +943,12 @@ public enum SQL_Stmt
 	INSERT_USER_FILE(
 		"INSERT INTO user_files_table (u_key, file_name) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, STRING},
-      SQL_StmtType.INSERT,
-		null,
-		null,
-		true
+      SQL_StmtType.INSERT
 	),
 	INSERT_IMPORT_DEPENDENCY(
 	   "INSERT IGNORE INTO import_dependency_table (from_user_key, importing_user_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
-      SQL_StmtType.INSERT,
-		null,
-		null,
-		true
+      SQL_StmtType.INSERT
 	),
 	INSERT_COLLECTION(
 		"INSERT INTO user_collections_table (coll_name, coll_type, u_key, uid) VALUES (?, ?, ?, ?)",
@@ -994,107 +993,68 @@ public enum SQL_Stmt
 	INSERT_TOPIC_SOURCE(
 		"INSERT INTO topic_source_table (t_key, src_key, feed_key) VALUES (?,?,?)",
 		new SQL_ValType[] {LONG, LONG, LONG},
-      SQL_StmtType.INSERT,
-		null,
-		null,
-		true
+      SQL_StmtType.INSERT
 	),
 		// Prepared Statement Strings for UPDATEs 
 	UPDATE_USER(
 		"UPDATE user_table SET password = ?, name = ?, email = ?, validated = ? WHERE u_key = ?",
       new SQL_ValType[] {STRING, STRING, STRING, BOOLEAN, LONG},
-		SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+		SQL_StmtType.UPDATE
 	),
 	UPDATE_FEED_CACHEABILITY(
 		"UPDATE feed_table SET cacheable = ?, show_cache_links = ? WHERE feed_key = ?",
       new SQL_ValType[] {BOOLEAN, BOOLEAN, LONG}, 
-		SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+		SQL_StmtType.UPDATE
 	),
 	SET_FEED_TAG(
 		"UPDATE feed_table SET feed_tag = ? WHERE feed_key = ?",
       new SQL_ValType[] {STRING, LONG}, 
-		SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+		SQL_StmtType.UPDATE
 	),
    UPDATE_CONCEPT_TOKEN(
       "UPDATE concept_table SET token = ? WHERE cpt_key = ?",
 		new SQL_ValType[] {STRING, LONG},
-      SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_INFO(
       "UPDATE topic_table SET validated = ?, frozen = ?, private = ? WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, BOOLEAN, BOOLEAN, LONG},
-      SQL_StmtType.UPDATE,
-		new SQL_ColumnSize[] {NONE},
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_ARTCOUNT_FOR_TOPIC(
 		"UPDATE topic_table SET num_articles = ?, last_update = ? WHERE t_key = ?",
       new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
-		SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+		SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_VALID_STATUS(
       "UPDATE topic_table SET validated = ? WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
-      SQL_StmtType.UPDATE,
-		new SQL_ColumnSize[] {NONE},
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPICS_VALID_STATUS_FOR_USER(
       "UPDATE topic_table SET validated = ? WHERE u_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
-      SQL_StmtType.UPDATE,
-		new SQL_ColumnSize[] {NONE},
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_SOURCE_INFO(
 		"UPDATE topic_source_table SET max_ni_key = ? WHERE t_key = ? AND feed_key = ?",
 		new SQL_ValType[] {LONG, LONG, LONG},
-      SQL_StmtType.INSERT,
-		null,
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	RESET_ALL_TOPIC_SOURCES(
 		"UPDATE topic_source_table SET max_ni_key = 0 WHERE t_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.INSERT,
-		null,
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_CAT_NEWS_INFO(
 		"UPDATE cat_table SET num_articles = ?, last_update = ? WHERE cat_key = ?",
       new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
-		SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+		SQL_StmtType.UPDATE
 	),
 	UPDATE_FILTER(
 		"UPDATE filter_table SET rule_key = ? WHERE f_key = ?",
       new SQL_ValType[] {LONG, LONG}, 
-		SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+		SQL_StmtType.UPDATE
 	),
    RENAME_CAT(
       "UPDATE cat_table SET name = ? WHERE cat_key = ?",
@@ -1107,235 +1067,148 @@ public enum SQL_Stmt
    UPDATE_CAT(
       "UPDATE cat_table SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG, STRING, INT, LONG, STRING, LONG},
-      SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_TOPIC(
       "UPDATE cat_table SET valid = ?, f_key = -1 WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
-      SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_USER(
       "UPDATE cat_table SET valid = ?, f_key = -1 WHERE u_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
-      SQL_StmtType.UPDATE,
-		null,
-		null,
-		true
+      SQL_StmtType.UPDATE
 	),
 		// Prepared Statement Strings for DELETEs 
 	CLEAR_CAT_NEWS(
 		"DELETE FROM cat_news_table WHERE c_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
-	),
-	DELETE_NEWS_ITEM(
-	   "DELETE FROM news_item_table WHERE n_key = ?",
-		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
-	),
-	DELETE_SHARED_NEWS_ITEM_ENTRIES(
-	   "DELETE FROM news_collections_table WHERE n_key = ?",
-		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_NEWS_FROM_CAT(
 		"DELETE FROM cat_news_table WHERE c_key = ? AND n_key = ?",
 		new SQL_ValType[] {LONG, LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_CLASSIFIED_NEWSITEM(
 		"DELETE FROM cat_news_table WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_5_NEWS_ITEMS_FROM_CAT(
 		"DELETE FROM cat_news_table WHERE c_key = ? AND n_key IN (?, ?, ?, ?, ?)",
 		new SQL_ValType[] {LONG, LONG, LONG, LONG, LONG, LONG},
-		SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+		SQL_StmtType.DELETE
+	),
+	DELETE_NEWS_ITEM(
+	   "DELETE FROM news_item_table WHERE n_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
+	),
+	DELETE_SHARED_NEWS_ITEM_ENTRIES(
+	   "DELETE FROM news_collections_table WHERE n_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
 	),
 	DELETE_USER_FILE(
 		"DELETE FROM user_files_table WHERE u_key = ? AND file_name = ?",
 		new SQL_ValType[] {LONG, STRING},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_IMPORT_DEPENDENCIES_FOR_USER(
 		"DELETE FROM import_dependency_table WHERE importing_user_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_COLLECTION(
 		"DELETE FROM user_collections_table WHERE coll_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_COLLECTIONS_FOR_USER(
 		"DELETE FROM user_collections_table WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_COLLECTION_ENTRIES(
 		"DELETE FROM collection_entries_table WHERE coll_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_COLLECTION_ENTRIES_FOR_USER(
 		"DELETE FROM collection_entries_table WHERE coll_key IN (SELECT coll_key FROM user_collections_table WHERE u_key = ?)",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ENTRY_FROM_COLLECTION(
 		"DELETE FROM collection_entries_table WHERE coll_key = ? AND entry_key = ?",
 		new SQL_ValType[] {LONG, LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_SOURCE_BY_TAG(
 		"DELETE FROM user_source_table WHERE u_key = ? AND coll_key = ? AND src_tag = ?",
 		new SQL_ValType[] {LONG, LONG, STRING},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_SOURCE_BY_ID(
 		"DELETE FROM user_source_table WHERE src_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_SOURCES_FOR_USER(
 		"DELETE FROM user_source_table WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_CATEGORY(
 		"DELETE FROM cat_table WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_FILTER(
 		"DELETE FROM filter_table WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_FILTERS_FOR_USER(
 		"DELETE FROM filter_table WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_FILTER_TERMS_FOR_USER(
 		"DELETE FROM filter_rule_term_table WHERE f_key IN (SELECT f_key FROM filter_table WHERE u_key = ?)",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_FILTER_TERMS(
 		"DELETE FROM filter_rule_term_table WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_CONCEPT_BY_ID(
 		"DELETE FROM concept_table WHERE cpt_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_CONCEPTS_FOR_USER(
 		"DELETE FROM concept_table WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_CONCEPT_BY_NAME(
 		"DELETE FROM concept_table WHERE u_key = ? AND coll_key = ? AND name = ?",
 		new SQL_ValType[] {LONG, LONG, STRING},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_ALL_TOPIC_SOURCES_FOR_USER(
 		"DELETE FROM topic_source_table WHERE t_key IN (SELECT t_key FROM topic_table WHERE u_key = ?)",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	),
 	DELETE_FROM_TOPIC_SOURCE_TABLE(
 		"DELETE FROM topic_source_table WHERE t_key = ?",
 		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE,
-		null,
-		null,
-		true
+      SQL_StmtType.DELETE
 	);
 
    static Log          _log;
@@ -1364,6 +1237,16 @@ public enum SQL_Stmt
 		_singleRowOutput = singleRow;
    }
 
+	SQL_Stmt(String stmt, SQL_ValType[] aTypes, SQL_StmtType type)
+	{
+      _stmtString = stmt;
+      _argTypes   = aTypes;
+      _stmtType   = type;
+      _colSizes   = null;
+		_rp         = null;
+		_singleRowOutput = true;
+	}
+
    /**
     * This method executes a prepared sql statement using arguments passed in
     * and pushes the result set through a result processor, if any.  The result
@@ -1375,11 +1258,16 @@ public enum SQL_Stmt
     */
    Object execute(Object[] args)
    {
-		return SQL_StmtExecutor.execute(_stmtString, _argTypes, args, _stmtType, _colSizes, _rp, _singleRowOutput);
+		return SQL_StmtExecutor.execute(_stmtString, _stmtType, args, _argTypes, _colSizes, _rp, _singleRowOutput);
    }
 
-	Object fetchByKey(Long key)
+	Object get(Long key)
 	{
-		return SQL_StmtExecutor.execute(_stmtString, _argTypes, new Object[]{key}, _stmtType, _colSizes, _rp, _singleRowOutput);
+		return SQL_StmtExecutor.execute(_stmtString, _stmtType, new Object[]{key}, _argTypes, _colSizes, _rp, _singleRowOutput);
+	}
+
+	Object delete(Long key)
+	{
+		return SQL_StmtExecutor.execute(_stmtString, _stmtType, new Object[]{key}, _argTypes, _colSizes, _rp, _singleRowOutput);
 	}
 }

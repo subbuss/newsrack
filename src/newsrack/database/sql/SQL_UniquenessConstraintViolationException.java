@@ -2,5 +2,7 @@ package newsrack.database.sql;
 
 public class SQL_UniquenessConstraintViolationException extends RuntimeException
 {
-   public SQL_UniquenessConstraintViolationException(String s) { super(s); }
+	final public Object firstResult;
+
+   public SQL_UniquenessConstraintViolationException(Object res, String s) { super(s); firstResult = res; }
 }
