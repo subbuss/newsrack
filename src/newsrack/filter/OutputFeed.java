@@ -140,8 +140,10 @@ public class OutputFeed
 	{
 		if (_log.isInfoEnabled()) _log.info("RSS: ADDING " + ni.getTitle() + " to " + _name);
 
+		final Category  firstCat = cats.get(0);
+		final String    src = ni.getSourceNameForUser(firstCat.getUser());
 		final SyndEntry si = new SyndEntryImpl();
-		si.setTitle(ni.getTitle());
+		si.setTitle(ni.getTitle() + " - " + src);
 		si.setLink(ni.getURL());
 		final Date d = ni.getDate();
 		if (d != null)
@@ -151,7 +153,6 @@ public class OutputFeed
 			si.setAuthor(auth);
 
 			// Set up categories
-		final Category  firstCat = cats.get(0);
 		final ArrayList syndCats = new ArrayList();
 		for (final Category c: cats) {
 			final SyndCategory sc = new SyndCategoryImpl();
@@ -161,16 +162,12 @@ public class OutputFeed
 		}
 		si.setCategories(syndCats);
 
-		final String src = "Source: " + ni.getSourceNameForUser(firstCat.getUser()) + " : " ;
-
       	// ROME API ALWAYS REQUIRES SOME DESCRIPTION
       final SyndContent description = new SyndContentImpl();
       description.setType("text/plain");
 		final String desc = ni.getDescription();
 		if (desc != null)
-			description.setValue(src + desc);
-		else
-			description.setValue(src);
+			description.setValue(desc);
       si.setDescription(description);
 
 			// Add to the list of items (at the HEAD)

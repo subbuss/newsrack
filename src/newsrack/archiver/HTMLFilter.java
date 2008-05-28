@@ -69,6 +69,7 @@ public class HTMLFilter extends NodeVisitor
 
 		org.htmlparser.scanners.ScriptScanner.STRICT = false;	// Turn off strict parsing of cdata
       org.htmlparser.lexer.Lexer.STRICT_REMARKS = false; 	// Turn off strict parsing of HTML comments
+		java.net.HttpURLConnection.setFollowRedirects(false);				// Turn off automatic redirect processing
 	}
 
 	private static String  _lineSep;	// Line separator
@@ -77,7 +78,9 @@ public class HTMLFilter extends NodeVisitor
 	private Stack        _ignoreFlagStack;
 	private String		   _title;
 	private StringBuffer _content;
+	private String       _origHtml;
 	private String       _url;
+	private String       _file;
 	private PrintWriter  _pw;
 	private OutputStream _os;
 	private boolean      _closeStream;	// Should I close output streams after I am done?
@@ -90,7 +93,7 @@ public class HTMLFilter extends NodeVisitor
 	private Stack        _spanTagStack;
    private boolean      _outputToFile; // Should the content be output to a file?
 
-	private void Init()
+	private void initFilter()
 	{
 		_title            = "";
 		_content          = null;
@@ -105,77 +108,75 @@ public class HTMLFilter extends NodeVisitor
       _outputToFile     = true;     // By default, content is written to file!
 
 		Parser.getConnectionManager().setCookieProcessingEnabled(true);
+		Parser.getConnectionManager().setRedirectionProcessingEnabled(true);
+	}
+
+	private HTMLFilter()
+	{
+		initFilter();
 	}
 	
 	/**
-	 * Empty constructor
+	 * @param file File to parse
 	 */
-	public HTMLFilter() 
+	public HTMLFilter(String file)
 	{
-		Init();
+		initFilter();
+		_outputToFile = false;
+		_file = file;
 	}
 
 	/**
+	 * @param fileOrUrl  File/URL that has to be filtered
 	 * @param pw         Print Writer to which filtered HTML should be written
+	 * @param isURL      True if 'fileOrUrl' is a URL
 	 **/
-	public HTMLFilter(PrintWriter pw)
+	public HTMLFilter(String fileOrUrl, PrintWriter pw, boolean isURL)
 	{
-		Init();
+		initFilter();
 		_pw = pw;
+		if (isURL) 
+			_url = fileOrUrl;
+		else
+			_file = fileOrUrl;
 	}
 
 	/**
-	 * @param url        URL of the article -- this url will be added in the filtered file
-	 *                   as a link to the original article
-	 * @param pw         Print Writer to which filtered HTML should be written
-	 **/
-	public HTMLFilter(String url, PrintWriter pw)
-	{
-		Init();
-		_url = url;
-		_pw  = pw;
-	}
-
-	/**
+	 * @param fileOrUrl  File/URL that has to be filtered
 	 * @param os         Output Stream to which filtered HTML should be written
+	 * @param isURL      True if 'fileOrUrl' is a URL
 	 **/
-	public HTMLFilter(OutputStream os)
+	public HTMLFilter(String fileOrUrl, OutputStream os, boolean isURL)
 	{
-		Init();
-		_os = os;
-	}
-
-	/**
-	 * @param url        URL of the article -- this url will be added in the filtered file
-	 *                   as a link to the original article
-	 * @param os         Output Stream to which filtered HTML should be written
-	 **/
-	public HTMLFilter(String url, OutputStream os)
-	{
-		Init();
-		_url = url;
+		initFilter();
 		_os  = os;
+		if (isURL) 
+			_url = fileOrUrl;
+		else
+			_file = fileOrUrl;
 	}
 
 	/**
-	 * @param res        File/URL that has to be filtered
+	 * @param fileOrUrl  File/URL that has to be filtered
 	 * @param outputDir  Directory where the filtered file has to be written
-	 * @param isURL      True if 'res' is a URL
+	 * @param isURL      True if 'fileOrUrl' is a URL
+	 *
 	 * @throws IOException if there is an error trying to create the output file
 	 */
-	public HTMLFilter(String res, String outputDir, boolean isURL) throws java.io.IOException
+	public HTMLFilter(String fileOrUrl, String outputDir, boolean isURL) throws java.io.IOException
 	{ 
-		Init();
+		initFilter();
 
 		char sep;
 		if (isURL) {
-			_url = res;
+			_url = fileOrUrl;
 			sep = '/';
 		}
 		else {
+			_file = fileOrUrl;
 			sep = File.separatorChar;
 		}
-		_pw = IOUtils.getUTF8Writer(outputDir + File.separator + res.substring(1 + res.lastIndexOf(sep)));
+		_pw = IOUtils.getUTF8Writer(outputDir + File.separator + fileOrUrl.substring(1 + fileOrUrl.lastIndexOf(sep)));
 			// Since I have opened these streams, I should close them after I am done!
 		_closeStream = true;
 	}
@@ -189,27 +190,30 @@ public class HTMLFilter extends NodeVisitor
 	 */
 	public HTMLFilter(String url, String file, String outputDir) throws java.io.IOException
 	{ 
-		Init();
+		initFilter();
 		_url = url;
 		_pw = IOUtils.getUTF8Writer(outputDir + File.separator + file.substring(1 + file.lastIndexOf(File.separatorChar)));
 			// Since I have opened these streams, I should close them after I am done!
 		_closeStream = true;
 	}
 
-	public boolean shouldRecurseSelf() 
-	{
-		return true;
-	} 
+	public String getOrigHtml() { return _origHtml; }
 
-	public boolean shouldRecurseChildren() 
+	public String getUrl() { return _url; }
+
+	public void run() throws Exception
 	{
-		return true;
+		Parser parser = new Parser((_url != null) ? _url : _file);
+		parseNow(parser, this);
+		_url = parser.getURL();
+		_origHtml = parser.getLexer().getPage().getText();
 	}
 
-	public void beginParsing() 
-	{
-		startDocument();
-	}
+	public boolean shouldRecurseSelf() { return true; } 
+
+	public boolean shouldRecurseChildren() { return true; }
+
+	public void beginParsing() { startDocument(); }
 
 	private void startDocument() 
 	{
@@ -551,14 +555,14 @@ public class HTMLFilter extends NodeVisitor
 		catch (org.htmlparser.util.EncodingChangeException e) {
 			try {
 				if (_log.isInfoEnabled()) _log.info("Caught you! CURRENT encoding is " + p.getEncoding());
-				visitor.Init();
+				visitor.initFilter();
 				p.reset();
 				p.visitAllNodesWith(visitor);
 			}
 			catch (org.htmlparser.util.EncodingChangeException e2) {
 				if (_log.isInfoEnabled()) _log.info("CURRENT encoding is " + p.getEncoding());
 				if (_log.isInfoEnabled()) _log.info("--- CAUGHT you yet again! IGNORE meta tags now! ---");
-				visitor.Init();
+				visitor.initFilter();
 				p.reset();
 				ignoreCharSetChanges(p);
 				p.visitAllNodesWith(visitor);
@@ -568,171 +572,14 @@ public class HTMLFilter extends NodeVisitor
 		return p.getEncoding();
 	}
 
-	private static Parser filterIt(String fileOrUrl, HTMLFilter visitor) throws Exception
-	{
-		Parser parser = new Parser(fileOrUrl);
-		parseNow(parser, visitor);
-		return parser;
-	}
-
-	/**
-	 * Extract article content from a file and store it on disk
-	 * @file    (HTML) File to extract content from
-	 * @outDir  Directory where the extracted content should be written to
-	 *          Content is stored at "outDir/file"
-	 */
-	public static void filterFile(String file, String outDir) throws Exception
-	{
-		filterIt(file, new HTMLFilter(file, outDir, false));
-	}
-
-	/**
-	 * Extract article content from a file and store it on disk
-	 * @file    (HTML) File to extract content from
-	 * @pw      Writer to which content should be written to
-	 *          NOTE: @pw will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static void filterFile(String file, PrintWriter pw) throws Exception
-	{
-		filterIt(file, new HTMLFilter(pw));
-	}
-
-	/**
-	 * Extract article content from a file and store it on disk
-	 * @file    (HTML) File to extract content from
-	 * @os      Output Stream to which content should be written to (always written in UTF-8)
-	 *          NOTE: @os will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static void filterFile(String file, OutputStream os) throws Exception
-	{
-		filterIt(file, new HTMLFilter(os));
-	}
-
-	/**
-	 * Extract article content from a file and store it on disk
-	 * @file    (HTML) File to extract content from
-	 * @url     URL from where the article was downloaded
-	 * @outDir  Directory where the extracted content should be written to
-	 *          Content is stored at "outDir/file"
-	 */
-	public static void filterFile(String url, String file, String outDir) throws Exception
-	{
-		filterIt(file, new HTMLFilter(url, file, outDir));
-	}
-
-	/**
-	 * Extract article content from a file and store it on disk
-	 * @file    (HTML) File to extract content from
-	 * @url     URL from where the article was downloaded
-	 * @pw      Writer to which content should be written to
-	 *          NOTE: @pw will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static void filterFile(String url, String file, PrintWriter pw) throws Exception
-	{
-		filterIt(file, new HTMLFilter(url, pw));
-	}
-
-	/**
-	 * Extract article content from a file and store it on disk
-	 * @file    (HTML) File to extract content from
-	 * @url     URL from where the article was downloaded
-	 * @os      Output Stream to which content should be written to (always written in UTF-8)
-	 *          NOTE: @os will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static void filterFile(String url, String file, OutputStream os) throws Exception
-	{
-		filterIt(file, new HTMLFilter(url, os));
-	}
-
-	/**
-	 * Extract article content from a URL and store it on disk
-	 * @url     URL from where the article content needs to be extracted
-	 * @outDir  Directory where the extracted content should be written to
-	 *          Content is stored at "outDir/file" where the last part of
-	 *          URL is treated as the output "file".
-	 */
-	public static void filterURL(String url, String outDir) throws Exception
-	{
-		filterIt(url, new HTMLFilter(url, outDir, true));
-	}
-
-	/**
-	 * Extract article content from a URL and store it on disk
-	 * @url     URL from where the article content needs to be extracted
-	 * @pw      Writer to which content should be written to
-	 *          NOTE: @pw will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static void filterURL(String url, PrintWriter pw) throws Exception
-	{
-		filterIt(url, new HTMLFilter(url, pw));
-	}
-
-	/**
-	 * Extract article content from a URL and store it on disk
-	 * @url     URL from where the article content needs to be extracted
-	 * @os      OutputStream to write to (always written in UTF-8)
-	 *          NOTE: @os will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static void filterURL(String url, OutputStream os) throws Exception
-	{
-		filterIt(url, new HTMLFilter(url, os));
-	}
-
-	/**
-	 * Extract article content from a URL, store it on disk, and also return
-    * the original unfiltered HTML of the article!
-	 * @url     URL from where the article content needs to be extracted
-	 * @outDir  Directory where the extracted content should be written to
-	 *          Content is stored at "outDir/file" where the last part of
-	 *          URL is treated as the output "file".
-	 */
-	public static String filterURLAndGetOrigHTML(String url, String outDir) throws Exception
-	{
-		Parser p = filterIt(url, new HTMLFilter(url, outDir, true));
-		return (p == null) ? null : p.getLexer().getPage().getText();
-	}
-
-	/**
-	 * Extract article content from a URL and store it on disk
-	 * @url     URL from where the article content needs to be extracted
-	 * @pw      Writer to which content should be written to
-	 *          NOTE: @pw will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static String filterURLAndGetOrigHTML(String url, PrintWriter pw) throws Exception
-	{
-		Parser p = filterIt(url, new HTMLFilter(url, pw));
-		return (p == null) ? null : p.getLexer().getPage().getText();
-	}
-
-	/**
-	 * Extract article content from a URL and store it on disk
-	 * @url     URL from where the article content needs to be extracted
-	 * @os      OutputStream to which content should be written to (always written in UTF-8)
-	 *          NOTE: @os will NOT be closed.  It is upto the caller to take
-	 *          care of closing open streams/writers
-	 */
-	public static String filterURLAndGetOrigHTML(String url, OutputStream os) throws Exception
-	{
-		Parser p = filterIt(url, new HTMLFilter(url, os));
-		return (p == null) ? null : p.getLexer().getPage().getText();
-	}
-
    /**
     * Extract text content from the file and return the content
     * @file  File from which the content needs to be extracted
     */
    public static StringBuffer getFilteredText(String file) throws Exception
    {
-      HTMLFilter hf = new HTMLFilter((PrintWriter)null);
-      hf._outputToFile = false;
-      filterIt(file, hf);
+      HTMLFilter hf = new HTMLFilter(file);
+		hf.run();
       return hf._content;
    }
 
@@ -742,7 +589,7 @@ public class HTMLFilter extends NodeVisitor
     */
    public static StringBuffer getFilteredTextFromString(String htmlString) throws Exception
    {
-      HTMLFilter hf = new HTMLFilter((PrintWriter)null);
+      HTMLFilter hf = new HTMLFilter();
       hf._outputToFile = false;
 		Parser parser = Parser.createParser(htmlString, "UTF-8");
 		parseNow(parser, hf);
@@ -785,9 +632,9 @@ public class HTMLFilter extends NodeVisitor
 						break;
 					try {
 						if (urls)
-							filterURL(line, outDir);
+							(new HTMLFilter(line, outDir, true)).run();
 						else
-							filterFile(line, outDir);
+							(new HTMLFilter(line, outDir, false)).run();
 					}
 					catch (Exception e) {
 						System.err.println("ERROR filtering " + line);
@@ -805,17 +652,17 @@ public class HTMLFilter extends NodeVisitor
 				try {
 					boolean isUrl  = args[i].equals("-u");
 					if (isUrl) {
-						filterURL(args[i+1], outDir);
+						(new HTMLFilter(args[i+1], outDir, true)).run();
 						i++;
 					}
 					else {
 						if (args[i].equals("-url")) {
 //							System.out.println("URL - " + args[i+1] + "; fname - " + args[i+2]);
-							filterFile(args[i+1], args[i+2], outDir);
+							(new HTMLFilter(args[i+1], args[i+2], outDir)).run();
 							i += 2;
 						}
 						else {
-							filterFile(args[i], outDir);
+							(new HTMLFilter(args[i], outDir, false)).run();
 						}
 					}
 				}

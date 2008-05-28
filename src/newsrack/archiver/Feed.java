@@ -401,17 +401,18 @@ public class Feed
 
 				// 7b. Spit out some debug information
 			if (_log.isInfoEnabled()) {
-				StringBuffer sb = new StringBuffer("--------------------");
-				sb.append("\nRSS ITEM");
+				StringBuffer sb = new StringBuffer();
 				sb.append("\ntitle     - " + se.getTitle());
-				sb.append("\nauthor    - " + se.getAuthor());
 				sb.append("\nlink      - " + se.getLink());
+				sb.append("\nITEM date - " + itemDate);
+/**
+				sb.append("\nauthor    - " + se.getAuthor());
+//				sb.append("\nNI   date - " + niDate);
             processDescription(se);
 				if (se.getDescription() != null)
 					sb.append("\ndesc      - " + se.getDescription());
-				sb.append("\nITEM date - " + itemDate);
-//				sb.append("\nNI   date - " + niDate);
 				sb.append("\n--------------------");
+**/
 				_log.info(sb);
 			}
 
@@ -456,14 +457,14 @@ public class Feed
          String origURL = URLCanonicalizer.cleanup(baseUrl, se.getLink());
 
 				// 1b. Canonicalize it so that we can catch duplicate urls more easily! 
-			String url = URLCanonicalizer.canonicalize(origURL);
-			if (_log.isInfoEnabled()) _log.info("URL :" + url);
+			String canonicalUrl = URLCanonicalizer.canonicalize(origURL);
+			if (_log.isInfoEnabled()) _log.info("URL :" + canonicalUrl);
 
 				// 2. Get the base name for the article
-         String baseName = _db.getFileNameForArticle(this, date, url);
+         String baseName = _db.getFileNameForArticle(this, date, canonicalUrl);
 
 				// 3. Check if the article has already been downloaded previously
-			ni = _db.getNewsItemFromURL(url);
+			ni = _db.getNewsItemFromURL(canonicalUrl);
 			if (ni != null) {
 				if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getLocalCopyPath());
 				return ni;
@@ -482,9 +483,14 @@ public class Feed
                int numTries = 0;
                do {
                   numTries++;
-                  String origText = HTMLFilter.filterURLAndGetOrigHTML(origURL, filtPw);
+						HTMLFilter hf = new HTMLFilter(origURL, filtPw, true);
+						hf.run();
+						String origText = hf.getOrigHtml();
                      // Null implies there was an error downloading the url
                   if (origText != null) {
+							String newUrl = hf.getUrl();	// Record the "final" url after going through redirects!
+							if (!newUrl.equals(canonicalUrl))
+								_log.info("TEST: orig - " + canonicalUrl + "; new - " + newUrl);
                      origPw.println(origText);
                      done = true;
                   }
@@ -513,7 +519,7 @@ public class Feed
          StringUtils.sleep(1);
 
 				// 5. Create the news item and return it!
-			return _db.createNewsItem(url, this, date, baseName);
+			return _db.createNewsItem(canonicalUrl, this, date, baseName);
 		}
 		catch (Exception e) {
 			if (origPw != null) origPw.close();
