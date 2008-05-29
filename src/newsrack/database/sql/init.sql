@@ -4,12 +4,12 @@
  * no connection with users or topics and have an independent existence!
  * ***************************************************************** */
 
-/** --- feed_table ---
+/** --- feeds ---
  * This table tracks all unique feeds that have been registered
  * across all users and across all collections.
  */
-create table if not exists feed_table (
-   feed_key         bigint          not null auto_increment,
+create table if not exists feeds (
+   feed_key         bigint        not null auto_increment,
    feed_tag         varchar(64)   not null,	/* arbitrary */
 	feed_name        varchar(128)  not null,	/* obtained from the feed */
       /* Q: Is this dumb optimization below -- of splitting url -- really necessary? */
@@ -19,9 +19,10 @@ create table if not exists feed_table (
 	show_cache_links boolean  default false,
 	mins_between_downloads int default 120,
    primary key(feed_key)
+	unique(feed_tag)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- news_index_table ---
+/** --- news_indexes ---
  * This is the table that stores information about news indexes.
  * A news index stores information about a (feed, date) pair.
  * SIZE: Big. There will be (X * Y) rows where X is # of feeds
@@ -32,19 +33,18 @@ create table if not exists feed_table (
  *          (and also for other things like reclassification, browse by source, etc.)
  *          Hence the indexes on (a) key (b) feedid (c) date string
  */
-create table if not exists news_index_table (
+create table if not exists news_indexes (
    ni_key      bigint        not null auto_increment,
    feed_key    bigint        not null,
    date_string char(10)    not null,
       /* date_stamp used primarily for sorting (because ordering by dateStr will be expensive) */
    date_stamp  timestamp   default 0,
    primary key(ni_key),
-   constraint fk_news_index_table_1 foreign key(feed_key) references feed_table(feed_key),
-   index keyIndex(ni_key),
+   constraint fk_news_indexes_1 foreign key(feed_key) references feeds(feed_key),
    index feedDateIndex(feed_key, date_string)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- news_item_table ---
+/** --- news_items ---
  * This is the table that stores information about news items.
  * Note that a news item can be part of multiple indexes ...
  * because news feeds reference the same news item.
@@ -58,10 +58,10 @@ create table if not exists news_index_table (
  *          (and also for other things like reclassification, browse by source, etc.)
  *          Hence the indexes on (a) key (b) url_root, url_tail (c) cached_item_name
  */
-create table if not exists news_item_table (
+create table if not exists news_items (
    n_key            bigint not null auto_increment,
    primary_ni_key   bigint not null,
---   feed_key         bigint not null,		/* feed_key is duplicated from news_index_table to reduce joins */
+--   feed_key         bigint not null,		/* feed_key is duplicated from news_indexes to reduce joins */
       /* Q: Is this dumb optimization below -- of splitting url -- really necessary? */
    url_root         varchar(128) not null,
    url_tail         varchar(256) not null,
@@ -71,14 +71,13 @@ create table if not exists news_item_table (
    description      text,
    author           text,
    primary key(n_key),
-   constraint fk_news_item_table_1 foreign key(primary_ni_key) references news_index_table(ni_key),
---   constraint fk_news_item_table_2 foreign key(feed_key) references feed_table(feed_key),
-   index key_index(n_key),
+   constraint fk_news_items_1 foreign key(primary_ni_key) references news_indexes(ni_key),
+--   constraint fk_news_items_2 foreign key(feed_key) references feeds(feed_key),
    index url_index(url_root(64), url_tail(128)),
    index cached_item_name_index(cached_item_name)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- news_collections_table
+/** --- news_collections
  * This table keeps track of news items that belong to various
  * news indexes.
  *
@@ -87,11 +86,11 @@ create table if not exists news_item_table (
  * simpler to have ALL mappings, but, wastes space ... but the
  * additional space usage is perhaps not significant?
  */
-create table if not exists news_collections_table (
+create table if not exists news_collections (
    ni_key bigint not null,
    n_key  bigint not null,
-   constraint fk_news_collections_table_1 foreign key(ni_key) references news_index_table(ni_key),
-   constraint fk_news_collections_table_2 foreign key(n_key) references news_item_table(n_key)
+   constraint fk_news_collections_1 foreign key(ni_key) references news_indexes(ni_key),
+   constraint fk_news_collections_2 foreign key(n_key) references news_items(n_key)
 );
 
 /* *****************************************************************
@@ -100,12 +99,12 @@ create table if not exists news_collections_table (
  * in there.
  * ***************************************************************** */
 
-/** --- user_table ---
+/** --- users ---
  * SIZE: Smallest!
  * UPDATED: Not so frequently!
  * QUERIED: Frequently!
  */
-create table if not exists user_table (
+create table if not exists users (
    u_key       bigint       not null auto_increment,
    uid         char(32)     not null,
    password    varchar(32)  not null,
@@ -116,33 +115,33 @@ create table if not exists user_table (
 	last_update timestamp,
 	last_login  timestamp,
    primary key(u_key),
-   index uidIndex(uid)
+   unique(uid)
 ) charset=utf8 collate=utf8_unicode_ci;
 
 /**
  * Reserved user accounts -- add them to the db
  */
-insert into user_table (u_key, uid, password, name, email) values(1, "admin", "uw9odiJ0EBx2gsdEXIg1gA==", "Administrator", "subbu@newsrack.in");
-insert into user_table (u_key, uid, password, name, email) values(2, "library", "uw9odiJ0EBx2gsdEXIg1gA==", "Library", "subbu@newsrack.in");
+insert into users (u_key, uid, password, name, email) values(1, "admin", "uw9odiJ0EBx2gsdEXIg1gA==", "Administrator", "subbu@newsrack.in");
+insert into users (u_key, uid, password, name, email) values(2, "library", "uw9odiJ0EBx2gsdEXIg1gA==", "Library", "subbu@newsrack.in");
 
 /*
  * This table tracks which user accounts import collctions
  * from other users
  */
-create table if not exists import_dependency_table (
+create table if not exists import_dependencies (
 	importing_user_key  bigint not null,
    from_user_key       bigint not null,
-   constraint fk_import_dependency_table_2 foreign key(importing_user_key) references user_table(u_key),
-   constraint fk_import_dependency_table_1 foreign key(from_user_key) references user_table(u_key),
+   constraint fk_import_dependencies_2 foreign key(importing_user_key) references users(u_key),
+   constraint fk_import_dependencies_1 foreign key(from_user_key) references users(u_key),
 	unique(importing_user_key, from_user_key)
 );
 
-/** --- topic_table ---
+/** --- topics ---
  * SIZE: One of the smallest!
  * UPDATED: Not so frequently!
  * QUERIED: Frequently!
  */
-create table if not exists topic_table (
+create table if not exists topics (
    t_key        bigint       not null auto_increment,
    u_key        bigint       not null,
    name         varchar(256) not null,
@@ -153,10 +152,10 @@ create table if not exists topic_table (
    private      boolean      default false,
 	taxonomy_path text        default null, /* taxonomy path for display on news listing pages */
    primary key(t_key),
-   constraint fk_topic_table_1 foreign key(u_key) references user_table(u_key)
+   constraint fk_topics_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- cat_table ---
+/** --- cats ---
  * This is the table that stores information about categories.
  * IMPORTANT: Categories as containers, not categories as filters!!
  *
@@ -167,7 +166,7 @@ create table if not exists topic_table (
  * QUERIED: Frequently!  Whenever a category page is displayed for any user!
  *          Hence the indexes on (a) category key (b) (uid, issue) pair
  */
-create table if not exists cat_table (
+create table if not exists cats (
    cat_key      bigint   not null auto_increment,
    valid        boolean  default true,		/* can be invalid when its containing topic is invalidated */
    name         varchar(256) not null,
@@ -180,13 +179,12 @@ create table if not exists cat_table (
    num_articles int      default 0,
 	taxonomy_path text    default null, 	/* taxonomy path for display on news listing pages */
    primary key(cat_key),
-   index keyIndex(cat_key),
    index uidIssueIndex(u_key, t_key),
-   constraint fk_cat_table_1 foreign key(f_key) references cat_filter_table(f_key),
-   constraint fk_cat_table_2 foreign key(u_key) references user_table(u_key)
+   constraint fk_cats_1 foreign key(f_key) references cat_filters(f_key),
+   constraint fk_cats_2 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- cat_news_table ---
+/** --- cat_news ---
  * This is the table that stores information about which categories
  * contain which news items.
  * SIZE: Big!
@@ -196,14 +194,14 @@ create table if not exists cat_table (
  *          because the same index can be used for queries solely on "n_key"
  *          which also occur a lot.
  */
-create table if not exists cat_news_table (
+create table if not exists cat_news (
    c_key    bigint not null,
    n_key    bigint not null,
    ni_key   bigint not null,
    primary key(c_key, n_key, ni_key),
-   constraint fk_cat_news_table_1 foreign key(c_key) references cat_table(cat_key),
-   constraint fk_cat_news_table_2 foreign key(n_key) references news_item_table(n_key),
-   constraint fk_cat_news_table_3 foreign key(ni_key) references news_index_table(ni_key),
+   constraint fk_cat_news_1 foreign key(c_key) references cats(cat_key),
+   constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
+   constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),
       /* This index is the index that will be most commonly used to respond to browse queries! */
    index cdnIndex(c_key, n_key, ni_key),
    index nIndex(n_key)
@@ -215,81 +213,81 @@ create table if not exists cat_news_table (
  * various kinds of collections (concepts, filters, sources)
  * ***************************************************************** */
 
-/** --- user_files_table ---
+/** --- user_files ---
  * This table tracks all profile files that a user has defined
  */
-create table if not exists user_files_table (
+create table if not exists user_files (
    u_key      bigint       not null,
    file_name  varchar(256) not null,
    add_time   timestamp   default current_timestamp,
-   constraint fk_user_files_table_1 foreign key(u_key) references user_table(u_key)
+   constraint fk_user_files_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- user_collections_table ---
+/** --- user_collections ---
  * This table tracks user-defined collections of various kinds
  */
-create table if not exists user_collections_table (
+create table if not exists user_collections (
    coll_key  bigint      not null auto_increment,
    coll_name varchar(64) not null, /* name of the collection */
    coll_type char(3)     not null, /* type of the collection - SRC, CPT, FIL */
    u_key     bigint      not null, /* User who has defined the collection */
    uid       char(32)    not null, /* copied from user table in cases where uid is used to fetch collections */
 	primary key(coll_key),
-   constraint fk_user_collections_table_1 foreign key(u_key) references user_table(u_key)
+   constraint fk_user_collections_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- collection_entries_table ---
+/** --- collection_entries ---
  * This table tracks entries belonging to various collections.
  * Assumes that the collection entries have a separate presence
  * in other db tables.
  */
-create table if not exists collection_entries_table (
+create table if not exists collection_entries (
    coll_key  bigint not null,  /* collection key */
    entry_key bigint not null,  /* key for the entry; sKey / cat_key / cpt_key */ 
-   constraint fk_collection_entries_table_1 foreign key(coll_key) references collection_table(coll_key)
+   constraint fk_collection_entries_1 foreign key(coll_key) references collections(coll_key)
 );
 
-/** --- user_source_table ---
+/** --- sources ---
  * This table tracks feed names across all users.
  * Note that users can references the same feed with different
  * tags and different names.  This table tracks those tags.
  */
-create table if not exists user_source_table (
+create table if not exists sources (
    src_key  bigint       not null auto_increment,
 --   coll_key     bigint   not null,   /* the collection that this source belongs to */
    feed_key bigint       not null,   /* The feed that this source references */
    u_key    bigint       not null,   /* The user who has defined this source */
    src_name varchar(256) not null,   /* This is the display name the user has used for the source */
    src_tag  varchar(256) not null,   /* This is the script tag the user has specified for the source */
-	cacheable        boolean  default true,	/** DUPLICATED from feed_table to save an extra join **/
-	show_cache_links boolean  default false,  /** DUPLICATED from feed_table to save an extra join **/
+	cacheable        boolean  default true,	/** DUPLICATED from feeds to save an extra join **/
+	show_cache_links boolean  default false,  /** DUPLICATED from feeds to save an extra join **/
 	primary key(src_key),
-   constraint fk_user_source_table_1 foreign key(feed_key) references feed_table(feed_key),
-   constraint fk_user_source_table_2 foreign key(u_key) references user_table(u_key)
---   constraint fk_user_source_table_3 foreign key(coll_key) references user_collections_table(coll_key)
+   constraint fk_sources_1 foreign key(feed_key) references feeds(feed_key),
+   constraint fk_sources_2 foreign key(u_key) references users(u_key)
+--   constraint fk_sources_3 foreign key(coll_key) references user_collections(coll_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- topic_source_table ---
+/** --- topic_sources ---
  * This table tracks what feeds are being used by what topics
  * and what is the last news item processed for a particular
  * source for that topic.
  *
  * Note that ni_id might not necessarily be co-related with
- * n_key of news_item_table .  These values might be generated
+ * n_key of news_items .  These values might be generated
  * between reloads of a web application.  But, if we can guarantee
  * that news item keys monotonically increase, this id can
- * reference n_key of news_item_table.
+ * reference n_key of news_items.
  */
-create table if not exists topic_source_table (
+create table if not exists topic_sources (
    t_key      bigint not null,
    src_key    bigint not null,
-	feed_key   bigint not null,  /* Duplicated from user_source_table to avoid a join on user_source_table */
+	feed_key   bigint not null,  /* Duplicated from sources to avoid a join on sources */
    max_ni_key bigint default 0, /* Max id of news item processed for this <t_key,src_key> combination */
-   constraint fk_topic_source_table_1 foreign key(t_key) references user_table(t_key),
-   constraint fk_topic_source_table_2 foreign key(src_key) references user_source_table(src_key)
+   constraint fk_topic_sources_1 foreign key(t_key) references users(t_key),
+   constraint fk_topic_sources_2 foreign key(src_key) references sources(src_key)
 );
 
-/** --- concept_table ---
+/** --- concepts ---
  * This table tracks all defined concepts across all collections across all users
  * The concept definition is retained unparsed "as is" ... In some cases (where
  * concept definitions are inherited), the set of strings that are matched are
@@ -297,7 +295,7 @@ create table if not exists topic_source_table (
  * that match this concept also depend on the matching engine .. i.e. whether
  * the engine implements stemming, pluralization, etc.
  */
-create table if not exists concept_table (
+create table if not exists concepts (
    cpt_key  bigint        not null auto_increment,
 --   coll_key     bigint   not null,   /* the collection that this concept belongs to */
 	u_key    bigint        not null,		/* the user that defined this concept */
@@ -306,18 +304,18 @@ create table if not exists concept_table (
 	keywords text          not null,    /* all keyword strings that match this concept -- \n separated */
 	token    varchar(128),					/* token name used in the lexical scanners */
 	primary key(cpt_key),
-   constraint fk_concept_table_1 foreign key(u_key) references user_table(u_key)
---   constraint fk_concept_table_2 foreign key(coll_key) references user_collections_table(coll_key)
+   constraint fk_concepts_1 foreign key(u_key) references users(u_key)
+--   constraint fk_concepts_2 foreign key(coll_key) references user_collections(coll_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- filter_table ---
+/** --- filters ---
  * This table tracks all defined filters across all collections across all users
  * The filter rule is retained unparsed "as is" ... The semantics of the filter
  * will vary depending on the context within which it is parsed.  For example
  * a rule: "x AND y" will mean different things depending on the available
  * concept definitions for 'x' and 'y'
  */
-create table if not exists filter_table (
+create table if not exists filters (
    f_key        bigint       not null auto_increment,
 --   coll_key     bigint   not null,  	/* the collection that this filter belongs to */
    u_key        bigint       not null,	/* the user that defined this filter */
@@ -325,28 +323,28 @@ create table if not exists filter_table (
    rule_string  text         not null, /* the rule string for this filter */
 	rule_key     bigint,						/* root of the rule tree */
 	primary key(f_key)
---   constraint fk_filter_table_3 foreign key(coll_key) references user_collections_table(coll_key)
+--   constraint fk_filters_3 foreign key(coll_key) references user_collections(coll_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-create table if not exists filter_rule_term_table (
+create table if not exists filter_rule_terms (
 	rt_key	 bigint not null auto_increment,
 	f_key     bigint not null,		/* filter that this rule term belongs to */
 	term_type int  not null,		/* operator: AND, OR, LEAF_CPT, LEAF_CAT, NOT, ... A value of 0 implies that this a context term entry */
 	arg1_key  bigint not null,		/* another rule term, or concept, or category */
 	arg2_key  bigint,					/* can be null */
 	primary key(rt_key),
-   constraint fk_filter_rule_term_table_1 foreign key(f_key) references filter_table(f_key)
+   constraint fk_filter_rule_terms_1 foreign key(f_key) references filters(f_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
 /* *****************************************************************
  * The set of tables below are tables that are used to support various
  * statistical tasks: rating, popularity, etc.
  * ***************************************************************** */
-create table if not exists topic_rating_table (
+create table if not exists topic_ratings (
 	t_key    bigint not null,
 	u_key    bigint not null,
 	numVotes int not null,
 	numViews int not null,
-	constraint fk_topic_rating_table_1 foreign key(t_key) references topic_table(t_key),
-	constraint fk_topic_rating_table_2 foreign key(u_key) references user_table(u_key)
+	constraint fk_topic_ratings_1 foreign key(t_key) references topics(t_key),
+	constraint fk_topic_ratings_2 foreign key(u_key) references user_table(u_key)
 );

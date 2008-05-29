@@ -396,7 +396,7 @@ public enum SQL_Stmt
 {
 	GET_NEWS_ITEM(
 		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
-			" FROM news_item_table n1, news_index_table n2" +
+			" FROM news_items n1, news_indexes n2" +
 			" WHERE n1.n_key = ? AND n1.primary_ni_key = n2.ni_key",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
@@ -406,7 +406,7 @@ public enum SQL_Stmt
 	),
    GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_URL(
 		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
-			" FROM news_item_table n1, news_index_table n2" +
+			" FROM news_items n1, news_indexes n2" +
 			" WHERE n1.url_root = ? AND n1.url_tail = ? AND n1.primary_ni_key = n2.ni_key",
 		new SQL_ValType[] {STRING, STRING},
       SQL_StmtType.QUERY,
@@ -415,7 +415,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_NEWS_ITEMS_WITH_URL(
-		"SELECT n_key FROM news_item_table WHERE url_root = ? AND url_tail = ?",
+		"SELECT n_key FROM news_items WHERE url_root = ? AND url_tail = ?",
 		new SQL_ValType[] {STRING, STRING},
       SQL_StmtType.QUERY,
 		null,
@@ -426,7 +426,7 @@ public enum SQL_Stmt
 		// Ideally, the listing should use a news item id, in which case, the fetch will be simple!
    GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_CACHEDNAME(
 		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
-			" FROM news_item_table n1, news_index_table n2, feed_table f " +
+			" FROM news_items n1, news_indexes n2, feeds f " +
 			" WHERE n1.cached_item_name = ? AND n1.primary_ni_key = n2.ni_key AND n2.date_string = ? AND n2.feed_key = f.feed_key AND f.feed_tag = ?",
 		new SQL_ValType[] {STRING, STRING, STRING},
       SQL_StmtType.QUERY,
@@ -435,7 +435,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NEWS_INDEX(
-		"SELECT ni_key, date_string FROM news_index_table WHERE ni_key = ?",
+		"SELECT ni_key, date_string FROM news_indexes WHERE ni_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -443,7 +443,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NEWS_INDEX_KEY(
-		"SELECT ni_key FROM news_index_table WHERE feed_key = ? AND date_string = ?",
+		"SELECT ni_key FROM news_indexes WHERE feed_key = ? AND date_string = ?",
 		new SQL_ValType[] {LONG, STRING},
       SQL_StmtType.QUERY,
 		null,
@@ -451,7 +451,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_NEWS_INDEXES_FROM_FEED_ID(
-		"SELECT ni_key, date_string FROM news_index_table n WHERE n.feed_key = ?",
+		"SELECT ni_key, date_string FROM news_indexes n WHERE n.feed_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -459,7 +459,7 @@ public enum SQL_Stmt
 		false
 	),
 	CAT_NEWSITEM_PRESENT(
-		"SELECT c_key FROM cat_news_table WHERE c_key = ? AND n_key = ? AND ni_key = ?",
+		"SELECT c_key FROM cat_news WHERE c_key = ? AND n_key = ? AND ni_key = ?",
 		new SQL_ValType[] {LONG, LONG, LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -470,7 +470,7 @@ public enum SQL_Stmt
 	),
 	GET_NEWS_FROM_CAT(
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
-		   " FROM  news_item_table n, news_index_table ni, cat_news_table cn" +
+		   " FROM  news_items n, news_indexes ni, cat_news cn" +
 		   " WHERE (cn.c_key = ?) AND (cn.n_key = n.n_key) AND (cn.ni_key = ni.ni_key) " +
 		   " ORDER BY ni.date_stamp DESC, cn.n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, INT, INT},
@@ -480,7 +480,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATS_FOR_NEWSITEM(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.taxonomy_path FROM cat_news_table cn, cat_table c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.taxonomy_path FROM cat_news cn, cats c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -488,7 +488,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_FILTER_TERMS(
-		"SELECT rt_key, term_type, arg1_key, arg2_key FROM filter_rule_term_table WHERE f_key = ? ",
+		"SELECT rt_key, term_type, arg1_key, arg2_key FROM filter_rule_terms WHERE f_key = ? ",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -498,7 +498,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_FILTER_KEYS_FOR_USER(
-		"SELECT f_key FROM filter_table WHERE u_key = ? ",
+		"SELECT f_key FROM filters WHERE u_key = ? ",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -506,7 +506,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CAT_KEYS_FOR_NEWSITEM(
-		"SELECT c_key FROM cat_news_table WHERE n_key = ?",
+		"SELECT c_key FROM cat_news WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -514,7 +514,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATCOUNT_FOR_NEWSITEM(
-		"SELECT COUNT(n_key) FROM cat_news_table WHERE n_key = ?",
+		"SELECT COUNT(n_key) FROM cat_news WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -526,11 +526,11 @@ public enum SQL_Stmt
       // as independent ones and union the result sets
 	GET_NEWS_FROM_NEWSINDEX(
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
-		   " FROM  news_item_table n, news_index_table ni" +
+		   " FROM  news_items n, news_indexes ni" +
 		   " WHERE (n.primary_ni_key = ? AND n.primary_ni_key = ni.ni_key) " +
 		   " UNION " +
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
-		   " FROM  news_item_table n, news_index_table ni, news_collections_table sn" +
+		   " FROM  news_items n, news_indexes ni, news_collections sn" +
 		   " WHERE (sn.ni_key = ? AND sn.n_key = n.n_key AND n.primary_ni_key = ni.ni_key)",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.QUERY,
@@ -539,7 +539,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_FEED(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feed_table WHERE feed_key = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -547,7 +547,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_FEEDS(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feed_table",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -555,7 +555,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_SOURCE(
-		"SELECT src_key, u_key, feed_key, src_name, src_tag, cacheable, show_cache_links FROM user_source_table WHERE src_key = ?",
+		"SELECT src_key, u_key, feed_key, src_name, src_tag, cacheable, show_cache_links FROM sources WHERE src_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -563,7 +563,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_USER_SOURCE(
-		"SELECT src_key, u_key, feed_key, src_name, src_tag, cacheable, show_cache_links FROM user_source_table WHERE u_key = ? AND src_tag = ?",
+		"SELECT src_key, u_key, feed_key, src_name, src_tag, cacheable, show_cache_links FROM sources WHERE u_key = ? AND src_tag = ?",
       new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -571,7 +571,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_UNIQUE_FEED_TAG(
-		"SELECT feed_tag FROM feed_table WHERE url_root = ? AND url_tail = ?",
+		"SELECT feed_tag FROM feeds WHERE url_root = ? AND url_tail = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -579,7 +579,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_USER_FROM_UID(
-      "SELECT * FROM user_table WHERE uid = ?",	// simpler to select all fields rather than ignoring a single field
+      "SELECT * FROM users WHERE uid = ?",	// simpler to select all fields rather than ignoring a single field
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -587,7 +587,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_USER(
-      "SELECT * FROM user_table WHERE u_key = ?",	// simpler to select all fields rather than ignoring a single field
+      "SELECT * FROM users WHERE u_key = ?",	// simpler to select all fields rather than ignoring a single field
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -595,7 +595,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ALL_USERS(
-      "SELECT * FROM user_table ORDER BY uid",
+      "SELECT * FROM users ORDER BY uid",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -603,7 +603,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_ISSUE_INFO(
-      "SELECT t_key, num_articles, last_update FROM topic_table WHERE name = ? AND u_key = ?",
+      "SELECT t_key, num_articles, last_update FROM topics WHERE name = ? AND u_key = ?",
       new SQL_ValType[] {STRING, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -613,7 +613,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CAT_INFO(
-		"SELECT cat_key, num_articles, last_update FROM cat_table WHERE t_key = ? AND cat_id = ?",
+		"SELECT cat_key, num_articles, last_update FROM cats WHERE t_key = ? AND cat_id = ?",
       new SQL_ValType[] {LONG, INT},
 		SQL_StmtType.QUERY,
 		null,
@@ -623,7 +623,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_ISSUE(
-      "SELECT * FROM topic_table WHERE t_key = ?",
+      "SELECT * FROM topics WHERE t_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -631,7 +631,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ISSUE_BY_USER_KEY(
-      "SELECT * FROM topic_table WHERE u_key = ? AND name = ?",
+      "SELECT * FROM topics WHERE u_key = ? AND name = ?",
       new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -639,7 +639,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ISSUE_BY_USER_ID(
-      "SELECT * FROM topic_table t, user_table u WHERE u.uid = ? AND t.u_key = u.u_key AND name = ?",
+      "SELECT * FROM topics t, users u WHERE u.uid = ? AND t.u_key = u.u_key AND name = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -647,7 +647,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ALL_ISSUES_BY_USER_KEY(
-      "SELECT * FROM topic_table WHERE u_key = ? ORDER BY lower(name)",
+      "SELECT * FROM topics WHERE u_key = ? ORDER BY lower(name)",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -655,7 +655,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_CATS_FOR_ISSUE(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cat_table WHERE t_key = ? AND valid = true",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cats WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -663,7 +663,7 @@ public enum SQL_Stmt
 		false
 	),
    GET_ALL_VALIDATED_ISSUES(
-      "SELECT * FROM topic_table where validated = true ORDER BY lower(name)",
+      "SELECT * FROM topics where validated = true ORDER BY lower(name)",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -671,7 +671,7 @@ public enum SQL_Stmt
 		false
    ),
    GET_ALL_ISSUES(
-      "SELECT * FROM topic_table ORDER BY lower(name)",
+      "SELECT * FROM topics ORDER BY lower(name)",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -679,7 +679,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_IMPORTING_USERS(
-		"SELECT importing_user_key FROM import_dependency_table WHERE from_user_key = ?",
+		"SELECT importing_user_key FROM import_dependencies WHERE from_user_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -687,7 +687,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_COLLECTION(
-		"SELECT * FROM user_collections_table WHERE uid = ? AND coll_name = ? AND coll_type = ?",
+		"SELECT * FROM user_collections WHERE uid = ? AND coll_name = ? AND coll_type = ?",
       new SQL_ValType[] {STRING, STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -695,7 +695,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_COLLECTIONS_OF_TYPE(
-		"SELECT * FROM user_collections_table WHERE coll_type = ?",
+		"SELECT * FROM user_collections WHERE coll_type = ?",
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -703,7 +703,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_COLLECTIONS_OF_TYPE_FOR_USER(
-		"SELECT * FROM user_collections_table WHERE coll_type = ? AND uid = ?",
+		"SELECT * FROM user_collections WHERE coll_type = ? AND uid = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -711,7 +711,7 @@ public enum SQL_Stmt
 		false
 	),
    GET_ALL_FILES_BY_USER_KEY(
-      "SELECT file_name FROM user_files_table WHERE u_key = ? ORDER BY add_time",
+      "SELECT file_name FROM user_files WHERE u_key = ? ORDER BY add_time",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -719,7 +719,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_ALL_SOURCES_FROM_USER_COLLECTION(
-		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM user_source_table s, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = s.src_key",
+		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM sources s, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = s.src_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -727,7 +727,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_SOURCE_FROM_USER_COLLECTION(
-		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM user_source_table s, collection_entries_table ce WHERE ce.coll_key = ? AND s.src_tag = ? AND ce.entry_key = s.src_key",
+		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM sources s, collection_entries ce WHERE ce.coll_key = ? AND s.src_tag = ? AND ce.entry_key = s.src_key",
 		new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -735,7 +735,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_MONITORED_SOURCES_FOR_TOPIC(
-		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM topic_source_table t, user_source_table s WHERE t.t_key = ? AND t.src_key = s.src_key ORDER BY lower(s.src_name)",
+		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM topic_sources t, sources s WHERE t.t_key = ? AND t.src_key = s.src_key ORDER BY lower(s.src_name)",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -743,7 +743,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_MONITORED_SOURCES_FOR_USER(
-		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM user_source_table s WHERE s.u_key = ? ORDER BY lower(s.src_name)",
+		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM sources s WHERE s.u_key = ? ORDER BY lower(s.src_name)",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -751,7 +751,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_TOPIC_SOURCE_ROW(
-	   "SELECT max_ni_key FROM topic_source_table WHERE t_key = ? AND feed_key = ? ORDER BY src_key",
+	   "SELECT max_ni_key FROM topic_sources WHERE t_key = ? AND feed_key = ? ORDER BY src_key",
 		new SQL_ValType[] {LONG, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -759,7 +759,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CONCEPT(
-		"SELECT u_key, cpt_key, name, defn, token FROM concept_table WHERE cpt_key = ?",
+		"SELECT u_key, cpt_key, name, defn, token FROM concepts WHERE cpt_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -767,7 +767,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CONCEPT_FROM_USER_COLLECTION(
-		"SELECT c.u_key, c.cpt_key, c.name, c.defn, c.token FROM concept_table c, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = c.cpt_key AND c.name = ?",
+		"SELECT c.u_key, c.cpt_key, c.name, c.defn, c.token FROM concepts c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cpt_key AND c.name = ?",
 		new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -775,7 +775,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_CONCEPTS_FROM_USER_COLLECTION(
-		"SELECT c.u_key, c.cpt_key, c.name, c.defn, c.token FROM concept_table c, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = c.cpt_key",
+		"SELECT c.u_key, c.cpt_key, c.name, c.defn, c.token FROM concepts c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cpt_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -783,7 +783,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_FILTERS_FROM_USER_COLLECTION(
-		"SELECT f.f_key, f.name, f.rule_string, f.rule_key FROM filter_table f, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key",
+		"SELECT f.f_key, f.name, f.rule_string, f.rule_key FROM filters f, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -791,7 +791,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_FILTER_FROM_USER_COLLECTION(
-		"SELECT f.f_key, f.name, f.rule_string, f.rule_key, f.u_key FROM filter_table f, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key AND f.name = ?",
+		"SELECT f.f_key, f.name, f.rule_string, f.rule_key, f.u_key FROM filters f, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key AND f.name = ?",
 		new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -799,7 +799,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_FILTER_FOR_CAT(
-		"SELECT f_key, name, rule_string, rule_key FROM filter_table WHERE f_key = ? ",
+		"SELECT f_key, name, rule_string, rule_key FROM filters WHERE f_key = ? ",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -807,7 +807,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_FILTER(
-		"SELECT f_key, name, rule_string, rule_key, u_key FROM filter_table WHERE f_key = ?",
+		"SELECT f_key, name, rule_string, rule_key, u_key FROM filters WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -815,7 +815,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_CATEGORIES_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM cat_table c, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM cats c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -823,7 +823,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATEGORY_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM cat_table c, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.name = ? AND c.parent_cat = ?",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM cats c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.name = ? AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, STRING, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -831,7 +831,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CATEGORY(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cat_table WHERE cat_key = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cats WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -839,7 +839,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NESTED_CATS(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM cat_table WHERE c.parent_cat = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM cats WHERE c.parent_cat = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -847,7 +847,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_NESTED_CATS_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM cat_table c, collection_entries_table ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.parent_cat = ?",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM cats c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -855,7 +855,7 @@ public enum SQL_Stmt
 		false
 	),
    GET_ALL_PUBLIC_FILES(
-      "SELECT file_name, u_key FROM user_files_table ORDER BY u_key",
+      "SELECT file_name, u_key FROM user_files ORDER BY u_key",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -863,7 +863,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_ALL_ACTIVE_FEEDS(
-	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feed_table WHERE feed_key IN (SELECT distinct feed_key FROM topic_source_table)",
+	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources)",
 		new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -872,7 +872,7 @@ public enum SQL_Stmt
 	),
 		// Prepared Statement Strings for INSERTs 
    INSERT_USER(
-		"INSERT INTO user_table (uid, password, name, email) VALUES (?,?,?,?)",
+		"INSERT INTO users (uid, password, name, email) VALUES (?,?,?,?)",
 		new SQL_ValType[] {STRING, STRING, STRING, STRING},
       SQL_StmtType.INSERT,
       new SQL_ColumnSize[] {USER_TBL_UID, USER_TBL_PASSWORD, USER_TBL_NAME, USER_TBL_EMAIL},
@@ -880,7 +880,7 @@ public enum SQL_Stmt
 		true
    ),
 	INSERT_TOPIC(
-		"INSERT INTO topic_table (u_key, name, validated, frozen, private, taxonomy_path) VALUES (?,?,?,?,?,?)",
+		"INSERT INTO topics (u_key, name, validated, frozen, private, taxonomy_path) VALUES (?,?,?,?,?,?)",
 		new SQL_ValType[] {LONG, STRING, BOOLEAN, BOOLEAN, BOOLEAN, STRING},
       SQL_StmtType.INSERT,
 		null,
@@ -888,7 +888,7 @@ public enum SQL_Stmt
 		true
 	),
    INSERT_FEED(
-		"INSERT INTO feed_table (feed_name, url_root, url_tail) VALUES (?,?,?)",
+		"INSERT INTO feeds (feed_name, url_root, url_tail) VALUES (?,?,?)",
 		new SQL_ValType[] {STRING, STRING, STRING},
       SQL_StmtType.INSERT,
       new SQL_ColumnSize[] {NONE, FEED_TBL_FEEDURLROOT, FEED_TBL_FEEDURLTAIL},
@@ -896,7 +896,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_NEWS_INDEX(
-		"INSERT INTO news_index_table (feed_key, date_string, date_stamp) VALUES (?,?,?)",
+		"INSERT INTO news_indexes (feed_key, date_string, date_stamp) VALUES (?,?,?)",
       new SQL_ValType[] {LONG, STRING, TIMESTAMP},
 		SQL_StmtType.INSERT,
 		new SQL_ColumnSize[] {NONE, NEWS_INDEX_TBL_DATESTRING, NONE},
@@ -904,7 +904,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_NEWS_ITEM(
-		"INSERT INTO news_item_table (primary_ni_key, url_root, url_tail, cached_item_name, title, description, author) VALUES (?,?,?,?,?,?,?)",
+		"INSERT INTO news_items (primary_ni_key, url_root, url_tail, cached_item_name, title, description, author) VALUES (?,?,?,?,?,?,?)",
       new SQL_ValType[] {LONG, STRING, STRING, STRING, STRING, STRING, STRING},
 		SQL_StmtType.INSERT,
 		new SQL_ColumnSize[] {NONE, NEWS_ITEM_TBL_URLROOT, NEWS_ITEM_TBL_URLTAIL, NEWS_ITEM_TBL_LOCALNAME, NONE, NONE, NONE},
@@ -912,12 +912,12 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_INTO_SHARED_NEWS_TABLE(
-		"INSERT INTO news_collections_table (ni_key, n_key) VALUES (?, ?)",
+		"INSERT INTO news_collections (ni_key, n_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.INSERT
 	),
 	INSERT_CAT(
-		"INSERT INTO cat_table (name, u_key, t_key, cat_id, parent_cat, f_key, taxonomy_path) VALUES (?,?,?,?,?,?,?)",
+		"INSERT INTO cats (name, u_key, t_key, cat_id, parent_cat, f_key, taxonomy_path) VALUES (?,?,?,?,?,?,?)",
       new SQL_ValType[] {STRING, LONG, LONG, INT, LONG, LONG, STRING},
 		SQL_StmtType.INSERT,
       new SQL_ColumnSize[] {CAT_TBL_NAME, NONE, NONE, NONE, NONE, NONE, NONE},
@@ -925,7 +925,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_RULE_TERM(
-		"INSERT INTO filter_rule_term_table (f_key, term_type, arg1_key, arg2_key) VALUES (?,?,?,?)",
+		"INSERT INTO filter_rule_terms (f_key, term_type, arg1_key, arg2_key) VALUES (?,?,?,?)",
       new SQL_ValType[] {LONG, INT, LONG,  LONG},
 		SQL_StmtType.INSERT,
       null,
@@ -933,7 +933,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_INTO_CAT_NEWS_TABLE(
-		"INSERT INTO cat_news_table (c_key, n_key, ni_Key) VALUES (?,?,?)",
+		"INSERT INTO cat_news (c_key, n_key, ni_Key) VALUES (?,?,?)",
 		new SQL_ValType[] {LONG, LONG, LONG},
       SQL_StmtType.INSERT,
 		null,
@@ -941,17 +941,17 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_USER_FILE(
-		"INSERT INTO user_files_table (u_key, file_name) VALUES (?, ?)",
+		"INSERT INTO user_files (u_key, file_name) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, STRING},
       SQL_StmtType.INSERT
 	),
 	INSERT_IMPORT_DEPENDENCY(
-	   "INSERT IGNORE INTO import_dependency_table (from_user_key, importing_user_key) VALUES (?, ?)",
+	   "INSERT IGNORE INTO import_dependencies (from_user_key, importing_user_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.INSERT
 	),
 	INSERT_COLLECTION(
-		"INSERT INTO user_collections_table (coll_name, coll_type, u_key, uid) VALUES (?, ?, ?, ?)",
+		"INSERT INTO user_collections (coll_name, coll_type, u_key, uid) VALUES (?, ?, ?, ?)",
 		new SQL_ValType[] {STRING, STRING, LONG, STRING},
       SQL_StmtType.INSERT,
 		null,
@@ -959,7 +959,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_ENTRY_INTO_COLLECTION(
-		"INSERT INTO collection_entries_table (coll_key, entry_key) VALUES (?,?)",
+		"INSERT INTO collection_entries (coll_key, entry_key) VALUES (?,?)",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.INSERT,
 		null,
@@ -967,7 +967,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_CONCEPT(
-		"INSERT INTO concept_table(u_key, name, defn, keywords) VALUES (?,?,?,?)",
+		"INSERT INTO concepts(u_key, name, defn, keywords) VALUES (?,?,?,?)",
 		new SQL_ValType[] {LONG, STRING, STRING, STRING},
       SQL_StmtType.INSERT,
 		null,
@@ -975,7 +975,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_FILTER(
-		"INSERT INTO filter_table (u_key, name, rule_string) VALUES (?,?,?)",
+		"INSERT INTO filters (u_key, name, rule_string) VALUES (?,?,?)",
 		new SQL_ValType[] {LONG, STRING, STRING},
       SQL_StmtType.INSERT,
 		null,
@@ -983,7 +983,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_USER_SOURCE(
-		"INSERT INTO user_source_table (u_key, feed_key, src_name, src_tag, cacheable, show_cache_links) VALUES (?,?,?,?,?,?)",
+		"INSERT INTO sources (u_key, feed_key, src_name, src_tag, cacheable, show_cache_links) VALUES (?,?,?,?,?,?)",
 		new SQL_ValType[] {LONG, LONG, STRING, STRING, BOOLEAN, BOOLEAN},
       SQL_StmtType.INSERT,
 		null,
@@ -991,73 +991,73 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_TOPIC_SOURCE(
-		"INSERT INTO topic_source_table (t_key, src_key, feed_key) VALUES (?,?,?)",
+		"INSERT INTO topic_sources (t_key, src_key, feed_key) VALUES (?,?,?)",
 		new SQL_ValType[] {LONG, LONG, LONG},
       SQL_StmtType.INSERT
 	),
 		// Prepared Statement Strings for UPDATEs 
 	UPDATE_USER(
-		"UPDATE user_table SET password = ?, name = ?, email = ?, validated = ? WHERE u_key = ?",
+		"UPDATE users SET password = ?, name = ?, email = ?, validated = ? WHERE u_key = ?",
       new SQL_ValType[] {STRING, STRING, STRING, BOOLEAN, LONG},
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_FEED_CACHEABILITY(
-		"UPDATE feed_table SET cacheable = ?, show_cache_links = ? WHERE feed_key = ?",
+		"UPDATE feeds SET cacheable = ?, show_cache_links = ? WHERE feed_key = ?",
       new SQL_ValType[] {BOOLEAN, BOOLEAN, LONG}, 
 		SQL_StmtType.UPDATE
 	),
 	SET_FEED_TAG(
-		"UPDATE feed_table SET feed_tag = ? WHERE feed_key = ?",
+		"UPDATE feeds SET feed_tag = ? WHERE feed_key = ?",
       new SQL_ValType[] {STRING, LONG}, 
 		SQL_StmtType.UPDATE
 	),
    UPDATE_CONCEPT_TOKEN(
-      "UPDATE concept_table SET token = ? WHERE cpt_key = ?",
+      "UPDATE concepts SET token = ? WHERE cpt_key = ?",
 		new SQL_ValType[] {STRING, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_INFO(
-      "UPDATE topic_table SET validated = ?, frozen = ?, private = ? WHERE t_key = ?",
+      "UPDATE topics SET validated = ?, frozen = ?, private = ? WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, BOOLEAN, BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_ARTCOUNT_FOR_TOPIC(
-		"UPDATE topic_table SET num_articles = ?, last_update = ? WHERE t_key = ?",
+		"UPDATE topics SET num_articles = ?, last_update = ? WHERE t_key = ?",
       new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_VALID_STATUS(
-      "UPDATE topic_table SET validated = ? WHERE t_key = ?",
+      "UPDATE topics SET validated = ? WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPICS_VALID_STATUS_FOR_USER(
-      "UPDATE topic_table SET validated = ? WHERE u_key = ?",
+      "UPDATE topics SET validated = ? WHERE u_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_SOURCE_INFO(
-		"UPDATE topic_source_table SET max_ni_key = ? WHERE t_key = ? AND feed_key = ?",
+		"UPDATE topic_sources SET max_ni_key = ? WHERE t_key = ? AND feed_key = ?",
 		new SQL_ValType[] {LONG, LONG, LONG},
       SQL_StmtType.UPDATE
 	),
 	RESET_ALL_TOPIC_SOURCES(
-		"UPDATE topic_source_table SET max_ni_key = 0 WHERE t_key = ?",
+		"UPDATE topic_sources SET max_ni_key = 0 WHERE t_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CAT_NEWS_INFO(
-		"UPDATE cat_table SET num_articles = ?, last_update = ? WHERE cat_key = ?",
+		"UPDATE cats SET num_articles = ?, last_update = ? WHERE cat_key = ?",
       new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_FILTER(
-		"UPDATE filter_table SET rule_key = ? WHERE f_key = ?",
+		"UPDATE filters SET rule_key = ? WHERE f_key = ?",
       new SQL_ValType[] {LONG, LONG}, 
 		SQL_StmtType.UPDATE
 	),
    RENAME_CAT(
-      "UPDATE cat_table SET name = ? WHERE cat_key = ?",
+      "UPDATE cats SET name = ? WHERE cat_key = ?",
 		new SQL_ValType[] {STRING, LONG},
       SQL_StmtType.UPDATE,
 		new SQL_ColumnSize[] {CAT_TBL_NAME, NONE},
@@ -1065,148 +1065,148 @@ public enum SQL_Stmt
 		true
 	),
    UPDATE_CAT(
-      "UPDATE cat_table SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
+      "UPDATE cats SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG, STRING, INT, LONG, STRING, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_TOPIC(
-      "UPDATE cat_table SET valid = ?, f_key = -1 WHERE t_key = ?",
+      "UPDATE cats SET valid = ?, f_key = -1 WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_USER(
-      "UPDATE cat_table SET valid = ?, f_key = -1 WHERE u_key = ?",
+      "UPDATE cats SET valid = ?, f_key = -1 WHERE u_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
 		// Prepared Statement Strings for DELETEs 
 	CLEAR_CAT_NEWS(
-		"DELETE FROM cat_news_table WHERE c_key = ?",
+		"DELETE FROM cat_news WHERE c_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_NEWS_FROM_CAT(
-		"DELETE FROM cat_news_table WHERE c_key = ? AND n_key = ?",
+		"DELETE FROM cat_news WHERE c_key = ? AND n_key = ?",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_CLASSIFIED_NEWSITEM(
-		"DELETE FROM cat_news_table WHERE n_key = ?",
+		"DELETE FROM cat_news WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_5_NEWS_ITEMS_FROM_CAT(
-		"DELETE FROM cat_news_table WHERE c_key = ? AND n_key IN (?, ?, ?, ?, ?)",
+		"DELETE FROM cat_news WHERE c_key = ? AND n_key IN (?, ?, ?, ?, ?)",
 		new SQL_ValType[] {LONG, LONG, LONG, LONG, LONG, LONG},
 		SQL_StmtType.DELETE
 	),
 	DELETE_NEWS_ITEM(
-	   "DELETE FROM news_item_table WHERE n_key = ?",
+	   "DELETE FROM news_items WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_SHARED_NEWS_ITEM_ENTRIES(
-	   "DELETE FROM news_collections_table WHERE n_key = ?",
+	   "DELETE FROM news_collections WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_USER_FILE(
-		"DELETE FROM user_files_table WHERE u_key = ? AND file_name = ?",
+		"DELETE FROM user_files WHERE u_key = ? AND file_name = ?",
 		new SQL_ValType[] {LONG, STRING},
       SQL_StmtType.DELETE
 	),
 	DELETE_IMPORT_DEPENDENCIES_FOR_USER(
-		"DELETE FROM import_dependency_table WHERE importing_user_key = ?",
+		"DELETE FROM import_dependencies WHERE importing_user_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_COLLECTION(
-		"DELETE FROM user_collections_table WHERE coll_key = ?",
+		"DELETE FROM user_collections WHERE coll_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_COLLECTIONS_FOR_USER(
-		"DELETE FROM user_collections_table WHERE u_key = ?",
+		"DELETE FROM user_collections WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_COLLECTION_ENTRIES(
-		"DELETE FROM collection_entries_table WHERE coll_key = ?",
+		"DELETE FROM collection_entries WHERE coll_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_COLLECTION_ENTRIES_FOR_USER(
-		"DELETE FROM collection_entries_table WHERE coll_key IN (SELECT coll_key FROM user_collections_table WHERE u_key = ?)",
+		"DELETE FROM collection_entries WHERE coll_key IN (SELECT coll_key FROM user_collections WHERE u_key = ?)",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ENTRY_FROM_COLLECTION(
-		"DELETE FROM collection_entries_table WHERE coll_key = ? AND entry_key = ?",
+		"DELETE FROM collection_entries WHERE coll_key = ? AND entry_key = ?",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_SOURCE_BY_TAG(
-		"DELETE FROM user_source_table WHERE u_key = ? AND coll_key = ? AND src_tag = ?",
+		"DELETE FROM sources WHERE u_key = ? AND coll_key = ? AND src_tag = ?",
 		new SQL_ValType[] {LONG, LONG, STRING},
       SQL_StmtType.DELETE
 	),
 	DELETE_SOURCE_BY_ID(
-		"DELETE FROM user_source_table WHERE src_key = ?",
+		"DELETE FROM sources WHERE src_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_SOURCES_FOR_USER(
-		"DELETE FROM user_source_table WHERE u_key = ?",
+		"DELETE FROM sources WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_CATEGORY(
-		"DELETE FROM cat_table WHERE cat_key = ?",
+		"DELETE FROM cats WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_FILTER(
-		"DELETE FROM filter_table WHERE f_key = ?",
+		"DELETE FROM filters WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_FILTERS_FOR_USER(
-		"DELETE FROM filter_table WHERE u_key = ?",
+		"DELETE FROM filters WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_FILTER_TERMS_FOR_USER(
-		"DELETE FROM filter_rule_term_table WHERE f_key IN (SELECT f_key FROM filter_table WHERE u_key = ?)",
+		"DELETE FROM filter_rule_terms WHERE f_key IN (SELECT f_key FROM filters WHERE u_key = ?)",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_FILTER_TERMS(
-		"DELETE FROM filter_rule_term_table WHERE f_key = ?",
+		"DELETE FROM filter_rule_terms WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_CONCEPT_BY_ID(
-		"DELETE FROM concept_table WHERE cpt_key = ?",
+		"DELETE FROM concepts WHERE cpt_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_CONCEPTS_FOR_USER(
-		"DELETE FROM concept_table WHERE u_key = ?",
+		"DELETE FROM concepts WHERE u_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_CONCEPT_BY_NAME(
-		"DELETE FROM concept_table WHERE u_key = ? AND coll_key = ? AND name = ?",
+		"DELETE FROM concepts WHERE u_key = ? AND coll_key = ? AND name = ?",
 		new SQL_ValType[] {LONG, LONG, STRING},
       SQL_StmtType.DELETE
 	),
 	DELETE_ALL_TOPIC_SOURCES_FOR_USER(
-		"DELETE FROM topic_source_table WHERE t_key IN (SELECT t_key FROM topic_table WHERE u_key = ?)",
+		"DELETE FROM topic_sources WHERE t_key IN (SELECT t_key FROM topics WHERE u_key = ?)",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_FROM_TOPIC_SOURCE_TABLE(
-		"DELETE FROM topic_source_table WHERE t_key = ?",
+		"DELETE FROM topic_sources WHERE t_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	);
