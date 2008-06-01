@@ -480,7 +480,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATS_FOR_NEWSITEM(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.taxonomy_path FROM cat_news cn, cats c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -613,7 +613,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CAT_INFO(
-		"SELECT cat_key, num_articles, last_update FROM cats WHERE t_key = ? AND cat_id = ?",
+		"SELECT cat_key, num_articles, last_update FROM categories WHERE t_key = ? AND cat_id = ?",
       new SQL_ValType[] {LONG, INT},
 		SQL_StmtType.QUERY,
 		null,
@@ -655,7 +655,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_CATS_FOR_ISSUE(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cats WHERE t_key = ? AND valid = true",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -815,7 +815,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_CATEGORIES_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM cats c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -823,7 +823,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATEGORY_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM cats c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.name = ? AND c.parent_cat = ?",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.name = ? AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, STRING, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -831,7 +831,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CATEGORY(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM cats WHERE cat_key = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -839,7 +839,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NESTED_CATS(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM cats WHERE c.parent_cat = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE c.parent_cat = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -847,7 +847,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_NESTED_CATS_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM cats c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.parent_cat = ?",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -917,7 +917,7 @@ public enum SQL_Stmt
       SQL_StmtType.INSERT
 	),
 	INSERT_CAT(
-		"INSERT INTO cats (name, u_key, t_key, cat_id, parent_cat, f_key, taxonomy_path) VALUES (?,?,?,?,?,?,?)",
+		"INSERT INTO categories (name, u_key, t_key, cat_id, parent_cat, f_key, taxonomy_path) VALUES (?,?,?,?,?,?,?)",
       new SQL_ValType[] {STRING, LONG, LONG, INT, LONG, LONG, STRING},
 		SQL_StmtType.INSERT,
       new SQL_ColumnSize[] {CAT_TBL_NAME, NONE, NONE, NONE, NONE, NONE, NONE},
@@ -1047,7 +1047,7 @@ public enum SQL_Stmt
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CAT_NEWS_INFO(
-		"UPDATE cats SET num_articles = ?, last_update = ? WHERE cat_key = ?",
+		"UPDATE categories SET num_articles = ?, last_update = ? WHERE cat_key = ?",
       new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
 		SQL_StmtType.UPDATE
 	),
@@ -1057,7 +1057,7 @@ public enum SQL_Stmt
 		SQL_StmtType.UPDATE
 	),
    RENAME_CAT(
-      "UPDATE cats SET name = ? WHERE cat_key = ?",
+      "UPDATE categories SET name = ? WHERE cat_key = ?",
 		new SQL_ValType[] {STRING, LONG},
       SQL_StmtType.UPDATE,
 		new SQL_ColumnSize[] {CAT_TBL_NAME, NONE},
@@ -1065,17 +1065,17 @@ public enum SQL_Stmt
 		true
 	),
    UPDATE_CAT(
-      "UPDATE cats SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
+      "UPDATE categories SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG, STRING, INT, LONG, STRING, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_TOPIC(
-      "UPDATE cats SET valid = ?, f_key = -1 WHERE t_key = ?",
+      "UPDATE categories SET valid = ?, f_key = -1 WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_USER(
-      "UPDATE cats SET valid = ?, f_key = -1 WHERE u_key = ?",
+      "UPDATE categories SET valid = ?, f_key = -1 WHERE u_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
@@ -1161,7 +1161,7 @@ public enum SQL_Stmt
       SQL_StmtType.DELETE
 	),
 	DELETE_CATEGORY(
-		"DELETE FROM cats WHERE cat_key = ?",
+		"DELETE FROM categories WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),

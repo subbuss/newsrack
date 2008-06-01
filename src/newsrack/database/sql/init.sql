@@ -155,7 +155,7 @@ create table if not exists topics (
    constraint fk_topics_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
-/** --- cats ---
+/** --- categories ---
  * This is the table that stores information about categories.
  * IMPORTANT: Categories as containers, not categories as filters!!
  *
@@ -166,7 +166,7 @@ create table if not exists topics (
  * QUERIED: Frequently!  Whenever a category page is displayed for any user!
  *          Hence the indexes on (a) category key (b) (uid, issue) pair
  */
-create table if not exists cats (
+create table if not exists categories (
    cat_key      bigint   not null auto_increment,
    valid        boolean  default true,		/* can be invalid when its containing topic is invalidated */
    name         varchar(256) not null,
@@ -180,8 +180,8 @@ create table if not exists cats (
 	taxonomy_path text    default null, 	/* taxonomy path for display on news listing pages */
    primary key(cat_key),
    index uidIssueIndex(u_key, t_key),
-   constraint fk_cats_1 foreign key(f_key) references cat_filters(f_key),
-   constraint fk_cats_2 foreign key(u_key) references users(u_key)
+   constraint fk_categories_1 foreign key(f_key) references cat_filters(f_key),
+   constraint fk_categories_2 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
 
 /** --- cat_news ---
@@ -198,8 +198,7 @@ create table if not exists cat_news (
    c_key    bigint not null,
    n_key    bigint not null,
    ni_key   bigint not null,
-   primary key(c_key, n_key, ni_key),
-   constraint fk_cat_news_1 foreign key(c_key) references cats(cat_key),
+   constraint fk_cat_news_1 foreign key(c_key) references categories(cat_key),
    constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
    constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),
       /* This index is the index that will be most commonly used to respond to browse queries! */
@@ -339,7 +338,7 @@ create table if not exists filter_rule_terms (
 /* *****************************************************************
  * The set of tables below are tables that are used to support various
  * statistical tasks: rating, popularity, etc.
- * ***************************************************************** */
+
 create table if not exists topic_ratings (
 	t_key    bigint not null,
 	u_key    bigint not null,
@@ -348,3 +347,4 @@ create table if not exists topic_ratings (
 	constraint fk_topic_ratings_1 foreign key(t_key) references topics(t_key),
 	constraint fk_topic_ratings_2 foreign key(u_key) references user_table(u_key)
 );
+ * ***************************************************************** */
