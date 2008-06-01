@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title> ${user}: You are now registered with NewsRack </title>
+<title> ${username}: You are now registered with NewsRack </title>
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 </head>
 
@@ -15,7 +15,7 @@
 <td class="user_space">
 <h1> Registration Successful!</h1>
 <h2 style="font-size:14px; text-align:center">
-You are now successfully registered as <span style="color:red">${newuser}</span>.
+You are now successfully registered as <span style="color:red">${username}</span>.
 </h2>
 <p>
 A user space has now been created for you.
