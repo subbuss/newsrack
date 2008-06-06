@@ -224,7 +224,7 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.date)}';
 				<a target="_blank" class="originalArt" href="${ni.getURL()}">${storyTitle}</a>
 			[/#if]
 			[#if ni.displayCachedTextFlag]
-				(<a target="_blank" rel="nofollow" class="filteredArt" href="[@s.url namespace="/news" action="display" ni="${ni.localCopyPath}" /]">Cached</a>)
+				(<a target="_blank" rel="nofollow" class="filteredArt" href="[@s.url namespace="/news" action="display" ni="${ni.linkForCachedItem}" /]">Cached</a>)
       [/#if]
 			</td>
          <td class="newsdate">${ni.dateString}</td> 

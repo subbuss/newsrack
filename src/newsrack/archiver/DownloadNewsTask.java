@@ -2,7 +2,7 @@ package newsrack.archiver;
 
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Collection;
 import java.util.TimerTask;
 
@@ -40,16 +40,16 @@ public class DownloadNewsTask extends TimerTask
 
       public void run()
       {
-         Hashtable sNews = new Hashtable();
-         boolean   done  = false;
-         int       count = 0;
+         List    sNews = null;
+         boolean done  = false;
+         int     count = 0;
 
          if (_log.isInfoEnabled()) _log.info("For feed " + feed.getTag() + " download started!");
 
          while (!done && (count < MAX_ATTEMPTS)) {
             try {
                count++;
-               feed.readFeed(sNews);
+               sNews = feed.readFeed();
                done = true;
             }
             catch (Exception e) {
@@ -67,7 +67,9 @@ public class DownloadNewsTask extends TimerTask
             /** IMPORTANT: Use the rss feed as the key, not the feed object
              ** because the feeds are unique across the system, but, feed
              ** objects are not! **/
-         _downloadedNews.put(feed._feedUrl, sNews);
+			if (sNews != null)
+				_downloadedNews.put(feed._feedUrl, sNews);
+
          synchronized(_completedDownloadsCount) { _completedDownloadsCount++; _log.info("Completed # " + _completedDownloadsCount); }
       }
    }
@@ -155,7 +157,7 @@ public class DownloadNewsTask extends TimerTask
    private static Date _lastDownloadTime = new Date();
    private static int  _count            = 0; 
 
-   private static ConcurrentHashMap<String, Hashtable> _downloadedNews;
+   private static ConcurrentHashMap<String, Collection> _downloadedNews;
 
    private static int loadPropertyValue(String propName, int defaultVal)
    {
@@ -230,7 +232,7 @@ public class DownloadNewsTask extends TimerTask
       ThreadManager.recordThread(Thread.currentThread());
 
          // 1b. Create maps for recording information
-      _downloadedNews = new ConcurrentHashMap<String, Hashtable>();
+      _downloadedNews = new ConcurrentHashMap<String, Collection>();
 
          // 1c. Initialize counters
          // IMPORTANT: These counters have to be initialized BEFORE the task threads are spawned

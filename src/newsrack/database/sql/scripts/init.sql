@@ -18,7 +18,7 @@ create table if not exists feeds (
 	cacheable        boolean  default true,
 	show_cache_links boolean  default false,
 	mins_between_downloads int default 120,
-   primary key(feed_key)
+   primary key(feed_key),
 	unique(feed_tag)
 ) charset=utf8 collate=utf8_unicode_ci;
 
@@ -41,7 +41,7 @@ create table if not exists news_indexes (
    date_stamp  timestamp   default 0,
    primary key(ni_key),
    constraint fk_news_indexes_1 foreign key(feed_key) references feeds(feed_key),
-   index feedDateIndex(feed_key, date_string)
+   index feed_date_index(feed_key, date_string)
 ) charset=utf8 collate=utf8_unicode_ci;
 
 /** --- news_items ---
@@ -61,21 +61,33 @@ create table if not exists news_indexes (
 create table if not exists news_items (
    n_key            bigint not null auto_increment,
    primary_ni_key   bigint not null,
---   feed_key         bigint not null,		/* feed_key is duplicated from news_indexes to reduce joins */
       /* Q: Is this dumb optimization below -- of splitting url -- really necessary? */
    url_root         varchar(128) not null,
    url_tail         varchar(256) not null,
-		/* Q: should this simply be an encoded id instead? */
-   cached_item_name varchar(256) not null,
    title            text not null,
    description      text,
    author           text,
    primary key(n_key),
    constraint fk_news_items_1 foreign key(primary_ni_key) references news_indexes(ni_key),
 --   constraint fk_news_items_2 foreign key(feed_key) references feeds(feed_key),
-   index url_index(url_root(64), url_tail(128)),
    index cached_item_name_index(cached_item_name)
 ) charset=utf8 collate=utf8_unicode_ci;
+
+create table if not exists news_item_url_md5_hashes (
+   n_key    bigint   not null,
+   url_hash char(32) not null,
+   constraint fk_1 foreign key(n_key) references news_items(n_key),
+   index hash_index(url_hash)
+) charset=utf8 collate=utf8_unicode_ci;
+
+/** This table is present for backward compability purposes **/
+create table if not exists news_item_localnames (
+   n_key           bigint       not null,
+   local_file_name varchar(256) not null, /* FIXME: Deprecate references by full path and progressively get rid of this field! */
+   constraint fk_1 foreign key(n_key) references news_items(n_key),
+   index file_name_index(local_file_name)
+) charset=utf8 collate=utf8_unicode_ci;
+
 
 /** --- news_collections
  * This table keeps track of news items that belong to various
@@ -89,6 +101,7 @@ create table if not exists news_items (
 create table if not exists news_collections (
    ni_key bigint not null,
    n_key  bigint not null,
+	unique(ni_key, n_key),
    constraint fk_news_collections_1 foreign key(ni_key) references news_indexes(ni_key),
    constraint fk_news_collections_2 foreign key(n_key) references news_items(n_key)
 );
@@ -179,7 +192,7 @@ create table if not exists categories (
    num_articles int      default 0,
 	taxonomy_path text    default null, 	/* taxonomy path for display on news listing pages */
    primary key(cat_key),
-   index uidIssueIndex(u_key, t_key),
+   index uid_issue_index(u_key, t_key),
    constraint fk_categories_1 foreign key(f_key) references cat_filters(f_key),
    constraint fk_categories_2 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_unicode_ci;
@@ -202,8 +215,8 @@ create table if not exists cat_news (
    constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
    constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),
       /* This index is the index that will be most commonly used to respond to browse queries! */
-   index cdnIndex(c_key, n_key, ni_key),
-   index nIndex(n_key)
+   index cdn_index(c_key, n_key, ni_key),
+   index n_index(n_key)
 );
 
 /* *****************************************************************

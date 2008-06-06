@@ -54,7 +54,7 @@ import org.apache.commons.logging.LogFactory;
  * @version 1.0 13/05/04
  */
 
-public class Issue
+public class Issue implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 	private final static String PREDEF_KWORDS[] = {
@@ -311,7 +311,7 @@ public class Issue
 	private   String     _taxonomyPath;		// Unique global taxonomy path
 
 	/* These are transient and need not be persisted. */
-	transient private Set<Concept> _usedConcepts;		// Concepts used by all filters in this topic
+				 private Set<Concept> _usedConcepts;		// Concepts used by all filters in this topic
 	transient private Method       _lexerScanMethod;	// Method that will be invoked to scan news articles
 	transient private Method       _lexerResetMethod;	// Method that will be invoked to reset the lexer
 	transient private Constructor  _lexerConstr;			// Constructor for the lexer class
@@ -583,24 +583,24 @@ public class Issue
 	}
 
 	/**
-	 * This method downloads news (for every referenced news source) and 
-	 * records the downloaded news items in a hashtable.
-	 *
-	 * @param newsTable  Table in which downloaded news need to be recorded
+	 * This method downloads news (for every referenced news source) and returns the downloaded news items.
 	 */
-	public void downloadNews(Hashtable newsTable)
+	public Collection downloadNews()
 	{
 			// Download all news
 		if (_log.isInfoEnabled()) _log.info("-- ISSUE: " + _name + " START DOWNLOADING NEWS --");
+		List l = new ArrayList();
 		for (Source s: getMonitoredSources()) {
 			try {
-				s.readSource(newsTable);
+				l.addAll(s.readSource());
 			}
 			catch (Exception e) {
 				_log.error("Error downloading news for source " + s.getFeed().getTag(), e);
 			}
 		}
 		if (_log.isInfoEnabled()) _log.info("-- DONE DOWNLOADING NEWS --");
+
+		return l;
 	}
 
 	/**
@@ -912,20 +912,20 @@ public class Issue
 	 * ....                     | ....
 	 * </pre>
 	 *
-	 * @param newsTable   The set of news items that have to be scanned and classified
+	 * @param NewsItems The collection of news items that have to be scanned and classified
 	 */
-	public void scanAndClassifyNewsItems(Feed f, Hashtable newsTable)
+	public void scanAndClassifyNewsItems(Feed f, Collection<NewsItem> newsItems)
 	{
 		if (f != null)
-			scanAndClassifyNewsItems(f, newsTable, true);
+			scanAndClassifyNewsItems(f, newsItems, true);
 		else
-			scanAndClassifyNewsItems(f, newsTable, false);
+			scanAndClassifyNewsItems(f, newsItems, false);
 
 		if (GlobalConstants.inDebugMode())
 			_db.printStats();
 	}
 
-	private void scanAndClassifyNewsItems(Feed f, Hashtable newsTable, boolean skipProcessed)
+	private void scanAndClassifyNewsItems(Feed f, Collection<NewsItem> newsItems, boolean skipProcessed)
 	{
 		if (_log.isDebugEnabled()) _log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f._feedName));
 
@@ -945,11 +945,8 @@ public class Issue
 			if (pw != null)
 				pw.println("ISSUE: " + _name);
 
-			User        u         = _user;
-			Enumeration newsItems = newsTable.elements(); 
-			while (newsItems.hasMoreElements()) {
-				NewsItem ni = (NewsItem)newsItems.nextElement();
-
+			User u = _user;
+			for (NewsItem ni: newsItems) {
 				if (skipProcessed) {
 						// Keep track of the max news id
 					long niKey = ni.getKey();
@@ -963,14 +960,12 @@ public class Issue
 					continue;
 				}
 
-				int    numTokens = 0;
-				String fname = ni.getLocalCopyPath();
-
+				int numTokens = 0;
 				if (pw != null)
-					pw.println("FILE: " + fname);
+					pw.println("FILE: " + ni.getLocalCopyPath());
 
 				try {
-					Reader   r    = _db.getNewsItemReader(fname);
+					Reader   r    = ni.getReader();
 					Object[] args = new Object[1];
 					args[0] = r;
 					if (_lexer == null) {

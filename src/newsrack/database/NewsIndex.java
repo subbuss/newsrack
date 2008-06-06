@@ -7,7 +7,7 @@ import java.util.Date;
  * This abstract class represents a news index in the back end -- it can either be a file handle
  * to an XML file, or a key to a row in a database.
  */
-public abstract class NewsIndex 
+public abstract class NewsIndex implements java.io.Serializable
 {
 	/**
 	 * Returns the time this news index was last updated!

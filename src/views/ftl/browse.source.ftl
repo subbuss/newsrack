@@ -115,7 +115,7 @@
         <a target="_blank" class="originalArt" href="${url}">${ni.title}</a>
 			</#if>
       <#if ni.displayCachedTextFlag>
-        (<a target="_blank" class="filteredArt" href="<@s.url namespace="/news" action="display" ni="${ni.localCopyPath}" />">Cached</a>)
+        (<a target="_blank" class="filteredArt" href="<@s.url namespace="/news" action="display" ni="${ni.linkForCachedItem}" />">Cached</a>)
 			</#if>
       </td>
         <#-- Display the categories it belongs to -->

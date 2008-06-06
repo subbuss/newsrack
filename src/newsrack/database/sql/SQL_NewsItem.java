@@ -68,16 +68,18 @@ public class SQL_NewsItem extends NewsItem
 		_localCopyName = baseName;
 	}
 
-	public SQL_NewsItem(String url, String baseName, Long feedKey, Date d)
+	public SQL_NewsItem(String url, Long feedKey, Date d)
 	{
+		String baseName = SQL_DB._sqldb.getBaseNameForArticle(url);
 		newsrack.util.Tuple<String, String> t = SQL_DB.splitURL(url);
 		init(t._a, t._b, baseName);
 		_feedKey = feedKey;
 		setDate(getDateString(d));
 	}
 
-	public SQL_NewsItem(String urlRoot, String urlTail, String baseName, String title, String desc, String author, Long feedKey, String date)
+	public SQL_NewsItem(String urlRoot, String urlTail, String title, String desc, String author, Long feedKey, String date)
 	{
+		String baseName = SQL_DB._sqldb.getBaseNameForArticle(urlRoot + urlTail);
 		init(urlRoot, urlTail, baseName);
 		setTitle(title);
 		setDescription(desc);
@@ -136,30 +138,24 @@ public class SQL_NewsItem extends NewsItem
 			_urlTail = u.substring(i);
 		}
 	}
-	public void  setLocalCopyName(String p)	
-	{
-		if (p != null) {
-			_localCopyName = p.substring(1 + p.lastIndexOf('/'));
-		}
-	}
-	public String getLocalCopyName() { return _localCopyName; }
 
-	public Long     getKey()         { return _nKey; }
-	public boolean  inTheDB()        { return _nKey != null; }
-	public String   getTitle()       { return _title; }
-	public String   getDateString()  { return _date; }
-	public String   getAuthor()      { return _author; }
-	public String   getDescription() { return _description; }
-	public String   getURL()         { return _urlRoot + _urlTail; }
+	public Long    getKey()         { return _nKey; }
+	public boolean inTheDB()        { return _nKey != null; }
+	public String  getTitle()       { return _title; }
+	public String  getDateString()  { return _date; }
+	public String  getAuthor()      { return _author; }
+	public String  getDescription() { return _description; }
+	public String  getURL()         { return _urlRoot + _urlTail; }
 	public List<Category> getCategories() {
 		if (_cats == null)
 			_cats = SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); 
 		return _cats;
 	}
-	public int      getNumCats()     { return getCategories().size(); }
-	public Long     getFeedKey()     { return _feedKey; }
-	public Feed     getFeed()        { return SQL_DB._sqldb.getFeed(_feedKey); }
-	public String   getLocalCopyPath()  { return _date + File.separator + getFeed().getTag() + File.separator + _localCopyName; }
+	public int     getNumCats()       { return getCategories().size(); }
+	public Long    getFeedKey()       { return _feedKey; }
+	public Feed    getFeed()          { return SQL_DB._sqldb.getFeed(_feedKey); }
+	public String  getLinkForCachedItem() { return _localCopyName + ":" + _nKey; }
+	public String  getLocalCopyPath() { return getDateString() + File.separator + getFeed().getTag() + File.separator + _localCopyName; }
 	public SQL_NewsIndex getNewsIndex() 
 	{ 
 		if (_newsIndex == null)
@@ -167,8 +163,8 @@ public class SQL_NewsItem extends NewsItem
 			
 		return _newsIndex;
 	}
-	public Reader   getReader() throws Exception { return SQL_DB._sqldb.getNewsItemReader(this); }
-	public Date     getDate()           	
+	public Reader  getReader() throws Exception { return SQL_DB._sqldb.getNewsItemReader(this); }
+	public Date    getDate()           	
 	{ 
 		try { 
 			return DATE_PARSER.parse(_date);
@@ -180,7 +176,7 @@ public class SQL_NewsItem extends NewsItem
 	}
 
       /** Can the cached text of this news item be displayed?  */
-   public boolean  getDisplayCachedTextFlag()
+   public boolean getDisplayCachedTextFlag()
    {
       if (_feedKey == null) {
          _log.error("Feed key null for news item with sql key " + _nKey);
@@ -203,6 +199,9 @@ public class SQL_NewsItem extends NewsItem
 	}
 
 	public void printCategories(PrintWriter pw) { /* nothing to do for now */ }
+
+		// Access only to classes in this package
+	String  getLocalFileName() { return _localCopyName; }
 
 	void copy(SQL_NewsItem ni)
 	{

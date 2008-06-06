@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import newsrack.util.StringUtils;
 
-public class Filter
+public class Filter implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 	        static       short      MIN_REQD_MATCH_COUNT = 2;
@@ -66,7 +66,7 @@ public class Filter
 	 *   - a non-leaf AND term
 	 *   - a non-leaf OR term
 	 */
-	public static abstract class RuleTerm 
+	public static abstract class RuleTerm implements java.io.Serializable
 	{
 		abstract public FilterOp getType();
 		abstract public Object   getOperand1();

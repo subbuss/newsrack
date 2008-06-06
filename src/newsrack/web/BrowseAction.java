@@ -11,6 +11,7 @@ import newsrack.database.NewsItem;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class BrowseAction extends BaseAction
 	private String   _y;
 
 		/* News list to be displayed */
-	private List<NewsItem> _news;
+	private Collection<NewsItem> _news;
 
 /**
 	private int _start;
@@ -84,8 +85,8 @@ public class BrowseAction extends BaseAction
 **/
 
 	public User getUser() { return _user; }
-	public String getLastDownloadTime()    { return _lastDownloadTime; }
-	public List<NewsItem> getNews() { return _news; }
+	public String getLastDownloadTime() { return _lastDownloadTime; }
+	public Collection<NewsItem> getNews() { return _news; }
 
 	public User getOwner() { return _issueOwner; } 
 	public Issue getIssue() { return _issue; } 

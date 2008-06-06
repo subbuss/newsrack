@@ -3,9 +3,10 @@ package newsrack.database.sql;
 import newsrack.archiver.Source;
 import newsrack.archiver.Feed;
 import newsrack.user.User;
+import newsrack.database.NewsItem;
 
 import java.util.Date;
-import java.util.Hashtable;
+import java.util.Collection;
 import java.io.OutputStream;
 
 // @FIXME: record info. about materialized fields and don't hit the db if it is already in memory
@@ -48,10 +49,10 @@ class SQL_SourceStub extends Source
 		return f;
 	}
 
-	public void readSource(Hashtable newsTable) throws Exception
+	public Collection<NewsItem> readSource() throws Exception
 	{
 		getFeed();
-		super.readSource(newsTable);
+		return super.readSource();
 	}
 
    public boolean getCacheableFlag()         { return _cacheable; }

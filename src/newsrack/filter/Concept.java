@@ -27,7 +27,7 @@ import java.util.Iterator;
  * @author  Subramanya Sastry
  * @version 2.0 10th November 2006
  */
-public class Concept
+public class Concept implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 

@@ -19,7 +19,7 @@ import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.SyndFeedOutput;
 import com.sun.syndication.io.XmlReader;
 
-public class OutputFeed
+public class OutputFeed implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 	private static final short MAX_RSS_ITEMS = 25;

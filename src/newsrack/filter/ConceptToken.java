@@ -1,6 +1,6 @@
 package newsrack.filter;
 
-public final class ConceptToken
+public final class ConceptToken implements java.io.Serializable
 {
 	public static final String       CATCHALL       = "__JUNK__";
 	public static final ConceptToken CATCHALL_TOKEN = new ConceptToken(CATCHALL, "");

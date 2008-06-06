@@ -46,7 +46,7 @@ import org.apache.commons.digester.xmlrules.*;
  * @author Subramanya Sastry
  * @version 1.0 12/05/04
  */
-public class User
+public class User implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
    	// Logging output for this class
@@ -164,18 +164,15 @@ public class User
 	private List<String>    	_files;	// List of files defining the issues
 
 		// These transient fields are not stored in the db
-	transient private String  _workDir;		//	Work directory
-	transient private boolean _reclassificationInProgress = false;
-	transient private boolean _downloadInProgress         = false;
-	transient private boolean _validationInProgress       = false;
-	transient private boolean _concurrentProfileChange    = false;
+	private String  _workDir;		//	Work directory
+	private boolean _reclassificationInProgress = false;
+	private boolean _downloadInProgress         = false;
+	private boolean _validationInProgress       = false;
+	private boolean _concurrentProfileChange    = false;
 
 		// This is used temporarily during parsing
-	transient private List<NR_Collection> _userCollections = null;
-	transient private HashMap<String, NR_Collection> _collectionMap = null;
-
-   	// Logging output for this class
-   private final transient Log log = LogFactory.getLog(this.getClass());
+	private List<NR_Collection> _userCollections = null;
+	private HashMap<String, NR_Collection> _collectionMap = null;
 
 	/**
 	 * Dummy constructor
@@ -821,8 +818,7 @@ public class User
 				if (concurrentProfileModification())
 					break;
 
-				final Hashtable news = new Hashtable();
-				i.downloadNews(news);
+				Collection news = i.downloadNews();
 				i.readInCurrentRSSFeed();
 				i.scanAndClassifyNewsItems(null, news);
 				i.storeNewsToArchive();

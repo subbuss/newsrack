@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import sun.misc.BASE64Encoder;
 import sun.misc.CharacterEncoder;
 import newsrack.util.IOUtils;
 
@@ -63,13 +62,16 @@ public final class PasswordService
 
    private PasswordService() { }
 
-   public static synchronized String encrypt(String plaintext)
+   public static String encrypt(String plaintext)
    {
 		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(plaintext.getBytes("UTF-8"));
-			byte raw[] = md.digest();
-			return (new BASE64Encoder()).encode(raw);
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+				// FIXME: synchronization required?
+			synchronized(md5) {
+				md5.update(plaintext.getBytes("UTF-8"));
+				byte raw[] = md5.digest();
+				return (new sun.misc.BASE64Encoder()).encode(raw);
+			}
 		}
 		catch (Exception e) {
 			_log.error("PasswordService", e);

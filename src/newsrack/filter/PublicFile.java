@@ -9,7 +9,7 @@ package newsrack.filter;
  * @author Subramanya Sastry
  * @version 1.0 22/09/04
  */
-public class PublicFile 
+public class PublicFile implements java.io.Serializable
 {
 	private final String _fileName;
 	private final String _fileOwner;

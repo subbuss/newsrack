@@ -9,13 +9,13 @@ import newsrack.util.URLCanonicalizer;
 
 import java.lang.String;
 import java.net.URL;
-import java.util.Hashtable;
-import java.util.HashMap;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Date;
 import java.io.File;
 import java.io.InputStream;
@@ -37,7 +37,7 @@ import org.apache.commons.digester.xmlrules.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class Feed
+public class Feed implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
    private static Log _log = LogFactory.getLog(Feed.class);
@@ -267,11 +267,12 @@ public class Feed
 	/**
 	 * Read the feed, store it locally, and download all
 	 * the news items referenced in the feed.
-	 * @param newsTable  hashtable into which all downloaded news items are added
-	 *                   indexed by the local file path
+	 * @returns a list of all downloaded news items
 	 */
-	public void readFeed(Hashtable newsTable) throws Exception
+	public List<NewsItem> readFeed() throws Exception
 	{
+		List<NewsItem> newsItems = new ArrayList<NewsItem>();
+
 		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 
 			// 1. Download the feed and write it to the feed file in the output dir
@@ -289,7 +290,7 @@ public class Feed
 				rssFeedFile = _rssFeedCache.get(u);
 				if (rssFeedFile == null) {
 					if (_log.isErrorEnabled()) _log.error("Could not open RSS url, and there is no local cached copy either");
-					return;
+					return newsItems;
 				}
 				downloaded = false;
 			}
@@ -430,7 +431,7 @@ public class Feed
 					ni.setAuthor((auth != null) ? auth.trim() : null);
 					ni.setDescription((desc != null) ? desc.trim() : null);
 
-					newsTable.put(ni.getLocalCopyPath(), ni);
+					newsItems.add(ni);
 
 						// 7d. Record The news item with the DB
 					_db.recordDownloadedNewsItem(this, ni);
@@ -440,6 +441,8 @@ public class Feed
 
 			// 8. Inform the DB after news downloading  
 		_db.finalizeNewsDownload(this);
+
+		return newsItems;
 	}
 
 	private NewsItem downloadNewsItem(String baseUrl, SyndEntry se,  Date date)
@@ -460,23 +463,23 @@ public class Feed
 			String canonicalUrl = URLCanonicalizer.canonicalize(origURL);
 			if (_log.isInfoEnabled()) _log.info("URL :" + canonicalUrl);
 
-				// 2. Get the base name for the article
-         String baseName = _db.getFileNameForArticle(this, date, canonicalUrl);
-
-				// 3. Check if the article has already been downloaded previously
+				// 2. Check if the article has already been downloaded previously
 			ni = _db.getNewsItemFromURL(canonicalUrl);
 			if (ni != null) {
 				if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getLocalCopyPath());
 				return ni;
 			}
 
+				// 3. Else, create a new item.  NOTE: This won't be stored to the db yet!
+			ni = _db.createNewsItem(canonicalUrl, this, date);
+
             // IMPORTANT: For purposes of downloading, use the original unfiltered URL!
-				// 4a. Get appropriate output streams
-				// 4b. Filter the article using the HTML filter (while getting original text)
-				// 4c. Store the original text onto disk
-				// 4d. Close streams
-			filtPw = _db.getWriterForFilteredArticle(origURL, this, date, baseName);
-			origPw = _db.getWriterForOrigArticle(origURL, this, date, baseName);
+				// 3a. Get appropriate output streams
+				// 3b. Filter the article using the HTML filter (while getting original text)
+				// 3c. Store the original text onto disk
+				// 3d. Close streams
+			filtPw = _db.getWriterForFilteredArticle(ni);
+			origPw = _db.getWriterForOrigArticle(ni);
 			try {
             if ((filtPw != null) && (origPw != null)) {
                boolean done = false;
@@ -508,18 +511,20 @@ public class Feed
 					// Delete the file for this article -- otherwise, it will
 					// trigger a false hit in the archive later on!
 				if (filtPw != null)
-					_db.deleteFilteredArticle(origURL, this, date, baseName);
+					_db.deleteFilteredArticle(ni);
 				throw e;
 			}
-			origPw.close();
-			filtPw.close();
+
+				// close the files
+			if (origPw != null) origPw.close();
+			if (filtPw != null) filtPw.close();
 
             // 4e. After a download, sleep for 1 second to prevent bombarding the 
             //     remote server with downloads
          StringUtils.sleep(1);
 
 				// 5. Create the news item and return it!
-			return _db.createNewsItem(canonicalUrl, this, date, baseName);
+			return ni;
 		}
 		catch (Exception e) {
 			if (origPw != null) origPw.close();

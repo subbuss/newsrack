@@ -21,7 +21,7 @@ import java.util.List;
  * @version 1.0 23/05/04
  */
 
-abstract public class NewsItem
+abstract public class NewsItem implements java.io.Serializable
 {
 	abstract public Long     getKey();
 	abstract public String   getURL();
@@ -35,7 +35,7 @@ abstract public class NewsItem
 	abstract public String   getDateString();
 	abstract public String   getAuthor();
 	abstract public String   getDescription();
-	abstract public String   getLocalCopyName();	// File name for the local copy
+	abstract public String   getLinkForCachedItem();
 	abstract public String   getLocalCopyPath();	// Full path for the local copy
 	/** Returns a reader object to read the contents of the news item */
 	abstract public Reader   getReader() throws Exception;
@@ -53,7 +53,6 @@ abstract public class NewsItem
 	abstract public void     setDescription(String d);
 	abstract public void     setAuthor(String a);
 	abstract public void     setURL(String u);
-	abstract public void     setLocalCopyName(String p);
 
 	public boolean olderThan(NewsItem n)
 	{

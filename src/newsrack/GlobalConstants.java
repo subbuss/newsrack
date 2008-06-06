@@ -65,6 +65,10 @@ public final class GlobalConstants
 	public static void loadGlobalProperties()
 	{
 		loadProperties(_resourcesFile);
+
+			/* Load override properties: things like user name, password, etc. which shouldn't be 
+			 * stored in the main properties file and checked in svn/cvs (unless you happen to be me!) */
+		loadProperties(_resourcesFile + ".override");
 	}
 
 	private static void loadProperties(String propertiesFile)
@@ -101,8 +105,13 @@ public final class GlobalConstants
 			return;
 		}
 
-		_serverURL  = sc.getInitParameter("server-url");
-		_webappPath = sc.getRealPath("");
+		if (sc != null) {
+			_serverURL  = sc.getInitParameter("server-url");
+			_webappPath = sc.getRealPath("");
+		}
+		else {
+			_log.error("Servlet context is null!");
+		}
 
 		_log.info("Server URL  - " + _serverURL);
 		_log.info("webapp path - " + _webappPath);

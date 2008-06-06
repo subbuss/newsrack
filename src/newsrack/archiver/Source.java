@@ -5,7 +5,7 @@ import newsrack.database.NewsItem;
 import newsrack.database.DB_Interface;
 import newsrack.GlobalConstants;
 
-import java.util.Hashtable;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -17,7 +17,7 @@ import org.apache.commons.logging.LogFactory;
  * @version 2.0 November 12, 2006
  */
 
-public class Source
+public class Source implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
    	/* Logging output for this plug in instance. */
@@ -111,23 +111,20 @@ public class Source
 	/**
 	 * Read the source, store it locally, and download all the news items available
 	 * with the source!  At this time, only RSS feed sources are supported.
-	 *
-	 * @param newsTable  hashtable into which all downloaded news items are added
-	 *                   indexed by the local file path
 	 */
-	public void readSource(Hashtable newsTable) throws Exception
+	public Collection<NewsItem> readSource() throws Exception
 	{
 		if (_feed != null) {
 			if (_log.isInfoEnabled()) _log.info("RSS source is: " + this);
-			_feed.readFeed(newsTable);
+			return _feed.readFeed();
 		}
 		else {
 			if (_log.isErrorEnabled()) _log.error("Ignoring source " + this + ". It has no rss feed");
-			return;
+			return null;
 		}
 	}
 
-	public List<NewsItem> getArchivedNews(String yStr, String mStr, String dStr)
+	public Collection<NewsItem> getArchivedNews(String yStr, String mStr, String dStr)
 	{
 		return _db.getArchivedNews(this, yStr, mStr, dStr);
 	}

@@ -1,5 +1,6 @@
 package newsrack.database.sql;
 
+import newsrack.database.NewsItem;
 import newsrack.filter.Issue;
 import newsrack.filter.Category;
 import newsrack.user.User;
@@ -101,10 +102,10 @@ class SQL_IssueStub extends Issue
 		super.reclassifyNews(s, allDates, sd, ed);
 	}
 
-	public void scanAndClassifyNewsItems(Feed f, Hashtable newsTable)
+	public void scanAndClassifyNewsItems(Feed f, Collection<NewsItem> news)
 	{
 		getUser();
-		super.scanAndClassifyNewsItems(f, newsTable);
+		super.scanAndClassifyNewsItems(f, news);
 	}
 
 	public void gen_JFLEX_RegExps()

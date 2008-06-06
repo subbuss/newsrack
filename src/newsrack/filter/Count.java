@@ -3,7 +3,7 @@ package newsrack.filter;
 import java.lang.Comparable;
 import java.util.List;
 
-public final class Count implements Comparable
+public final class Count implements Comparable, java.io.Serializable
 {
 	private int _cnt;
 	private List<Category> _matchedCats;

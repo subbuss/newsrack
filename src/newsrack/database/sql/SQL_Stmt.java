@@ -378,13 +378,12 @@ class GetNewsItemResultProcessor extends AbstractResultProcessor
 	{
 		String urlRoot   = rs.getString(3);
 		String urlTail   = rs.getString(4);
-		String localName = rs.getString(5);
-		String title     = rs.getString(6);
-		String desc      = rs.getString(7);
-		String author    = rs.getString(8);
-		String dateStr   = rs.getString(9);
-		Long   feedKey   = rs.getLong(10);
-		SQL_NewsItem ni = new SQL_NewsItem(urlRoot, urlTail, localName, title, desc, author, feedKey, dateStr);
+		String title     = rs.getString(5);
+		String desc      = rs.getString(6);
+		String author    = rs.getString(7);
+		String dateStr   = rs.getString(8);
+		Long   feedKey   = rs.getLong(9);
+		SQL_NewsItem ni = new SQL_NewsItem(urlRoot, urlTail, title, desc, author, feedKey, dateStr);
 		ni.setKey(rs.getLong(1));
 		ni.setNewsIndexKey(rs.getLong(2));
 
@@ -395,40 +394,39 @@ class GetNewsItemResultProcessor extends AbstractResultProcessor
 public enum SQL_Stmt 
 {
 	GET_NEWS_ITEM(
-		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
+		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
 			" FROM news_items n1, news_indexes n2" +
 			" WHERE n1.n_key = ? AND n1.primary_ni_key = n2.ni_key",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
-		false
+		true
 	),
-   GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_URL(
-		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
-			" FROM news_items n1, news_indexes n2" +
-			" WHERE n1.url_root = ? AND n1.url_tail = ? AND n1.primary_ni_key = n2.ni_key",
-		new SQL_ValType[] {STRING, STRING},
+   GET_NEWS_ITEM_FROM_URL(
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+			" FROM news_item_url_md5_hashes h, news_items n, news_indexes ni" +
+			" WHERE h.url_hash = md5(?) AND h.n_key = n.n_key AND n.primary_ni_key = ni.ni_key",
+		new SQL_ValType[] {STRING},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
 		true
 	),
 	GET_ALL_NEWS_ITEMS_WITH_URL(
-		"SELECT n_key FROM news_items WHERE url_root = ? AND url_tail = ?",
-		new SQL_ValType[] {STRING, STRING},
+		"SELECT n_key FROM news_item_url_md5_hashes WHERE url_hash = ?",
+		new SQL_ValType[] {STRING},
       SQL_StmtType.QUERY,
 		null,
 		new GetLongResultProcessor(),
 		false
 	),
-		// FIXME: This humonguous query is a result of bad design of how news item local paths are displayed on the listing page
-		// Ideally, the listing should use a news item id, in which case, the fetch will be simple!
-   GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_CACHEDNAME(
-		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.cached_item_name, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
-			" FROM news_items n1, news_indexes n2, feeds f " +
-			" WHERE n1.cached_item_name = ? AND n1.primary_ni_key = n2.ni_key AND n2.date_string = ? AND n2.feed_key = f.feed_key AND f.feed_tag = ?",
-		new SQL_ValType[] {STRING, STRING, STRING},
+		/* NOTE: This query is present for backward compatibility -- will be deprecated in the future! */
+   GET_NEWS_ITEM_FROM_LOCALPATH(
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ?, ?" +
+			" FROM news_item_localnames l, news_items n" +
+			" WHERE l.local_file_name = ? AND l.n_key = n.n_key AND n.primary_ni_key = ?",
+		new SQL_ValType[] {STRING, LONG, STRING, LONG},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
@@ -469,7 +467,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NEWS_FROM_CAT(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni, cat_news cn" +
 		   " WHERE (cn.c_key = ?) AND (cn.n_key = n.n_key) AND (cn.ni_key = ni.ni_key) " +
 		   " ORDER BY ni.date_stamp DESC, cn.n_key DESC LIMIT ?, ?",
@@ -525,11 +523,11 @@ public enum SQL_Stmt
       // very very bad timing!  It is better to run the 2 queries
       // as independent ones and union the result sets
 	GET_NEWS_FROM_NEWSINDEX(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni" +
 		   " WHERE (n.primary_ni_key = ? AND n.primary_ni_key = ni.ni_key) " +
 		   " UNION " +
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.cached_item_name, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni, news_collections sn" +
 		   " WHERE (sn.ni_key = ? AND sn.n_key = n.n_key AND n.primary_ni_key = ni.ni_key)",
 		new SQL_ValType[] {LONG, LONG},
@@ -541,6 +539,14 @@ public enum SQL_Stmt
 	GET_FEED(
 		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetFeedResultProcessor(),
+		true
+	),
+	GET_FEED_BY_TAG(
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_tag = ?",
+      new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
 		new GetFeedResultProcessor(),
@@ -904,15 +910,20 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_NEWS_ITEM(
-		"INSERT INTO news_items (primary_ni_key, url_root, url_tail, cached_item_name, title, description, author) VALUES (?,?,?,?,?,?,?)",
-      new SQL_ValType[] {LONG, STRING, STRING, STRING, STRING, STRING, STRING},
+		"INSERT INTO news_items (primary_ni_key, url_root, url_tail, title, description, author) VALUES (?,?,?,?,?,?)",
+      new SQL_ValType[] {LONG, STRING, STRING, STRING, STRING, STRING},
 		SQL_StmtType.INSERT,
-		new SQL_ColumnSize[] {NONE, NEWS_ITEM_TBL_URLROOT, NEWS_ITEM_TBL_URLTAIL, NEWS_ITEM_TBL_LOCALNAME, NONE, NONE, NONE},
+		new SQL_ColumnSize[] {NONE, NEWS_ITEM_TBL_URLROOT, NEWS_ITEM_TBL_URLTAIL, NONE, NONE, NONE},
 		new GetLongResultProcessor(),
 		true
 	),
+	INSERT_URL_HASH(
+		"INSERT INTO news_item_url_md5_hashes(n_key, url_hash) VALUES(?, md5(?))",
+		new SQL_ValType[] {LONG, STRING},
+		SQL_StmtType.INSERT
+	),
 	INSERT_INTO_SHARED_NEWS_TABLE(
-		"INSERT INTO news_collections (ni_key, n_key) VALUES (?, ?)",
+		"INSERT IGNORE INTO news_collections (ni_key, n_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.INSERT
 	),

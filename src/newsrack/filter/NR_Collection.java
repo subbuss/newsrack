@@ -8,7 +8,7 @@ import newsrack.user.User;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public abstract class NR_Collection
+public abstract class NR_Collection implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
    protected static Log _log = LogFactory.getLog(NR_Collection.class);

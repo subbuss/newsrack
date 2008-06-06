@@ -402,6 +402,12 @@ public class SQL_DB extends DB_Interface
 		return (NewsItem)GET_NEWS_ITEM.get(key);
 	}
 
+	public Feed getFeedWithTag(String feedTag)
+	{
+			// FIXME: Caching?
+		return (Feed)GET_FEED_BY_TAG.execute(new Object[]{feedTag});
+	}
+
 	/**
 	 * Get a source object for a feed, given a feed url, a user and his/her preferred tag for the source
 	 * @param u       user requesting the source 
@@ -834,23 +840,32 @@ public class SQL_DB extends DB_Interface
 	 * @param niPath  Path of the news item relative to the news archive.
 	 * @return Returns a reader object for reading the news item
 	 */
-	public Reader getNewsItemReader(String niPath) throws java.io.IOException
+	public Reader getNewsItemReader(NewsItem ni) throws java.io.IOException
 	{
-		if (niPath.indexOf(".." + File.separator) != -1)
-			throw new java.io.IOException("Cannot have .." + File.separator + " in path.  Access denied");
-		if (niPath.indexOf(File.separator + "..") != -1)
-			throw new java.io.IOException("Cannot have " + File.separator + ".. in path.  Access denied");
+		if (ni.getKey() == null) {
+			_log.error("NewsItem with url " + ni.getURL() + " is not in the db!");
+			return null;
+		}
 
-			// Ignore the presence of "filtered/" in the path -- this is for backward compatibility
-			// Henceforth, all localcopy paths will not have "filtered/" at all
-			// NOTE: since the path component is no longer an actual path, "/" is used on all
-			// operating systems independent of what the File.separator actually is!
-			// So, before using the path, appropriately process it to make it usable on the OS
-			// that this installation is running on!
-		String newPath  = normalizeLocalCopyPath(niPath);
-		String fullPath = GLOBAL_NEWS_ARCHIVE_DIR + "filtered" + File.separator + newPath;
-      if (_log.isDebugEnabled()) _log.debug("Got " + niPath + "; looking for " + newPath + "; FULLPATH is " + fullPath);
-		return IOUtils.getUTF8Reader(fullPath);
+		// Convert 12.11.2005 --> 2005/11/12/src/file
+		String[] dateStr = ni.getDateString().split("\\.");
+		String localName = ((SQL_NewsItem)ni).getLocalFileName();
+		String pathPrefix = GLOBAL_NEWS_ARCHIVE_DIR + "filtered" + File.separator
+																  + dateStr[2] + File.separator 
+																  + dateStr[1] + File.separator
+																  + dateStr[0] + File.separator
+																  + ni.getFeed().getTag() + File.separator;
+		String fullPath = pathPrefix + localName;
+		if ((new File(fullPath)).exists()) {
+				// The common case for all news items going forward
+			return IOUtils.getUTF8Reader(fullPath);
+		}
+		else {
+				// The news item is stored using the old style naming
+			localName = StringUtils.getBaseFileName(ni.getURL());
+			if (_log.isDebugEnabled()) _log.debug("Looking for " + fullPath);
+			return IOUtils.getUTF8Reader(pathPrefix + localName);
+		}
 	}
 
 	/**
@@ -1015,34 +1030,6 @@ public class SQL_DB extends DB_Interface
 		getArchiveDirForFilteredArticles(f, pubDate);
 	}
 
-	private Triple getLocalPathTerms(String path)
-	{
-			// Get fields from the path
-			// Take care of old-style path names -- backward compatibility code
-		String   newPath = path.replaceFirst("filtered/", "").replaceAll("//", "/").replaceAll("/", File.separator);
-		String[] flds    = newPath.split(File.separator);
-		String   srcId   = flds[1];
-		return new Triple(flds[0], srcId, flds[2]);
-	}
-
-	private String normalizeLocalCopyPath(String path)
-	{
-		try {
-			Triple t = getLocalPathTerms(path);
-			String[] dateStr = ((String)t._a).split("\\.");
-				// Convert a date 12.11.2005/src into 2005/11/12/src
-			return   dateStr[2] + File.separator 
-			       + dateStr[1] + File.separator
-			       + dateStr[0] + File.separator
-					 + t._b + File.separator + t._c;
-		}
-		catch (Exception e) {
-			_log.error("ERROR normalizing " + path + "; exception is " + e);
-			e.printStackTrace();
-			return path;
-		}
-	}
-
 	/**
 	 * This method returns a NewsItem object for an article
 	 * that has already been downloaded
@@ -1052,9 +1039,8 @@ public class SQL_DB extends DB_Interface
 	 */
 	public NewsItem getNewsItemFromURL(String url)
 	{
-      Tuple<String, String> t = splitURL(url);
 		try {
-      	return (NewsItem)GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_URL.execute(new Object[]{t._a, t._b});
+      	return (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
 		}
 		catch (SQL_UniquenessConstraintViolationException e) {
 				// This should not happen at all!  But, present as a backup against some bug ...
@@ -1062,7 +1048,7 @@ public class SQL_DB extends DB_Interface
 			NewsItem ni = (NewsItem)e.firstResult;
 			Long     niKey = ni.getKey();
 
-			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{t._a, t._b});
+			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{url});
 			for (Long k: allItems) {
 				if (!k.equals(niKey)) {
 					_log.error(" ... Deleting duplicate news item with key: " + k);
@@ -1075,6 +1061,15 @@ public class SQL_DB extends DB_Interface
 		}
 	}
 
+	private Triple getLocalPathTerms(String path)
+	{
+			// Get fields from the path
+			// Take care of old-style path names -- backward compatibility code
+		path = path.replaceFirst("filtered/", "").replaceAll("//", "/").replaceAll("/", File.separator);
+		String[] flds = path.split(File.separator);
+		return new Triple(flds[0], flds[1], flds[2]);
+	}
+
 	/**
 	 * This method returns a NewsItem object for an article
 	 * that has already been downloaded
@@ -1084,11 +1079,36 @@ public class SQL_DB extends DB_Interface
 	 */
 	public NewsItem getNewsItemFromLocalCopyPath(String path)
 	{
-		Triple t = getLocalPathTerms(path);
-		String localName = (String)t._c;
-		String feedTag   = (String)t._b;
-		String dateStr   = (String)t._a;
-      return (NewsItem)GET_NEWS_ITEM_WITH_FEED_SOURCE_FROM_CACHEDNAME.execute(new Object[] {localName, dateStr, feedTag});
+		if (path.indexOf("/") != -1) {
+				/* Request for OLD style local copy path names! 
+				 * Potentially 3 separate queries! ... but, this is a deprecated request 
+				 * and present only for backward compatibility.  Won't worry about performance */
+			Triple t = getLocalPathTerms(path);
+			String localName = (String)t._c;
+			String feedTag   = (String)t._b;
+			String dateStr   = (String)t._a;
+			Feed   f         = getFeedWithTag(feedTag);
+			Long   niKey     = getNewsIndexKey(f.getKey(), dateStr);
+			return (NewsItem)GET_NEWS_ITEM_FROM_LOCALPATH.execute(new Object[] {dateStr, f.getKey(), localName, niKey});
+		}
+		else {
+				// Ex: 663f59096f4ab33251cde3cc303214c7:348545
+			int      i       = 1 + path.indexOf(':');
+			String   md5Hash = path.substring(0, i-1);
+			Long     nKey    = Long.parseLong(path.substring(i));
+			NewsItem ni      = getNewsItem(nKey);
+
+				// Bad path
+			if (ni == null || !StringUtils.md5(ni.getURL()).equals(md5Hash)) {
+				_log.error("BAD local path for news item: " + path);
+				if (ni != null)
+					_log.error("url: " + ni.getURL() + "; md5 - " + StringUtils.md5(ni.getURL()) + "; md5hash - " + md5Hash);
+				return null;
+			}
+			else {
+				return ni;
+			}
+		}
 	}
 
 	/**
@@ -1116,18 +1136,17 @@ public class SQL_DB extends DB_Interface
 	 * @param url      URL of the article
 	 * @param f        News source object
 	 * @param d        Date of publishing
-	 * @param baseName Base name of the article for the archives
 	 * @returns a news item object for the article
 	 */
-	public NewsItem createNewsItem(String url, Feed f, Date d, String baseName)
+	public NewsItem createNewsItem(String url, Feed f, Date d)
 	{
 			// Create item
-		return new SQL_NewsItem(url, baseName, f.getKey(), d);
+		return new SQL_NewsItem(url, f.getKey(), d);
 	}
 
 	public SQL_NewsIndex getNewsIndex(Long niKey)
 	{
-		_log.info("Looking for news index with key: " + niKey);
+		// _log.info("Looking for news index with key: " + niKey);
 
 		SQL_NewsIndex ni = (SQL_NewsIndex)_cache.get(niKey, SQL_NewsIndex.class);
 		if (ni == null) {
@@ -1138,12 +1157,12 @@ public class SQL_DB extends DB_Interface
 		return ni;
 	}
 
-	private Long getNewsIndexKey(Long feedId, String dateStr)
+	private Long getNewsIndexKey(Long feedKey, String dateStr)
 	{
-		String cacheKey = "NIKEY:" + feedId + ":" + dateStr;
+		String cacheKey = "NIKEY:" + feedKey + ":" + dateStr;
 		Long niKey = (Long)_cache.get(cacheKey, SQL_NewsIndex.class);
 		if (niKey == null) {
-      	niKey = (Long)GET_NEWS_INDEX_KEY.execute(new Object[] {feedId, dateStr});
+      	niKey = (Long)GET_NEWS_INDEX_KEY.execute(new Object[] {feedKey, dateStr});
 			if (niKey != null)
 				_cache.add((Long)null, cacheKey, Long.class, niKey);
 		}
@@ -1182,8 +1201,8 @@ public class SQL_DB extends DB_Interface
 			synchronized(u) {
 				SQL_NewsItem x = (SQL_NewsItem)getNewsItemFromURL(u);
 				if (x == null) {
-					Long key = (Long)INSERT_NEWS_ITEM.execute(
-							new Object[] {niKey, sni._urlRoot, sni._urlTail, sni._localCopyName, sni._title, sni._description, sni._author});
+					Long key = (Long)INSERT_NEWS_ITEM.execute(new Object[] {niKey, sni._urlRoot, sni._urlTail, sni._title, sni._description, sni._author});
+					INSERT_URL_HASH.execute(new Object[] {key, u}); // Add a url hash too -- should I start using triggers?? 
 					sni.setKey(key);
 					sni.setNewsIndexKey(niKey); // Record the news index that the news item belongs to!
 				}
@@ -1201,6 +1220,9 @@ public class SQL_DB extends DB_Interface
 
 			// Add the news item to the shared news index if the news item does not
          // belong to the same source to whose index it is being added!
+			//
+			// NOTE: The insert statement will fail if the insert will violate uniqueness of (n_key, ni_key)
+			// but, because it is an INSERT IGNORE, we get the desired effect!
 		if (!sFeedId.equals(sni.getFeedKey()))
          INSERT_INTO_SHARED_NEWS_TABLE.execute(new Object[] {niKey, sni.getKey()});
 	}
@@ -1736,14 +1758,8 @@ public class SQL_DB extends DB_Interface
 		return d;
 	}
 
-	/**
-	 * Gets a unique file name for the article
-	 * @param s  Source from which article is being downloaded
-	 * @param d  Date when the article is published -- provided by the RSS feed 
-	 * @param u  URL of the article
-	 */
-	public String getFileNameForArticle(Feed f, Date d, String url)
-   {
+	protected String getBaseNameForArticle(String url)
+	{
       // FIXME: Potential race condition ... If 2 threads happen to process the same source at the
       // same time (which can only happen very rarely -- if the Download button is clicked during
       // the time the automatic download is happening), then, it can happen that the 2 threads
@@ -1752,33 +1768,23 @@ public class SQL_DB extends DB_Interface
       // is to get rid of the Download button or at least not allow 2 threads to process the same
       // new source!
 
-      String dir     = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(f, d);
-      String urlBase = StringUtils.getBaseFileName(url);
-      String prefix  = (urlBase.length() > 0) ? "" : "ni0";
-      int    count   = 0;
-      String baseName;
-      do {
-         baseName = prefix + urlBase;
-         count++;
-         prefix   = "ni" + count + ".";
-      } while ((new File(dir + baseName)).exists());
-
-      return baseName;
-   }
+			// We've changed the base name now!
+		return StringUtils.md5(url);
+	}
 
 	/**
 	 * Get a print writer for writing the raw HTML of the article into
 	 *
-	 * @param url      URL of the article
-	 * @param feed     Feed from which article is being downloaded
-	 * @param d        Date when the article is published -- provided by the RSS feed 
-	 * @param baseName Basename of the article
+	 * @param ni The news item for which the writer is requested
     *
-    * @returns null if a file exists with that baseName already exists in the destination directory
+    * @returns null if a file exists for this news item!
 	 */
-	public PrintWriter getWriterForOrigArticle(String url, Feed feed, Date d, String baseName)
+	public PrintWriter getWriterForOrigArticle(NewsItem ni)
 	{
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + baseName;
+		String url  = ni.getURL();
+		Feed   feed = ni.getFeed();
+		Date   d    = ni.getDate();
+		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
       File f = new File(fpath);
 			// Allow overwriting for empty files
       if (f.exists() && (f.length() > 0))
@@ -1794,19 +1800,18 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * Get a print writer for writing the filtered article into (i.e. after their text 
-	 * content is extracted)
+	 * Get a print writer for writing the filtered article into (i.e. after their text content is extracted)
 	 *
-	 * @param url      URL of the article
-	 * @param feed     Feed from which article is being downloaded
-	 * @param d        Date when the article is published -- provided by the RSS feed 
-	 * @param baseName Basename of the article
+	 * @param ni The news item for which the writer is requested
     *
-    * @returns null if a file exists with that baseName already exists in the destination directory
+    * @returns null if a file exists for this news item!
 	 */
-	public PrintWriter getWriterForFilteredArticle(String url, Feed feed, Date d, String baseName)
+	public PrintWriter getWriterForFilteredArticle(NewsItem ni)
 	{
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) + baseName;
+		String url  = ni.getURL();
+		Feed   feed = ni.getFeed();
+		Date   d    = ni.getDate();
+		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) +  ((SQL_NewsItem)ni).getLocalFileName();
       File f = new File(fpath);
 			// Allow overwriting for empty files
       if (f.exists() && (f.length() > 0))
@@ -1825,14 +1830,14 @@ public class SQL_DB extends DB_Interface
 	/**
 	 * Delete the requested filtered article from the archive!
 	 *
-	 * @param url      URL of the article
-	 * @param feed     Feed from which article was downloaded
-	 * @param d        Date when the article was published -- provided by the RSS feed 
-	 * @param baseName Basename of the article
+	 * @param ni The news item that is to be deleted from the archive
 	 */
-	public void deleteFilteredArticle(String url, Feed feed, Date d, String baseName)
+	public void deleteFilteredArticle(NewsItem ni)
 	{
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) + baseName;
+		String url  = ni.getURL();
+		Feed   feed = ni.getFeed();
+		Date   d    = ni.getDate();
+		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) +  ((SQL_NewsItem)ni).getLocalFileName();
 		File f = new File(fpath);
 		if (f.exists()) {
 			if (!f.delete())
@@ -1898,20 +1903,19 @@ public class SQL_DB extends DB_Interface
       updateArtCounts(i);
 	}
 
-	private List<SQL_NewsItem> getNewsForIndex(long indexKey)
+	private Collection<NewsItem> getNewsForIndex(long indexKey)
 	{
-      return (List<SQL_NewsItem>)GET_NEWS_FROM_NEWSINDEX.execute(new Object[] {indexKey, indexKey});
+			// NOTE: This whole generics thing is pointless here!
+			// The sql query returns a list.  This base type check will be enforced at runtime.
+			// But, at runtime, the actual generic type parameter itself is not available.
+			// so, I can cast it to damn well what I please!  If it were available, this typecheck
+			// will fail because, the query processor creates a generic list, not a list of newsitems.
+      return (List<NewsItem>)GET_NEWS_FROM_NEWSINDEX.execute(new Object[] {indexKey, indexKey});
 	}
 
-	public Hashtable getArchivedNews(NewsIndex index)
+	public Collection<NewsItem> getArchivedNews(NewsIndex index)
 	{
-		Hashtable news = new Hashtable();
-		List<SQL_NewsItem> ll = (List<SQL_NewsItem>)getNewsForIndex(((SQL_NewsIndex)index).getKey());
-      for (SQL_NewsItem sni:ll) {
-			news.put(sni.getLocalCopyPath(), sni);
-		}
-
-		return news;
+		return getNewsForIndex(((SQL_NewsIndex)index).getKey());
 	}
 
 	/**
@@ -1921,7 +1925,7 @@ public class SQL_DB extends DB_Interface
 	 * @param s    Source for which news has to be fetched
 	 * @param date Date for which news has to be fetched (in format yyyymmdd)
 	 */
-	public List getArchivedNews(Source s, String y, String m, String d)
+	public Collection<NewsItem> getArchivedNews(Source s, String y, String m, String d)
 	{
 		if (m.startsWith("0")) m = m.substring(1);
 		if (d.startsWith("0")) d = d.substring(1);

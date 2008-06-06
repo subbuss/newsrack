@@ -3,6 +3,7 @@ package newsrack.util;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.security.MessageDigest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -166,6 +167,28 @@ public final class StringUtils
 		String baseName = url.substring(url.lastIndexOf(File.separatorChar) + 1);
 			// replace all '?' and '&' by URL-friendly encoding
 		return baseName.replace('?', '_').replaceAll("&amp;", "_AMP_").replaceAll("&", "_AMP_").trim();
+	} 
+
+	public static String md5(String s)
+	{
+		try {
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+				// FIXME: synchronization required?
+			synchronized (md5) {
+				md5.update(s.getBytes("UTF-8"));
+				byte raw[] = md5.digest();
+				StringBuffer hexString = new StringBuffer();
+				for (int i = 0; i < raw.length; i++) {
+					if ((0xFF & raw[i]) < 16) hexString.append('0');	// need 2 bytes each, and Integer.toHexString does not provide leading '0's
+					hexString.append(Integer.toHexString(0xFF & raw[i]));
+				}
+				return hexString.toString();
+			}
+		}
+		catch(Exception e) {
+			_log.error("md5", e);
+			return null;
+		}
 	}
 
 	/**

@@ -46,7 +46,7 @@ import org.apache.commons.logging.LogFactory;
  * Version 2.0 November 10, 2006
  */
 
-public class Category implements Comparable
+public class Category implements Comparable, java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 	public static final List<Category> EMPTY_LIST = new ArrayList<Category>();

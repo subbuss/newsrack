@@ -405,16 +405,6 @@ public abstract class DB_Interface
 	 */
 	public abstract void clearNews(Category c);
 
-/* #### News Item #### */
-	/**
-	 * This method returns a character reader for displaying a news item
-	 * that has been archived in the local installation of News Rack.
-	 *
-	 * @param niPath  Path of the news item relative to the news archive.
-	 * @return Returns a reader object for reading the news item
-	 */
-	public abstract Reader getNewsItemReader(String niPath) throws java.io.IOException;
-
 	/**
 	 * This method returns a character reader for displaying a news item
 	 * that has been archived in the local installation of News Rack.
@@ -422,10 +412,7 @@ public abstract class DB_Interface
 	 * @param ni  NewsItem for which a reader is needed
 	 * @return Returns a reader object for reading the news item
 	 */
-	public Reader getNewsItemReader(NewsItem ni) throws java.io.IOException
-	{
-		return getNewsItemReader(ni.getLocalCopyPath());
-	}
+	public abstract Reader getNewsItemReader(NewsItem ni) throws java.io.IOException;
 
 	/**
 	 * This method returns a NewsItem object for an article
@@ -463,14 +450,14 @@ public abstract class DB_Interface
 
 	/**
 	 * This method creates a NewsItem object for the specified article.
+	 * This method won't be stored into the db till it is asked to be stored.
 	 *
 	 * @param url      URL of the article
 	 * @param f        News feed object
 	 * @param d        Date of publishing
-	 * @param baseName Base name of the article for the archives
 	 * @returns a news item object for the article
 	 */
-	public abstract NewsItem createNewsItem(String url, Feed f, Date d, String baseName);
+	public abstract NewsItem createNewsItem(String url, Feed f, Date d);
 
 	/**
 	 * Record a downloaded news item
@@ -495,47 +482,30 @@ public abstract class DB_Interface
 	public abstract boolean newsItemHasBeenProcessedForIssue(NewsItem ni, Issue i);
 
 	/**
-	 * Gets a unique file name for the article
-	 * @param f    Feed from which article is being downloaded
-	 * @param d    Date when the article is published -- provided by the RSS feed 
-	 * @param url  URL of the article
-	 */
-	public abstract String getFileNameForArticle(Feed f, Date d, String url);
-
-	/**
 	 * Get a print writer for writing the raw HTML of the article into
 	 *
-	 * @param url      URL of the article
-	 * @param f        Feed from which article is being downloaded
-	 * @param d        Date when the article is published -- provided by the RSS feed 
-	 * @param baseName Basename of the article
+	 * @param ni The news item for which the writer is requested
     *
-    * @returns null if a file exists with that baseName already exists in the destination directory
+    * @returns null if a file exists for this news item!
 	 */
-	public abstract PrintWriter getWriterForOrigArticle(String url, Feed f, Date d, String baseName);
+	public abstract PrintWriter getWriterForOrigArticle(NewsItem ni);
 
 	/**
 	 * Get a print writer for writing the filtered article into (i.e. after their text 
 	 * content is extracted)
 	 *
-	 * @param url      URL of the article
-	 * @param f        Feed from which article is being downloaded
-	 * @param d        Date when the article is published -- provided by the RSS feed 
-	 * @param baseName Basename of the article
+	 * @param ni The news item for which the writer is requested
     *
-    * @returns null if a file exists with that baseName already exists in the destination directory
+    * @returns null if a file exists for this news item!
 	 */
-	public abstract PrintWriter getWriterForFilteredArticle(String url, Feed f, Date d, String baseName);
+	public abstract PrintWriter getWriterForFilteredArticle(NewsItem ni);
 
 	/**
 	 * Delete the requested filtered article from the archive!
 	 *
-	 * @param url      URL of the article
-	 * @param f        Feed from which article was downloaded
-	 * @param d        Date when the article was published -- provided by the RSS feed 
-	 * @param baseName Basename of the article
+	 * @param ni The news item that is to be deleted from the archive
 	 */
-	public abstract void deleteFilteredArticle(String url, Feed f, Date d, String baseName);
+	public abstract void deleteFilteredArticle(NewsItem ni);
 
 /* #### News Download Phase #### */
 	/**
@@ -583,12 +553,11 @@ public abstract class DB_Interface
 	public abstract String getArchiveDirForIndexFiles(Feed f, Date date);
 
 	/**
-	 * This method reads news from the archive and returns a linked list
-	 * of news items.
+	 * This method reads news from the archive and returns a collection of news items.
 	 *
 	 * @param index  News Index representing the news that should be read.
 	 */
-	public abstract Hashtable getArchivedNews(NewsIndex index);
+	public abstract Collection<NewsItem> getArchivedNews(NewsIndex index);
 
 	/**
 	 * This method goes through the news archive and fetches news
@@ -599,7 +568,7 @@ public abstract class DB_Interface
 	 * @param m  Month for which news has to be fetched
 	 * @param d  Date for which news has to be fetched
 	 */
-	public abstract List getArchivedNews(Source s, String y, String m, String d);
+	public abstract Collection<NewsItem> getArchivedNews(Source s, String y, String m, String d);
 
 	/**
 	 * This method goes through the entire news archive and fetches news
