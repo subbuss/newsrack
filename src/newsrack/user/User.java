@@ -172,7 +172,7 @@ public class User implements java.io.Serializable
 
 		// This is used temporarily during parsing
 	private List<NR_Collection> _userCollections = null;
-	private HashMap<String, NR_Collection> _collectionMap = null;
+//	private HashMap<String, NR_Collection> _collectionMap = null;
 
 	/**
 	 * Dummy constructor
@@ -643,14 +643,17 @@ public class User implements java.io.Serializable
 
 	public void addCollection(NR_Collection c)
 	{
+		_log.info("*** Request to add collection " + c.getName() + " for user: " + _uid);
 		_userCollections.add(c);
-		_collectionMap.put(c.getType().toString() + ":" + c.getName(), c);
+//		_collectionMap.put(c.getType().toString() + ":" + c.getName(), c);
 	}
 
+/**
 	public NR_Collection getCollection(NR_CollectionType collType, String name)
 	{
 		return (_collectionMap == null) ? null : _collectionMap.get(collType.toString() + ":" + name);
 	}
+**/
 
 	public void parseProfileFiles() throws Exception
 	{
@@ -662,7 +665,6 @@ public class User implements java.io.Serializable
 
       _isInitialized = false;
 		(new NRLanguageParser()).parseFiles(this, getFiles());
-      _isInitialized = true;
 
 		if (ParseUtils.encounteredParseErrors(this)) {
 			throw new Exception("Parsing errors");
@@ -674,8 +676,10 @@ public class User implements java.io.Serializable
 			if (_log.isInfoEnabled()) _log.info("Successfully parsed without errors for user " + getUid());
 
 				// IMPORTANT: Commit collections before issues!
-			for (NR_Collection c: _userCollections)
+			for (NR_Collection c: _userCollections) {
+				_log.info("committing collection: " + c._name + " of type: " + c._type);
 				_db.addProfileCollection(c);
+			}
 
 			_isParsed = true;
 		}
@@ -688,10 +692,10 @@ public class User implements java.io.Serializable
 
 			// Parse files and initialize the user object
 		_userCollections = new ArrayList<NR_Collection>();
-		_collectionMap = new HashMap<String, NR_Collection>();
+//		_collectionMap = new HashMap<String, NR_Collection>();
 		parseProfileFiles();
 		_userCollections = null;	// free up space for being GC
-		_collectionMap = null;
+//		_collectionMap = null;
 
 			// Initialize the issue objects
 		for (final Issue i: getIssues()) {
@@ -746,8 +750,8 @@ public class User implements java.io.Serializable
 				for (Long uKey: dependentUsers) {
 					User u = _db.getUser(uKey);
 					if (!u.isValidated()) {
-						u.validateIssues(true);
 						_log.info("Validating dependent user: " + u.getUid());
+						u.validateIssues(true);
 					}
 					else {
 						_log.info("Ignoring validated dependent user: " + u.getUid());
@@ -761,7 +765,8 @@ public class User implements java.io.Serializable
 		catch (final Exception e) {
 			_log.error("Got exception while validating issues!", e);
 				// Free up space!
-			invalidate();
+			if (!isValidated())
+				invalidate();
 			throw e;
 		}
 		finally { 

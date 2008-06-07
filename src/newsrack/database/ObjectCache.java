@@ -108,7 +108,8 @@ public class ObjectCache
 	{
 		Properties p = new Properties();
 		p.setProperty("cache.memory", "true");
-		p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
+		// Turn off disk persistence
+		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
 		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
 		p.setProperty("cache.path", GlobalConstants.getProperty("cache.path"));
 
@@ -162,6 +163,8 @@ public class ObjectCache
 			nKey = key.toString();
 		}
 
+		_log.info("Adding " + o.hashCode() + " to cache " + cache.hashCode() + " for class " + c + " for key " + nKey);
+
 		cache.add(cacheGroups, nKey, o);
 	}
 
@@ -201,6 +204,10 @@ public class ObjectCache
 		else {
 			nKey = key.toString();
 		}
+
+		Object o = cache.get(nKey);
+
+		_log.info("Fetching " + ((o != null) ? o.hashCode() : "null") + " from cache " + cache.hashCode() + " for class " + c + " and key " + nKey);
 
 		return cache.get(nKey);
 	}

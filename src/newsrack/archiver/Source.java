@@ -86,6 +86,9 @@ public class Source implements java.io.Serializable
 		_utag = utag;
 		_name = name;
 		_feed = (rssFeed == null) ? null : Feed.getFeed(rssFeed, _utag, name);
+			// FIXME:
+		if (_feed == null)
+			_log.error("ERROR: No feed for source with tag: " + _utag);
 	}
 
 	public void    setKey(Long k)  { _key = k; }

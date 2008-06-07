@@ -42,8 +42,11 @@ class SQL_SourceStub extends Source
 	{ 
 		Feed f = super.getFeed();
 		if (f == null) {
-			_log.debug("Fetching feed from the db!");
-			f = SQL_DB._sqldb.getFeed(_feedKey); 
+			if (_log.isDebugEnabled()) _log.debug("Fetching feed from the db for: " + _feedKey);
+			_log.info("Fetching feed from the db for: " + _feedKey);
+			f = SQL_DB._sqldb.getFeed(_feedKey);
+			if (f == null)
+				_log.error("Got null feed for key: " + _feedKey + " for source: " + getTag());
 			super.setFeed(f);
 		}
 		return f;

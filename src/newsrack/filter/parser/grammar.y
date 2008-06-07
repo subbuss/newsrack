@@ -37,6 +37,8 @@
 %embed {:
 	private User      _user;	// Current user
 	private String    _uid;		// Shortcut for _user.getUid()
+	private boolean   _isFirstPass;
+	private boolean   _haveUnresolvedRefs;
 	private Iterator  _files;
 	private UserFile  _currFile;
 	private Symbol    _currSym;
@@ -52,11 +54,8 @@
 		}
 	}
 
-		// Stack of parsing scopes
-	private Stack _scopeStack;
-
-   	/* Logging output for this plug in instance. */
-   private static Log _log = LogFactory.getLog(NRLanguageParser.class);
+   	// Logging output for this plug in instance.
+   static private Log _log = LogFactory.getLog(NRLanguageParser.class);
 
 		// Keeps track of profiles in the process of being parsed
 		// (to prevent infinite recursion)
@@ -66,6 +65,9 @@
 		// Returned to meet Beaver requirements
 	static private final Symbol DUMMY_SYMBOL = new Symbol("");
 
+		// Stack of parsing scopes!
+	static Stack _scopeStack;
+
 	public void parseFiles(User u, Iterator files)
 	{
 			// Override the error reporting module
@@ -74,26 +76,54 @@
 		_user  = u;
 		_uid   = u.getUid();
 		_files = files;
+		_isFirstPass = true;
+		_haveUnresolvedRefs = false;
 
-		_userProfilesBeingParsed.put(u, u);
-		while (files.hasNext()) {
-				// IMPORTANT NOTE: the files iterator will be potentially
-				// traversed by recursive calls and so even though there might
-				// be 10 files, it might happen that this loop might only
-				// be executed once (the other 9 will be executed by
-				// nested calls to another parser object to parse the rest of
-				// the files).  Look at "parseOtherFiles()" method.
-			try {
-				_scopeStack = new Stack();
-				_scopeStack.push(new Scope());
-				parseFile((String)files.next());
+			// Create a scope stack
+		_scopeStack = new Stack();
+
+		_userProfilesBeingParsed.put(_uid, u);
+		while(true) {
+				// If we are in the second pass, note that the 1st pass's scope will be on the stack
+				// and its contents will be accessible!
+			_scopeStack.push(new Scope());
+			while (files.hasNext()) {
+					// IMPORTANT NOTE: the files iterator will be potentially
+					// traversed by recursive calls and so even though there might
+					// be 10 files, it might happen that this loop might only
+					// be executed once (the other 9 will be executed by
+					// nested calls to another parser object to parse the rest of
+					// the files).  Look at "parseOtherFiles()" method.
+				try {
+					parseFile((String)files.next());
+				}
+				catch (java.lang.Exception e) {
+					_log.error("Parse Error!", e);
+					ParseUtils.parseError(_currFile, e.toString());
+				}
 			}
-			catch (java.lang.Exception e) {
-				_log.error("Parse Error!", e);
-				ParseUtils.parseError(_currFile, e.toString());
+
+				// Check if we need to do a second pass!
+			if (_isFirstPass && _haveUnresolvedRefs) {
+				_isFirstPass = false;
+				_haveUnresolvedRefs = false;
+			}
+			else {
+				break;
 			}
 		}
-		_userProfilesBeingParsed.remove(u);
+
+			// If we have successfully parsed the profile, add all defined collections to the user's account.
+		if (!ParseUtils.encounteredParseErrors(_user)) {
+			Set definedCollections = getCurrentScope()._definedCollections;
+			for (Object o: definedCollections) {
+				NR_Collection c = (NR_Collection)o;
+				if (c._creator.getUid().equals(_uid))
+					c._creator.addCollection(c);
+			}
+		}
+
+		_userProfilesBeingParsed.remove(_uid);
 	}
 
 	private void parseFile(String f) throws java.lang.Exception
@@ -102,112 +132,6 @@
 		_currFile = new UserFile(_user, f);
 		parse(new NRLanguageScanner(_currFile.getFileReader()));
 		if (_log.isInfoEnabled()) INFO("***** End parse of file " + f + " ******");
-	}
-
-	/* Scope implements scoping functionality for imports & definitions 
-	 * There is a top-level scope, and a first-level scope for issues.
-	 * Scope nesting never gets greater than two at this time!  */
-	static private class Scope
-	{
-		Issue     _i;
-		Hashtable _srcCollections;
-		Hashtable _cptCollections;
-		Hashtable _catCollections;
-		Hashtable _allSrcs;
-		Hashtable _allCpts;
-		Hashtable _allCats;
-
-		private void init(Issue i)
-		{
-			_i = i;
-			_srcCollections = new Hashtable();
-			_cptCollections = new Hashtable();
-			_catCollections = new Hashtable();
-			_allSrcs        = new Hashtable();
-			_allCpts        = new Hashtable();
-			_allCats        = new Hashtable();
-		}
-
-		Scope(Issue i) { init(i); }
-
-		Scope() { init(null); }
-	}
-
-	private void  pushScope(Issue i) { _scopeStack.push(new Scope(i)); }
-	private Issue popScope()         { return ((Scope)_scopeStack.pop())._i; } 
-	private Scope getCurrentScope()  { return (Scope)_scopeStack.peek(); }
-	private Issue getCurrentIssue()  { return getCurrentScope()._i; }
-
-	private void recordSource(Source src)
-	{
-		Scope  s = getCurrentScope();
-		Object o = s._allSrcs.put(src.getTag(), src);
-		if (o != null) {
-//			if (_log.isInfoEnabled()) INFO(" .. WARNING ... WARNING .. Potential name conflict for source " + src.getTag());
-			s._allSrcs.put(src.getTag(), NAME_CONFLICT);
-		}
-	}
-
-	private void recordConcept(Concept c)
-	{
-		if (_log.isDebugEnabled()) DEBUG_OUT("recording concept with name " + c.getName());
-		Scope  s = getCurrentScope();
-		Object o = s._allCpts.put(c.getName(), c);
-		if (o != null) {
-//			if (_log.isInfoEnabled()) INFO(" .. WARNING ... WARNING .. Potential name conflict for concept " + c.getName());
-			s._allCpts.put(c.getName(), NAME_CONFLICT);
-		}
-	}
-
-	private void recordCategory(Category c)
-	{
-		Scope  s = getCurrentScope();
-		Object o = s._allCats.put(c.getName(), c);
-		if (o != null) {
-//			if (_log.isInfoEnabled()) INFO(" .. WARNING ... WARNING .. Potential name conflict for category " + c.getName());
-			s._allCats.put(c.getName(), NAME_CONFLICT);
-		}
-	}
-
-	private void recordSourceCollection(String cName, List<Source> srcs)
-	{
-		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
-		Scope         s  = getCurrentScope();
-		s._srcCollections.put(_uid + ":" + cName, nc);
-		_user.addCollection(nc);
-	}
-
-	private void recordSourceCollection(String cName, Set<Source> srcSet)
-	{
-		Scope s    = getCurrentScope();
-		List  srcs = new ArrayList();
-		srcs.addAll(srcSet);
-		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
-		s._srcCollections.put(_uid + ":" + cName, nc);
-		_user.addCollection(nc);
-	}
-
-	private void recordConceptCollection(String cname, List cpts)
-	{
-		NR_Collection nc = new NR_ConceptCollection(_user, cname, cpts);
-		Scope         s  = getCurrentScope();
-		s._cptCollections.put(_uid + ":" + cname, nc);
-
-			// Set the collection value for the concept
-			// All concepts are part of some collection or the other!
-		Iterator it = cpts.iterator();
-		while (it.hasNext()) {
-			((Concept)it.next()).setCollectionName(cname);
-		}
-		_user.addCollection(nc);
-	}
-
-	private void recordCategoryCollection(String c, List cats)
-	{
-		NR_Collection nc = new NR_CategoryCollection(_user, c, cats);
-		Scope         s  = getCurrentScope();
-		s._catCollections.put(_uid + ":" + c, nc);
-		_user.addCollection(nc);
 	}
 
 	private boolean parseOtherFiles(String uid)
@@ -227,7 +151,7 @@
 		}
 		else {
 			User u = User.getUser(uid);
-			if (u.isValidated() || _userProfilesBeingParsed.containsKey(u)) {
+			if (u.isValidated() || _userProfilesBeingParsed.containsKey(uid)) {
 					// No change in status
 				return false;
 			}
@@ -247,173 +171,196 @@
 		}
 	}
 
-	private NR_Collection importSourceCollection(String newColl, String fromUid, String cid)
+	/* Scope implements scoping functionality for imports & definitions 
+	 * There is a top-level scope, and a first-level scope for issues.
+	 * Scope nesting never gets greater than two at this time!  */
+	static private class Scope
 	{
-		NR_Collection sc = null;
+		Issue     _i;
+		Hashtable _allCollections;
+		Set       _definedCollections;
+		Hashtable _allSrcs;
+		Hashtable _allCpts;
+		Hashtable _allCats;
 
-			// Fetch from the current user
-		if (fromUid.equals(_uid))
-			sc = _user.getCollection(NR_CollectionType.SOURCE, cid);
-      else
-			NR_Collection.recordImportDependency(fromUid, _uid);
-
-			// Fetch from the DB
-		if (sc == null)
-			sc = NR_Collection.getCollection(NR_CollectionType.SOURCE, fromUid, cid);
-
-			// Parse other files, if necessary
-		if (sc == null) {
-			if (parseOtherFiles(fromUid)) {
-					// New files were parsed .. so potential for new collections
-					// to be found ... Try again ... This time around, the
-					// import will succeed (or fail if the collection does not exist)
-				return importSourceCollection(newColl, fromUid, cid);
-			}
-			else {
-					// No new files were parsed.  So, this is a semantic error!
-					// No collection with name 'cid' was found!
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + cid + "</b> for user <b>" + fromUid + "</b>.  Did you mis-spell the collection name or user name?");
-				return null;
-			}
+		private void init(Issue i)
+		{
+			_i = i;
+			_allCollections = new Hashtable();
+			_definedCollections = new HashSet();
+			_allSrcs = new Hashtable();
+			_allCpts = new Hashtable();
+			_allCats = new Hashtable();
 		}
 
-			// Now, add 'c' to the list of known collections
-		Scope s = getCurrentScope();
-		s._srcCollections.put(_uid + ":" + newColl, sc);
-		Hashtable h = s._allSrcs;
+		Scope(Issue i) { init(i); }
 
-		// Add all elements of the collection into the hashtable
-		// In case of name conflict, indicate this by adding an element
-		// that can flag a conflict when it is recovered 
-		Iterator it = sc.getEntries().iterator();
-		while (it.hasNext()) {
-			Source o = (Source)it.next();
-			if (h.put(o.getTag(), o) != null) {
-				h.put(o, NAME_CONFLICT);
-//				if (_log.isInfoEnabled()) INFO(" .. WARNING ... WARNING .. IMPORT of " + newColl + ": Potential name conflict for source " + o.getTag());
-			}
-		}
+		Scope() { init(null); }
 
-		return sc;
+		void setIssue(Issue i) { _i = i; }
 	}
 
-	private NR_Collection importConceptCollection(String newColl, String fromUid, String cid)
+	private void  pushScope(Issue i) { _scopeStack.push(new Scope(i)); }
+	private Issue popScope()         { return ((Scope)_scopeStack.pop())._i; }
+	private Scope getCurrentScope()  { return (Scope)_scopeStack.peek(); }
+	private Issue getCurrentIssue()  { return getCurrentScope()._i; }
+
+	private void recordSource(Source src)
 	{
+		Scope  s = getCurrentScope();
+		Object o = s._allSrcs.put(src.getTag(), src);
+		if (o != null)
+			s._allSrcs.put(src.getTag(), NAME_CONFLICT);
+	}
+
+	private void recordConcept(Concept c)
+	{
+		Scope  s = getCurrentScope();
+		Object o = s._allCpts.put(c.getName(), c);
+		if (o != null)
+			s._allCpts.put(c.getName(), NAME_CONFLICT);
+	}
+
+	private void recordCategory(Category c)
+	{
+		Scope  s = getCurrentScope();
+		Object o = s._allCats.put(c.getName(), c);
+		if (o != null)
+			s._allCats.put(c.getName(), NAME_CONFLICT);
+	}
+
+	private void recordSourceCollection(String cName, List<Source> srcs)
+	{
+		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
+		Scope         s  = getCurrentScope();
+		s._allCollections.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, nc);
+		s._definedCollections.add(nc);
+	}
+
+	private void recordSourceCollection(String cName, Set<Source> srcSet)
+	{
+		List  srcs = new ArrayList();
+		srcs.addAll(srcSet);
+		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
+		Scope s    = getCurrentScope();
+		s._allCollections.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, nc);
+		s._definedCollections.add(nc);
+	}
+
+	private void recordConceptCollection(String cname, List cpts)
+	{
+		NR_Collection nc = new NR_ConceptCollection(_user, cname, cpts);
+		Scope         s  = getCurrentScope();
+		s._allCollections.put(NR_CollectionType.CONCEPT + ":" + _uid + ":" + cname, nc);
+		s._definedCollections.add(nc);
+
+			// Set the collection value for the concept
+			// All concepts are part of some collection or the other!
+		Iterator it = cpts.iterator();
+		while (it.hasNext()) {
+			((Concept)it.next()).setCollectionName(cname);
+		}
+	}
+
+	private void recordCategoryCollection(String c, List cats)
+	{
+		NR_Collection nc = new NR_CategoryCollection(_user, c, cats);
+		Scope         s  = getCurrentScope();
+		s._allCollections.put(NR_CollectionType.CATEGORY + ":" +_uid + ":" + c, nc);
+		s._definedCollections.add(nc);
+	}
+
+	private NR_Collection importCollection(String newColl, NR_CollectionType cType, String fromUid, String cid)
+	{
+		Scope         s = getCurrentScope();
 		NR_Collection c = null;
+		boolean getFromMyself = fromUid.equals(_uid);
 
-			// Fetch from the current user
-		if (fromUid.equals(_uid))
-			c = _user.getCollection(NR_CollectionType.CONCEPT, cid);
-      else
+			// 1st attempt ...
+		if (getFromMyself) {
+			int i = _scopeStack.size() - 1;
+			while (i >= 0) {
+				c = (NR_Collection)((Scope)_scopeStack.get(i))._allCollections.get(cType + ":" + _uid + ":" + cid);
+				if (c != null) {
+					if (!newColl.equals(cid))
+						s._allCollections.put(cType + ":" +_uid + ":" + newColl, c);
+					break;
+				}
+				i--;
+			}
+		}
+			// No need to do this once more in the 2nd pass .. the info will already be part of the first pass scope's data ...
+		else if (!_isFirstPass) {
+			c = NR_Collection.getCollection(cType, fromUid, cid);
 			NR_Collection.recordImportDependency(fromUid, _uid);
-		
-			// Fetch from the DB
-		if (c == null)
-			c = NR_Collection.getCollection(NR_CollectionType.CONCEPT, fromUid, cid);
+			if (c != null)
+				s._allCollections.put(cType + ":" +_uid + ":" + newColl, c);
+		}
 
-			// Parse other files, if necessary
-		if (c == null) {
+		if ((c == null) && _isFirstPass) {
 			if (parseOtherFiles(fromUid)) {
-					// New files were parsed .. so potential for new collections
-					// to be found ... Try again ... This time around, the
-					// import will succeed (or fail if the collection does not exist)
-				return importConceptCollection(newColl, fromUid, cid);
+					// Try to get from other files (either from me or from another user) & try importing again
+				return importCollection(newColl, cType, fromUid, cid);
 			}
 			else {
-					// No new files were parsed.  So, this is a semantic error!
-					// No collection with name 'cid' was found!
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept collection with name <b>" + cid + "</b> for user <b>" + fromUid + "</b>.  Did you mis-spell the collection name or user name?");
+					// Record an unresolved ref. since this is a first pass.  Hopefully, the ref will
+					// be resolved in the second pass!
+				_haveUnresolvedRefs = true;
 				return null;
 			}
 		}
 
-			// Now, add 'c' to the list of known collections
-		Scope s = getCurrentScope();
-		s._cptCollections.put(_uid + ":" + newColl, c);
-		Hashtable h = s._allCpts;
-
-		// Add all elements of the collection into the hashtable
-		// In case of name conflict, indicate this by adding an element
-		// that can flag a conflict when it is recovered 
-		Iterator it = c.getEntries().iterator();
-		while (it.hasNext()) {
-			Concept o = (Concept)it.next();
-			if (h.put(o.getName(), o) != null) {
-				h.put(o, NAME_CONFLICT);
-				if (_log.isInfoEnabled()) INFO(" .. WARNING ... WARNING .. IMPORT of " + newColl + ": Potential name conflict for concept " + o.getName());
-			}
-		}
-
-		return c;
-	}
-
-	private NR_Collection importCategoryCollection(String newColl, String fromUid, String cid)
-	{
-		NR_Collection c = null;
-
-			// Fetch from the current user
-		if (fromUid.equals(_uid))
-			c = _user.getCollection(NR_CollectionType.CATEGORY, cid);
-      else
-			NR_Collection.recordImportDependency(fromUid, _uid);
-		
-			// Fetch from the DB
-		if (c == null)
-			c = NR_Collection.getCollection(NR_CollectionType.CATEGORY, fromUid, cid);
-
-			// Parse other files, if necessary
 		if (c == null) {
-			if (parseOtherFiles(fromUid)) {
-					// New files were parsed .. so potential for new collections
-					// to be found ... Try again ... This time around, the
-					// import will succeed (or fail if the collection does not exist)
-				return importCategoryCollection(newColl, fromUid, cid);
-			}
-			else {
-					// No new files were parsed.  So, this is a semantic error!
-					// No collection with name 'cid' was found!
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cid + "</b> for user <b>" + fromUid + "</b>.  Did you mis-spell the collection name or user name?");
-				return null;
-			}
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any " + cType + " collection with name <b>" + cid + "</b> for user <b>" + fromUid + "</b>.  Did you mis-spell the collection name or user name?");
+
+			return c;
 		}
-
-			// Now, add 'c' to the list of known collections
-		Scope s = getCurrentScope();
-		s._catCollections.put(_uid + ":" + newColl, c);
-		Hashtable h = s._allCats;
-
-		// Add all elements of the collection into the hashtable
-		// In case of name conflict, indicate this by adding an element
-		// that can flag a conflict when it is recovered 
-		Iterator it = c.getEntries().iterator();
-		while (it.hasNext()) {
-			Category o = (Category)it.next();
-			if (h.put(o.getName(), o) != null) {
-				h.put(o, NAME_CONFLICT);
-				if (_log.isInfoEnabled()) INFO(" .. WARNING ... WARNING .. IMPORT of " + newColl + ": Potential name conflict for concept " + o.getName());
-			}
-		}
-
-		return c;
-	}
-
-	private NR_Collection importCollection(String newColl, String icmd, String uid, String cid)
-	{
-		if (icmd.equals("SRC"))
-			return importSourceCollection(newColl, uid, cid);
-	   else if (icmd.equals("CPT"))
-	 	   return importConceptCollection(newColl, uid, cid);
-	   else if (icmd.equals("CAT"))
-		   return importCategoryCollection(newColl, uid, cid);
 		else {
-			_log.error("ERROR: Unknown import command " + icmd);
-			return null;
+				// Add all the entries from the imported collection to the current scope
+			Hashtable h;
+			Iterator it;
+			switch (cType) {
+				case CONCEPT:
+					h = s._allCpts;
+					it = c.getEntries().iterator();
+					while (it.hasNext()) {
+						Concept o = (Concept)it.next();
+						if (h.put(o.getName(), o) != null)
+							h.put(o, NAME_CONFLICT); // Record a name conflict so that we can flag a conflict if this name is referenced
+					}
+					break;
+
+				case CATEGORY:
+					h = s._allCats;
+					it = c.getEntries().iterator();
+					while (it.hasNext()) {
+						Category o = (Category)it.next();
+						if (h.put(o.getName(), o) != null)
+							h.put(o, NAME_CONFLICT); // Record a name conflict so that we can flag a conflict if this name is referenced
+					}
+					break;
+
+				case SOURCE:
+					h = s._allSrcs;
+					it = c.getEntries().iterator();
+					while (it.hasNext()) {
+						Source o = (Source)it.next();
+						if (h.put(o.getTag(), o) != null)
+							h.put(o, NAME_CONFLICT); // Record a name conflict so that we can flag a conflict if this name is referenced
+					}
+					break;
+
+				default:
+					break;
+			}
+
+			return c;
 		}
 	}
 
-	private NR_Collection importCollection(String newColl, String icmd, String cid)
+	private NR_Collection importCollection(String newColl, NR_CollectionType cType, String cid)
 	{
-		return importCollection(newColl, icmd, _uid, cid);
+		return importCollection(newColl, cType, _uid, cid);
 	}
 
 	private Concept getConcept(String c)
@@ -436,8 +383,14 @@
 			i--;
 		}
 
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
+		}
+		else {
 			// Parse error
-		ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept with name <b>" + c + "</b>.  Did you (a) forget to define what the concept is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept with name <b>" + c + "</b>.  Did you (a) forget to define what the concept is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+		}
 		return null;
 	}
 
@@ -448,7 +401,7 @@
 		boolean found = false;
 		int     i     = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object nrc = ((Scope)_scopeStack.get(i))._cptCollections.get(_uid + ":" + cc);
+			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.CONCEPT + ":" +_uid + ":" + cc);
 			if (nrc != null) {
 				found = true;
 				Concept o = ((NR_ConceptCollection)nrc).getConcept(c);
@@ -459,12 +412,17 @@
 			i--;
 		}
 
-			// Parse error
-		if (found) {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept with name <b>" + c + "</b> in the collection named <b>" + cc + "</b>. Did you (a) forget to define what the concept is (b) import the wrong collection (c) mis-spell the concept or collection name?");
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
 		}
 		else {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			if (found) {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept with name <b>" + c + "</b> in the collection named <b>" + cc + "</b>. Did you (a) forget to define what the concept is (b) import the wrong collection (c) mis-spell the concept or collection name?");
+			}
+			else {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			}
 		}
 		return null;
 	}
@@ -487,8 +445,15 @@
 
 			i--;
 		}
-			// Parse error
-		ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category with name <b>" + c + "</b>.  Did you (a) forget to define what the category is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
+		}
+		else {
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category with name <b>" + c + "</b>.  Did you (a) forget to define what the category is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+		}
+
 		return null;
 	}
 
@@ -499,7 +464,7 @@
 		boolean found = false;
 		int     i     = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object nrc = ((Scope)_scopeStack.get(i))._catCollections.get(_uid + ":" + cc);
+			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.CATEGORY + ":" +_uid + ":" + cc);
 			if (nrc != null) {
 				found = true;
 				Category o = ((NR_CategoryCollection)nrc).getCategory(c);
@@ -510,12 +475,18 @@
 
 			i--;
 		}
-			// Parse error
-		if (found) {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category with name <b>" + c + "</b> in the collection named <b>" + cc + "</b>. Did you (a) forget to define what the category is (b) import the wrong collection (c) mis-spell the category or collection name?");
+
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
 		}
 		else {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			if (found) {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category with name <b>" + c + "</b> in the collection named <b>" + cc + "</b>. Did you (a) forget to define what the category is (b) import the wrong collection (c) mis-spell the category or collection name?");
+			}
+			else {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			}
 		}
 		return null;
 	}
@@ -524,7 +495,7 @@
 	{
 		int i = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._catCollections.get(_uid + ":" + cc);
+			Object o = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.CATEGORY + ":" +_uid + ":" + cc);
 			if (o != null) {
 				List<Category> cats = ((NR_CategoryCollection)o).getCategories();
 					// Clone all the categories and clear out the category key
@@ -543,7 +514,13 @@
 			i--;
 		}
 			
-		ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
+		}
+		else {
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+		}
 		return null;
 	}
 
@@ -566,8 +543,14 @@
 
 			i--;
 		}
-			// Parse error
-		ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source with name <b>" + s + "</b>.  Did you (a) forget to define what the source is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
+		}
+		else {
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source with name <b>" + s + "</b>.  Did you (a) forget to define what the source is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+		}
 		return null;
 	}
 
@@ -578,7 +561,7 @@
 		boolean found = false;
 		int     i     = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object nrc = ((Scope)_scopeStack.get(i))._srcCollections.get(_uid + ":" + sc);
+			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.SOURCE + ":" +_uid + ":" + sc);
 			if (nrc != null) {
 				found = true;
 				Source s = ((NR_SourceCollection)nrc).getSource(c);
@@ -589,12 +572,17 @@
 			i--;
 		}
 
-			// Parse error
-		if (found) {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source with name <b>" + c + "</b> in the collection named <b> " + sc + "</b> . Did you (a) forget to define what the source is (b) import the wrong collection (c) mis-spell the concept or collection name?");
+			// Ignore error if this is the first pass ... 
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
 		}
 		else {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			if (found) {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source with name <b>" + c + "</b> in the collection named <b> " + sc + "</b> . Did you (a) forget to define what the source is (b) import the wrong collection (c) mis-spell the concept or collection name?");
+			}
+			else {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			}
 		}
 		return null;
 	}
@@ -605,14 +593,20 @@
 
 		int i = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._srcCollections.get(_uid + ":" + sc);
+			Object o = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.SOURCE + ":" +_uid + ":" + sc);
 			if (o != null)
 				return ((NR_SourceCollection)o).getSources();
 
 			i--;
 		}
 
-		ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+		if (_isFirstPass) {
+			_haveUnresolvedRefs = true;
+		}
+		else {
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+		}
+
 		return null;
 	}
 
@@ -623,7 +617,7 @@
 		}
 		else {
 			Source s = (cid == null) ? getSource(sid) : getSource(cid, sid);
-				// Can be null due to parsing errors!
+				// Can be null due to parsing errors OR because of forward references
 			if (s != null)
 				h.add(s);
 		}
@@ -636,7 +630,7 @@
 		}
 		else {
 			Source s = (cid == null) ? getSource(sid) : getSource(cid, sid);
-				// Can be null due to parsing errors!
+				// Can be null due to parsing errors OR because of forward references
 			if (s != null)
 				h.remove(s);
 		}
@@ -644,7 +638,12 @@
 
 	private void addCollectionToUsedSources(Set<Source> h, String cid)
 	{
-		Iterator<Source> srcs = getSourceCollection(cid).iterator();
+		List<Source> c = getSourceCollection(cid);
+			// Can be null due to parsing errors OR because of forward references
+		if (c == null)
+			return;
+
+		Iterator<Source> srcs = c.iterator();
 		while (srcs.hasNext()) {
 			Source s = srcs.next();
 			if (_log.isDebugEnabled()) DEBUG_OUT("addCollectionToUsedSources: Adding " + s);
@@ -654,7 +653,12 @@
 
 	private void removeCollectionFromUsedSources(Set<Source> h, String cid)
 	{
-		Iterator<Source> srcs = getSourceCollection(cid).iterator();
+		List<Source> c = getSourceCollection(cid);
+			// Can be null due to parsing errors OR because of forward references
+		if (c == null)
+			return;
+
+		Iterator<Source> srcs = c.iterator();
 		while (srcs.hasNext()) {
 			h.remove(srcs.next());
 		}
@@ -751,7 +755,7 @@
 %typeof STRING_TOK        = "java.lang.String";
 %typeof IDENT_TOK         = "java.lang.String";
 %typeof NUM_TOK           = "java.lang.String";
-%typeof Import_Command    = "java.lang.String";
+%typeof Import_Command    = "newsrack.filter.NR_CollectionType";
 %typeof IMPORT_SRCS       = "java.lang.String";
 %typeof IMPORT_CONCEPTS   = "java.lang.String";
 %typeof IMPORT_CATS       = "java.lang.String";
@@ -884,9 +888,9 @@ Import_Directive  = Collection_Id.newColl EQUAL Import_Command.icmd Collection_I
 							  return new Symbol(importCollection(newColl, icmd, uid, cid));
 						  :}
                   ;
-Import_Command    = IMPORT_SRCS     {: return new Symbol("SRC"); :}
-                  | IMPORT_CONCEPTS {: return new Symbol("CPT"); :}
-                  | IMPORT_CATS     {: return new Symbol("CAT"); :}
+Import_Command    = IMPORT_SRCS     {: if (_log.isDebugEnabled()) DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("SRC")); :}
+                  | IMPORT_CONCEPTS {: if (_log.isDebugEnabled()) DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CPT")); :}
+                  | IMPORT_CATS     {: if (_log.isDebugEnabled()) DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CAT")); :}
                   ;
 Src_Collection    = DEF_SRCS Collection_Id.cid Source_Decls.slist EndSrcs
                     {:
@@ -1031,10 +1035,12 @@ Category_Def      = Category_Def_Id.id EQUAL.t Filter_Rule.r
 								  c = new Category(id, r);
 							  }
 							  catch (java.lang.Exception e1) {
-								  _log.error("Parse Error!", e1);
-						        ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), e1.getMessage());
+								  if (!(_isFirstPass && _haveUnresolvedRefs)) {
+									  _log.error("Parse Error!", e1);
+									  ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), e1.getMessage());
+								  }
 								     // This won't fail
-								  try { c = new Category("DUMMY", r); } catch (java.lang.Exception e2) { }
+								  try { c = new Category("DUMMY", new ArrayList<Category>()); } catch (java.lang.Exception e2) { }
 							  }
 							  recordCategory(c);
 							  return new Symbol(c);
@@ -1180,7 +1186,7 @@ Issue_Decl        = Import_Directives Source_Use_Decl.su Import_Directives Categ
 						  :}
                   | Import_Directives Source_Use_Decl.su Category_Use_Decl.cu
 						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl"); 
+						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl");
 							  Issue i = getCurrentIssue();
 							  i.addSources(su);
 							  i.addCategories(cu);
@@ -1188,7 +1194,7 @@ Issue_Decl        = Import_Directives Source_Use_Decl.su Import_Directives Categ
 						  :}
                   | Source_Use_Decl.su Import_Directives Category_Use_Decl.cu
 						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl"); 
+						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl");
 							  Issue i = getCurrentIssue();
 							  i.addSources(su);
 							  i.addCategories(cu);
@@ -1196,7 +1202,7 @@ Issue_Decl        = Import_Directives Source_Use_Decl.su Import_Directives Categ
 						  :}
                   | Source_Use_Decl.su Category_Use_Decl.cu
 						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl"); 
+						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl");
 							  Issue i = getCurrentIssue();
 							  i.addSources(su);
 							  i.addCategories(cu);
@@ -1206,10 +1212,12 @@ Issue_Decl        = Import_Directives Source_Use_Decl.su Import_Directives Categ
 Import_Directives = Import_Directive
                   | Import_Directives Import_Directive
 						;
+
 Source_Use_Decl   = MONITOR_SRCS Source_Uses.su ;
 Source_Uses       = Source_Use.s
 						  {:
 						     if (_log.isDebugEnabled()) DEBUG("Source_Uses");
+							  	// IMPT: Create a new hashset ... because of possibility of multiple passes
 							  return new Symbol(processSourceUse(new HashSet<Source>(), s));
 						  :}
                   | Source_Uses.h COMMA Source_Use.s

@@ -1403,8 +1403,11 @@ public class SQL_DB extends DB_Interface
 			//
 			// FIXME: Warn the user that when he/she is picking
 			// multiple sources that reference the same feed?
-		for (Source s: i.getMonitoredSources())
+		for (Source s: i.getMonitoredSources()) {
+			if (s.getFeed() == null)
+				_log.error("ERROR: No feed for source with tag: " + s._utag);
 			INSERT_TOPIC_SOURCE.execute(new Object[] {iKey, s.getKey(), s.getFeed().getKey()});
+		}
 
 			// 3. Add categories
 		Long uKey = i.getUserKey();
