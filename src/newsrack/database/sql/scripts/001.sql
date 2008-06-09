@@ -1,4 +1,5 @@
 alter table news_collections add unique(ni_key, n_key);
+alter table sources add unique(u_key, feed_key, src_tag);
 
 create table if not exists news_item_url_md5_hashes (
    n_key    bigint   not null,

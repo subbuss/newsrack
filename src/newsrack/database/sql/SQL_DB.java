@@ -411,20 +411,26 @@ public class SQL_DB extends DB_Interface
 	/**
 	 * Get a source object for a feed, given a feed url, a user and his/her preferred tag for the source
 	 * @param u       user requesting the source 
-	 * @param tag     tag assigned by the user to the feed
+	 * @param userTag tag assigned by the user to the feed
 	 */
 	public Source getSource(User u, String userTag)
 	{
-		Source s = (Source)_cache.get(userTag, Source.class);
+		String k = u.getUid() + ":" + userTag;
+		Source s = (Source)_cache.get(k, Source.class);
 		if (s == null) {
 			s = (Source)GET_USER_SOURCE.execute(new Object[]{u.getKey(), userTag});
 			if (s != null) {
 				_cache.add(u.getKey(), s.getKey(), Source.class, s);
-				_cache.add(u.getKey(), userTag, Source.class, s);
+				_cache.add(u.getKey(), k, Source.class, s);
 				s.setUser(u);
 			}
 		}
 		return s;
+	}
+
+	public Long getSourceKey(Long userKey, Long feedKey, String srcTag)
+	{
+		return (Long)GET_USER_SOURCE_KEY.execute(new Object[] {userKey, feedKey, srcTag});
 	}
 
 	String getSourceName(Long feedKey, Long userKey)
@@ -563,13 +569,22 @@ public class SQL_DB extends DB_Interface
 				params[0] = uKey;
 				while (entries.hasNext()) {
 					Source s = (Source)entries.next();
-					if ((s.getKey() == null) || (s.getKey() == -1)) {
-						params[1] = s.getFeed().getKey(); 
-						params[2] = s.getName(); 
-						params[3] = s.getTag();
-						params[4] = s.getCacheableFlag();
-						params[5] = s.getCachedTextDisplayFlag();
-						s.setKey((Long)INSERT_USER_SOURCE.execute(params));
+					Long   sKey = s.getKey();
+					if (sKey == null) {
+						Long fKey = s.getFeed().getKey();
+						if (sKey == null) {
+								// Check if there is some other matching source object in the DB
+							sKey = getSourceKey(uKey, fKey, s.getTag());
+							if (sKey == null) {
+								params[1] = fKey;
+								params[2] = s.getName(); 
+								params[3] = s.getTag();
+								params[4] = s.getCacheableFlag();
+								params[5] = s.getCachedTextDisplayFlag();
+								sKey = (Long)INSERT_USER_SOURCE.execute(params);
+							}
+							s.setKey(sKey);
+						}
 					}
 					collParams[1] = s.getKey();
 					INSERT_ENTRY_INTO_COLLECTION.execute(collParams);
@@ -1254,7 +1269,7 @@ public class SQL_DB extends DB_Interface
 		printStats();
 	}
 
-	private Long persistRuleTerm(Long filtKey, RuleTerm r)
+	private Long persistRuleTerm(Long uKey, Long filtKey, RuleTerm r)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Add of rule term " + r + " for filter: " + filtKey);
 
@@ -1265,35 +1280,40 @@ public class SQL_DB extends DB_Interface
 		Long   op2Key = null;
 		switch (r.getType()) {
 			case LEAF_CONCEPT:
-				op1Key = ((Concept)op1).getKey();
-				if (op1Key < 0)
-					_log.error("ERROR! Unpersisted concept: " + op1);
+				Concept c = (Concept)op1;
+				op1Key = c.getKey();
+				if (op1Key == null) {
+					Long collKey = (Long)GET_COLLECTION_KEY.execute(new Object[]{uKey, c.getCollectionName(), NR_CollectionType.CONCEPT.toString()});
+					op1Key  = (Long)GET_CONCEPT_KEY_FROM_USER_COLLECTION.execute(new Object[]{collKey, c.getName()});
+					if (op1Key == null)
+						_log.error("ERROR! Unpersisted concept: " + op1);
+				}
 				break;
 
 			case LEAF_CAT:
 				op1Key = ((Category)op1).getKey();
-				if (op1Key < 0)
+				if (op1Key == null)
 					_log.error("ERROR! Unpersisted category: " + op1);
 				break;
 
 			case LEAF_FILTER:
 				op1Key = ((Filter)op1).getKey();
 				if (op1Key < 0)
-					_log.error("ERROR! Unpersisted category: " + op1);
+					_log.error("ERROR! Unpersisted filter: " + op1);
 				break;
 
 			case NOT_TERM:
-				op1Key = persistRuleTerm(filtKey, (RuleTerm)op1);
+				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
 				break;
 
 			case CONTEXT_TERM:
-				op1Key = persistRuleTerm(filtKey, (RuleTerm)op1);
+				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
 				break;
 
 			case AND_TERM:
 			case OR_TERM:
-				op1Key = persistRuleTerm(filtKey, (RuleTerm)op1);
-				op2Key = persistRuleTerm(filtKey, (RuleTerm)op2);
+				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
+				op2Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op2);
 				break;
 		}
 
@@ -1326,7 +1346,7 @@ public class SQL_DB extends DB_Interface
 			if (_log.isDebugEnabled()) _log.debug("Add of filter " + f.getName() + " with rule" + f.getRuleString());
 			fKey = (Long)INSERT_FILTER.execute(new Object[] {uKey, f.getName(), f.getRuleString() });
 			f.setKey(fKey);
-			Long rKey = persistRuleTerm(fKey, f.getRule());
+			Long rKey = persistRuleTerm(uKey, fKey, f.getRule());
 			UPDATE_FILTER.execute(new Object[] {rKey, fKey});
 		}
 
@@ -1399,18 +1419,23 @@ public class SQL_DB extends DB_Interface
 			updateTopic(i);
 		}
 
+		Long uKey = i.getUserKey();
+
 			// 2. Add monitored sources
 			//
 			// FIXME: Warn the user that when he/she is picking
 			// multiple sources that reference the same feed?
 		for (Source s: i.getMonitoredSources()) {
 			if (s.getFeed() == null)
-				_log.error("ERROR: No feed for source with tag: " + s._utag);
-			INSERT_TOPIC_SOURCE.execute(new Object[] {iKey, s.getKey(), s.getFeed().getKey()});
+				_log.error("ERROR: No feed for source with tag: " + s.getTag());
+			Long sKey = s.getKey();
+			Long fKey = s.getFeed().getKey();
+			if (sKey == null)
+				sKey = getSourceKey(uKey, fKey, s.getTag());
+			INSERT_TOPIC_SOURCE.execute(new Object[] {iKey, sKey, fKey});
 		}
 
 			// 3. Add categories
-		Long uKey = i.getUserKey();
 		for (Category c: i.getCategories())
 			addCategory(uKey, c);
 

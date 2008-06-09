@@ -79,7 +79,7 @@
 
     <action name="login" class="newsrack.web.LoginAction">
       <result>/ftl/user/home.ftl</result>
-      <result name="admin.login">/ftl/admin.ftl</result>
+      <result name="admin.login">/ftl/admin/home.ftl</result>
       <result name="input">/ftl/forms/login.ftl</result>
     </action>
 

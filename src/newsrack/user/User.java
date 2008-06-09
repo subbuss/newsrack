@@ -438,7 +438,6 @@ public class User implements java.io.Serializable
 			throw new Exception("ERROR! An issue already exists with name " + i.getName());
 		}
 		else {
-			_log.debug("ADD: Adding issue " + i.getName() + " to the hash table!");
 			_issues.put(i.getName(), i);
 		}
 	}
@@ -660,11 +659,14 @@ public class User implements java.io.Serializable
 		if (_isParsed) 
 			return;
 
+		_userCollections = new ArrayList<NR_Collection>();
+//		_collectionMap = new HashMap<String, NR_Collection>();
+
 		if (_isInitialized)
 			_concurrentProfileChange = true;
 
       _isInitialized = false;
-		(new NRLanguageParser()).parseFiles(this, getFiles());
+		(new NRLanguageParser()).parseFiles(this);
 
 		if (ParseUtils.encounteredParseErrors(this)) {
 			throw new Exception("Parsing errors");
@@ -675,14 +677,23 @@ public class User implements java.io.Serializable
 
 			if (_log.isInfoEnabled()) _log.info("Successfully parsed without errors for user " + getUid());
 
-				// IMPORTANT: Commit collections before issues!
+				// Commit concept collections first
 			for (NR_Collection c: _userCollections) {
-				_log.info("committing collection: " + c._name + " of type: " + c._type);
-				_db.addProfileCollection(c);
+				if (c.getType() == NR_CollectionType.CONCEPT)
+					_db.addProfileCollection(c);
+			}
+
+				// ... then the rest ... because categories in the category collections might reference uncommitted concepts otherwise ...
+			for (NR_Collection c: _userCollections) {
+				if (c.getType() != NR_CollectionType.CONCEPT)
+					_db.addProfileCollection(c);
 			}
 
 			_isParsed = true;
 		}
+
+		_userCollections = null;	// free up space for being GC
+//		_collectionMap = null;
 	}
 
 	private void initializeIssues(final boolean genScanners) throws Exception
@@ -691,28 +702,27 @@ public class User implements java.io.Serializable
 			_log.debug("Validating all issues for user: " + getUid());
 
 			// Parse files and initialize the user object
-		_userCollections = new ArrayList<NR_Collection>();
-//		_collectionMap = new HashMap<String, NR_Collection>();
 		parseProfileFiles();
-		_userCollections = null;	// free up space for being GC
-//		_collectionMap = null;
 
 			// Initialize the issue objects
-		for (final Issue i: getIssues()) {
-			if (_log.isInfoEnabled()) _log.info("Initializing issue " + i.getName());
+			// NOTE: Cannot call getIssues() because the user is not validated yet ...
+		if (_issues != null) {
+			for (final Issue i: _issues.values()) {
+				if (_log.isInfoEnabled()) _log.info("Initializing issue " + i.getName());
 
-				// Initializes the issue
-			i.initialize();
+					// Initializes the issue
+				i.initialize();
 
-				// Generate scanners for future downloading & classifying
-			if (genScanners) {
-				i.gen_JFLEX_RegExps();
-				i.compileScanners(_workDir);
-				if (_log.isInfoEnabled()) _log.info("-- DONE GENERATING SCANNERS for " + i.getName() + " --");
+					// Generate scanners for future downloading & classifying
+				if (genScanners) {
+					i.gen_JFLEX_RegExps();
+					i.compileScanners(_workDir);
+					if (_log.isInfoEnabled()) _log.info("-- DONE GENERATING SCANNERS for " + i.getName() + " --");
+				}
+
+					// Add to the database!
+				_db.addIssue(i);
 			}
-
-				// Add to the database!
-			_db.addIssue(i);
 		}
 	}
 

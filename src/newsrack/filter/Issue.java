@@ -342,8 +342,6 @@ public class Issue implements java.io.Serializable
 		catch (Exception e) {
 			throw e;
 		}
-			// add this issue to the user's list
-		u.addIssue(this);
 	}
 
 	public Issue(String name, boolean pFlag, boolean vFlag, boolean fFlag)

@@ -576,6 +576,14 @@ public enum SQL_Stmt
 		new GetSourceResultProcessor(),
 		true
 	),
+	GET_USER_SOURCE_KEY(
+		"SELECT src_key FROM sources WHERE u_key = ? AND feed_key = ? AND src_tag = ?",
+      new SQL_ValType[] {LONG, LONG, STRING},
+		SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		true
+	),
    GET_UNIQUE_FEED_TAG(
 		"SELECT feed_tag FROM feeds WHERE url_root = ? AND url_tail = ?",
       new SQL_ValType[] {STRING, STRING},
@@ -700,6 +708,14 @@ public enum SQL_Stmt
 		new GetCollectionResultProcessor(),
 		true
 	),
+	GET_COLLECTION_KEY(
+		"SELECT coll_key FROM user_collections WHERE u_key = ? AND coll_name = ? AND coll_type = ?",
+      new SQL_ValType[] {LONG, STRING, STRING},
+		SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		true
+	),
 	GET_ALL_COLLECTIONS_OF_TYPE(
 		"SELECT * FROM user_collections WHERE coll_type = ?",
       new SQL_ValType[] {STRING},
@@ -778,6 +794,14 @@ public enum SQL_Stmt
 		SQL_StmtType.QUERY,
 		null,
 		new GetConceptTupleResultProcessor(),
+		true
+	),
+	GET_CONCEPT_KEY_FROM_USER_COLLECTION(
+		"SELECT c.cpt_key FROM concepts c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cpt_key AND c.name = ?",
+		new SQL_ValType[] {LONG, STRING},
+		SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
 		true
 	),
 	GET_ALL_CONCEPTS_FROM_USER_COLLECTION(

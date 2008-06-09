@@ -214,7 +214,7 @@ public class Concept implements java.io.Serializable
 
 	public Concept(final String name, final List kws)
 	{
-		_key      = (long)-1;
+		_key      = null;
 		_name     = name;
 		_keywords = new ArrayList();
 

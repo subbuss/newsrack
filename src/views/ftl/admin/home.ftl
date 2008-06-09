@@ -8,7 +8,9 @@
 
 <body>
 
-<#if user>
+<@s.set name="user" value="#session.user" />
+
+<#if user?exists>
 <div class="bodymain">
   <table class="userhome" cellspacing="0">
 <#include "/ftl/layout/header.ftl">

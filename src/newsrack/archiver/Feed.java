@@ -248,18 +248,18 @@ public class Feed implements java.io.Serializable
       }
 
       String f = normalizeURL(_feedUrl);
-      _log.info("Checking feed turn off for: " + f);
+      if (_log.isDebugEnabled())_log.debug("Checking feed turn off for: " + f);
       if (_feedsWithoutCachedTextDisplay.contains(f)) {
          _cachedTextDisplayFlag = false;
-         _log.info("Turning off cached text display for (feed) " + _feedUrl);
+         if (_log.isDebugEnabled())_log.debug("Turning off cached text display for (feed) " + _feedUrl);
       }
       else {
             // Get the domain name!
          f = f.substring(0, f.indexOf("/", 7));
-         _log.info("Checking domain turn off for: " + f);
+         if (_log.isDebugEnabled()) _log.debug("Checking domain turn off for: " + f);
          if (_domainsWithoutCachedTextDisplay.contains(f)) {
             _cachedTextDisplayFlag = false;
-            _log.info("Turning off cached text display for (domain) " + _feedUrl);
+            if (_log.isDebugEnabled())_log.debug("Turning off cached text display for (domain) " + _feedUrl);
          }
       }
    }

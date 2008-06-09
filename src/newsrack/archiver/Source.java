@@ -78,6 +78,7 @@ public class Source implements java.io.Serializable
 		_utag = utag;
 		_name = name.trim();
 		_feed = f;
+		_key  = null;
 	}
 
 	private Source(User u, String utag, String name, String rssFeed)
@@ -85,10 +86,22 @@ public class Source implements java.io.Serializable
 		_user = u;
 		_utag = utag;
 		_name = name;
+		_key  = null;
 		_feed = (rssFeed == null) ? null : Feed.getFeed(rssFeed, _utag, name);
 			// FIXME:
 		if (_feed == null)
 			_log.error("ERROR: No feed for source with tag: " + _utag);
+	}
+
+	public boolean equals(Object o) {
+		if (o instanceof Source) {
+			Source s = (Source)o;
+				// Won't consider source name OR source keys in this equation!
+			return (s._feed == _feed) && s._utag.equals(_utag) && s._user.getUid().equals(_user.getUid());
+		}
+		else {
+			return false;
+		}
 	}
 
 	public void    setKey(Long k)  { _key = k; }

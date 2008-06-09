@@ -163,7 +163,7 @@ public class ObjectCache
 			nKey = key.toString();
 		}
 
-		_log.info("Adding " + o.hashCode() + " to cache " + cache.hashCode() + " for class " + c + " for key " + nKey);
+		//_log.info("Adding " + o.hashCode() + " to cache " + cache.hashCode() + " for class " + c + " for key " + nKey);
 
 		cache.add(cacheGroups, nKey, o);
 	}
@@ -207,7 +207,7 @@ public class ObjectCache
 
 		Object o = cache.get(nKey);
 
-		_log.info("Fetching " + ((o != null) ? o.hashCode() : "null") + " from cache " + cache.hashCode() + " for class " + c + " and key " + nKey);
+		//_log.info("Fetching " + ((o != null) ? o.hashCode() : "null") + " from cache " + cache.hashCode() + " for class " + c + " and key " + nKey);
 
 		return cache.get(nKey);
 	}

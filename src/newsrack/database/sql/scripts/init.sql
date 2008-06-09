@@ -266,14 +266,14 @@ create table if not exists collection_entries (
  */
 create table if not exists sources (
    src_key  bigint       not null auto_increment,
---   coll_key     bigint   not null,   /* the collection that this source belongs to */
    feed_key bigint       not null,   /* The feed that this source references */
    u_key    bigint       not null,   /* The user who has defined this source */
+   src_tag  varchar(256) not null,   /* This is the tag the user has specified for the source */
    src_name varchar(256) not null,   /* This is the display name the user has used for the source */
-   src_tag  varchar(256) not null,   /* This is the script tag the user has specified for the source */
 	cacheable        boolean  default true,	/** DUPLICATED from feeds to save an extra join **/
 	show_cache_links boolean  default false,  /** DUPLICATED from feeds to save an extra join **/
 	primary key(src_key),
+	unique(u_key, feed_key, src_tag),
    constraint fk_sources_1 foreign key(feed_key) references feeds(feed_key),
    constraint fk_sources_2 foreign key(u_key) references users(u_key)
 --   constraint fk_sources_3 foreign key(coll_key) references user_collections(coll_key)

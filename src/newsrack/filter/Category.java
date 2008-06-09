@@ -143,6 +143,8 @@ public class Category implements Comparable, java.io.Serializable
 	 */
 	public Category(final String name, final RuleTerm r) throws Exception
 	{
+		_key = null;
+
 			// Verify that the name is an acceptable news rack name
 		try {
 			StringUtils.validateName("category", name);
@@ -161,6 +163,7 @@ public class Category implements Comparable, java.io.Serializable
 	 */
 	public Category(final String name, final List<Category> cats) throws Exception
 	{
+		_key = null;
 		try {
 			StringUtils.validateName("category", name);
 			_name = name; 

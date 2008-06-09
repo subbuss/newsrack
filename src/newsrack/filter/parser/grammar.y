@@ -39,7 +39,6 @@
 	private String    _uid;		// Shortcut for _user.getUid()
 	private boolean   _isFirstPass;
 	private boolean   _haveUnresolvedRefs;
-	private Iterator  _files;
 	private UserFile  _currFile;
 	private Symbol    _currSym;
 
@@ -66,16 +65,15 @@
 	static private final Symbol DUMMY_SYMBOL = new Symbol("");
 
 		// Stack of parsing scopes!
-	static Stack _scopeStack;
+	static private Stack _scopeStack;
 
-	public void parseFiles(User u, Iterator files)
+	public void parseFiles(User u)
 	{
 			// Override the error reporting module
 		super.report = new NRParserEvents();
 
 		_user  = u;
 		_uid   = u.getUid();
-		_files = files;
 		_isFirstPass = true;
 		_haveUnresolvedRefs = false;
 
@@ -84,16 +82,15 @@
 
 		_userProfilesBeingParsed.put(_uid, u);
 		while(true) {
-				// If we are in the second pass, note that the 1st pass's scope will be on the stack
-				// and its contents will be accessible!
+				// Push a scope for the entire profile!  Collections & issues are visible across files
+				// If we are in the second pass, note that the 1st pass's scope will be on the stack and its contents will be accessible!
 			_scopeStack.push(new Scope());
+			Iterator files = u.getFiles();
 			while (files.hasNext()) {
-					// IMPORTANT NOTE: the files iterator will be potentially
-					// traversed by recursive calls and so even though there might
-					// be 10 files, it might happen that this loop might only
-					// be executed once (the other 9 will be executed by
-					// nested calls to another parser object to parse the rest of
-					// the files).  Look at "parseOtherFiles()" method.
+					// New parsing scope!
+				_scopeStack.push(new Scope());
+
+					// Parse
 				try {
 					parseFile((String)files.next());
 				}
@@ -101,25 +98,56 @@
 					_log.error("Parse Error!", e);
 					ParseUtils.parseError(_currFile, e.toString());
 				}
+
+					// Pop the scope of the just parsed file & merge its contents with the profile scope
+				Scope fileScope = popScope();
+				getCurrentScope().mergeScope(fileScope);
 			}
 
 				// Check if we need to do a second pass!
 			if (_isFirstPass && _haveUnresolvedRefs) {
+				_log.info("PASS 2 will begin now ... stack size is: " + _scopeStack.size());
 				_isFirstPass = false;
 				_haveUnresolvedRefs = false;
 			}
 			else {
 				break;
+					/*
+					 * NOTE: 2 passes are not necessarily sufficient to resolve all unresolved references.
+					 * The # of passes requires is N where N = 1 + length of the longest forward-reference chain.
+					 * Since most users are unlikely to end up developing elaborate concept hierarchies, it is
+					 * unlikely that we'll ever need more than 2 passes.  Defer fixing this for when necessary.
+					 * Note that forward references can be removed by changing the order in which files are
+					 * parsed!  It is also possible to analyze the dependence chains to figure out the best
+					 * parsing order of files ... but, all this is unnecessary.
+					 *
+					 * Ex: file 1 defines concept C1 that references concept C2 in file 2
+					 *     file 2 defines concept C2 that references concept C3 in file 3
+					 *     file 3 defines concept C3
+					 * Files are parsed in the order: file 1, file 2, file 3 ... But, if they are parsed in the
+					 * order 3, 2, 1 ... 1 pass is sufficent.  It is possible to do everything in a single pass
+					 * without any special ordering by keeping track of forward references ... but, I don't want
+					 * to do all stuff unnecessarily ...
+					 */
 			}
 		}
 
-			// If we have successfully parsed the profile, add all defined collections to the user's account.
+			// If we have successfully parsed the profile, 
+			// add all defined collections and issues to the user's account.
 		if (!ParseUtils.encounteredParseErrors(_user)) {
-			Set definedCollections = getCurrentScope()._definedCollections;
-			for (Object o: definedCollections) {
-				NR_Collection c = (NR_Collection)o;
-				if (c._creator.getUid().equals(_uid))
-					c._creator.addCollection(c);
+			Scope s = getCurrentScope();
+			Set   definedCollections = s._definedCollections;
+			for (Object o: definedCollections)
+				_user.addCollection((NR_Collection)o);
+
+			Set definedIssues = s._definedIssues;
+			for (Object o: definedIssues) {
+				try { 
+					_user.addIssue((Issue)o);
+				}
+				catch (java.lang.Exception e) {
+					ParseUtils.parseError(_currFile, e.toString());
+				}
 			}
 		}
 
@@ -134,42 +162,29 @@
 		if (_log.isInfoEnabled()) INFO("***** End parse of file " + f + " ******");
 	}
 
-	private boolean parseOtherFiles(String uid)
+/**
+	private boolean parseOtherUsersFiles(String uid)
 	{
-		if (uid.equals(_uid)) {
-			if (_files.hasNext()) {
-					/* Parse other profile files -- RECURSIVE CALL */
-				if (_log.isInfoEnabled()) INFO("***** BEGIN RECURSIVE PARSE *****");
-				(new NRLanguageParser()).parseFiles(_user, _files);
-				if (_log.isInfoEnabled()) INFO("***** END RECURSIVE PARSE *****");
-				return true;
-			}
-			else {
-					// No change in status
-				return false;
-			}
+		User u = User.getUser(uid);
+		if (u.isValidated() || _userProfilesBeingParsed.containsKey(uid)) {
+				// No change in status
+			return false;
 		}
 		else {
-			User u = User.getUser(uid);
-			if (u.isValidated() || _userProfilesBeingParsed.containsKey(uid)) {
-					// No change in status
-				return false;
+				// RECORD THAT 'u' is being validated ...
+			try {
+				u.parseProfileFiles();
+				return true;
 			}
-			else {
-					// RECORD THAT 'u' is being validated ...
-				try {
-					u.parseProfileFiles();
-					return true;
-				}
-				catch (java.lang.Exception e) {
-						// Parsing error ... No change in status
-					_log.error("Parse Error!", e);
-					ParseUtils.parseError(_currFile, e.toString());
-					return false;
-				}
+			catch (java.lang.Exception e) {
+					// Parsing error ... No change in status
+				_log.error("Parse Error!", e);
+				ParseUtils.parseError(_currFile, e.toString());
+				return false;
 			}
 		}
 	}
+**/
 
 	/* Scope implements scoping functionality for imports & definitions 
 	 * There is a top-level scope, and a first-level scope for issues.
@@ -178,55 +193,74 @@
 	{
 		Issue     _i;
 		Hashtable _allCollections;
+		Hashtable _allCollEntries;
 		Set       _definedCollections;
-		Hashtable _allSrcs;
-		Hashtable _allCpts;
-		Hashtable _allCats;
+		Set       _definedIssues;
 
 		private void init(Issue i)
 		{
 			_i = i;
 			_allCollections = new Hashtable();
+			_allCollEntries = new Hashtable();
 			_definedCollections = new HashSet();
-			_allSrcs = new Hashtable();
-			_allCpts = new Hashtable();
-			_allCats = new Hashtable();
+			_definedIssues      = new HashSet();
 		}
 
 		Scope(Issue i) { init(i); }
 
 		Scope() { init(null); }
 
-		void setIssue(Issue i) { _i = i; }
+		public void mergeScope(Scope other)
+		{
+				// Merge defined collections
+			for (Object o: other._definedCollections) {
+				_definedCollections.add(o);
+				NR_Collection c = (NR_Collection)o;
+				_allCollections.put(c._type + ":" + c._creator.getUid() + ":" + c._name, c);
+			}
+
+				// Merge defined issues
+			_definedIssues.addAll(other._definedIssues);
+
+			// FIXME: Do we want to merge sources, concepts & cats too?
+			// Maybe not for now ... we have to separate, defined vs. all
+		}
+
+		public void addIssue(Issue i) { _definedIssues.add(i); }
 	}
 
-	private void  pushScope(Issue i) { _scopeStack.push(new Scope(i)); }
-	private Issue popScope()         { return ((Scope)_scopeStack.pop())._i; }
+	private void  pushScope(Issue i) { getCurrentScope().addIssue(i); _scopeStack.push(new Scope(i)); }
+	private Scope popScope()         { return (Scope)_scopeStack.pop(); }
 	private Scope getCurrentScope()  { return (Scope)_scopeStack.peek(); }
 	private Issue getCurrentIssue()  { return getCurrentScope()._i; }
 
 	private void recordSource(Source src)
 	{
 		Scope  s = getCurrentScope();
-		Object o = s._allSrcs.put(src.getTag(), src);
-		if (o != null)
-			s._allSrcs.put(src.getTag(), NAME_CONFLICT);
+		String k = NR_CollectionType.SOURCE + ":" + src.getTag();
+		Object o = s._allCollEntries.put(k, src);
+			// Check if we have a conflict!
+			// If the two source objects with the same tags are identical, we ignore the conflict!
+		if ((o != null) && !src.equals(o))
+			s._allCollEntries.put(k, NAME_CONFLICT);
 	}
 
 	private void recordConcept(Concept c)
 	{
 		Scope  s = getCurrentScope();
-		Object o = s._allCpts.put(c.getName(), c);
+		String k = NR_CollectionType.CONCEPT + ":" + c.getName();
+		Object o = s._allCollEntries.put(k, c);
 		if (o != null)
-			s._allCpts.put(c.getName(), NAME_CONFLICT);
+			s._allCollEntries.put(k, NAME_CONFLICT);
 	}
 
 	private void recordCategory(Category c)
 	{
 		Scope  s = getCurrentScope();
-		Object o = s._allCats.put(c.getName(), c);
+		String k = NR_CollectionType.CATEGORY + ":" + c.getName();
+		Object o = s._allCollEntries.put(k, c);
 		if (o != null)
-			s._allCats.put(c.getName(), NAME_CONFLICT);
+			s._allCollEntries.put(k, NAME_CONFLICT);
 	}
 
 	private void recordSourceCollection(String cName, List<Source> srcs)
@@ -289,8 +323,7 @@
 				i--;
 			}
 		}
-			// No need to do this once more in the 2nd pass .. the info will already be part of the first pass scope's data ...
-		else if (!_isFirstPass) {
+		else {
 			c = NR_Collection.getCollection(cType, fromUid, cid);
 			NR_Collection.recordImportDependency(fromUid, _uid);
 			if (c != null)
@@ -298,16 +331,19 @@
 		}
 
 		if ((c == null) && _isFirstPass) {
-			if (parseOtherFiles(fromUid)) {
-					// Try to get from other files (either from me or from another user) & try importing again
+				// Record an unresolved ref. since this is a first pass.  Hopefully, the ref will
+				// be resolved in the second pass!
+			_log.info("UNRESOLVED Import ...");
+			_haveUnresolvedRefs = true;
+			return null;
+/**
+			if (!getFromMyself && parseOtherUsersFiles(fromUid)) {
+					// Try to get from the other user's files  files & try importing again
 				return importCollection(newColl, cType, fromUid, cid);
 			}
 			else {
-					// Record an unresolved ref. since this is a first pass.  Hopefully, the ref will
-					// be resolved in the second pass!
-				_haveUnresolvedRefs = true;
-				return null;
 			}
+**/
 		}
 
 		if (c == null) {
@@ -317,41 +353,22 @@
 		}
 		else {
 				// Add all the entries from the imported collection to the current scope
-			Hashtable h;
-			Iterator it;
-			switch (cType) {
-				case CONCEPT:
-					h = s._allCpts;
-					it = c.getEntries().iterator();
-					while (it.hasNext()) {
-						Concept o = (Concept)it.next();
-						if (h.put(o.getName(), o) != null)
-							h.put(o, NAME_CONFLICT); // Record a name conflict so that we can flag a conflict if this name is referenced
-					}
-					break;
+			Hashtable h  = s._allCollEntries;
+			Iterator  it = c.getEntries().iterator();
+			while (it.hasNext()) {
+				Object entry = it.next();
+				String key   = null;
+				switch (cType) {
+					case CONCEPT : key = NR_CollectionType.CONCEPT + ":" + ((Concept)entry).getName(); break;
+					case CATEGORY: key = NR_CollectionType.CATEGORY + ":" + ((Category)entry).getName(); break;
+					case SOURCE  : key = NR_CollectionType.SOURCE + ":" + ((Source)entry).getTag(); break;
+					default: break;
+				}
 
-				case CATEGORY:
-					h = s._allCats;
-					it = c.getEntries().iterator();
-					while (it.hasNext()) {
-						Category o = (Category)it.next();
-						if (h.put(o.getName(), o) != null)
-							h.put(o, NAME_CONFLICT); // Record a name conflict so that we can flag a conflict if this name is referenced
-					}
-					break;
-
-				case SOURCE:
-					h = s._allSrcs;
-					it = c.getEntries().iterator();
-					while (it.hasNext()) {
-						Source o = (Source)it.next();
-						if (h.put(o.getTag(), o) != null)
-							h.put(o, NAME_CONFLICT); // Record a name conflict so that we can flag a conflict if this name is referenced
-					}
-					break;
-
-				default:
-					break;
+					// Check if we have a name conflict ... if two source objects with the same tags are identical, we ignore the conflict!
+				Object old = h.put(key, entry);
+				if ((old != null) && !(cType == NR_CollectionType.SOURCE && entry.equals(old)))
+					h.put(key, NAME_CONFLICT);
 			}
 
 			return c;
@@ -369,7 +386,7 @@
 
 		int i = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allCpts.get(c);
+			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(NR_CollectionType.CONCEPT + ":" + c);
 			if (o == NAME_CONFLICT) {
 					// record conflict as a parsing error
 				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple concepts found with name <b>" + c + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Use \"{Agriculture Concepts}.farming\" rather than \"farming\" where \"{Agriculture Concepts}\" is a concept set you have defined that contains the \"farming\" concept you want to use.");
@@ -385,6 +402,7 @@
 
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED CONCEPT ...");
 			_haveUnresolvedRefs = true;
 		}
 		else {
@@ -414,6 +432,7 @@
 
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED CONCEPT ...");
 			_haveUnresolvedRefs = true;
 		}
 		else {
@@ -433,7 +452,7 @@
 
 		int i = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allCats.get(c);
+			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(NR_CollectionType.CATEGORY + ":" + c);
 			if (o == NAME_CONFLICT) {
 					// record conflict as a parsing error
 				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple categories found with name <b>" + c + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{agriculture}.farming\" rather than \"farming\".");
@@ -448,6 +467,7 @@
 
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED CAT ...");
 			_haveUnresolvedRefs = true;
 		}
 		else {
@@ -478,6 +498,7 @@
 
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED CAT ...");
 			_haveUnresolvedRefs = true;
 		}
 		else {
@@ -516,12 +537,14 @@
 			
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED CAT COLL ...");
 			_haveUnresolvedRefs = true;
+			return new ArrayList<Category>();
 		}
 		else {
 			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			return null;
 		}
-		return null;
 	}
 
 	private Source getSource(String s)
@@ -530,7 +553,7 @@
 
 		int i = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allSrcs.get(s);
+			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(NR_CollectionType.SOURCE + ":" + s);
 			if (o == NAME_CONFLICT) {
 					/* record conflict as a parsing error */
 				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple sources found with name <b>" + s + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{Business Feeds}.hindu\" rather than \"hindu\".");
@@ -546,6 +569,7 @@
 
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED: ...");
 			_haveUnresolvedRefs = true;
 		}
 		else {
@@ -574,6 +598,7 @@
 
 			// Ignore error if this is the first pass ... 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED: ...");
 			_haveUnresolvedRefs = true;
 		}
 		else {
@@ -601,13 +626,14 @@
 		}
 
 		if (_isFirstPass) {
+			_log.info("UNRESOLVED: ...");
 			_haveUnresolvedRefs = true;
+			return new ArrayList<Source>();
 		}
 		else {
 			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+			return null;
 		}
-
-		return null;
 	}
 
 	private void addToUsedSources(Set<Source> h, String cid, String sid)
@@ -951,7 +977,16 @@ Concept_Decls     = Concept_Decl.a
 Concept_Decl      = Concept_Def_Id.id EQUAL Keywords.kwds
                     {:
 						     if (_log.isDebugEnabled()) DEBUG("Concept_Decl");
-							  Concept c = new Concept(id, kwds);
+							  Concept c = null;
+							  try {
+							     c = new Concept(id, kwds);
+							  }
+							  catch (java.lang.Exception e) {
+								  	// We can run into errors because of unresolved definitions in the first pass
+									// We ignore those here!
+								  if (_isFirstPass)
+									  c = new Concept("DUMMY", "");
+							  }
 							  recordConcept(c);
 							  return new Symbol(c);
 						  :}
@@ -1157,7 +1192,8 @@ IssueStart_Decl   = DEF_ISSUE Issue_Id.i
 							  	/* Push a scope so that imports within the issue declaration
 								 * are local to the issue */
 							  try {
-						        pushScope(new Issue(i, _user));
+								  Issue ni = new Issue(i, _user);
+						        pushScope(ni);
 							  }
 							  catch (java.lang.Exception e) {
 									// Parsing error ... No change in status

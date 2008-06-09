@@ -43,13 +43,24 @@ class SQL_SourceStub extends Source
 		Feed f = super.getFeed();
 		if (f == null) {
 			if (_log.isDebugEnabled()) _log.debug("Fetching feed from the db for: " + _feedKey);
-			_log.info("Fetching feed from the db for: " + _feedKey);
 			f = SQL_DB._sqldb.getFeed(_feedKey);
 			if (f == null)
 				_log.error("Got null feed for key: " + _feedKey + " for source: " + getTag());
 			super.setFeed(f);
 		}
 		return f;
+	}
+
+	public boolean equals(Object o)
+	{
+		if (o instanceof Source) {
+			Source s = (Source)o;
+				// Won't consider source name OR source keys in this equation!
+			return (s.getFeed() == getFeed()) && s._utag.equals(_utag) && s.getUser().getUid().equals(getUser().getUid());
+		}
+		else {
+			return false;
+		}
 	}
 
 	public Collection<NewsItem> readSource() throws Exception
