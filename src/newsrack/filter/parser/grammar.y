@@ -55,54 +55,75 @@
 
    	// Logging output for this plug in instance.
    static private Log _log = LogFactory.getLog(NRLanguageParser.class);
-
-		// Keeps track of profiles in the process of being parsed
-		// (to prevent infinite recursion)
-	static private Hashtable _userProfilesBeingParsed = new Hashtable();
 		// Value to record name conflicts
 	static private final String NAME_CONFLICT = "";
 		// Returned to meet Beaver requirements
 	static private final Symbol DUMMY_SYMBOL = new Symbol("");
 
-		// Stack of parsing scopes!
-	static private Stack _scopeStack;
+	static private Stack 	_scopeStack; 	// Stack of parsing scopes!
+	static private Iterator _files;			// Iterator of the current user's files ... needed fo recursive parsing
+
+	private void parseFile(String f)
+	{
+		if (_log.isInfoEnabled()) INFO("***** Beginning parse of file " + f + " ******");
+
+		pushNewScope();
+
+		try {
+			_currFile = new UserFile(_user, f);
+			parse(new NRLanguageScanner(_currFile.getFileReader()));
+		}
+		catch (java.lang.Exception e) {
+			_log.error("Parse Error!", e);
+			ParseUtils.parseError(_currFile, e.toString());
+		}
+
+		popScope();
+
+		if (_log.isInfoEnabled()) INFO("***** End parse of file " + f + " ******");
+	}
+
+	private boolean parseFiles(boolean isFirstPass, boolean haveUnresolvedRefs, User u, Stack scopes, Iterator files)
+	{
+		super.report = new NRParserEvents(); // Override the error reporting module
+		_user       = u;
+		_uid        = u.getUid();
+		_scopeStack = scopes;	// Set the scope stack
+		_isFirstPass = isFirstPass;
+		_haveUnresolvedRefs = haveUnresolvedRefs;
+		while (files.hasNext())
+			parseFile((String)files.next());
+
+		return _haveUnresolvedRefs;
+	}
+
+	private boolean parseOtherFiles()
+  	{
+		if (_files.hasNext()) {
+			if (_log.isInfoEnabled()) INFO("***** BEGIN RECURSIVE PARSE *****");
+			_haveUnresolvedRefs = (new NRLanguageParser()).parseFiles(_isFirstPass, _haveUnresolvedRefs, _user, _scopeStack, _files);
+			if (_log.isInfoEnabled()) INFO("***** END RECURSIVE PARSE *****");
+			return true;
+		}
+
+			// No change in status!
+		return false;
+	}
 
 	public void parseFiles(User u)
 	{
-			// Override the error reporting module
-		super.report = new NRParserEvents();
-
-		_user  = u;
-		_uid   = u.getUid();
-		_isFirstPass = true;
+		_isFirstPass        = true;
 		_haveUnresolvedRefs = false;
-
-			// Create a scope stack
-		_scopeStack = new Stack();
-
-		_userProfilesBeingParsed.put(_uid, u);
+		_scopeStack         = new Stack();
 		while(true) {
 				// Push a scope for the entire profile!  Collections & issues are visible across files
 				// If we are in the second pass, note that the 1st pass's scope will be on the stack and its contents will be accessible!
 			_scopeStack.push(new Scope());
-			Iterator files = u.getFiles();
-			while (files.hasNext()) {
-					// New parsing scope!
-				_scopeStack.push(new Scope());
 
-					// Parse
-				try {
-					parseFile((String)files.next());
-				}
-				catch (java.lang.Exception e) {
-					_log.error("Parse Error!", e);
-					ParseUtils.parseError(_currFile, e.toString());
-				}
+			_files = u.getFiles();
 
-					// Pop the scope of the just parsed file & merge its contents with the profile scope
-				Scope fileScope = popScope();
-				getCurrentScope().mergeScope(fileScope);
-			}
+				// Parse all the user's files now
+			parseFiles(_isFirstPass, _haveUnresolvedRefs, u, _scopeStack, _files);
 
 				// Check if we need to do a second pass!
 			if (_isFirstPass && _haveUnresolvedRefs) {
@@ -112,23 +133,6 @@
 			}
 			else {
 				break;
-					/*
-					 * NOTE: 2 passes are not necessarily sufficient to resolve all unresolved references.
-					 * The # of passes requires is N where N = 1 + length of the longest forward-reference chain.
-					 * Since most users are unlikely to end up developing elaborate concept hierarchies, it is
-					 * unlikely that we'll ever need more than 2 passes.  Defer fixing this for when necessary.
-					 * Note that forward references can be removed by changing the order in which files are
-					 * parsed!  It is also possible to analyze the dependence chains to figure out the best
-					 * parsing order of files ... but, all this is unnecessary.
-					 *
-					 * Ex: file 1 defines concept C1 that references concept C2 in file 2
-					 *     file 2 defines concept C2 that references concept C3 in file 3
-					 *     file 3 defines concept C3
-					 * Files are parsed in the order: file 1, file 2, file 3 ... But, if they are parsed in the
-					 * order 3, 2, 1 ... 1 pass is sufficent.  It is possible to do everything in a single pass
-					 * without any special ordering by keeping track of forward references ... but, I don't want
-					 * to do all stuff unnecessarily ...
-					 */
 			}
 		}
 
@@ -150,41 +154,7 @@
 				}
 			}
 		}
-
-		_userProfilesBeingParsed.remove(_uid);
 	}
-
-	private void parseFile(String f) throws java.lang.Exception
-	{
-		if (_log.isInfoEnabled()) INFO("***** Beginning parse of file " + f + " ******");
-		_currFile = new UserFile(_user, f);
-		parse(new NRLanguageScanner(_currFile.getFileReader()));
-		if (_log.isInfoEnabled()) INFO("***** End parse of file " + f + " ******");
-	}
-
-/**
-	private boolean parseOtherUsersFiles(String uid)
-	{
-		User u = User.getUser(uid);
-		if (u.isValidated() || _userProfilesBeingParsed.containsKey(uid)) {
-				// No change in status
-			return false;
-		}
-		else {
-				// RECORD THAT 'u' is being validated ...
-			try {
-				u.parseProfileFiles();
-				return true;
-			}
-			catch (java.lang.Exception e) {
-					// Parsing error ... No change in status
-				_log.error("Parse Error!", e);
-				ParseUtils.parseError(_currFile, e.toString());
-				return false;
-			}
-		}
-	}
-**/
 
 	/* Scope implements scoping functionality for imports & definitions 
 	 * There is a top-level scope, and a first-level scope for issues.
@@ -213,6 +183,7 @@
 		public void mergeScope(Scope other)
 		{
 				// Merge defined collections
+			int n = _scopeStack.size();
 			for (Object o: other._definedCollections) {
 				_definedCollections.add(o);
 				NR_Collection c = (NR_Collection)o;
@@ -229,10 +200,15 @@
 		public void addIssue(Issue i) { _definedIssues.add(i); }
 	}
 
-	private void  pushScope(Issue i) { getCurrentScope().addIssue(i); _scopeStack.push(new Scope(i)); }
-	private Scope popScope()         { return (Scope)_scopeStack.pop(); }
 	private Scope getCurrentScope()  { return (Scope)_scopeStack.peek(); }
 	private Issue getCurrentIssue()  { return getCurrentScope()._i; }
+	private void  pushScope(Issue i) { getCurrentScope().addIssue(i); _scopeStack.push(new Scope(i)); }
+	private void  pushNewScope()     { _scopeStack.push(new Scope()); }
+	private Scope popScope()         { 
+		Scope poppedScope = (Scope)_scopeStack.pop();
+		getCurrentScope().mergeScope(poppedScope);
+		return poppedScope;
+	}
 
 	private void recordSource(Source src)
 	{
@@ -331,19 +307,17 @@
 		}
 
 		if ((c == null) && _isFirstPass) {
-				// Record an unresolved ref. since this is a first pass.  Hopefully, the ref will
-				// be resolved in the second pass!
-			_log.info("UNRESOLVED Import ...");
-			_haveUnresolvedRefs = true;
-			return null;
-/**
-			if (!getFromMyself && parseOtherUsersFiles(fromUid)) {
-					// Try to get from the other user's files  files & try importing again
+					// Try to parse other files & try importing again
+			if (getFromMyself && parseOtherFiles()) {
 				return importCollection(newColl, cType, fromUid, cid);
 			}
 			else {
+					// Record an unresolved ref. since this is a first pass.
+					// Hopefully, the ref will be resolved in the second pass!
+				_log.info("UNRESOLVED Import ...");
+				_haveUnresolvedRefs = true;
+				return null;
 			}
-**/
 		}
 
 		if (c == null) {

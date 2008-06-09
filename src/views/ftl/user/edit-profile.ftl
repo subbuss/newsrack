@@ -90,7 +90,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 		<tr>
 			<td class="right"> ${name} <span class="artcount">[${numArticles}]</span> </td>
 			<td class="left">
-				<a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="name" />">Browse</a>, 
+				<a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${name}" />">Browse</a>, 
       <@s.if test="frozen == false">
 				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="name" /></@s.url>">Freeze</a>,
       </@s.if>

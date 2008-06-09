@@ -15,7 +15,7 @@ create table if not exists news_item_localnames (
   local_file_name varchar(256) not null, /* FIXME: Deprecate references by full path and progressively get rid of this field! */
   n_key           bigint       not null,
   constraint fk_1 foreign key(n_key) references news_items(n_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 insert into news_item_localnames select cached_item_name, n_key from news_items;
 alter table news_item_localnames add index file_name_index(local_file_name);

@@ -869,7 +869,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NESTED_CATS(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE c.parent_cat = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE parent_cat = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,

@@ -20,7 +20,7 @@ create table if not exists feeds (
 	mins_between_downloads int default 120,
    primary key(feed_key),
 	unique(feed_tag)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- news_indexes ---
  * This is the table that stores information about news indexes.
@@ -42,7 +42,7 @@ create table if not exists news_indexes (
    primary key(ni_key),
    constraint fk_news_indexes_1 foreign key(feed_key) references feeds(feed_key),
    index feed_date_index(feed_key, date_string)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- news_items ---
  * This is the table that stores information about news items.
@@ -71,14 +71,14 @@ create table if not exists news_items (
    constraint fk_news_items_1 foreign key(primary_ni_key) references news_indexes(ni_key),
 --   constraint fk_news_items_2 foreign key(feed_key) references feeds(feed_key),
    index cached_item_name_index(cached_item_name)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 create table if not exists news_item_url_md5_hashes (
    n_key    bigint   not null,
    url_hash char(32) not null,
    constraint fk_1 foreign key(n_key) references news_items(n_key),
    index hash_index(url_hash)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** This table is present for backward compability purposes **/
 create table if not exists news_item_localnames (
@@ -86,7 +86,7 @@ create table if not exists news_item_localnames (
    local_file_name varchar(256) not null, /* FIXME: Deprecate references by full path and progressively get rid of this field! */
    constraint fk_1 foreign key(n_key) references news_items(n_key),
    index file_name_index(local_file_name)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 
 /** --- news_collections
@@ -129,7 +129,7 @@ create table if not exists users (
 	last_login  timestamp,
    primary key(u_key),
    unique(uid)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /**
  * Reserved user accounts -- add them to the db
@@ -166,7 +166,7 @@ create table if not exists topics (
 	taxonomy_path text        default null, /* taxonomy path for display on news listing pages */
    primary key(t_key),
    constraint fk_topics_1 foreign key(u_key) references users(u_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- categories ---
  * This is the table that stores information about categories.
@@ -195,7 +195,7 @@ create table if not exists categories (
    index uid_issue_index(u_key, t_key),
    constraint fk_categories_1 foreign key(f_key) references cat_filters(f_key),
    constraint fk_categories_2 foreign key(u_key) references users(u_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- cat_news ---
  * This is the table that stores information about which categories
@@ -233,7 +233,7 @@ create table if not exists user_files (
    file_name  varchar(256) not null,
    add_time   timestamp   default current_timestamp,
    constraint fk_user_files_1 foreign key(u_key) references users(u_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- user_collections ---
  * This table tracks user-defined collections of various kinds
@@ -246,7 +246,7 @@ create table if not exists user_collections (
    uid       char(32)    not null, /* copied from user table in cases where uid is used to fetch collections */
 	primary key(coll_key),
    constraint fk_user_collections_1 foreign key(u_key) references users(u_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- collection_entries ---
  * This table tracks entries belonging to various collections.
@@ -277,7 +277,7 @@ create table if not exists sources (
    constraint fk_sources_1 foreign key(feed_key) references feeds(feed_key),
    constraint fk_sources_2 foreign key(u_key) references users(u_key)
 --   constraint fk_sources_3 foreign key(coll_key) references user_collections(coll_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- topic_sources ---
  * This table tracks what feeds are being used by what topics
@@ -318,7 +318,7 @@ create table if not exists concepts (
 	primary key(cpt_key),
    constraint fk_concepts_1 foreign key(u_key) references users(u_key)
 --   constraint fk_concepts_2 foreign key(coll_key) references user_collections(coll_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /** --- filters ---
  * This table tracks all defined filters across all collections across all users
@@ -336,7 +336,7 @@ create table if not exists filters (
 	rule_key     bigint,						/* root of the rule tree */
 	primary key(f_key)
 --   constraint fk_filters_3 foreign key(coll_key) references user_collections(coll_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 create table if not exists filter_rule_terms (
 	rt_key	 bigint not null auto_increment,
@@ -346,7 +346,7 @@ create table if not exists filter_rule_terms (
 	arg2_key  bigint,					/* can be null */
 	primary key(rt_key),
    constraint fk_filter_rule_terms_1 foreign key(f_key) references filters(f_key)
-) charset=utf8 collate=utf8_unicode_ci;
+) charset=utf8 collate=utf8_bin;
 
 /* *****************************************************************
  * The set of tables below are tables that are used to support various
