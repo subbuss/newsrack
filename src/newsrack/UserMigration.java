@@ -2,6 +2,10 @@ package newsrack;
 
 import newsrack.user.User;
 import newsrack.filter.Issue;
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+import newsrack.database.sql.SQL_ValType;
+import newsrack.database.sql.SQL_StmtExecutor;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -24,14 +28,26 @@ public class UserMigration
 	{
 		System.out.println("--- Migrating user .. " + uid);
 		try {
-			User.getUser(uid).validateIssues(true);
+			User u = User.getUser(uid);
+			u.validateIssues(true);
+			for (Source s: u.getSources()) {
+				Feed f = s.getFeed();
+				try {
+					SQL_StmtExecutor.update("UPDATE feeds SET feed_name = ? WHERE feed_key = ? AND feed_name=''",
+													new SQL_ValType[] {SQL_ValType.STRING, SQL_ValType.LONG},
+													new Object[] {s.getName(), f.getKey()});
+				}
+				catch (Exception e) {
+					_log.error("Error setting feed name", e);
+				}
+			}
 		}
 		catch (Exception e) {
 			_log.error("ERROR VALIDATING user: " + uid, e);
 		}
 	}
 
-	public static void migrateAllV1UsersToV2()
+	public static List<User> getAllValidatedUsers()
 	{
 		List<User> allUsers = User.getAllUsers();
 		List<User> validatedUsers = new ArrayList<User>();
@@ -40,6 +56,33 @@ public class UserMigration
 				validatedUsers.add(u);
 		}
 
+		return validatedUsers;
+	}
+
+	public static void updateFeedNames()
+	{
+		List<User> validatedUsers = getAllValidatedUsers();
+		validatedUsers.add(0, User.getUser("demo"));
+		validatedUsers.add(0, User.getUser("subbu"));
+		for (User u: validatedUsers) {
+			System.out.println("Got uid: " + u.getUid());
+			for (Source s: u.getSources()) {
+				Feed f = s.getFeed();
+				try {
+					SQL_StmtExecutor.update("UPDATE feeds SET feed_name = ? WHERE feed_key = ? AND feed_name=''",
+													new SQL_ValType[] {SQL_ValType.STRING, SQL_ValType.LONG},
+													new Object[] {s.getName(), f.getKey()});
+				}
+				catch (Exception e) {
+					_log.error("Error setting feed name", e);
+				}
+			}
+		}
+	}
+
+	public static void migrateAllV1UsersToV2()
+	{
+		List<User> validatedUsers = getAllValidatedUsers();
 		System.out.println("--- Invalidating first ---");
 		for (User u: validatedUsers) {
 			System.out.println("UID: " + u.getUid());
@@ -83,6 +126,9 @@ public class UserMigration
 		}
 		else if (action.equals("migrate-user")) {
 			migrateUser(args[2]);
+		}
+		else if (action.equals("fixup-feeds")) {
+			updateFeedNames();
 		}
 		else {
 			System.out.println("Unknown action:" + action);

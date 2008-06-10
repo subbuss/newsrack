@@ -60,5 +60,3 @@ java newsrack.UserMigration migration.properties update
 
 # 11. fixup timestamps
 $mysql_client < fixup.timestamps.sql
-
-## FIXME: 1. Need to set feed names!
