@@ -58,4 +58,7 @@ $mysql_client < migrate.categories.sql
 # 10. update article counts
 java newsrack.UserMigration migration.properties update
 
-## FIXME: Need to set feed names!
+# 11. fixup timestamps
+$mysql_client < fixup.timestamps.sql
+
+## FIXME: 1. Need to set feed names!

@@ -1,3 +1,3 @@
 June 9, 2008
 ------------
-. Run 001.sql and 002.sql if you have a newsrack database prior to June 1, 2008.  Ignore it otherwise.
+. Run 001.sql, 002.sql if you have a newsrack database prior to June 1, 2008.  If you can dump the old db and start from scratch, ignore these.

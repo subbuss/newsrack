@@ -43,7 +43,7 @@ alter table news_item_localnames add index file_name_index(local_file_name);
 drop index urlIndex on news_items;
 
 -- lastly, change the columns of news_items
-alter table news_items delete column localName, convert to character set utf8 collate utf8_bin, change column nKey n_key bigint not null auto_increment, change column niKey primary_ni_key bigint not null, change column urlRoot url_root varchar(128) not null, change column urlTail url_tail varchar(256) not null,  change column title title text not null, change column description description text, change column author author text;
+alter table news_items drop column localName, convert to character set utf8 collate utf8_bin, change column nKey n_key bigint not null auto_increment, change column niKey primary_ni_key bigint not null, change column urlRoot url_root varchar(128) not null, change column urlTail url_tail varchar(256) not null,  change column title title text not null, change column description description text, change column author author text;
 
 ----------------  Migration of shared_news_table --------------------------
 

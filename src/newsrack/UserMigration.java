@@ -20,6 +20,17 @@ public class UserMigration
 		}
 	}
 
+	public static void migrateUser(String uid)
+	{
+		System.out.println("--- Migrating user .. " + uid);
+		try {
+			User.getUser(uid).validateIssues(true);
+		}
+		catch (Exception e) {
+			_log.error("ERROR VALIDATING user: " + uid, e);
+		}
+	}
+
 	public static void migrateAllV1UsersToV2()
 	{
 		List<User> allUsers = User.getAllUsers();
@@ -36,19 +47,10 @@ public class UserMigration
 		}
 
 			// Validating these 3 first in this order ensures that all other users migrate successfully!
-		try {
-			_log.info("--- Subbu first ---");
-			User.getUser("subbu").validateIssues(true);
-			_log.info("--- demo next ---");
-			User.getUser("demo").validateIssues(true);
-			_log.info("--- quesoboy next ---");
-			User.getUser("quesoboy").validateIssues(true);
-		}
-		catch (Exception e) {
-			_log.error("ERROR VALIDATING:", e);
-		}
+		migrateUser("subbu");
+		migrateUser("demo");
+		migrateUser("quesoboy");
 
-		System.out.println("--- Validating next ---");
 		for (User u: validatedUsers) {
 			String uid = u.getUid();
 			if (!uid.equals("subbu") && !uid.equals("demo") && !uid.equals("quesoboy")) {
@@ -63,7 +65,7 @@ public class UserMigration
 	public static void main(String[] args)
 	{
 		if (args.length < 2) {
-			System.out.println("Usage: java newsrack.UserMigration <properties-file> <action>");
+			System.out.println("Usage: java newsrack.UserMigration <properties-file> <action> [<other-optional-args>]");
 			System.exit(0);
 		}
 
@@ -78,6 +80,9 @@ public class UserMigration
 		}
 		else if (action.equals("update")) {
 			updateArtCounts();
+		}
+		else if (action.equals("migrate-user")) {
+			migrateUser(args[2]);
 		}
 		else {
 			System.out.println("Unknown action:" + action);

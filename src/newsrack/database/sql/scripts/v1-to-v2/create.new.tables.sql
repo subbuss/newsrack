@@ -1,6 +1,6 @@
 create table if not exists feeds (
    feed_key         bigint        not null auto_increment,
-   feed_tag         varchar(64)   not null,	/* arbitrary */
+   feed_tag         varchar(64),
 	feed_name        varchar(128)  not null,	/* obtained from the feed */
       /* Q: Is this dumb optimization below -- of splitting url -- really necessary? */
    url_root         varchar(256)  not null,
