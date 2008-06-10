@@ -1,4 +1,6 @@
 set global myisam_sort_buffer_size=128*1024*1024;
+set global sort_buffer_size=128*1024*1024;
+set global read_buffer_size=4*1024*1024;
 
 ----------------  Migration of news index table --------------------------
 
@@ -12,6 +14,8 @@ update news_indexes ni set feed_key = (select feed_key from feeds f where f.feed
 
 -- Now, drop the feedId column feedId
 alter table news_indexes drop column feedId;
+
+alter table news_indexes add index time_stamp_index(date_stamp);
 
 ----------------  Migration of news_items table --------------------------
 
@@ -44,4 +48,4 @@ alter table news_items delete column localName, convert to character set utf8 co
 ----------------  Migration of shared_news_table --------------------------
 
 insert into news_collections select distinct niKey, nKey from shared_news_table;
-drop table shared_news_table;
+-- drop table shared_news_table;

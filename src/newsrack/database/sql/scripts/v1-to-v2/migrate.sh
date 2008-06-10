@@ -19,8 +19,10 @@ feed_table="$users_home/feed.map.xml"
 mysql_client="mysql -u$db_user -p$db_password $db"
 
 # 0. initialize
-#cp -r /media/backup/newsrack/users $users_home
-cp -r $users_bkp $users_home
+for i in `ls $users_bkp_dir`
+do
+	cp -r $users_bkp_dir/$i $users_home
+done
 
 # 1. create the db and populate it
 echo "create database $db; grant all on $db.* to $db_user@localhost;" | mysql -u root -p
@@ -44,8 +46,8 @@ migrate.user.files.pl $db $db_user $db_password < $user_table | $mysql_client
 # 6. fix up user directories!
 fixup.user.dirs.pl $users_home < $user_table
 
-# 7. run the other migrations
-$mysql_client < migrate.sql
+# 7. run the other migrations -- require root privileges
+mysql -uroot -p newsrack_test < migrate.sql
 
 # 8. run the java program to migrate everything else!
 java newsrack.UserMigration migration.properties migrate
@@ -55,3 +57,5 @@ $mysql_client < migrate.categories.sql
 
 # 10. update article counts
 java newsrack.UserMigration migration.properties update
+
+## FIXME: Need to set feed names!

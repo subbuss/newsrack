@@ -41,7 +41,8 @@ create table if not exists news_indexes (
    date_stamp  timestamp   default 0,
    primary key(ni_key),
    constraint fk_news_indexes_1 foreign key(feed_key) references feeds(feed_key),
-   index feed_date_index(feed_key, date_string)
+   index feed_date_index(feed_key, date_string),
+	index time_stamp_index (date_stamp)
 ) charset=utf8 collate=utf8_bin;
 
 /** --- news_items ---

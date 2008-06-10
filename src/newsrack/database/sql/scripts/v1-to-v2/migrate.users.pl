@@ -36,6 +36,11 @@ while (<>) {
 	}
 	if (m{</user>}) {
 		$name =~ s/'/\\'/g;
-		print "insert into users(uid, password, name, email, validated) values('$uid', '$password', '$name', '$email', $validated);\n";
+		if ($uid =~ /admin/) {
+			print "-- IGNORING admin";
+		}
+		else {
+			print "insert into users(uid, password, name, email, validated) values('$uid', '$password', '$name', '$email', $validated);\n";
+		}
 	}
 }

@@ -83,5 +83,6 @@ public class UserMigration
 			System.out.println("Unknown action:" + action);
 		}
 		System.out.println("All Done!");
+		System.exit(0);
 	}
 }

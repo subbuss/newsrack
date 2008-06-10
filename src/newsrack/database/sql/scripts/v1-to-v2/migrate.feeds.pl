@@ -20,12 +20,12 @@ while (<>) {
 		elsif ($f == 695 && ($d =~ /india.stories/)) {
 			$f = 692;
 		}
-		print "insert into feeds values($f, '$f.$d', '', '$ur', '$ut', 1, 1, 120);\n"
+		print "insert into feeds values($f, '$f.$d', '', '$ur', '$ut', 1, 1, 120);\n";
 	}
 }
 
 ## Manually fixup the feed key for 0.et.jobs -- it gets a non-zero entry
-print "update feeds set feed_key=0 where feed_tab='0.et.jobs';\n"
+print "update feeds set feed_key=0 where feed_tag='0.et.jobs';\n";
 
 ## After some url fixes (&quot --> ""), it turns out there will be 2 feeds with the same url.  Remove one of them!
 print "delete from feeds where feed_key=464;\n"

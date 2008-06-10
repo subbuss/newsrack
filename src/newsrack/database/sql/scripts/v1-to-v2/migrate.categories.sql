@@ -13,5 +13,5 @@ alter table cat_news add index cdn_index(c_key, n_key, ni_key), add index n_inde
 
 update categories set num_articles = (select count(c_key) from cat_news where cat_key=c_key);
 
-drop table cat_news_table;
-drop table v1_to_v2_catmap;
+--drop table cat_news_table;
+--drop table v1_to_v2_catmap;
