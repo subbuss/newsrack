@@ -1,0 +1,57 @@
+#!/bin/sh
+
+if [ $# -lt 6 ]
+then
+	echo "Usage: $0 <new-db-name> <db-user> <db-password> <db-bkp-dir> <users-bkp-dir> <new-users-dir>"
+	exit 0;
+fi
+
+db=$1
+db_user=$2
+db_password=$3
+db_bkp_dir=$4
+users_bkp_dir=$5
+# users_bkp_dir = /media/backup/newsrack/users
+users_home=$6
+# users_home="/home/subbu/newsrack/webapp/nr.users"
+user_table="$users_home/user.table.xml"
+feed_table="$users_home/feed.map.xml"
+mysql_client="mysql -u$db_user -p$db_password $db"
+
+# 0. initialize
+#cp -r /media/backup/newsrack/users $users_home
+cp -r $users_bkp $users_home
+
+# 1. create the db and populate it
+echo "create database $db; grant all on $db.* to $db_user@localhost;" | mysql -u root -p
+for i in `ls $db_bkp_dir/*_table.gz`
+do
+	gunzip < $i | $mysql_client
+done
+
+# 2. create missing tables
+$mysql_client < create.new.tables.sql
+
+# 3. populate the feeds database
+migrate.feeds.pl < $feed_table | $mysql_client
+
+# 4. populate the user database
+migrate.users.pl < $user_table | $mysql_client
+
+# 5. migrate user file info
+migrate.user.files.pl $db $db_user $db_password < $user_table | $mysql_client
+
+# 6. fix up user directories!
+fixup.user.dirs.pl $users_home < $user_table
+
+# 7. run the other migrations
+$mysql_client < migrate.sql
+
+# 8. run the java program to migrate everything else!
+java newsrack.UserMigration migration.properties migrate
+
+# 9. fixup category keys
+$mysql_client < migrate.categories.sql
+
+# 10. update article counts
+java newsrack.UserMigration migration.properties update

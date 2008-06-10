@@ -836,6 +836,7 @@ public class User implements java.io.Serializable
 				Collection news = i.downloadNews();
 				i.readInCurrentRSSFeed();
 				i.scanAndClassifyNewsItems(null, news);
+				i.updateRSSFeed();
 				i.storeNewsToArchive();
 				i.freeRSSFeed();
 			}

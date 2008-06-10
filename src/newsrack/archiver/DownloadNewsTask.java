@@ -118,10 +118,9 @@ public class DownloadNewsTask extends TimerTask
 				if (_log.isInfoEnabled()) _log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", done classifying news!");
 
 					 // Now that all feeds are processed, store back classified news
+				_i.updateRSSFeed();
 				_i.storeNewsToArchive();
-
-					// Clean up after classification is done
-				_i.freeRSSFeed();
+				_i.freeRSSFeed(); // Clean up after classification is done
          } 
          catch (Exception e) {
             _log.error("Exception classifying news for issue " + _i.getName());

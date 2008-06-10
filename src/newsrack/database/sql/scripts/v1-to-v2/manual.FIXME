@@ -1,0 +1,4 @@
+1. replace the trailing quote in newstrust/us.feeds & demo/newspaper.feeds files for ct.world.
+2. in subbu/gujarat.categories, comment out the import of common.concepts!
+3. anjana/files/concept --> Bihar
+4. leigh/files/labour.concepts --> suicide 

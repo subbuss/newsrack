@@ -93,6 +93,7 @@
 			<exclude name="**/attic/*" />
 			<include name="**/*.properties" />
 			<include name="**/*.xml" />
+			<exclude name="**/rss.xml" />
 		</fileset>
 	 </copy>
   </target>

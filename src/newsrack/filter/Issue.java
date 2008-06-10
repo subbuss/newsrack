@@ -1029,7 +1029,7 @@ public class Issue implements java.io.Serializable
 
 	public void storeNewsToArchive()
 	{
-		updateRSSFeed();
+		//updateRSSFeed();
 		_db.commitNewsToArchive(this);
 	}
 
@@ -1054,6 +1054,7 @@ public class Issue implements java.io.Serializable
 			scanAndClassifyNewsItems(s.getFeed(), _db.getArchivedNews(newsIndex), false);
 		}
 		if (_log.isInfoEnabled()) _log.info("--> Sorting and storing news for " + s.getFeed().getTag());
+		updateRSSFeed();
 		storeNewsToArchive();
 	}
 
