@@ -98,6 +98,7 @@ public class ObjectCache
 
 	private OCache _objectCache;
 	private OCache _feedCache;
+	private OCache _newsItemCache;
 	private OCache _userCache;
 	private OCache _issueCache;
 	private OCache _srcCache;
@@ -127,11 +128,14 @@ public class ObjectCache
 		_categoryCache = new OCache("CATEGORY", p);
 		p.setProperty("cache.capacity", "10000");
 		_filterCache   = new OCache("FILTER", p);
+		p.setProperty("cache.capacity", "10000");		/* about 1000 feed objects should comfortably fit in 1 MB */
+		_newsItemCache = new OCache("NEWSITEM", p);
 
 		_caches = new java.util.HashMap<Class, OCache>(10);
 
 		_caches.put(Object.class, _objectCache);
 		_caches.put(Feed.class, _feedCache);
+		_caches.put(NewsItem.class, _newsItemCache);
 		_caches.put(User.class, _userCache);
 		_caches.put(Issue.class, _issueCache);
 		_caches.put(Source.class, _srcCache);
@@ -141,13 +145,18 @@ public class ObjectCache
 
 	public void printStats()
 	{
+		for (OCache c: _caches.values())
+			c.printStats();
+/**
 		_objectCache.printStats();
 		_feedCache.printStats();
+		_newsItemCache.printStats();
 		_userCache.printStats();
 		_issueCache.printStats();
 		_srcCache.printStats();
 		_categoryCache.printStats();
 		_filterCache.printStats();
+**/
 	}
 
 	public void add(String[] cacheGroups, Object key, Class c, Object o)
@@ -230,13 +239,18 @@ public class ObjectCache
 
 	public void removeEntriesForGroups(String[] cacheGroups)
 	{
+		for (OCache c: _caches.values())
+			c.removeGroups(cacheGroups);
+/**
 		_userCache.removeGroups(cacheGroups);
 		_feedCache.removeGroups(cacheGroups);
+		_newsItemCache.removeGroups(cacheGroups);
 		_srcCache.removeGroups(cacheGroups);
 		_issueCache.removeGroups(cacheGroups);
 		_categoryCache.removeGroups(cacheGroups);
 		_filterCache.removeGroups(cacheGroups);
 		_objectCache.removeGroups(cacheGroups);
+**/
 	}
 
 	public void purgeCacheEntriesForUser(User u)

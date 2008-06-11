@@ -18,6 +18,5 @@ alter table concepts convert to character set utf8 collate utf8_bin;
 alter table filters convert to character set utf8 collate utf8_bin;
 alter table filter_rule_terms convert to character set utf8 collate utf8_bin;
 
--- Remove the 'not null' constraint from the feed tag because
--- feed tags are added separately
+-- Remove the 'not null' constraint from the feed tag because feed tags are added separately
 alter table feeds change feed_tag feed_tag varchar(64);

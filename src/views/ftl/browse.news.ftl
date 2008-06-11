@@ -39,15 +39,15 @@
    [#if (startId>1)]
 		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]"> |&lt; First</a>
       &nbsp;
-      <a href="[@s.url namespace="/" action="browse" owner="ownerID" issue="${issueName}" catID="${cat.catId}" start="${prevId}" /]"> &lt;&lt; Previous</a>
+      <a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start="${prevId?c}" /]"> &lt;&lt; Previous</a>
    [#else]
 		|&lt; First &nbsp; &lt;&lt; Previous
    [/#if]
 	&nbsp;
    [#if nextId <= numArts]
-		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start="${nextId}" /]">Next &gt;&gt;</a>
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start="${nextId?c}" /]">Next &gt;&gt;</a>
       &nbsp;
-      <a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start="${lastId}" /]">Last &gt;|</a>
+      <a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start="${lastId?c}" /]">Last &gt;|</a>
    [#else]
 		Next &gt;&gt; &nbsp; Last &gt;|
    [/#if]

@@ -399,7 +399,13 @@ public class SQL_DB extends DB_Interface
 
 	public NewsItem getNewsItem(Long key)
 	{
-		return (NewsItem)GET_NEWS_ITEM.get(key);
+		NewsItem n = (NewsItem)_cache.get(key, NewsItem.class);
+		if (n == null) {
+			n = (NewsItem)GET_NEWS_ITEM.get(key);
+			if (n != null)
+				_cache.add((Long)null, key, NewsItem.class, n);
+		}
+		return n;
 	}
 
 	public Feed getFeedWithTag(String feedTag)
@@ -1494,7 +1500,8 @@ public class SQL_DB extends DB_Interface
 			SQL_NewsItem sni = (SQL_NewsItem)ni;
 			if (!sni.inTheDB())
 				_log.error("News item " + sni + " not in the db yet!");
-         INSERT_INTO_CAT_NEWS_TABLE.execute(new Object[] {cat.getKey(), sni.getKey(), sni.getNewsIndex().getKey()});
+			SQL_NewsIndex idx = sni.getNewsIndex();
+         INSERT_INTO_CAT_NEWS_TABLE.execute(new Object[] {cat.getKey(), sni.getKey(), idx.getKey(), idx.getCreationTime()});
 
 			// Increment # of unique articles in the category
 			cat.setNumArticles(1+cat.getNumArticles());
@@ -1682,10 +1689,16 @@ public class SQL_DB extends DB_Interface
 		String cacheKey = "CATNEWS:" + cat.getKey() + ":" + startId + ":" + numArts;
 		news = _cache.get(cacheKey, List.class);
 		if (news == null) {
-			news = GET_NEWS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
+			//news = GET_NEWS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
+			news = GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
 			_cache.add(new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, List.class, news);
 		}
-		return ((List<NewsItem>)news).iterator();
+
+		List<NewsItem> nis = new ArrayList<NewsItem>();
+		for (Long k: (List<Long>)news)
+			nis.add(getNewsItem(k));
+
+		return nis.iterator();
 	}
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)

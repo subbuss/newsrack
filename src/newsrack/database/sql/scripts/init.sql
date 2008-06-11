@@ -34,15 +34,14 @@ create table if not exists feeds (
  *          Hence the indexes on (a) key (b) feedid (c) date string
  */
 create table if not exists news_indexes (
-   ni_key      bigint        not null auto_increment,
-   feed_key    bigint        not null,
+   ni_key      bigint      not null auto_increment,
+   feed_key    bigint      not null,
    date_string char(10)    not null,
-      /* date_stamp used primarily for sorting (because ordering by dateStr will be expensive) */
-   date_stamp  timestamp   default 0,
+   created_at  timestamp   default 0,
    primary key(ni_key),
    constraint fk_news_indexes_1 foreign key(feed_key) references feeds(feed_key),
    index feed_date_index(feed_key, date_string),
-	index time_stamp_index (date_stamp)
+	index time_stamp_index (created_at)
 ) charset=utf8 collate=utf8_bin;
 
 /** --- news_items ---
@@ -209,15 +208,16 @@ create table if not exists categories (
  *          which also occur a lot.
  */
 create table if not exists cat_news (
-   c_key    bigint not null,
-   n_key    bigint not null,
-   ni_key   bigint not null,
+   c_key      bigint not null,
+   n_key      bigint not null,
+   ni_key     bigint not null,
+	date_stamp timestamp not null,
    constraint fk_cat_news_1 foreign key(c_key) references categories(cat_key),
    constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
    constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),
-      /* This index is the index that will be most commonly used to respond to browse queries! */
-   index cdn_index(c_key, n_key, ni_key),
-   index n_index(n_key)
+   index cni_index(c_key, ni_key),
+   index n_index(n_key),
+   index d_index(date_stamp)
 );
 
 /* *****************************************************************

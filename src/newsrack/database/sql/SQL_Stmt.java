@@ -93,7 +93,7 @@ class GetCollectionResultProcessor extends AbstractResultProcessor
 
 class GetNewsIndexResultProcessor extends AbstractResultProcessor
 {
-	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new SQL_NewsIndex(rs.getLong(1), rs.getString(2)); }
+	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new SQL_NewsIndex(rs.getLong(1), rs.getString(2), rs.getTimestamp(3)); }
 }
 
 class GetUserResultProcessor extends AbstractResultProcessor
@@ -433,7 +433,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NEWS_INDEX(
-		"SELECT ni_key, date_string FROM news_indexes WHERE ni_key = ?",
+		"SELECT ni_key, date_string, created_at FROM news_indexes WHERE ni_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -449,7 +449,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_NEWS_INDEXES_FROM_FEED_ID(
-		"SELECT ni_key, date_string FROM news_indexes n WHERE n.feed_key = ?",
+		"SELECT ni_key, date_string, created_at FROM news_indexes n WHERE n.feed_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -470,11 +470,19 @@ public enum SQL_Stmt
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni, cat_news cn" +
 		   " WHERE (cn.c_key = ?) AND (cn.n_key = n.n_key) AND (cn.ni_key = ni.ni_key) " +
-		   " ORDER BY ni.date_stamp DESC, cn.n_key DESC LIMIT ?, ?",
+		   " ORDER BY cn.date_stamp DESC, cn.n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, INT, INT},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
+		false
+	),
+	GET_NEWS_KEYS_FROM_CAT(
+		"SELECT n_key FROM cat_news WHERE c_key = ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
+		new SQL_ValType[] {LONG, INT, INT},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
 		false
 	),
 	GET_CATS_FOR_NEWSITEM(
@@ -926,7 +934,7 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_NEWS_INDEX(
-		"INSERT INTO news_indexes (feed_key, date_string, date_stamp) VALUES (?,?,?)",
+		"INSERT INTO news_indexes (feed_key, date_string, created_at) VALUES (?,?,?)",
       new SQL_ValType[] {LONG, STRING, TIMESTAMP},
 		SQL_StmtType.INSERT,
 		new SQL_ColumnSize[] {NONE, NEWS_INDEX_TBL_DATESTRING, NONE},
@@ -968,8 +976,8 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_INTO_CAT_NEWS_TABLE(
-		"INSERT INTO cat_news (c_key, n_key, ni_Key) VALUES (?,?,?)",
-		new SQL_ValType[] {LONG, LONG, LONG},
+		"INSERT INTO cat_news (c_key, n_key, ni_key, date_stamp) VALUES (?,?,?,?)",
+		new SQL_ValType[] {LONG, LONG, LONG, TIMESTAMP},
       SQL_StmtType.INSERT,
 		null,
 		new GetLongResultProcessor(),

@@ -60,3 +60,6 @@ java newsrack.UserMigration migration.properties update
 
 # 11. fixup timestamps
 $mysql_client < fixup.timestamps.sql
+
+# 12. post-migration modifications to the db
+$mysql_client < ../003.sql
