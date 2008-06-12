@@ -29,6 +29,7 @@ abstract public class NewsItem implements java.io.Serializable
    abstract public Feed     getFeed();
    abstract public Long     getFeedKey();
 	abstract public String   getTitle();
+	abstract public NewsIndex getNewsIndex();
 	/** Returns the date on which this news item was published */
 	abstract public Date     getDate();
 	/** Returns the d.m.yyyy representation of the on which this news item was published */

@@ -287,6 +287,10 @@ public class SQL_StmtExecutor
 			_log.error("Exception while executing stmt " + stmt, e);
          throw e;
       }
+      catch (SQL_UniquenessConstraintViolationException e) {
+			_log.error("Exception while executing stmt " + stmt, e);
+			throw e;
+		}
 		catch (Exception e) {
          // e can be a java.net.SocketException but no one in the body is throwing this exception
          // so, I cannot write a catch clause ... I have do the typecheck as below ...

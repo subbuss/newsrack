@@ -215,7 +215,7 @@ create table if not exists cat_news (
    constraint fk_cat_news_1 foreign key(c_key) references categories(cat_key),
    constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
    constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),
-   index cni_index(c_key, ni_key),
+   unique unique_index(c_key, ni_key, n_key),
    index n_index(n_key),
    index d_index(date_stamp)
 );

@@ -55,11 +55,14 @@ java newsrack.UserMigration migration.properties migrate
 # 9. fixup category keys
 $mysql_client < migrate.categories.sql
 
-# 10. update article counts
+# 10. eliminate duplicates in news_indexes
+$mysql_client < remove.news_index.duplicates.sql
+
+# 11. update article counts for categories & topics
 java newsrack.UserMigration migration.properties update
 
-# 11. fixup timestamps
+# 12. fixup timestamps for categories & topics 
 $mysql_client < fixup.timestamps.sql
 
-# 12. post-migration modifications to the db
+# 13. post-migration modifications to the db
 $mysql_client < ../003.sql

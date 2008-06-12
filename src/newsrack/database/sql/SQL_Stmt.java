@@ -414,7 +414,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_NEWS_ITEMS_WITH_URL(
-		"SELECT n_key FROM news_item_url_md5_hashes WHERE url_hash = ?",
+		"SELECT n_key FROM news_item_url_md5_hashes WHERE url_hash = md5(?)",
 		new SQL_ValType[] {STRING},
       SQL_StmtType.QUERY,
 		null,
@@ -466,6 +466,7 @@ public enum SQL_Stmt
 		},
 		true
 	),
+/**
 	GET_NEWS_FROM_CAT(
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni, cat_news cn" +
@@ -477,6 +478,7 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
+**/
 	GET_NEWS_KEYS_FROM_CAT(
 		"SELECT n_key FROM cat_news WHERE c_key = ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, INT, INT},
@@ -1122,6 +1124,16 @@ public enum SQL_Stmt
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
+	UPDATE_SHARED_NEWS_ITEM_ENTRIES(
+      "UPDATE IGNORE news_collections SET n_key = ? WHERE n_key = ?",
+		new SQL_ValType[] {LONG, LONG},
+      SQL_StmtType.UPDATE
+	),
+	UPDATE_CAT_NEWS(
+		"UPDATE IGNORE cat_news SET n_key = ? WHERE n_key = ?",
+		new SQL_ValType[] {LONG, LONG},
+      SQL_StmtType.UPDATE
+	),
 		// Prepared Statement Strings for DELETEs 
 	CLEAR_CAT_NEWS(
 		"DELETE FROM cat_news WHERE c_key = ?",
@@ -1150,6 +1162,11 @@ public enum SQL_Stmt
 	),
 	DELETE_SHARED_NEWS_ITEM_ENTRIES(
 	   "DELETE FROM news_collections WHERE n_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
+	),
+	DELETE_URL_HASH_ENTRY(
+	   "DELETE FROM news_item_url_md5_hashes WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),

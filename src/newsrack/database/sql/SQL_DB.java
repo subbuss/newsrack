@@ -84,8 +84,12 @@ public class SQL_DB extends DB_Interface
 	private static final String CAT_COLLECTION = "CAT";
 	private static final Object[] EMPTY_ARGS = new Object[] {};
 
-		// date format used for directory names for archiving news
-   private static final SimpleDateFormat DATE_PARSER = new SimpleDateFormat("yyyy" + File.separator + "M" + File.separator + "d");
+	// date format used for directory names for archiving news
+		// Solution courtesy: http://publicobject.com/2006/05/simpledateformat-considered-harmful.html
+		// Use a thread local -- since this object cannot be shared between threads!
+   private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy" + File.separator + "M" + File.separator + "d"); }
+	};
 
    	// Logging output for this class
    static Log _log = LogFactory.getLog(SQL_DB.class);
@@ -1063,22 +1067,36 @@ public class SQL_DB extends DB_Interface
 		try {
       	return (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
 		}
-		catch (SQL_UniquenessConstraintViolationException e) {
+		catch (Exception e) {
+				// FIXME: Bad boy Subbu! ... But what to do ... if I declare that the stmt executor throws an
+				// exception, I have to add try-catch everywhere which will make everything a bloody mess ...
+				// So, I am using this workaround for now
+
+			if (!(e instanceof SQL_UniquenessConstraintViolationException)) {
+				_log.error("Exception while fetching news item", e);
+				return null;
+			}
+
 				// This should not happen at all!  But, present as a backup against some bug ...
 			_log.error("Aha! Duplicate news items found for url: " + url);
-			NewsItem ni = (NewsItem)e.firstResult;
-			Long     niKey = ni.getKey();
+			NewsItem n     = (NewsItem)((SQL_UniquenessConstraintViolationException)e).firstResult;
+			Long     nKey  = n.getKey();
+			Long     niKey = n.getNewsIndex().getKey();
 
 			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{url});
 			for (Long k: allItems) {
-				if (!k.equals(niKey)) {
+				if (!k.equals(nKey)) {
 					_log.error(" ... Deleting duplicate news item with key: " + k);
 					DELETE_NEWS_ITEM.delete(k);
-					DELETE_SHARED_NEWS_ITEM_ENTRIES.delete(k);
+					DELETE_URL_HASH_ENTRY.delete(k);
+
+						// Replace all occurences of 'k' with 'nKey' in news_collections & cat_news tables
+					UPDATE_SHARED_NEWS_ITEM_ENTRIES.execute(new Object[] {nKey, k});
+					UPDATE_CAT_NEWS.execute(new Object[] {nKey, k});
 				}
 			}
 
-			return ni;
+			return n;
 		}
 	}
 
@@ -1733,12 +1751,7 @@ public class SQL_DB extends DB_Interface
 		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + cat.getKey()});
 	}
 
-   private static String getDateString(Date d)
-   {
-			// Note that synchronization can also happen at the method level
-			// because both this method as well as the DATE_PARSER object are STATIC!
-		synchronized (DATE_PARSER) { return DATE_PARSER.format(d); }
-   }
+   private static String getDateString(Date d) { return DATE_PARSER.get().format(d); }
 
 	/**
 	 * Get the directory where articles from news-source 'src'

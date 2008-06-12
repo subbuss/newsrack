@@ -30,15 +30,14 @@ public class SQL_NewsItem extends NewsItem
       // Share the logging instance
    private static Log _log = LogFactory.getLog(SQL_DB.class);
 
-   public static final SimpleDateFormat DATE_PARSER = new SimpleDateFormat("d.M.yyyy");
+	// Solution courtesy: http://publicobject.com/2006/05/simpledateformat-considered-harmful.html
+   private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("d.M.yyyy"); }
+	};
 
    private static String getDateString(Date d)
    {
-			// Note that synchronization needs to happen on the DATE_PARSER object
-			// because this method is NON-STATIC whereas the object is STATIC
-		synchronized (DATE_PARSER) {
-      	return DATE_PARSER.format(d);
-		}
+     	return DATE_PARSER.get().format(d);
    }
 
 	Long    _nKey;				// Unique ID of this news item in the database
@@ -167,7 +166,7 @@ public class SQL_NewsItem extends NewsItem
 	public Date    getDate()           	
 	{ 
 		try { 
-			return DATE_PARSER.parse(_date);
+			return DATE_PARSER.get().parse(_date);
 		} 
 		catch (Exception e) { 
 			_log.error("EXCEPTION parsing date " + _date + " for news item with url " + getURL(), e);

@@ -10,6 +10,7 @@ import newsrack.archiver.Feed;
  */
 public abstract class NewsIndex implements java.io.Serializable
 {
+	abstract public Long getKey();
 	abstract public Feed getFeed();
 	abstract public Timestamp getCreationTime();
 }

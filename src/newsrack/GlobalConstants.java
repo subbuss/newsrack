@@ -97,7 +97,7 @@ public final class GlobalConstants
 
 	public static final SimpleDateFormat DF = new SimpleDateFormat("MMM dd yyyy kk:mm z");
 
-	protected static void startup(ServletContext sc, String resourcesFile)
+	public static void startup(ServletContext sc, String resourcesFile)
 	{
 		_log.info("ENTERED INIT: initialized - " + _initialized);
 		if (_initialized) {
