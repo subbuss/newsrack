@@ -476,6 +476,8 @@ public class Issue implements java.io.Serializable
 
 	public void setNumArticles(int n) { _numArticles = n; }
 
+	public void setNumItemsSinceLastDownload(int n) { _numItemsSinceLastDownload = n; }
+
 	public int getNumItemsSinceLastDownload() { return _numItemsSinceLastDownload; }
 
 	public Date getLastUpdateTime() { return _lastUpdateTime; }
@@ -590,7 +592,7 @@ public class Issue implements java.io.Serializable
 		List l = new ArrayList();
 		for (Source s: getMonitoredSources()) {
 			try {
-				l.addAll(s.readSource());
+				l.addAll(s.read());
 			}
 			catch (Exception e) {
 				_log.error("Error downloading news for source " + s.getFeed().getTag(), e);
@@ -1029,7 +1031,6 @@ public class Issue implements java.io.Serializable
 
 	public void storeNewsToArchive()
 	{
-		//updateRSSFeed();
 		_db.commitNewsToArchive(this);
 	}
 

@@ -20,7 +20,7 @@ class SQL_IssueStub extends Issue
 	Long    _userKey;
 	boolean _loaded;
 
-	public SQL_IssueStub(Long key, Long userKey, String name, int numArts, Date lut, boolean isValidated, boolean isFrozen, boolean isPrivate, String taxoPath)
+	public SQL_IssueStub(Long key, Long userKey, String name, int numArts, Date lut, boolean isValidated, boolean isFrozen, boolean isPrivate, String taxoPath, int numNew)
 	{
 		super(name, isValidated, isFrozen, isPrivate);
 
@@ -29,6 +29,7 @@ class SQL_IssueStub extends Issue
 		super.setNumArticles(numArts);
 		super.setLastUpdateTime(lut);
 		super.setTaxonomyPath(taxoPath);
+		super.setNumItemsSinceLastDownload(numNew);
 		_loaded = false;
 	}
 

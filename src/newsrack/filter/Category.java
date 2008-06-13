@@ -254,6 +254,8 @@ public class Category implements Comparable, java.io.Serializable
 
 	public void setNumArticles(int n) { _numArticles = n; }
 
+	public void setNumItemsSinceLastDownload(int n) { _numItemsSinceLastDownload = n; }
+
 	public int getNumItemsSinceLastDownload() { return _numItemsSinceLastDownload; }
 
 	public Date getLastUpdateTime() { return _lastUpdateTime; }

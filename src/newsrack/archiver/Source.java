@@ -128,11 +128,11 @@ public class Source implements java.io.Serializable
 	 * Read the source, store it locally, and download all the news items available
 	 * with the source!  At this time, only RSS feed sources are supported.
 	 */
-	public Collection<NewsItem> readSource() throws Exception
+	public Collection<NewsItem> read() throws Exception
 	{
 		if (_feed != null) {
 			if (_log.isInfoEnabled()) _log.info("RSS source is: " + this);
-			return _feed.readFeed();
+			return _feed.fetch();
 		}
 		else {
 			if (_log.isErrorEnabled()) _log.error("Ignoring source " + this + ". It has no rss feed");

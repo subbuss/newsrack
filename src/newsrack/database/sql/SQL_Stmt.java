@@ -127,7 +127,7 @@ class GetIssueResultProcessor extends AbstractResultProcessor
 {
 	public Object processResultSet(ResultSet rs) throws SQLException
 	{
-		return new SQL_IssueStub(rs.getLong(1), rs.getLong(2), rs.getString(3), rs.getInt(4), rs.getTimestamp(5), rs.getBoolean(6), rs.getBoolean(7), rs.getBoolean(8), rs.getString(9));
+		return new SQL_IssueStub(rs.getLong(1), rs.getLong(2), rs.getString(3), rs.getInt(4), rs.getTimestamp(5), rs.getBoolean(6), rs.getBoolean(7), rs.getBoolean(8), rs.getString(9), rs.getInt(10));
 	}
 }
 
@@ -293,7 +293,8 @@ class GetCategoryResultProcessor extends AbstractResultProcessor
 			c.setLastUpdateTime(rs.getTimestamp(9));
 			if (!_buildRuleTree) /* In the build rule tree case, the issue info will be set elsewhere */
 				((SQL_CategoryStub)c).setIssueKey(rs.getLong(7));
-			c.setTaxonomyPath(rs.getString(10));
+			c.setNumItemsSinceLastDownload(rs.getInt(10));
+			c.setTaxonomyPath(rs.getString(11));
 		}
 
 		if (_buildTaxonomy) {
@@ -488,7 +489,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATS_FOR_NEWSITEM(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
+		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.num_new_articles, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -679,7 +680,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_CATS_FOR_ISSUE(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE t_key = ? AND valid = true",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -871,7 +872,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CATEGORY(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE cat_key = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE cat_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -879,7 +880,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NESTED_CATS(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, t_key, num_articles, last_update, taxonomy_path FROM categories WHERE parent_cat = ?",
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE parent_cat = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -1067,8 +1068,8 @@ public enum SQL_Stmt
       SQL_StmtType.UPDATE
 	),
 	UPDATE_ARTCOUNT_FOR_TOPIC(
-		"UPDATE topics SET num_articles = ?, last_update = ? WHERE t_key = ?",
-      new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
+		"UPDATE topics SET num_articles = ?, last_update = ?, num_new_articles = ? WHERE t_key = ?",
+      new SQL_ValType[] {INT, TIMESTAMP, INT, LONG}, 
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_TOPIC_VALID_STATUS(
@@ -1092,8 +1093,8 @@ public enum SQL_Stmt
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CAT_NEWS_INFO(
-		"UPDATE categories SET num_articles = ?, last_update = ? WHERE cat_key = ?",
-      new SQL_ValType[] {INT, TIMESTAMP, LONG}, 
+		"UPDATE categories SET num_articles = ?, last_update = ?, num_new_articles = ? WHERE cat_key = ?",
+      new SQL_ValType[] {INT, TIMESTAMP, INT, LONG}, 
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_FILTER(

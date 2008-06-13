@@ -269,7 +269,7 @@ public class Feed implements java.io.Serializable
 	 * the news items referenced in the feed.
 	 * @returns a list of all downloaded news items
 	 */
-	public List<NewsItem> readFeed() throws Exception
+	public List<NewsItem> fetch() throws Exception
 	{
 		List<NewsItem> newsItems = new ArrayList<NewsItem>();
 
@@ -530,11 +530,7 @@ public class Feed implements java.io.Serializable
 			if (origPw != null) origPw.close();
 			if (filtPw != null) filtPw.close();
 			if (_log.isInfoEnabled()) _log.info(" ... FAILED!");
-			if (_log.isErrorEnabled()) {
-				_log.error("Exception downloading news item : " + se.getLink().trim());
-				_log.error("Exception is : " + e);
-				e.printStackTrace();
-			}
+			_log.error("Exception downloading news item : " + se.getLink().trim(), e);
 
 			return null;
 		}

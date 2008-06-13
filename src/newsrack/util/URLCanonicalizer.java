@@ -20,8 +20,11 @@ public class URLCanonicalizer
 	public static String canonicalize(String url)
 	{
 		if (url.indexOf("google.com/") != -1) {
-			url = url.substring(url.lastIndexOf("http://"));
-			url = url.substring(0, url.lastIndexOf("&cid="));
+			int proxyUrlStart = url.lastIndexOf("http://");
+			if (proxyUrlStart != -1) {
+				url = url.substring(proxyUrlStart);
+				url = url.substring(0, url.lastIndexOf("&cid="));
+			}
 		}
 		// Do not use 'else if'
 		if (!url.startsWith("http://uni.medhas.org")) {

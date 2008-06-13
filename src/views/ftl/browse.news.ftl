@@ -128,7 +128,7 @@ function toggleCheckBoxes(divObj)
 	[#if Parameters.count?exists] <input type="hidden" name="count" value="${Parameters.count}"> [/#if]
 	[#if cat?exists]
 <input type="hidden" name="catID" value="${cat.catId}">
-<input type="hidden" name="globalCatKey" value="${cat.key}">
+<input type="hidden" name="globalCatKey" value="${cat.key?c}">
 	[/#if]
 [/#if]
         [#-- DISPLAY THE HEADER --]
@@ -216,7 +216,7 @@ newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.date)}';
 <script src="http://www.newstrust.net/js/submit_story.js" type="text/javascript"></script>
          [/#if]
 			[#if dispDelFlag]
-				<input class="delbox" type="checkbox" name="key${nc}" value="${ni.key}">
+				<input class="delbox" type="checkbox" name="key${nc}" value="${ni.key?c}">
 			[/#if]
 			[#if url == ""]
 				${storyTitle}

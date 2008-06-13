@@ -922,6 +922,7 @@ public class SQL_DB extends DB_Interface
 	{
 		IOUtils.createDir(getUserHome(u));
 		IOUtils.createDir(getFileUploadArea(u));
+		IOUtils.createDir(getUserSpaceWorkDir(u));
 		u.setKey((Long)INSERT_USER.execute(new Object[]{u.getUid(), u.getPassword(), u.getName(), u.getEmail()}));
 	}
 
@@ -1908,7 +1909,7 @@ public class SQL_DB extends DB_Interface
 		Date lut = cat.getLastUpdateTime();
 		if (lut != null)
 			lut = new Timestamp(lut.getTime());
-		UPDATE_CAT_NEWS_INFO.execute(new Object[] {cat.getNumArticles(), lut, cat.getKey()});
+		UPDATE_CAT_NEWS_INFO.execute(new Object[] {cat.getNumArticles(), lut, cat.getNumItemsSinceLastDownload(), cat.getKey()});
 
 			// Remove pertinent cached entries for this category!
 			// The issue and user objects are being removed because they
@@ -1945,7 +1946,7 @@ public class SQL_DB extends DB_Interface
 		i.setNumArticles(n);
 
 		if (_log.isDebugEnabled()) _log.debug("Setting article count for issue " + i.getName() + ":" + i.getKey() + ": to " + n);
-		UPDATE_ARTCOUNT_FOR_TOPIC.execute(new Object[] {n, new Timestamp(i.getLastUpdateTime().getTime()), i.getKey()});
+		UPDATE_ARTCOUNT_FOR_TOPIC.execute(new Object[] {n, new Timestamp(i.getLastUpdateTime().getTime()), i.getNumItemsSinceLastDownload(), i.getKey()});
 	}
 
 	/**

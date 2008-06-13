@@ -49,7 +49,7 @@ public class DownloadNewsTask extends TimerTask
          while (!done && (count < MAX_ATTEMPTS)) {
             try {
                count++;
-               sNews = feed.readFeed();
+               sNews = feed.fetch();
                done = true;
             }
             catch (Exception e) {
@@ -108,10 +108,12 @@ public class DownloadNewsTask extends TimerTask
 							continue;
 						}
 
-						_i.scanAndClassifyNewsItems(f, _downloadedNews.get(f._feedUrl));
+         			Collection sNews = _downloadedNews.get(f._feedUrl);
+						if (sNews != null)
+							_i.scanAndClassifyNewsItems(f, sNews);
 					}
 					catch (Exception e) {
-						e.printStackTrace();
+						_log.error("Exception classifying news for source: " + s.getName() + " for issue: " + _i.getName() + " for user: " + _i.getUser().getUid(), e);
 					}
 				}
 				 
@@ -250,9 +252,25 @@ public class DownloadNewsTask extends TimerTask
 			}
 
             // Loop until all the download tasks are complete
+			int noChangeIntervals = 0;
+			int prev              = 0;
          while (_completedDownloadsCount < feedCount) {
             StringUtils.sleep(30);
             _log.info(" ... FDT: WAITING ... " + _completedDownloadsCount + " of " + feedCount + " completed ...");
+
+				if (_completedDownloadsCount == prev) {
+					noChangeIntervals++;
+
+						// Abort download if we have passed 30 minutes without making any progress
+					if (noChangeIntervals == 60) {
+						_log.error("No progress in news download for last 30 minutes ... Aborting download phase!");
+						break;
+					}
+				}
+				else {
+					prev = _completedDownloadsCount;
+					noChangeIntervals = 0;
+				}
          }
 
             // Shut down the download thread pool .. if interrupted, the method will return false .. end execution in that case!
@@ -262,35 +280,43 @@ public class DownloadNewsTask extends TimerTask
 				// Create a thread pool for processing downloaded articles
       	tpool = Executors.newFixedThreadPool(CLASSIFY_MAX_THREADS);
 
-            // Parse and classify news for each of the users
          int issueCount = 0;
          Collection<User> users = User.getAllUsers();
 			for (User u: users) {
-				try {
-					u.doPreDownloadBookkeeping();
-					Collection<Issue> issues = u.getIssues();
-					if (issues != null) {
-						for (Issue i: issues) {
-							tpool.execute(new NewsClassifier(i));
-							issueCount++;
-						}
-					}
-				}
-				catch (Exception e) {
-					_log.error("Exception trying to initiate classify for user " + u.getUid(), e);
-				}
+				try { u.doPreDownloadBookkeeping(); } catch (Exception e) { _log.error("ERROR:", e); }
+			}
+
+            // Parse and classify news for every validated issue 
+      	List<Issue> issues = User.getAllValidatedIssues();
+			for (Issue i: issues) {
+				tpool.execute(new NewsClassifier(i));
+				issueCount++;
          }
 
             // loop until all the news classifier tasks are complete
+			noChangeIntervals = 0;
+			prev              = 0;
          while (_completedIssuesCount < issueCount) {
             StringUtils.sleep(30);
             _log.info(" ... NCT: WAITING ... " + _completedIssuesCount + " of " + issueCount + " completed ...");
+
+				if (_completedIssuesCount == prev) {
+					noChangeIntervals++;
+
+						// Abort filtering if we have passed 30 minutes without making any progress
+					if (noChangeIntervals == 60) {
+						_log.error("No progress in news filtering for last 30 minutes ... Aborting filtering phase!");
+						break;
+					}
+				}
+				else {
+					prev = _completedIssuesCount;
+					noChangeIntervals = 0;
+				}
          }
             
-			for (User u: users) {
+			for (User u: users)
             u.doPostDownloadBookkeeping();
-            if (_log.isInfoEnabled()) _log.info("For user " + u.getUid() + " DNT DONE");
-			}
 
 				// Shut down the thread pool
 			shutDownThreadPool(tpool);
@@ -304,9 +330,6 @@ public class DownloadNewsTask extends TimerTask
 
             // 8. Enable GC to reclaim memory!
          _downloadedNews = null;
-
-            // 9. Update lists for purposes of browse listings
-         newsrack.web.BrowseAction.setIssueUpdateLists();
       }
    }
 }

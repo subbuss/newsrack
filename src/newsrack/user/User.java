@@ -851,9 +851,6 @@ public class User implements java.io.Serializable
 
 	public void doPreDownloadBookkeeping() throws Exception
 	{
-			/* This happens when the server is overloaded ... reading of news index files
-			 * and building of news objects if taking a long time ... browser/user can't
-			 * wait any longer and resubmits the request! */
 		if (_downloadInProgress)
 			throw new Exception("Download in Progress. Duplicate Request!");
 

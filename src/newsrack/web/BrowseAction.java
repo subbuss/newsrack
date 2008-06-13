@@ -32,6 +32,7 @@ public class BrowseAction extends BaseAction
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy kk:mm z");
 
 		// FIXME:  Pick some other view scheme than this!
+	private static Date        _lastUpdateTime;
    private static List<Issue> _updatesMostRecent;
    private static List<Issue> _updatesLast24Hrs;
    private static List<Issue> _updatesMoreThan24Hrs;
@@ -57,6 +58,7 @@ public class BrowseAction extends BaseAction
       _updatesMostRecent    = l1;
       _updatesLast24Hrs     = l2;
       _updatesMoreThan24Hrs = l3;
+		_lastUpdateTime       = new Date();
    }
 
 	private User   _user;
@@ -117,8 +119,8 @@ public class BrowseAction extends BaseAction
 		if (uid == null) {
 			String srcId = getParam("srcId");
 			if (srcId == null) {
-					// No uid, no source params -- send them to the top-level browse page!
-				if (_updatesMostRecent == null)
+				// No uid, no source params -- send them to the top-level browse page!
+				if ((_updatesMostRecent == null) || _lastUpdateTime.before(ldt))
 					setIssueUpdateLists();
 
 				return "browse.main";

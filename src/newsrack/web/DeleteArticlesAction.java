@@ -25,7 +25,6 @@ public class DeleteArticlesAction extends BaseAction
    private static Log _log = LogFactory.getLog(DeleteArticlesAction.class);	/* Logger for this action class */
 
 	private User     _user;
-	private User     _issueOwner;
 	private Issue    _issue;
 	private Category _currCat;
 	private List<Category> _catAncestors;
@@ -45,7 +44,7 @@ public class DeleteArticlesAction extends BaseAction
 
 	public User getUser() { return _user; }
 	public String getLastDownloadTime() { return _lastDownloadTime; }
-	public User getOwner() { return _issueOwner; } 
+	public User getOwner() { return _user; } 
 	public Issue getIssue() { return _issue; } 
 	public Category getCat() { return _currCat; } 
 	public List<Category> getCatAncestors() { return _catAncestors; }

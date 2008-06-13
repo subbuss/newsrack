@@ -113,7 +113,7 @@ public class OutputFeed implements java.io.Serializable
 			}
       }
 		_numItemsSinceLastDownload = numNewItems;
-		_newItemsSinceLastDownload    = new ArrayList();
+		_newItemsSinceLastDownload = new ArrayList();
 	}
 
 	public void readInCurrentRSSFeed()

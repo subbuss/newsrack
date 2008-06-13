@@ -164,6 +164,7 @@ create table if not exists topics (
    frozen       boolean      default false,
    private      boolean      default false,
 	taxonomy_path text        default null, /* taxonomy path for display on news listing pages */
+	num_new_articles int      default 0,
    primary key(t_key),
    constraint fk_topics_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_bin;
@@ -191,6 +192,7 @@ create table if not exists categories (
    last_update  timestamp default current_timestamp,
    num_articles int      default 0,
 	taxonomy_path text    default null, 	/* taxonomy path for display on news listing pages */
+	num_new_articles int  default 0,
    primary key(cat_key),
    index uid_issue_index(u_key, t_key),
    constraint fk_categories_1 foreign key(f_key) references cat_filters(f_key),
