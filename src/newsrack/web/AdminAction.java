@@ -17,9 +17,10 @@ public class AdminAction extends BaseAction
 {
    private static final Log log = LogFactory.getLog(AdminAction.class); /* Logger for this action class */
 
+/**
 	private User _user;
-
 	private User getUser() { return _user; }
+**/
 
    private User getAdmin()
    {
@@ -54,8 +55,9 @@ public class AdminAction extends BaseAction
 			log.info("ADMIN: Signed in as user " + u.getUid());
 
 				// Record the new user info in the action class
+			_session.put(GlobalConstants.UID_KEY, u.getUid());
+			_session.put(GlobalConstants.USER_KEY, u);
 			_user = u;
-			_session.put(GlobalConstants.USER_KEY, _user);
 			return Action.SUCCESS;
 		}
 		catch (final Exception e) {

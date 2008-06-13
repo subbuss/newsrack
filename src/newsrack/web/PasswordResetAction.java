@@ -16,9 +16,10 @@ public class PasswordResetAction extends BaseAction
 {
    private static final Log _log = LogFactory.getLog(PasswordResetAction.class); /* Logger for this action class */
 
+/**
 	private User _user;
-
 	public User getUser() { return _user; }
+**/
 
 	public void validateSendPasswordResetKey()
 	{
@@ -69,6 +70,7 @@ public class PasswordResetAction extends BaseAction
 		}
 
 			// All is well!
+		_session.put(GlobalConstants.UID_KEY, u.getUid());
       _session.put(GlobalConstants.USER_KEY, u);
 		return Action.SUCCESS;
 	}

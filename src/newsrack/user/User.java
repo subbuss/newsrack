@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.lang.String;
+import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -389,9 +390,14 @@ public class User implements java.io.Serializable
 	/**
 	 * Gets the active profile
 	 */
-	public String getLastDownloadTime()
+	public String getLastDownloadTime_String()
 	{ 
-		return GlobalConstants.DF.format(newsrack.archiver.DownloadNewsTask.getLastDownloadTime());
+		return GlobalConstants.DF.format(getLastDownloadTime());
+	}
+
+	public Date getLastDownloadTime()
+	{ 
+      return newsrack.archiver.DownloadNewsTask.getLastDownloadTime();
 	}
 
 	public String getWorkDir() { return _workDir; }

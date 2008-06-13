@@ -138,7 +138,7 @@ function toggleCheckBoxes(divObj)
 			<div class="catpath"> Category: [#call displayAncestors(catAncestors)] <span class="impHdrElt">${cat.name}</span> </div>
 			<div class="statusline">
 [#assign numNew = cat.numItemsSinceLastDownload]
-[#if (numNew>0)]
+[#if (numNew>0) && cat.lastUpdateTime?exists && lastUpdateTime?exists && cat.lastUpdateTime.after(lastUpdateTime)]
 			<span class="newartcount">${numNew} new</span> since ${lastDownloadTime}
 [#else]
 	[#if cat.lastUpdateTime?exists]

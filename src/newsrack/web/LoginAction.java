@@ -37,7 +37,9 @@ public class LoginAction extends BaseAction
       String pass = getParam("password");
 
 		try {
+				// FIXME: Get rid of the user object from the session!
 			User u = User.signInUser(uid, pass);
+			_session.put(GlobalConstants.UID_KEY, u.getUid());
 			_session.put(GlobalConstants.USER_KEY, u);
 			if (u.isAdmin())
 				return "admin.login";

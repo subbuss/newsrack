@@ -32,10 +32,10 @@ public class BrowseAction extends BaseAction
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy kk:mm z");
 
 		// FIXME:  Pick some other view scheme than this!
-	private static Date        _lastUpdateTime;
-   private static List<Issue> _updatesMostRecent;
-   private static List<Issue> _updatesLast24Hrs;
-   private static List<Issue> _updatesMoreThan24Hrs;
+	private static Date        _lastUpdateTime = null;
+   private static List<Issue> _updatesMostRecent = null;
+   private static List<Issue> _updatesLast24Hrs = null;
+   private static List<Issue> _updatesMoreThan24Hrs = null;
 
 		// Caching!
    public static void setIssueUpdateLists()
@@ -47,9 +47,9 @@ public class BrowseAction extends BaseAction
       List<Issue> issues = User.getAllValidatedIssues();
 		for (Issue i: issues) {
          int n = i.getNumItemsSinceLastDownload();
-         if (n > 0)
+         if ((n > 0) && (_lastUpdateTime != null))
             l1.add(i);
-         else if ((n == 0) && i.updatedWithinLastNHours(24))
+         else if (i.updatedWithinLastNHours(24))
             l2.add(i);
          else
             l3.add(i);
@@ -81,13 +81,9 @@ public class BrowseAction extends BaseAction
 		/* News list to be displayed */
 	private Collection<NewsItem> _news;
 
-/**
-	private int _start;
-	private int _count;   
-**/
-
 	public User getUser() { return _user; }
 	public String getLastDownloadTime() { return _lastDownloadTime; }
+	public Date   getLastUpdateTime()   { return _lastUpdateTime; }
 	public Collection<NewsItem> getNews() { return _news; }
 
 	public User getOwner() { return _issueOwner; } 
@@ -152,11 +148,6 @@ public class BrowseAction extends BaseAction
 			if (_news == null)
 				_news = new ArrayList<NewsItem>();
 
-/**
-			// FIXME: Is this required?? -- perhaps this will already be available!
-			_start = getParam("start"); // Starting index from where news should be displayed
-			_count = getParam("count"); // Number of news items that should be displayed on this page
-**/
 			return "browse.source";
 		}
 		else {
@@ -203,12 +194,6 @@ public class BrowseAction extends BaseAction
 					ancestors.addFirst(c);
 			}
 			_catAncestors = ancestors;
-
-	/**
-				// FIXME: Is this required?? -- perhaps this will already be available!
-			_start = getParam("start"); // Starting index from where news should be displayed
-			_count = getParam("count"); // Number of news items that should be displayed on this page
-	**/
 
 				// Display news in the current category in the current issue
 			return _cat.isLeafCategory() ? "browse.news" : "browse.cat";

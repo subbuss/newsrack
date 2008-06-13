@@ -103,8 +103,12 @@ public class DeleteArticlesAction extends BaseAction
 		}
 
          // Now, delete all the news items that have been marked
-      if (gCatKey != -1)
+      if (gCatKey != -1) {
 			Category.deleteNewsItems(gCatKey, keys);
+            // Refresh the user object!
+            // Without this, the fetched issue in the code below will be stale
+		   _user = getSessionUser();
+      }
 
          // Now, send the user back to the same query page from where this action was initiated!
 		java.util.Date ldt = newsrack.archiver.DownloadNewsTask.getLastDownloadTime();

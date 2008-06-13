@@ -507,6 +507,10 @@ public class SQL_DB extends DB_Interface
 	public void updateUser(User u) 
 	{ 
 		UPDATE_USER.execute(new Object[]{u.getPassword(), u.getName(), u.getEmail(), u.isValidated(), u.getKey()});
+
+			// Clear the cache
+		_cache.remove(u.getKey(), User.class);
+		_cache.remove(u.getUid(), User.class);
 	}
 
 	/**
@@ -516,6 +520,8 @@ public class SQL_DB extends DB_Interface
 	public void updateFeedCacheability(Feed f)
 	{
 		UPDATE_FEED_CACHEABILITY.execute(new Object[] {f.getCacheableFlag(), f.getCachedTextDisplayFlag(), f.getKey()});
+
+		_cache.remove(f.getKey(), Feed.class);
 	}
 
 	/**
@@ -1920,6 +1926,7 @@ public class SQL_DB extends DB_Interface
 		_cache.remove(i.getKey(), Issue.class);
 		_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
 		_cache.remove(u.getKey(), User.class);
+		_cache.remove(u.getUid(), User.class);
 	}
 
 	private int updateArtCountsForCat(Category cat)

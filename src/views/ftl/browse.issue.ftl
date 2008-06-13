@@ -1,6 +1,6 @@
 [#ftl]
 [#assign issueName = issue.name]
-[#assign ownerID = owner.uid]
+[#assign ownerID   = owner.uid]
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
@@ -30,7 +30,7 @@
 			<br /><br />
 			<div class="statusline">
 [#assign numNew = issue.numItemsSinceLastDownload]
-[#if (numNew>0)]
+[#if (numNew>0) && issue.lastUpdateTime?exists && lastUpdateTime?exists && issue.lastUpdateTime.after(lastUpdateTime)]
 			<span class="newartcount">${numNew} new</span> since ${lastDownloadTime}
 [#else]
 	[#if issue.lastUpdateTime?exists]
@@ -68,7 +68,7 @@
             </td>
             <td class="center">
   [#assign numNew = cat.numItemsSinceLastDownload] 
-	[#if (numNew>0)]
+  [#if (numNew>0) && cat.lastUpdateTime?exists && lastUpdateTime?exists && cat.lastUpdateTime.after(lastUpdateTime)]
 				(<span class="newartcount">${numNew} new</span>) &nbsp;
   [#else]
 				(None) &nbsp;

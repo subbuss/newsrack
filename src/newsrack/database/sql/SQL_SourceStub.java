@@ -63,10 +63,10 @@ class SQL_SourceStub extends Source
 		}
 	}
 
-	public Collection<NewsItem> readSource() throws Exception
+	public Collection<NewsItem> read() throws Exception
 	{
 		getFeed();
-		return super.readSource();
+		return super.read();
 	}
 
    public boolean getCacheableFlag()         { return _cacheable; }
