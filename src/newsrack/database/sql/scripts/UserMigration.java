@@ -1,5 +1,6 @@
-package newsrack;
+package newsrack.database.sql.scripts;
 
+import newsrack.GlobalConstants;
 import newsrack.user.User;
 import newsrack.filter.Issue;
 import newsrack.archiver.Feed;
@@ -108,7 +109,7 @@ public class UserMigration
 	public static void main(String[] args)
 	{
 		if (args.length < 2) {
-			System.out.println("Usage: java newsrack.UserMigration <properties-file> <action> [<other-optional-args>]");
+			System.out.println("Usage: java newsrack.database.sql.scripts.UserMigration <properties-file> <action> [<other-optional-args>]");
 			System.exit(0);
 		}
 

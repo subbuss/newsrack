@@ -50,7 +50,7 @@ fixup.user.dirs.pl $users_home < $user_table
 mysql -uroot -p newsrack_test < migrate.sql
 
 # 8. run the java program to migrate everything else!
-java newsrack.UserMigration migration.properties migrate
+java newsrack.database.sql.scripts.UserMigration migration.properties migrate
 
 # 9. fixup category keys
 $mysql_client < migrate.categories.sql
@@ -59,7 +59,7 @@ $mysql_client < migrate.categories.sql
 $mysql_client < remove.news_index.duplicates.sql
 
 # 11. update article counts for categories & topics
-java newsrack.UserMigration migration.properties update
+java newsrack.database.sql.scripts.UserMigration migration.properties update
 
 # 12. fixup timestamps for categories & topics 
 $mysql_client < fixup.timestamps.sql

@@ -6,22 +6,22 @@
     Configuration file for UrlRewriteFilter
     http://tuckey.org/urlrewrite/
 -->
-<urlrewrite>
+<urlrewrite use-query-string="true">
   <!-- ###################################################################### 
        The first set of rules match urls from the current installation and
 		 sends a 301 permanent redirect to the new urls.  This should ensure
 		 that all old urls seamless work
        ###################################################################### -->
   <rule>
-    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
-    <from>^/Browse.do(.*)$</from>
-	 <to type="permanent-redirect">%{context-path}/browse$1</to>
+    <note> Generic rewriting rule!  Issue a 301 redirect </note>
+    <from>^/DisplayNewsItem\.do(.*)</from>
+	 <to type="permanent-redirect">%{context-path}/news/display$1</to>
   </rule>
 
   <rule>
-    <note> Generic rewriting rule!  Issue a 301 redirect </note>
-    <from>^/DisplayNewsItem.do(.*)</from>
-	 <to type="permanent-redirect">%{context-path}/news/display$1</to>
+    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
+    <from>^/Browse\.do(.*)?$</from>
+	 <to type="permanent-redirect">%{context-path}/browse$1</to>
   </rule>
 
   <rule>
@@ -76,13 +76,19 @@
   </rule>
 
   <rule>
-    <note> Generic rewrite that appends the ".action" -- with url parameters</note>
+    <note> 
+	    Generic rewrite that appends the ".action" -> with url parameters
+		 I am doing some gymnastics here to avoid .css and .js file requests from being rewritten!
+	  </note>
     <from>^/([^\.]+)\?(.+)$</from>
-	 <to>/$1.action$2</to>
+	 <to>/$1.action?$2</to>
   </rule>
 
   <rule>
-    <note> Generic rewrite that appends the ".action" -- without url parameters </note>
+    <note> 
+	    Generic rewrite that appends the ".action" -> without url parameters 
+		 I am doing some gymnastics here to avoid .css and .js file requests from being rewritten!
+	 </note>
     <from>^/([^\.]+)/?$</from>
 	 <to>/$1.action</to>
   </rule>
