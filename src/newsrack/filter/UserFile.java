@@ -16,8 +16,6 @@ import java.util.Hashtable;
 
 public class UserFile
 {
-	public static Hashtable _allFiles = new Hashtable();	// All files that have been parsed so far
-
 	public final User       _user;		// The user in whose space this file exists
 	public final String 	   _name;		// Name of the file
 

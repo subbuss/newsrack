@@ -20,7 +20,9 @@
       <!-- Simple stack without authentication -->
       <interceptor-stack name="simpleStack">
         <interceptor-ref name="servletConfig" /> 
+		  <!--
         <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+		  -->
         <interceptor-ref name="conversionError" /> 
         <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
         <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
@@ -29,7 +31,9 @@
       <!-- Simple stack with authentication -->
       <interceptor-stack name="simpleLoginStack">
         <interceptor-ref name="servletConfig" /> 
+		  <!--
         <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+		  -->
         <interceptor-ref name="login" />
         <interceptor-ref name="conversionError" /> 
         <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
@@ -40,7 +44,9 @@
       <interceptor-stack name="simpleLoginFileStack">
         <interceptor-ref name="servletConfig" /> 
         <interceptor-ref name="fileUpload" />         
+		  <!--
         <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+		  -->
         <interceptor-ref name="login" />
         <interceptor-ref name="conversionError" /> 
         <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>

@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import newsrack.filter.Concept;
 import newsrack.filter.ConceptToken;
+import newsrack.filter.NR_ConceptCollection;
 
 public class SQL_ConceptStub extends Concept
 {
@@ -12,7 +13,18 @@ public class SQL_ConceptStub extends Concept
 	{
 		super(name, defnString);
 		setKey(key);
-		setLexerToken(new ConceptToken(token));
+		if ((token != null) && !token.equals(""))
+			setLexerToken(new ConceptToken(token));
+	}
+
+	public NR_ConceptCollection getCollection()
+	{
+		NR_ConceptCollection c = super.getCollection();
+		if (c == null) {
+			c = (NR_ConceptCollection)SQL_Stmt.GET_COLLECTION_FOR_CONCEPT.execute(new Object[]{c.getKey()});
+			super.setCollection(c);
+		}
+		return c;
 	}
 
 	public Iterator getKeywords() {

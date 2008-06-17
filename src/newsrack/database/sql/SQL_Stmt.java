@@ -172,7 +172,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 	public Object processResultSet(ResultSet rs) throws SQLException
 	{
 			// IMPORTANT: processResultSet methods *should complete* WITHOUT attempting 
-			// to acquire additional db resources!  Otherwise, we  will deadlock.
+			// to acquire additional db resources!  Otherwise, we could deadlock.
 		_interimResults.add(new Object[] {rs.getLong(1), rs.getString(2), rs.getString(3), rs.getLong(4)});
 		if (_getUserKey)
 			_userKey = rs.getLong(5);
@@ -181,6 +181,10 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 
 	private RuleTerm buildRuleTree(Long termKey, Map<Long, Object[]> rtMap, Map<Long, List> contextMap)
 	{
+			// rtVals[0] -- rule term key
+			// rtVals[1] -- rule term type
+			// rtVals[2] -- arg 1 key
+			// rtVals[3] -- arg 2 key
 		Object[] rtVals = rtMap.get(termKey);
 		FilterOp op     = Filter.getTermType((Integer)rtVals[1]);
 		switch(op) {
@@ -210,13 +214,17 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 
 	private Filter buildFilter(Object[] sqlRowVals)
 	{
+			// sqlRowVals[0] is the filter key
 		List<Object[]>      ruleTerms = (List<Object[]>)SQL_Stmt.GET_FILTER_TERMS.execute(new Object[] {(Long)sqlRowVals[0]});
 		Map<Long, List>     ctxtMap   = new HashMap<Long, List>();
 		Map<Long, Object[]> rtMap     = new HashMap<Long, Object[]>();
+			// rtVals[0] -- rule term key
+			// rtVals[1] -- rule term type
+			// rtVals[2] -- arg 1 key
+			// rtVals[3] -- arg 2 key
 		for (Object[] rtVals: ruleTerms) {
 			rtMap.put((Long)rtVals[0], rtVals);
-				// Set up context concept lists for those rule term tuples 
-				// for which the op-type value is -1
+				// Set up context concept lists for those rule term tuples for which the op-type value is -1
 			if (((Integer)rtVals[1]) == -1) {
 				List context = ctxtMap.get((Long)rtVals[2]);
 				if (context == null) {
@@ -227,6 +235,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 			}
 		}
 
+			// sqlRowVals[1] -- name; sqlRowVals[2] -- rule_string; sqlRowVals[3] -- rule_key
 		return new Filter((String)sqlRowVals[1], (String)sqlRowVals[2], buildRuleTree((Long)sqlRowVals[3], rtMap, ctxtMap));
 	}
 
@@ -280,7 +289,7 @@ class GetCategoryResultProcessor extends AbstractResultProcessor
 	public Object processResultSet(ResultSet rs) throws SQLException
 	{
 			// IMPORTANT: processResultSet methods *should complete* WITHOUT attempting
-			// to acquire additional db resources!  Otherwise, we will deadlock.
+			// to acquire additional db resources!  Otherwise, we could deadlock.
 		_userKey = rs.getLong(6);
 		long filtKey = rs.getLong(5);
 		if (filtKey == 0)
@@ -743,6 +752,14 @@ public enum SQL_Stmt
 		new GetCollectionResultProcessor(),
 		false
 	),
+	GET_COLLECTION_FOR_CONCEPT(
+	   "SELECT c.* from user_collections c, collection_entries ce WHERE c.coll_key = ce.coll_key AND ce.entry_key = ?",
+      new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetCollectionResultProcessor(),
+		false
+	),
    GET_ALL_FILES_BY_USER_KEY(
       "SELECT file_name FROM user_files WHERE u_key = ? ORDER BY add_time",
       new SQL_ValType[] {LONG},
@@ -794,6 +811,14 @@ public enum SQL_Stmt
 	GET_CONCEPT(
 		"SELECT u_key, cpt_key, name, defn, token FROM concepts WHERE cpt_key = ?",
 		new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetConceptTupleResultProcessor(),
+		true
+	),
+	GET_MATCHING_CONCEPT(
+		"SELECT c.u_key, c.cpt_key, c.name, c.defn, c.token FROM concepts c, user_collections uc, collection_entries ce WHERE uc.u_key = ? AND uc.coll_name = ? AND uc.coll_type = 'CPT' AND uc.coll_key = ce.coll_key AND ce.entry_key = c.cpt_key AND c.name = ?",
+		new SQL_ValType[] {LONG, STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
 		new GetConceptTupleResultProcessor(),

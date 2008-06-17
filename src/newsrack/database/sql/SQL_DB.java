@@ -492,7 +492,11 @@ public class SQL_DB extends DB_Interface
 
 	public void updateConceptLexerToken(Concept c)
 	{
-		UPDATE_CONCEPT_TOKEN.execute(new Object[]{c.getLexerToken().getToken(), c.getKey()});
+		Long cKey = c.getKey();
+		if (cKey == null)
+			_log.error("ERROR! Looks like we have an uncommitted concept here!");
+		else
+			UPDATE_CONCEPT_TOKEN.execute(new Object[]{c.getLexerToken().getToken(), cKey});
 	}
 
 	/**
@@ -588,19 +592,18 @@ public class SQL_DB extends DB_Interface
 					Long   sKey = s.getKey();
 					if (sKey == null) {
 						Long fKey = s.getFeed().getKey();
+							// Check if there is some other matching source object in the DB
+							// This can happen because the same source can be part of multiple collections
+						sKey = getSourceKey(uKey, fKey, s.getTag());
 						if (sKey == null) {
-								// Check if there is some other matching source object in the DB
-							sKey = getSourceKey(uKey, fKey, s.getTag());
-							if (sKey == null) {
-								params[1] = fKey;
-								params[2] = s.getName(); 
-								params[3] = s.getTag();
-								params[4] = s.getCacheableFlag();
-								params[5] = s.getCachedTextDisplayFlag();
-								sKey = (Long)INSERT_USER_SOURCE.execute(params);
-							}
-							s.setKey(sKey);
+							params[1] = fKey;
+							params[2] = s.getName(); 
+							params[3] = s.getTag();
+							params[4] = s.getCacheableFlag();
+							params[5] = s.getCachedTextDisplayFlag();
+							sKey = (Long)INSERT_USER_SOURCE.execute(params);
 						}
+						s.setKey(sKey);
 					}
 					collParams[1] = s.getKey();
 					INSERT_ENTRY_INTO_COLLECTION.execute(collParams);
@@ -667,7 +670,7 @@ public class SQL_DB extends DB_Interface
 		if (_log.isDebugEnabled()) _log.debug("Add of concept " + userKey + ", " + c.getName() + ", " + c.getDefn());
 
 		Long cKey = c.getKey();
-		if ((cKey == null) || (cKey == -1)) {
+		if (cKey == null) {
 			StringBuffer sb = new StringBuffer();
 			Iterator it = c.getKeywords();
 			while (it.hasNext()) {
@@ -1314,23 +1317,36 @@ public class SQL_DB extends DB_Interface
 				Concept c = (Concept)op1;
 				op1Key = c.getKey();
 				if (op1Key == null) {
-					Long collKey = (Long)GET_COLLECTION_KEY.execute(new Object[]{uKey, c.getCollectionName(), NR_CollectionType.CONCEPT.toString()});
+					Long collKey = (Long)GET_COLLECTION_KEY.execute(new Object[]{uKey, c.getCollection().getName(), NR_CollectionType.CONCEPT.toString()});
 					op1Key  = (Long)GET_CONCEPT_KEY_FROM_USER_COLLECTION.execute(new Object[]{collKey, c.getName()});
-					if (op1Key == null)
+					if (op1Key == null) {
 						_log.error("ERROR! Unpersisted concept: " + op1);
+							// Trigger a null pointer exception!  Workaround to avoid declaring a throws clause everywhere
+							// if I use a throw here...  I know ... BAD SUBBU
+						_log.error("Dummy: " + op1Key.longValue());
+					}
 				}
 				break;
 
 			case LEAF_CAT:
 				op1Key = ((Category)op1).getKey();
-				if (op1Key == null)
+				if (op1Key == null) {
 					_log.error("ERROR! Unpersisted category: " + op1);
+						// Trigger a null pointer exception!  Workaround to avoid declaring a throws clause everywhere
+						// if I use a throw here...  I know ... BAD SUBBU
+					_log.error("Dummy: " + op1Key.longValue());
+				}
 				break;
 
 			case LEAF_FILTER:
 				op1Key = ((Filter)op1).getKey();
-				if (op1Key < 0)
+				if (op1Key < 0) {
 					_log.error("ERROR! Unpersisted filter: " + op1);
+						// Trigger a null pointer exception!  Workaround to avoid declaring a throws clause everywhere
+						// if I use a throw here...  I know ... BAD SUBBU
+					op1Key = null;
+					_log.error("Dummy: " + op1Key.longValue());
+				}
 				break;
 
 			case NOT_TERM:

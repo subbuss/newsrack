@@ -47,13 +47,13 @@ public class Concept implements java.io.Serializable
 	}
 
 // ############### NON-STATIC FIELDS AND METHODS ############
-			// (_collName, _name) uniquely identifies the concept
-	private Long         _key;				// Database key
-	private String       _collName;		// Name of the collection that this concept belongs to
-	private String		   _name;			// Name of the concept
-	private String       _defnString;	// Definition string for the concept
+			// (_collection, _name) uniquely identifies the concept
+	private Long    _key;			// Database key
+	private String	 _name;			// Name of the concept
+	private String  _defnString;	// Definition string for the concept
+	private List    _keywords;		// Keywords that specify the concept
+	private NR_ConceptCollection _collection;// Collection that this concept belongs to
 	private ConceptToken _lexerToken;	// Concept token for the lexer
-	private List         _keywords;		// Keywords that specify the concept
 
 	private int copyPredefinedKeyword(final StringBuffer re, int i, final char[] cs)
 	{
@@ -216,6 +216,7 @@ public class Concept implements java.io.Serializable
 	{
 		_key      = null;
 		_name     = name;
+		_lexerToken = null;
 		_keywords = new ArrayList();
 
 		StringBuffer defn = new StringBuffer();
@@ -258,14 +259,16 @@ public class Concept implements java.io.Serializable
 
 	public boolean equals(Object o)
 	{
-		if (o instanceof Concept) {
+		if ((o != null) && (o instanceof Concept)) {
 			Concept c = (Concept)o;
-			return c._collName.equals(_collName) && c._name.equals(_name);
+			return c._collection.equals(_collection) && c._name.equals(_name);
 		}
 		else {
 			return false;
 		}
 	}
+
+	public int hashCode() { return _name.hashCode() * 31 + _collection.hashCode() * 31; }
 
 	/**
 	 * This method prints the concept along with the
@@ -281,9 +284,9 @@ public class Concept implements java.io.Serializable
 		return sb.toString();
 	}
 
-	public void setCollectionName(String c) { _collName = c; }
+	public void setCollection(NR_ConceptCollection c) { _collection = c; }
 
-	public String getCollectionName() { return _collName; }
+	public NR_ConceptCollection getCollection() { return _collection; }
 
 	public Iterator getKeywords() { return _keywords.iterator(); }
 

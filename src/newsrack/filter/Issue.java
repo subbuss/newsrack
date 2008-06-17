@@ -694,19 +694,24 @@ public class Issue implements java.io.Serializable
 				// No conflict!
 			if (x == null) {
 				tokenMap.put(c.getName(), c);
-				c.setLexerToken(new ConceptToken(c.getName()));
-				_db.updateConceptLexerToken(c);
+
+					// IMPORTANT: If the lexer token is already set, don't reset it!
+					// Some other issue might have already set it to be a qualified name!
+				if (c.getLexerToken() == null) {
+					c.setLexerToken(new ConceptToken(c.getName()));
+					_db.updateConceptLexerToken(c);
+				}
 			}
-				// Conflict!!  Qualify with collection name
-				// Conflicts are expected to be rare ... so, not trying to optimize this code
+				// Conflict!!  Qualify with collection name ... conflicts are expected to be rare
 			else {
-				String xToken = x.getCollectionName() + ":" + x.getName();
-				String cToken = c.getCollectionName() + ":" + c.getName();
+				String xToken = x.getCollection().getName() + ":" + x.getName();
 				x.setLexerToken(new ConceptToken(xToken));
 				_db.updateConceptLexerToken(x);
+				tokenMap.put(xToken, x);
+
+				String cToken = c.getCollection().getName() + ":" + c.getName();
 				c.setLexerToken(new ConceptToken(cToken));
 				_db.updateConceptLexerToken(c);
-				tokenMap.put(xToken, x);
 				tokenMap.put(cToken, c);
 			}
 		}
@@ -948,10 +953,16 @@ public class Issue implements java.io.Serializable
 			User u = _user;
 			for (NewsItem ni: newsItems) {
 				if (skipProcessed) {
+					if (ni == null) {
+						_log.error("ERROR: Got null news item for feed: " + f.getTag());
+						continue;
+					}
+					else {
 						// Keep track of the max news id
-					long niKey = ni.getKey();
-					if (maxNewsId < niKey)
-						maxNewsId = niKey;
+						long niKey = ni.getKey();
+						if (maxNewsId < niKey)
+							maxNewsId = niKey;
+					}
 				}
 
 					// Ignore if it has already been processed!

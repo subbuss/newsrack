@@ -29,7 +29,7 @@
 		and create / validate your topics.
 		</p>
 
-		<#include "/ftl/monitoring.steps.ftl">
+		<#include "/ftl/help/monitoring.steps.ftl">
 	</@s.if>
 	<@s.else>
     <#assign issues=user.issues>

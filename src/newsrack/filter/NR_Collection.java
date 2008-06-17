@@ -42,6 +42,20 @@ public abstract class NR_Collection implements java.io.Serializable
 		_entries = entries;
 	}
 
+	public boolean equals(Object o)
+	{
+		if ((o != null) && (o instanceof NR_Collection)) {
+			NR_Collection c = (NR_Collection)o;
+			return _name.equals(c._name) && _type.equals(c._type) && _creator.equals(c._creator);
+		}
+		return false;
+	}
+
+	public int hashCode()
+	{
+		return _name.hashCode()*31 + _type.hashCode()*31 + _creator.hashCode()*31;
+	}
+
 	public void setKey(Long k) { _key = k; } 
 
 	public Long getKey() { return _key; } 

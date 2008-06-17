@@ -204,6 +204,10 @@ public class User implements java.io.Serializable
 		init(uname, pwd, initialized);
 	}
 
+	public boolean equals(Object o) { return (o != null) && (o instanceof User) && _uid.equals(((User)o)._uid); }
+
+	public int hashCode() { return _uid.hashCode(); }
+
 	/**
 	 * This method checks if the user is an administrator!
 	 */
@@ -308,13 +312,15 @@ public class User implements java.io.Serializable
 		_db.deleteFile(this, f);
 	}
 
-	public Iterator getFiles()
+	public List<String> getFileList()
 	{
 		if (_files == null)
 			loadUserFilesFromDB();
 
-		return _files.iterator();
+		return _files;
 	}
+
+	public Iterator getFiles() { return getFileList().iterator(); }
 
 	public boolean isValidated() { return _isInitialized; }
 

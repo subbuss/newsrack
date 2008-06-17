@@ -9,6 +9,9 @@ import java.util.HashMap;
 
 import newsrack.util.StringUtils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class Filter implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
@@ -22,6 +25,8 @@ public class Filter implements java.io.Serializable
 
 	public static FilterOp getTermType(int n) { return _termTypes[n]; }
 	public static int      getValue(FilterOp op) { return _typeMap.get(op); }
+
+   private static Log _log = LogFactory.getLog(Filter.class);
 
 	static { 
 		_termTypes = FilterOp.values(); 
@@ -49,7 +54,15 @@ public class Filter implements java.io.Serializable
 
 	public String getRuleString() { return _ruleString; }
 
-	public int getMatchCount(Hashtable matchCounts) { return _rule.getMatchCount(matchCounts); }
+	public int getMatchCount(Hashtable matchCounts) { 
+		try {
+			return _rule.getMatchCount(matchCounts); 
+		}
+		catch (Exception e) {
+			_log.error("Caught exception in match count for filter: " + _key + ": " + _ruleString, e);
+			return 0;
+		}
+	}
 
 	public void  collectUsedConcepts(Set<Concept> concepts) { _rule.collectUsedConcepts(concepts); } 
 
@@ -104,6 +117,15 @@ public class Filter implements java.io.Serializable
 
 		public int getMatchCount(final Hashtable matchCounts)
 		{
+			if (_concept == null) {
+				_log.error("Null concept in Leafconcept");
+			}
+			if (_concept.getLexerToken() == null) {
+				_log.error("Null lexer token for concept: " + _concept.getName());
+			}
+			if (_concept.getLexerToken().getToken() == null) {
+				_log.error("Null token for lexer token for concept: " + _concept.getName());
+			}
 			final Count mc    = (Count)matchCounts.get(_concept.getLexerToken().getToken());
 			final int   count = ((mc == null) ? 0 : mc.value());
 			return count;
@@ -288,7 +310,7 @@ public class Filter implements java.io.Serializable
 
 		public String toString()
 		{
-			return " (" + _lTerm.toString() + ((_op == FilterOp.AND_TERM) ? " AND " : " OR ") + _rTerm.toString() + ") ";
+			return "(" + _lTerm.toString() + ((_op == FilterOp.AND_TERM) ? " AND " : " OR ") + _rTerm.toString() + ")";
 		}
 
 		public void print()

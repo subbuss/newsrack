@@ -1,6 +1,7 @@
 %package "newsrack.filter.parser";
 
 %import "java.util.Hashtable";
+%import "java.util.HashMap";
 %import "java.util.Enumeration";
 %import "java.util.Iterator";
 %import "java.util.List";
@@ -35,12 +36,12 @@
 %class "NRLanguageParser";
 
 %embed {:
-	private User      _user;	// Current user
-	private String    _uid;		// Shortcut for _user.getUid()
-	private boolean   _isFirstPass;
-	private boolean   _haveUnresolvedRefs;
-	private UserFile  _currFile;
-	private Symbol    _currSym;
+   	// Logging output for this plug in instance.
+   static private Log _log = LogFactory.getLog(NRLanguageParser.class);
+		// Value to record name conflicts
+	static private final String NAME_CONFLICT = "NAME_CONFLICT";
+		// Returned to meet Beaver requirements
+	static private final Symbol DUMMY_SYMBOL = new Symbol("");
 
 	private class NRParserEvents extends Parser.Events
 	{
@@ -53,15 +54,22 @@
 		}
 	}
 
-   	// Logging output for this plug in instance.
-   static private Log _log = LogFactory.getLog(NRLanguageParser.class);
-		// Value to record name conflicts
-	static private final String NAME_CONFLICT = "";
-		// Returned to meet Beaver requirements
-	static private final Symbol DUMMY_SYMBOL = new Symbol("");
-
-	static private Stack 	_scopeStack; 	// Stack of parsing scopes!
-	static private Iterator _files;			// Iterator of the current user's files ... needed fo recursive parsing
+	private User      _user;					// Current user
+	private String    _uid;						// Shortcut for _user.getUid()
+	private boolean   _isFirstPass;
+	private boolean   _haveUnresolvedRefs;
+	private UserFile  _currFile;
+	private Symbol    _currSym;
+	private Stack 		_scopeStack; 			// Stack of parsing scopes!
+	private Iterator	_files;					// Iterator of the current user's files ... needed for recursive parsing
+		// These two hashmaps are used to implicitly represent a
+		// directed graph of user files where there is an edge from file A to file B
+		// if file A imports a collection from file B.  This graph is used to derive
+		// a topologically sorted order for parsing files so that all references get
+		// correctly resolved in a single second pass (if we end up with unresolved
+		// references in the first pass)
+	private HashMap   _collToFileMap;		// Collection name --> File that defines that collection
+	private HashMap   _fileToImportsMap;	// File --> List of imports in that file
 
 	private void parseFile(String f)
 	{
@@ -83,14 +91,17 @@
 		if (_log.isInfoEnabled()) INFO("***** End parse of file " + f + " ******");
 	}
 
-	private boolean parseFiles(boolean isFirstPass, boolean haveUnresolvedRefs, User u, Stack scopes, Iterator files)
+	private boolean parseFiles(boolean isFirstPass, boolean haveUnresolvedRefs, User u, Stack scopes, Iterator files, HashMap collToFileMap, HashMap fileImportsMap)
 	{
 		super.report = new NRParserEvents(); // Override the error reporting module
 		_user       = u;
 		_uid        = u.getUid();
 		_scopeStack = scopes;	// Set the scope stack
+		_collToFileMap      = collToFileMap;
+		_fileToImportsMap   = fileImportsMap;
 		_isFirstPass = isFirstPass;
 		_haveUnresolvedRefs = haveUnresolvedRefs;
+		_files = files;
 		while (files.hasNext())
 			parseFile((String)files.next());
 
@@ -101,7 +112,7 @@
   	{
 		if (_files.hasNext()) {
 			if (_log.isInfoEnabled()) INFO("***** BEGIN RECURSIVE PARSE *****");
-			_haveUnresolvedRefs = (new NRLanguageParser()).parseFiles(_isFirstPass, _haveUnresolvedRefs, _user, _scopeStack, _files);
+			_haveUnresolvedRefs = (new NRLanguageParser()).parseFiles(_isFirstPass, _haveUnresolvedRefs, _user, _scopeStack, _files, _collToFileMap, _fileToImportsMap);
 			if (_log.isInfoEnabled()) INFO("***** END RECURSIVE PARSE *****");
 			return true;
 		}
@@ -115,26 +126,85 @@
 		_isFirstPass        = true;
 		_haveUnresolvedRefs = false;
 		_scopeStack         = new Stack();
+		_collToFileMap      = new HashMap();
+		_fileToImportsMap   = new HashMap();
+		_files              = u.getFiles();
 		while(true) {
 				// Push a scope for the entire profile!  Collections & issues are visible across files
-				// If we are in the second pass, note that the 1st pass's scope will be on the stack and its contents will be accessible!
 			_scopeStack.push(new Scope());
 
-			_files = u.getFiles();
-
 				// Parse all the user's files now
-			parseFiles(_isFirstPass, _haveUnresolvedRefs, u, _scopeStack, _files);
+			parseFiles(_isFirstPass, _haveUnresolvedRefs, u, _scopeStack, _files, _collToFileMap, _fileToImportsMap);
 
 				// Check if we need to do a second pass!
-			if (_isFirstPass && _haveUnresolvedRefs) {
-				_log.info("PASS 2 will begin now ... stack size is: " + _scopeStack.size());
-				_isFirstPass = false;
-				_haveUnresolvedRefs = false;
+			if (!_isFirstPass || !_haveUnresolvedRefs)
+				break;
+
+			_log.info("PASS 2 will begin now ... stack size is: " + _scopeStack.size());
+			_isFirstPass = false;
+			_haveUnresolvedRefs = false;
+
+				// Pop the scope from the first pass!
+			_scopeStack.pop();
+
+				// Compute a topological sort ordering for file parsing.
+				// Do this implicitly without constructing a directed graph of file dependencies!
+				// Detect cycles too!
+			List allFiles       = u.getFileList();
+			List parseOrder     = new ArrayList();
+			Set  processedFiles = new HashSet();
+			int  numLeft        = allFiles.size();
+			int  prevNumLeft    = numLeft;
+			while (numLeft > 0) {
+				prevNumLeft = numLeft;
+					// In each pass, at least one file should get processed!
+				for (Object file: allFiles) {
+						// No imports!
+					if (!processedFiles.contains(file)) {
+						boolean ready = true;
+
+							// For all collections that 'file' imports, check if the files defining those collections have been processed.
+							// If all have been, 'file' is ready to be processed.
+						List imports = (List)_fileToImportsMap.get(file);
+						if (imports != null) {
+							for (Object collName: imports) {
+								if (!processedFiles.contains(_collToFileMap.get(collName))) {
+									ready = false;
+									break;
+								}
+							}
+						}
+
+							// 'f' is ready ... add
+						if (ready) {
+							parseOrder.add(file);
+							processedFiles.add(file);
+							numLeft--;
+							_log.info("Adding file " + file + " to parse order");
+						}
+					}
+				}
+
+					// Detect cycles
+				if (numLeft == prevNumLeft) {
+					_log.error("Looks like we have a cycle in parse order! Aborting parse!");
+					ParseUtils.parseError(_currFile, "We are sorry!  Your files import collections from each other cylically!  Email us for help in resolving this problem and enclose this message with your email!");
+				}
 			}
-			else {
+
+				// If we still have files to process, that means we aborted
+				// the topological sort because of a cycle!  If so, quit
+			if (numLeft > 0) {
+				_haveUnresolvedRefs = true;
 				break;
 			}
+
+				// Reparse the files, now in the right order!
+			_files = parseOrder.iterator();
 		}
+
+		if (_haveUnresolvedRefs)
+			_log.error("Have unresolved references even after a second pass with topological sort order!");
 
 			// If we have successfully parsed the profile, 
 			// add all defined collections and issues to the user's account.
@@ -159,7 +229,7 @@
 	/* Scope implements scoping functionality for imports & definitions 
 	 * There is a top-level scope, and a first-level scope for issues.
 	 * Scope nesting never gets greater than two at this time!  */
-	static private class Scope
+	private class Scope
 	{
 		Issue     _i;
 		Hashtable _allCollections;
@@ -242,9 +312,13 @@
 	private void recordSourceCollection(String cName, List<Source> srcs)
 	{
 		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
-		Scope         s  = getCurrentScope();
-		s._allCollections.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, nc);
+		Scope s = getCurrentScope();
+		String uniqName = NR_CollectionType.SOURCE + ":" + _uid + ":" + cName;
+		s._allCollections.put(uniqName, nc);
 		s._definedCollections.add(nc);
+
+			// Associate this collection with the current file
+		_collToFileMap.put(uniqName, _currFile._name);
 	}
 
 	private void recordSourceCollection(String cName, Set<Source> srcSet)
@@ -252,32 +326,44 @@
 		List  srcs = new ArrayList();
 		srcs.addAll(srcSet);
 		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
-		Scope s    = getCurrentScope();
-		s._allCollections.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, nc);
+		Scope s = getCurrentScope();
+		String uniqName = NR_CollectionType.SOURCE + ":" + _uid + ":" + cName;
+		s._allCollections.put(uniqName, nc);
 		s._definedCollections.add(nc);
+
+			// Associate this collection with the current file
+		_collToFileMap.put(uniqName, _currFile._name);
 	}
 
 	private void recordConceptCollection(String cname, List cpts)
 	{
-		NR_Collection nc = new NR_ConceptCollection(_user, cname, cpts);
-		Scope         s  = getCurrentScope();
-		s._allCollections.put(NR_CollectionType.CONCEPT + ":" + _uid + ":" + cname, nc);
+		NR_ConceptCollection nc = new NR_ConceptCollection(_user, cname, cpts);
+		Scope s = getCurrentScope();
+		String uniqName = NR_CollectionType.CONCEPT + ":" + _uid + ":" + cname;
+		s._allCollections.put(uniqName, nc);
 		s._definedCollections.add(nc);
 
-			// Set the collection value for the concept
+			// Associate this collection with the current file
+		_collToFileMap.put(uniqName, _currFile._name);
+
+			// Set the containing collection for the concept
 			// All concepts are part of some collection or the other!
 		Iterator it = cpts.iterator();
 		while (it.hasNext()) {
-			((Concept)it.next()).setCollectionName(cname);
+			((Concept)it.next()).setCollection(nc);
 		}
 	}
 
 	private void recordCategoryCollection(String c, List cats)
 	{
 		NR_Collection nc = new NR_CategoryCollection(_user, c, cats);
-		Scope         s  = getCurrentScope();
-		s._allCollections.put(NR_CollectionType.CATEGORY + ":" +_uid + ":" + c, nc);
+		Scope s = getCurrentScope();
+		String uniqName = NR_CollectionType.CATEGORY + ":" +_uid + ":" + c;
+		s._allCollections.put(uniqName, nc);
 		s._definedCollections.add(nc);
+
+			// Associate this collection with the current file
+		_collToFileMap.put(uniqName, _currFile._name);
 	}
 
 	private NR_Collection importCollection(String newColl, NR_CollectionType cType, String fromUid, String cid)
@@ -288,9 +374,20 @@
 
 			// 1st attempt ...
 		if (getFromMyself) {
+			String uniqCollName = cType + ":" + _uid + ":" + cid;
+
+				// Add to the list of imports in this file
+			List fileImports  = (List)_fileToImportsMap.get(_currFile._name);
+			if (fileImports == null) {
+				fileImports = new ArrayList();
+				_fileToImportsMap.put(_currFile._name, fileImports);
+			}
+			fileImports.add(uniqCollName);
+
+				// Try to find the collection
 			int i = _scopeStack.size() - 1;
 			while (i >= 0) {
-				c = (NR_Collection)((Scope)_scopeStack.get(i))._allCollections.get(cType + ":" + _uid + ":" + cid);
+				c = (NR_Collection)((Scope)_scopeStack.get(i))._allCollections.get(uniqCollName);
 				if (c != null) {
 					if (!newColl.equals(cid))
 						s._allCollections.put(cType + ":" +_uid + ":" + newColl, c);
