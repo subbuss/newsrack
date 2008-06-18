@@ -133,7 +133,8 @@ public final class GlobalConstants
 			_db = (DB_Interface)m.invoke(null, (java.lang.Object [])null);
 		}
 		catch (Exception e) {
-			_log.error("Error loading database: ", e);
+			_log.error("Error loading database!", e);
+			_log.error("CAUSE: ", e);
 		}
 		_db.init();
 		_globalNewsArchive = _db.getGlobalNewsArchive();

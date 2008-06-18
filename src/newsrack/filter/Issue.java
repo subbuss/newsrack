@@ -382,8 +382,6 @@ public class Issue implements java.io.Serializable
 
 	public void resetMaxNewsID() { _db.resetMaxNewsIdForIssue(this); }
 
-	public Iterator<Concept> getUsedConcepts() { return _usedConcepts.iterator(); }
-
 	/** Gets the sources monitored by this issue */
 	public Collection<Source> getMonitoredSources() { return (_sources == null) ? null : _sources; }
 
@@ -409,20 +407,13 @@ public class Issue implements java.io.Serializable
 
 	public void addCategories(Collection<Category> cats)
 	{
-		if (_log.isInfoEnabled()) _log.info("ISSUE " + _name + "[" + hashCode() + "]");
-
 			// Set this field before anything else!
 		_topLevelCats.addAll(cats);
 
-		if (_log.isInfoEnabled()) _log.info("Added cats");
-
-			// Initialize paths and collect used concepts
-		_usedConcepts = new HashSet<Concept>();
+			// Initialize paths
 		_taxonomyPath = _user.getUid() + File.separator + StringUtils.getOSFriendlyName(_name);
 		for (Category c: getCategories())
-			c.setupForDownloading(this, _usedConcepts);
-
-		if (_log.isInfoEnabled()) _log.info("Set up for downloading");
+			c.setupForDownloading(this);
 
 			// Read, update, and output a cat-id <--> category map
 			// Issue nodes always have id 0
@@ -640,6 +631,17 @@ public class Issue implements java.io.Serializable
 		return _user.getWorkDir();
 	}
 
+	private Iterator<Concept> getUsedConcepts() 
+	{ 
+		if (_usedConcepts == null) {
+			_usedConcepts = new HashSet<Concept>();
+			for (Category c: getCategories())
+				c.collectUsedConcepts(_usedConcepts);
+		}
+
+		return _usedConcepts.iterator(); 
+	}
+
 	/**
 	 * Generate regular expressions for a JFLEX based lexical scanner.
 	 * These regular expressions recognize concepts that have been
@@ -777,7 +779,6 @@ public class Issue implements java.io.Serializable
 			if (workDir != null) {
 				URL[] us = new URL[1];
 				us[0] = new URL("file:" + workDir);
-				if (_log.isInfoEnabled()) _log.info("Adding URL " + us[0]);
 				scannerClass = (new URLClassLoader(us, cl)).loadClass(scannerClassName);
 			}
 			else {

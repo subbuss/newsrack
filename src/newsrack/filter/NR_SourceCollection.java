@@ -16,7 +16,7 @@ public final class NR_SourceCollection extends NR_Collection
 	public NR_SourceCollection(User u, String name, List entries)
 	{
 		super(NR_CollectionType.SOURCE, u, name, entries);
-      if (_log.isInfoEnabled()) _log.info("RECORDED source collection with name " + name + " for user " + u.getUid());
+      if (_log.isDebugEnabled()) _log.debug("RECORDED source collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Source getSource(String s)

@@ -17,21 +17,15 @@ public class AdminAction extends BaseAction
 {
    private static final Log log = LogFactory.getLog(AdminAction.class); /* Logger for this action class */
 
-/**
-	private User _user;
-	private User getUser() { return _user; }
-**/
-
    private User getAdmin()
    {
-	   User u = getSessionUser();
-		if (u != null && !u.isAdmin()) { // Check if this is indeed the admin
+		if (_user != null && !_user.isAdmin()) { // Check if this is indeed the admin
 			addActionError(getText("error.not.admin"));
-			log.error("User " + u.getUid() + " not an admin!");
+			log.error("User " + _user.getUid() + " not an admin!");
 			return null;
 		}
 
-		return u;
+		return _user;
 	}
 
 	public String loginAsAnotherUser()

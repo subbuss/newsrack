@@ -24,7 +24,6 @@ public class DeleteArticlesAction extends BaseAction
 {
    private static Log _log = LogFactory.getLog(DeleteArticlesAction.class);	/* Logger for this action class */
 
-	private User     _user;
 	private Issue    _issue;
 	private Category _currCat;
 	private List<Category> _catAncestors;
@@ -42,7 +41,6 @@ public class DeleteArticlesAction extends BaseAction
       }
    }
 
-	public User getUser() { return _user; }
 	public String getLastDownloadTime() { return _lastDownloadTime; }
 	public User getOwner() { return _user; } 
 	public Issue getIssue() { return _issue; } 
@@ -51,8 +49,6 @@ public class DeleteArticlesAction extends BaseAction
 
    public String execute()
 	{
-		_user = getSessionUser();
-
       int  catID   = -1;
       int  start   = -1;
       int  count   = -1;
@@ -107,7 +103,7 @@ public class DeleteArticlesAction extends BaseAction
 			Category.deleteNewsItems(gCatKey, keys);
             // Refresh the user object!
             // Without this, the fetched issue in the code below will be stale
-		   _user = getSessionUser();
+		   refreshSessionUserObject();
       }
 
          // Now, send the user back to the same query page from where this action was initiated!

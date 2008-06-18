@@ -16,7 +16,7 @@ public final class NR_FilterCollection extends NR_Collection
 	public NR_FilterCollection(User u, String name, List entries)
 	{
 		super(NR_CollectionType.FILTER, u, name, entries);
-      if (_log.isInfoEnabled()) _log.info("RECORDED filter collection with name " + name + " for user " + u.getUid());
+      if (_log.isDebugEnabled()) _log.debug("RECORDED filter collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Filter getFilter(String f)

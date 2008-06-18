@@ -506,7 +506,7 @@ public class Category implements Comparable, java.io.Serializable
 		return catId;
 	}
 
-	protected void setupForDownloading(final Issue issue, final Set<Concept> usedConcepts)
+	protected void setupForDownloading(Issue issue)
 	{
 		if (_log.isDebugEnabled()) _log.debug("setupFordownloading for issue " + issue.getName() + " and cat " + getName());
 
@@ -519,12 +519,20 @@ public class Category implements Comparable, java.io.Serializable
 			// ORDER IMPORTANT!  Process nested categories
 			// only after processing this category and setting
 			// up all the paths, etc.
+		if (!isLeafCategory()) {
+			for (Category c: _children)
+				c.setupForDownloading(issue);
+      }
+	}
+
+	protected void collectUsedConcepts(Set<Concept> usedConcepts)
+	{
 		if (isLeafCategory()) {
 			_filter.collectUsedConcepts(usedConcepts); // Traverse the expression tree and collect all used concepts
       }
 		else {
 			for (Category c: _children)
-				c.setupForDownloading(issue, usedConcepts);
+				c.collectUsedConcepts(usedConcepts);
       }
 	}
 

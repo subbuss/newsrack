@@ -28,7 +28,6 @@ public class FileAction extends BaseAction implements ServletResponseAware
 {
    private static final Log _log = LogFactory.getLog(FileAction.class); /* Logger for this action class */
 
-	private User   _user;
 	private String _fileContent;
 	private String _file;
 	private File   _uploadedFile;
@@ -48,8 +47,6 @@ public class FileAction extends BaseAction implements ServletResponseAware
 
 	private boolean haveValidParams()
 	{
-		_user = getSessionUser();
-
 		_file = getParam("file");
 		if ((_file == null) || _file.equals("")) {
 			addActionError(getText("error.missing.filename"));
@@ -176,8 +173,6 @@ public class FileAction extends BaseAction implements ServletResponseAware
 
 	public String rename()
 	{
-		_user = getSessionUser();
-
 		String name    = getParam("name");
 		String newName = getParam("newname");
 		if ((name == null) || name.equals("") || (newName == null) || newName.equals("")) {

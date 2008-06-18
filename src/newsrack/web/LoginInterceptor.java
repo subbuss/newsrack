@@ -8,6 +8,7 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
 
 import newsrack.GlobalConstants;
+import newsrack.user.User;
 
 public class LoginInterceptor extends AbstractInterceptor
 {
@@ -22,8 +23,8 @@ public class LoginInterceptor extends AbstractInterceptor
 	{
 		Map session       = invocation.getInvocationContext().getSession();
 		Map requestParams = invocation.getInvocationContext().getParameters();
-      Object user = session.get(GlobalConstants.USER_KEY);
-      if (user == null) {
+      Object uid = session.get(GlobalConstants.UID_KEY);
+      if (uid == null) {
     		int    count = 0;
     		String requestString = "";
     		Set<String> keys = requestParams.keySet();
@@ -44,6 +45,21 @@ public class LoginInterceptor extends AbstractInterceptor
 			return "login";
       }
 		else {
+				// NOTE: To get around caching & invalidation problems, we need to go
+				// back to the db/cache to get the latest user object for each request!
+			User u = User.getUser((String)uid);
+
+			// FIXME: Get rid of the session user object, and maybe use the value stack as below 
+			//
+			// invocation.getStack().set(GlobalConstants.USER_KEY, u); // Push the user object on the value stack
+			//
+			// But, the problem is those actions where the user object changes as a result of the action
+			// ... login, admin, reset-password ... how do I get rid of the session put there??
+
+			invocation.getInvocationContext().getSession().put(GlobalConstants.USER_KEY, u);
+			if (invocation.getAction() instanceof BaseAction)
+				((BaseAction)invocation.getAction()).setUser(u);
+
          return invocation.invoke();
       }
    }

@@ -19,14 +19,8 @@ public class ReclassifyAction extends BaseAction
 {
    private static final Log _log = LogFactory.getLog(ReclassifyAction.class); /* Logger for this action class */
 
-	private User _user;
-
-	public User getUser() { return _user; } 
-
    public String execute()
    {
-		_user = getSessionUser();
-
 			// Should all dates be used?
 		boolean allDates    = false;
 		String  allDatesOpt = getParam("completeArchive");

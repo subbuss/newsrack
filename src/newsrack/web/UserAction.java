@@ -28,10 +28,8 @@ public class UserAction extends BaseAction
 
 	public String changePassword()
 	{
-		User u = getSessionUser();
-
 		try {
-			u.changePassword(getParam("oldPassword"), getParam("newPassword"));
+			_user.changePassword(getParam("oldPassword"), getParam("newPassword"));
 			return Action.SUCCESS;
 		}
 		catch (InvalidPasswordException e) {
@@ -43,6 +41,7 @@ public class UserAction extends BaseAction
 	public String logout()
 	{
 			// The ClearSessionInterceptor clears the session, so, nothing else to do here!
+			// FIXME: ClearSessionInterceptor is not working for some reason ... what am I doing wrong?
 		_session.remove(GlobalConstants.USER_KEY);
 		_session.remove(GlobalConstants.UID_KEY);
 		return "home";

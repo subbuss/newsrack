@@ -6,9 +6,9 @@ package newsrack.web;
  */
 public class UnknownUserException extends java.lang.Exception
 {
-	private String _user;
+	private String _uid;
 
-	public UnknownUserException(String u) { _user = u; }
+	public UnknownUserException(String u) { _uid = u; }
 
-	public String toString() { return "Unknown User: " + _user; }
+	public String toString() { return "Unknown User: " + _uid; }
 }

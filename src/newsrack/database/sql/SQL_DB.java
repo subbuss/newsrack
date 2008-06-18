@@ -1561,7 +1561,6 @@ public class SQL_DB extends DB_Interface
 	 *
 	 * NOTE: This method and the updateMaxNewsIdForIssue method assume that
 	 * ids of news items increase monotonically as new items are downloaded. 
-	 * This is probably not the best design decision ... but, for now, this is how it is.
 	 */
 	public boolean newsItemHasBeenProcessedForIssue(NewsItem ni, Issue i)
 	{
@@ -1581,8 +1580,8 @@ public class SQL_DB extends DB_Interface
 				//    the news item has not been processed.
 			List<Long> niKeys = (List<Long>)GET_TOPIC_SOURCE_ROW.execute(new Object[]{i.getKey(), ni.getFeedKey()});
 			if (niKeys.isEmpty()) {
-				_log.error("ERROR: For news item " + ni.getKey() + ", no corresponding topic source row found, with feed key " + ni.getFeedKey());
 				return false;
+				// select feed_key from news_indexes where ni_key in (select ni_key from news_collections where n_key=4624064);
 			}
 			maxNiKey = niKeys.get(0);
 			_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxNiKey);
@@ -1596,7 +1595,6 @@ public class SQL_DB extends DB_Interface
 	 *
 	 * NOTE: This method and the newsItemHasBeenProcessedForIssue method assume that
 	 * ids of news items increase monotonically as new items are downloaded. 
-	 * This is probably not the best design decision ... but, for now, this is how it is.
 	 */
 	public void updateMaxNewsIdForIssue(Issue i, Feed f, Long maxId)
 	{

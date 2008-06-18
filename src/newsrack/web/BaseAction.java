@@ -25,16 +25,15 @@ public abstract class BaseAction extends ActionSupport implements SessionAware, 
 	public void setParameters(Map p) { _params = p; }
 
    User _user;
-   public User getUser() { return _user; }
+	public void setUser(User u) { _user = u; }	// Set by the LoginInterceptor
+   // public User getUser()       { return _user; }
 
-	User getSessionUser()
+	void refreshSessionUserObject()
 	{
 			// NOTE: To get around caching & invalidation problems, we need to go
 			// back to the db/cache for every user request -- so that we always
 			// get latest info for a user.
       _user = User.getUser((String)_session.get(GlobalConstants.UID_KEY));
-		_session.put(GlobalConstants.USER_KEY, _user);
-		return _user;
 	}
 
 	String getParam(String key)

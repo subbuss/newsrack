@@ -16,7 +16,7 @@ public final class NR_CategoryCollection extends NR_Collection
 	public NR_CategoryCollection(User u, String name, List entries)
 	{
 		super(NR_CollectionType.CATEGORY, u, name, entries);
-      if (_log.isInfoEnabled()) _log.info("RECORDED category collection with name " + name + " for user " + u.getUid());
+      if (_log.isDebugEnabled()) _log.debug("RECORDED category collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Category getCategory(String c)

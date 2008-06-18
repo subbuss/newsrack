@@ -73,7 +73,7 @@
 
 	private void parseFile(String f)
 	{
-		if (_log.isInfoEnabled()) INFO("***** Beginning parse of file " + f + " ******");
+		if (_log.isInfoEnabled()) _log.info("***** Beginning parse of file " + f + " ******");
 
 		pushNewScope();
 
@@ -88,7 +88,7 @@
 
 		popScope();
 
-		if (_log.isInfoEnabled()) INFO("***** End parse of file " + f + " ******");
+		if (_log.isInfoEnabled()) _log.info("***** End parse of file " + f + " ******");
 	}
 
 	private boolean parseFiles(boolean isFirstPass, boolean haveUnresolvedRefs, User u, Stack scopes, Iterator files, HashMap collToFileMap, HashMap fileImportsMap)
@@ -111,9 +111,9 @@
 	private boolean parseOtherFiles()
   	{
 		if (_files.hasNext()) {
-			if (_log.isInfoEnabled()) INFO("***** BEGIN RECURSIVE PARSE *****");
+			if (_log.isInfoEnabled()) _log.info("***** BEGIN RECURSIVE PARSE *****");
 			_haveUnresolvedRefs = (new NRLanguageParser()).parseFiles(_isFirstPass, _haveUnresolvedRefs, _user, _scopeStack, _files, _collToFileMap, _fileToImportsMap);
-			if (_log.isInfoEnabled()) INFO("***** END RECURSIVE PARSE *****");
+			if (_log.isInfoEnabled()) _log.info("***** END RECURSIVE PARSE *****");
 			return true;
 		}
 
@@ -140,7 +140,7 @@
 			if (!_isFirstPass || !_haveUnresolvedRefs)
 				break;
 
-			_log.info("PASS 2 will begin now ... stack size is: " + _scopeStack.size());
+			_log.info("PASS 2 will begin now ... ");
 			_isFirstPass = false;
 			_haveUnresolvedRefs = false;
 
@@ -180,7 +180,7 @@
 							parseOrder.add(file);
 							processedFiles.add(file);
 							numLeft--;
-							_log.info("Adding file " + file + " to parse order");
+							_log.info("PASS 2: Adding file " + file + " to parse order");
 						}
 					}
 				}
@@ -411,7 +411,7 @@
 			else {
 					// Record an unresolved ref. since this is a first pass.
 					// Hopefully, the ref will be resolved in the second pass!
-				_log.info("UNRESOLVED Import ...");
+				_log.info("UNRESOLVED Import for " + cType + ":" + _uid + ":" + cid);
 				_haveUnresolvedRefs = true;
 				return null;
 			}
@@ -789,11 +789,6 @@
 	{ 
 //		System.out.println(msg); 
 		_log.debug(msg);
-	}
-	private static void INFO(String msg)
-	{ 
-//		System.out.println(msg); 
-		_log.info(msg);
 	}
 
 	static public void main(String[] args) {

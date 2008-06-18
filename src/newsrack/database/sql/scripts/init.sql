@@ -102,6 +102,7 @@ create table if not exists news_collections (
    ni_key bigint not null,
    n_key  bigint not null,
 	unique(ni_key, n_key),
+	-- index n_index(n_key),
    constraint fk_news_collections_1 foreign key(ni_key) references news_indexes(ni_key),
    constraint fk_news_collections_2 foreign key(n_key) references news_items(n_key)
 );
@@ -288,7 +289,7 @@ create table if not exists sources (
  * source for that topic.
  *
  * Note that ni_id might not necessarily be co-related with
- * n_key of news_items .  These values might be generated
+ * n_key of news_items.  These values might be generated
  * between reloads of a web application.  But, if we can guarantee
  * that news item keys monotonically increase, this id can
  * reference n_key of news_items.
@@ -299,7 +300,8 @@ create table if not exists topic_sources (
 	feed_key   bigint not null,  /* Duplicated from sources to avoid a join on sources */
    max_ni_key bigint default 0, /* Max id of news item processed for this <t_key,src_key> combination */
    constraint fk_topic_sources_1 foreign key(t_key) references users(t_key),
-   constraint fk_topic_sources_2 foreign key(src_key) references sources(src_key)
+   constraint fk_topic_sources_2 foreign key(src_key) references sources(src_key),
+   constraint fk_topic_sources_3 foreign key(feed_key) references feeds(feed_key)
 );
 
 /** --- concepts ---

@@ -16,11 +16,6 @@ public class PasswordResetAction extends BaseAction
 {
    private static final Log _log = LogFactory.getLog(PasswordResetAction.class); /* Logger for this action class */
 
-/**
-	private User _user;
-	public User getUser() { return _user; }
-**/
-
 	public void validateSendPasswordResetKey()
 	{
       String uid = getParam("uid");
@@ -82,8 +77,6 @@ public class PasswordResetAction extends BaseAction
 
 	public String resetPassword()
 	{
-		_user = getSessionUser();
-
 			// Reset the password
 		_user.resetPassword(getParam("newPassword"));
 		PasswordService.invalidatePasswordResetKey(_user.getUid());

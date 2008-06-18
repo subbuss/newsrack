@@ -110,7 +110,8 @@ create table if not exists topic_sources (
 	feed_key   bigint not null,  /* Duplicated from sources to avoid a join on sources */
    max_ni_key bigint default 0, /* Max id of news item processed for this <t_key,src_key> combination */
    constraint fk_topic_sources_1 foreign key(t_key) references users(t_key),
-   constraint fk_topic_sources_2 foreign key(src_key) references sources(src_key)
+   constraint fk_topic_sources_2 foreign key(src_key) references sources(src_key),
+   constraint fk_topic_sources_3 foreign key(feed_key) references feeds(feed_key)
 );
 
 create table if not exists concepts (

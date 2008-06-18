@@ -47,7 +47,7 @@ public class BrowseAction extends BaseAction
       List<Issue> issues = User.getAllValidatedIssues();
 		for (Issue i: issues) {
          int n = i.getNumItemsSinceLastDownload();
-         if ((n > 0) && (_lastUpdateTime != null))
+         if ((n > 0) && (_lastUpdateTime != null) && (i.getLastUpdateTime() != null) && i.getLastUpdateTime().after(_lastUpdateTime))
             l1.add(i);
          else if (i.updatedWithinLastNHours(24))
             l2.add(i);
@@ -61,7 +61,6 @@ public class BrowseAction extends BaseAction
 		_lastUpdateTime       = new Date();
    }
 
-	private User   _user;
 	private String _lastDownloadTime;
 
 		/* These 4 params are for the common browse case:
@@ -81,7 +80,6 @@ public class BrowseAction extends BaseAction
 		/* News list to be displayed */
 	private Collection<NewsItem> _news;
 
-	public User getUser() { return _user; }
 	public String getLastDownloadTime() { return _lastDownloadTime; }
 	public Date   getLastUpdateTime()   { return _lastUpdateTime; }
 	public Collection<NewsItem> getNews() { return _news; }
@@ -102,8 +100,6 @@ public class BrowseAction extends BaseAction
 
    public String execute()
 	{
-		_user = getSessionUser();
-
 		/* Do some error checking, fetch the issue, and the referenced category
 		 * and pass control to the news display routine */
 		Date ldt = DownloadNewsTask.getLastDownloadTime();

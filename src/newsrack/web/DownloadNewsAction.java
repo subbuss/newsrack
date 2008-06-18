@@ -17,14 +17,8 @@ public class DownloadNewsAction extends BaseAction
 {
    private static final Log log = LogFactory.getLog(DownloadNewsAction.class); /* Logger for this action class */
 
-	private User _user;
-
-	public User getUser() { return _user; } 
-
    public String execute()
    {
-		_user = getSessionUser();
-
 		try {
 			_user.downloadNews();
 			return Action.SUCCESS;

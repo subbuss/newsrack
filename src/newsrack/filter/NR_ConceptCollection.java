@@ -16,7 +16,7 @@ public final class NR_ConceptCollection extends NR_Collection
 	public NR_ConceptCollection(User u, String name, List entries)
 	{
 		super(NR_CollectionType.CONCEPT, u, name, entries);
-      if (_log.isInfoEnabled()) _log.info("RECORDED concept collection with name " + name + " for user " + u.getUid());
+      if (_log.isDebugEnabled()) _log.debug("RECORDED concept collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Concept getConcept(String c)

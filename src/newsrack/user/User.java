@@ -173,7 +173,6 @@ public class User implements java.io.Serializable
 
 		// This is used temporarily during parsing
 	private List<NR_Collection> _userCollections = null;
-//	private HashMap<String, NR_Collection> _collectionMap = null;
 
 	/**
 	 * Dummy constructor
@@ -654,17 +653,8 @@ public class User implements java.io.Serializable
 
 	public void addCollection(NR_Collection c)
 	{
-		_log.info("*** Request to add collection " + c.getName() + " for user: " + _uid);
 		_userCollections.add(c);
-//		_collectionMap.put(c.getType().toString() + ":" + c.getName(), c);
 	}
-
-/**
-	public NR_Collection getCollection(NR_CollectionType collType, String name)
-	{
-		return (_collectionMap == null) ? null : _collectionMap.get(collType.toString() + ":" + name);
-	}
-**/
 
 	public void parseProfileFiles() throws Exception
 	{
@@ -672,7 +662,6 @@ public class User implements java.io.Serializable
 			return;
 
 		_userCollections = new ArrayList<NR_Collection>();
-//		_collectionMap = new HashMap<String, NR_Collection>();
 
 		if (_isInitialized)
 			_concurrentProfileChange = true;
@@ -705,7 +694,6 @@ public class User implements java.io.Serializable
 		}
 
 		_userCollections = null;	// free up space for being GC
-//		_collectionMap = null;
 	}
 
 	private void initializeIssues(final boolean genScanners) throws Exception
@@ -720,7 +708,7 @@ public class User implements java.io.Serializable
 			// NOTE: Cannot call getIssues() because the user is not validated yet ...
 		if (_issues != null) {
 			for (final Issue i: _issues.values()) {
-				if (_log.isInfoEnabled()) _log.info("Initializing issue " + i.getName());
+				_log.info("Starting initialization of issue " + i.getName());
 
 					// Initializes the issue
 				i.initialize();
@@ -729,11 +717,12 @@ public class User implements java.io.Serializable
 				if (genScanners) {
 					i.gen_JFLEX_RegExps();
 					i.compileScanners(_workDir);
-					if (_log.isInfoEnabled()) _log.info("-- DONE GENERATING SCANNERS for " + i.getName() + " --");
+					_log.info("Done generating scanners for " + i.getName() + " --");
 				}
 
 					// Add to the database!
 				_db.addIssue(i);
+				_log.info("Starting initialization of issue " + i.getName());
 			}
 		}
 	}
@@ -896,13 +885,6 @@ public class User implements java.io.Serializable
 	 */
 	public void reclassifyNews(final String iname, final String[] srcs, final boolean allSrcs, final String sd, final String ed, final boolean allDates, final boolean resetCats) throws Exception
 	{
-/*
-		if (!isAdmin()) {
-			String s = "Sorry! Reclassification has been turned off temporarily to fix some bugs!";
-			throw new Exception(s);
-		}
-*/
-
 		if (allDates) {
 			final String s = "Sorry! Turned off reclassification for the entire archive!" +
 			           "Please select a subset of news sources and/or a subset of dates (most recent)!" +

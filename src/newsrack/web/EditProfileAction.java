@@ -21,15 +21,10 @@ public class EditProfileAction extends BaseAction
 {
    private static final Log _log = LogFactory.getLog(EditProfileAction.class); /* Logger for this action class */
 
-	private User   _user;
-
-	public User   getUser() { return _user; }
 	public String getUserHome() { return _user.getFileUploadArea(); }
 
    public String execute()
 	{
-		_user = getSessionUser();
-
 		String action = getParam("action");
 		if (action != null) {
 			if (action.equals("deleteFile")) {

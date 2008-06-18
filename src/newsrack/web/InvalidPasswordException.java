@@ -6,9 +6,9 @@ package newsrack.web;
  */
 public class InvalidPasswordException extends java.lang.Exception
 {
-	private String _user;
+	private String _uid;
 
-	public InvalidPasswordException(String u) { _user = u; }
+	public InvalidPasswordException(String u) { _uid = u; }
 
-	public String toString() { return "Invalid Password for user: " + _user; }
+	public String toString() { return "Invalid Password for user: " + _uid; }
 }

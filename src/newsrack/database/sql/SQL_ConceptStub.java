@@ -27,6 +27,12 @@ public class SQL_ConceptStub extends Concept
 		return c;
 	}
 
+	public int hashCode()
+	{
+		super.getCollection();
+		return super.hashCode();
+	}
+
 	public Iterator getKeywords() {
 		try {
 			return super.getKeywords();
