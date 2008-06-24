@@ -35,11 +35,18 @@ class SQL_CategoryStub extends Category
 
 	protected void setIssueKey(Long k) { _issueKey = k; }
 
-	protected void setupForDownloading(final Issue issue, final Set<Concept> usedConcepts)
+	protected void setupForDownloading(Issue issue)
 	{
 		getFilter();
 		getParent();
-		super.setupForDownloading(issue, usedConcepts);
+		super.setupForDownloading(issue);
+	}
+
+	protected void collectUsedConcepts(Set<Concept> usedConcepts)
+	{
+		getFilter();
+		getParent();
+		super.collectUsedConcepts(usedConcepts);
 	}
 
 	public String getTaxonomy()

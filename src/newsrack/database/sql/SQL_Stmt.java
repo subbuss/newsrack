@@ -556,6 +556,16 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
+	GET_DOWNLOADED_NEWS_FOR_FEED(
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		   " FROM news_items n, news_indexes ni, downloaded_news dn" +
+		   " WHERE (dn.feed_key = ?) AND (dn.n_key = n.n_key) AND (n.primary_ni_key = ni.ni_key)",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetNewsItemResultProcessor(),
+		false
+	),
 	GET_FEED(
 		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
@@ -987,6 +997,11 @@ public enum SQL_Stmt
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.INSERT
 	),
+	INSERT_INTO_RECENT_DOWNLOAD_TABLE(
+		"INSERT IGNORE INTO downloaded_news (feed_key, n_key) VALUES (?, ?)",
+		new SQL_ValType[] {LONG, LONG},
+      SQL_StmtType.INSERT
+	),
 	INSERT_CAT(
 		"INSERT INTO categories (name, u_key, t_key, cat_id, parent_cat, f_key, taxonomy_path) VALUES (?,?,?,?,?,?,?)",
       new SQL_ValType[] {STRING, LONG, LONG, INT, LONG, LONG, STRING},
@@ -1163,6 +1178,11 @@ public enum SQL_Stmt
 		// Prepared Statement Strings for DELETEs 
 	CLEAR_CAT_NEWS(
 		"DELETE FROM cat_news WHERE c_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
+	),
+	CLEAR_DOWNLOADED_NEWS_FOR_FEED(
+		"DELETE FROM downloaded_news WHERE feed_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),

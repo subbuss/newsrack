@@ -44,12 +44,12 @@ public class DownloadNewsTask extends TimerTask
          boolean done  = false;
          int     count = 0;
 
-         if (_log.isInfoEnabled()) _log.info("For feed " + feed.getTag() + " download started!");
+         _log.info("For feed " + feed.getTag() + " download started!");
 
          while (!done && (count < MAX_ATTEMPTS)) {
             try {
                count++;
-               sNews = feed.fetch();
+               feed.download();
                done = true;
             }
             catch (Exception e) {
@@ -57,18 +57,10 @@ public class DownloadNewsTask extends TimerTask
             }
          }
 
-         if (done) {
-            if (_log.isInfoEnabled()) _log.info("For feed " + feed.getTag() + " download complete!");
-         }
-         else {
+         if (done)
+            _log.info("For feed " + feed.getTag() + " download complete!");
+         else
             _log.error("For feed " + feed.getTag() + " aborting news download after " + MAX_ATTEMPTS + " attempts.");
-         }
-
-            /** IMPORTANT: Use the rss feed as the key, not the feed object
-             ** because the feeds are unique across the system, but, feed
-             ** objects are not! **/
-			if (sNews != null)
-				_downloadedNews.put(feed._feedUrl, sNews);
 
          synchronized(_completedDownloadsCount) { _completedDownloadsCount++; _log.info("Completed # " + _completedDownloadsCount); }
       }
@@ -90,14 +82,14 @@ public class DownloadNewsTask extends TimerTask
 					return;
                 
 				if (_i.isFrozen()) {
-					if (_log.isInfoEnabled()) _log.info("For user " + _i.getUser().getUid() + ", issue " + _i.getName() + " is frozen!");
+					_log.info("For user " + _i.getUser().getUid() + ", issue " + _i.getName() + " is frozen!");
 					return;
 				}
 				 
-				if (_log.isInfoEnabled()) _log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", starting classifying news!");
-
 					// Initialize before classification
 				_i.readInCurrentRSSFeed();
+
+				_log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", starting classifying news!");
 				 
 				Collection<Source> iSrcs = _i.getMonitoredSources();
 				for (Source s: iSrcs) {
@@ -108,7 +100,7 @@ public class DownloadNewsTask extends TimerTask
 							continue;
 						}
 
-         			Collection sNews = _downloadedNews.get(f._feedUrl);
+         			Collection sNews = f.getDownloadedNews();
 						if (sNews != null)
 							_i.scanAndClassifyNewsItems(f, sNews);
 					}
@@ -117,7 +109,7 @@ public class DownloadNewsTask extends TimerTask
 					}
 				}
 				 
-				if (_log.isInfoEnabled()) _log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", done classifying news!");
+				_log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", done classifying news!");
 
 					 // Now that all feeds are processed, store back classified news
 				_i.updateRSSFeed();
@@ -157,8 +149,6 @@ public class DownloadNewsTask extends TimerTask
 
    private static Date _lastDownloadTime = new Date();
    private static int  _count            = 0; 
-
-   private static ConcurrentHashMap<String, Collection> _downloadedNews;
 
    private static int loadPropertyValue(String propName, int defaultVal)
    {
@@ -232,10 +222,7 @@ public class DownloadNewsTask extends TimerTask
          // 1a. Record the thread with the thread manager!
       ThreadManager.recordThread(Thread.currentThread());
 
-         // 1b. Create maps for recording information
-      _downloadedNews = new ConcurrentHashMap<String, Collection>();
-
-         // 1c. Initialize counters
+         // 1b. Initialize counters
          // IMPORTANT: These counters have to be initialized BEFORE the task threads are spawned
       _completedDownloadsCount = 0;
       _completedIssuesCount = 0;
@@ -327,9 +314,6 @@ public class DownloadNewsTask extends TimerTask
 
             // 7. Remove the thread from the thread manager!
          ThreadManager.removeThread(Thread.currentThread());
-
-            // 8. Enable GC to reclaim memory!
-         _downloadedNews = null;
       }
    }
 }

@@ -226,6 +226,10 @@ public class Feed implements java.io.Serializable
 		_feedName = name.trim();	/* trim white space at the beginning and end */
 	}
 
+	public boolean equals(Object o) { return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed)o)._feedUrl); }
+
+	public int hashCode() { return _feedUrl.hashCode(); }
+
 	public Long    getKey()    { return _id; }
 	public String  getTag()    { return _feedTag; }
 	public String  getName()   { return _feedName; }
@@ -264,15 +268,16 @@ public class Feed implements java.io.Serializable
       }
    }
 
-	/**
-	 * Read the feed, store it locally, and download all
-	 * the news items referenced in the feed.
-	 * @returns a list of all downloaded news items
-	 */
-	public List<NewsItem> fetch() throws Exception
+	public Collection<NewsItem> getDownloadedNews()
 	{
-		List<NewsItem> newsItems = new ArrayList<NewsItem>();
+		return _db.getDownloadedNews(this);
+	}
 
+	/**
+	 * Read the feed, store it locally, and download all the news items referenced in the feed.
+	 */
+	public void download() throws Exception
+	{
 		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 
 			// 1. Download the feed and write it to the feed file in the output dir
@@ -289,8 +294,8 @@ public class Feed implements java.io.Serializable
 					// We will get a null value ONLY IF the feed has not changed since the previous download.
 				rssFeedFile = _rssFeedCache.get(u);
 				if (rssFeedFile == null) {
-					if (_log.isErrorEnabled()) _log.error("Could not open RSS url, and there is no local cached copy either");
-					return newsItems;
+					_log.error("Could not open RSS url, and there is no local cached copy either");
+					return;
 				}
 				downloaded = false;
 			}
@@ -431,8 +436,6 @@ public class Feed implements java.io.Serializable
 					ni.setAuthor((auth != null) ? auth.trim() : null);
 					ni.setDescription((desc != null) ? desc.trim() : null);
 
-					newsItems.add(ni);
-
 						// 7d. Record The news item with the DB
 					_db.recordDownloadedNewsItem(this, ni);
 				}
@@ -441,8 +444,6 @@ public class Feed implements java.io.Serializable
 
 			// 8. Inform the DB after news downloading  
 		_db.finalizeNewsDownload(this);
-
-		return newsItems;
 	}
 
 	private NewsItem downloadNewsItem(String baseUrl, SyndEntry se,  Date date)

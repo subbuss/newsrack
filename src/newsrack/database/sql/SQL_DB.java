@@ -1060,6 +1060,9 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void initializeNewsDownload(Feed f, Date pubDate)
 	{
+			// Remove all entries for 'f' from the downloaded news table
+		CLEAR_DOWNLOADED_NEWS_FOR_FEED.execute(new Object[]{f.getKey()});
+
 			// Create the output directories, if they don't exist
 		getArchiveDirForOrigArticles(f, pubDate);
 		getArchiveDirForFilteredArticles(f, pubDate);
@@ -1218,24 +1221,24 @@ public class SQL_DB extends DB_Interface
 		return niKey;
 	}
 
-	void recordDownloadedNewsItem(Long sFeedId, NewsItem ni)
+	void recordDownloadedNewsItem(Long feedKey, NewsItem ni)
 	{
 		SQL_NewsItem sni = (SQL_NewsItem)ni;
 
 			// Nothing will change in this case!
-		if (sFeedId.equals(sni.getFeedKey()) && sni.inTheDB())
+		if (feedKey.equals(sni.getFeedKey()) && sni.inTheDB())
 			return;
 
          /* IMPORTANT: Use feed id from the source and not from
 			 * the news item because we are adding the news item to
 			 * the index of the source.  If the news item has been
 			 * downloaded previously while processing another source,
-          * then n.getFeedKey() will be different from sFeedId! */
+          * then n.getFeedKey() will be different from feedKey! */
 		String dateStr = sni.getDateString();
-		Long   niKey   = getNewsIndexKey(sFeedId, dateStr);
+		Long   niKey   = getNewsIndexKey(feedKey, dateStr);
 		if ((niKey == null) || (niKey == -1)) {
 				// Add a new news index entry to the news index table
-         niKey = (Long)INSERT_NEWS_INDEX.execute(new Object[] {sFeedId, dateStr, new Timestamp(sni.getDate().getTime())});
+         niKey = (Long)INSERT_NEWS_INDEX.execute(new Object[] {feedKey, dateStr, new Timestamp(sni.getDate().getTime())});
          if ((niKey == null) || (niKey == -1)) {
             _log.error("Got an invalid key creating a news index entry");
             return;
@@ -1272,8 +1275,11 @@ public class SQL_DB extends DB_Interface
 			//
 			// NOTE: The insert statement will fail if the insert will violate uniqueness of (n_key, ni_key)
 			// but, because it is an INSERT IGNORE, we get the desired effect!
-		if (!sFeedId.equals(sni.getFeedKey()))
+		if (!feedKey.equals(sni.getFeedKey()))
          INSERT_INTO_SHARED_NEWS_TABLE.execute(new Object[] {niKey, sni.getKey()});
+
+			// Add this news item to the list of recently downloaded news items
+		INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
 	}
 
 	/**
@@ -1289,6 +1295,14 @@ public class SQL_DB extends DB_Interface
 	public void recordDownloadedNewsItem(Feed f, NewsItem ni)
 	{
 		recordDownloadedNewsItem(f.getKey(), ni);
+	}
+
+	/**
+	 * Gets the list of downloaded news items for a feed in the most recent download phase
+	 */
+	public Collection<NewsItem> getDownloadedNews(Feed f)
+	{
+		return (Collection<NewsItem>)GET_DOWNLOADED_NEWS_FOR_FEED.get(f.getKey());
 	}
 
 	/**
@@ -1724,20 +1738,19 @@ public class SQL_DB extends DB_Interface
 	 */
 	public Iterator<NewsItem> getNews(Category cat, int startId, int numArts)
 	{
-		Object news = null;
 		String cacheKey = "CATNEWS:" + cat.getKey() + ":" + startId + ":" + numArts;
-		news = _cache.get(cacheKey, List.class);
+		List   news     = (List)_cache.get(cacheKey, List.class);
 		if (news == null) {
 			//news = GET_NEWS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
-			news = GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
+			List<Long> keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
+			news = new ArrayList<NewsItem>();
+			for (Long k: keys)
+				news.add(getNewsItem(k));
+
 			_cache.add(new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, List.class, news);
 		}
 
-		List<NewsItem> nis = new ArrayList<NewsItem>();
-		for (Long k: (List<Long>)news)
-			nis.add(getNewsItem(k));
-
-		return nis.iterator();
+		return news.iterator();
 	}
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)

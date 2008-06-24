@@ -133,6 +133,11 @@ public abstract class DB_Interface
 	 */
 	public abstract void updateFeedCacheability(Feed f);
 
+	/**
+	 * Gets the list of downloaded news items for a feed in the most recent download phase
+	 */
+	public abstract Collection<NewsItem> getDownloadedNews(Feed f);
+
 /* #### Support for Source #### */
 
 	public abstract Source getSource(Long key);

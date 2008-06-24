@@ -78,7 +78,7 @@
   <rule>
     <note> 
 	    Generic rewrite that appends the ".action" -> with url parameters
-		 I am doing some gymnastics here to avoid .css and .js file requests from being rewritten!
+		 I am doing some gymnastics here to prevent .css and .js file requests from being rewritten!
 	  </note>
     <from>^/([^\.]+)\?(.+)$</from>
 	 <to>/$1.action?$2</to>
@@ -87,7 +87,7 @@
   <rule>
     <note> 
 	    Generic rewrite that appends the ".action" -> without url parameters 
-		 I am doing some gymnastics here to avoid .css and .js file requests from being rewritten!
+		 I am doing some gymnastics here to prevent .css and .js file requests from being rewritten!
 	 </note>
     <from>^/([^\.]+)/?$</from>
 	 <to>/$1.action</to>

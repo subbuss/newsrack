@@ -66,6 +66,13 @@ create table if not exists news_collections (
    constraint fk_news_collections_2 foreign key(n_key) references news_items(n_key)
 ) charset=utf8 collate=utf8_bin;
 
+create table if not exists downloaded_news (
+   feed_key bigint not null,
+	n_key    bigint not null,
+   constraint fk_downloaded_news_1 foreign key(feed_key) references feeds(feed_key),
+   constraint fk_downloaded_news_2 foreign key(n_key) references news_items(n_key)
+);
+
 create table if not exists cat_news (
    c_key    bigint not null,
    n_key    bigint not null,

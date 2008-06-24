@@ -132,7 +132,8 @@ public class Source implements java.io.Serializable
 	{
 		if (_feed != null) {
 			if (_log.isInfoEnabled()) _log.info("RSS source is: " + this);
-			return _feed.fetch();
+			_feed.download();
+			return _feed.getDownloadedNews();
 		}
 		else {
 			if (_log.isErrorEnabled()) _log.error("Ignoring source " + this + ". It has no rss feed");
