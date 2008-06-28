@@ -216,6 +216,9 @@
 
     <action name="refresh-caching-rules" class="newsrack.web.AdminAction" method="refreshCachingRules" />
     <action name="refresh-global-properties" class="newsrack.web.AdminAction" method="refreshGlobalProperties" />
+    <action name="clear-cache" class="newsrack.web.AdminAction" method="clearCache" />
+    <action name="make-read-only" class="newsrack.web.AdminAction" method="makeReadOnly" />
+    <action name="make-read-write" class="newsrack.web.AdminAction" method="makeReadWrite" />
   </package>
 
     <!-- Various api calls -->

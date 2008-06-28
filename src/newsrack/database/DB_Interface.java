@@ -64,6 +64,9 @@ public abstract class DB_Interface
 		return new File(GlobalConstants.getGlobalNewsArchive() + File.separator + TMPDIR + File.separator + "tmp." + base.hashCode());
 	}
 
+	/** This method clears out the cache */
+	public abstract void clearCache();
+
 /* #### Support for Collections #### */
 	/**
 	 * @param fromUid  Uid of the user whose collection is being imported by another user

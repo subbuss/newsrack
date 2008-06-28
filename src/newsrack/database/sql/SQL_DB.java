@@ -236,6 +236,12 @@ public class SQL_DB extends DB_Interface
 		return GLOBAL_NEWS_ARCHIVE_DIR;
 	}
 
+	/** This method clears out the cache */
+	public void clearCache()
+	{
+		_cache.clearCaches();
+	}
+
 	private String getUserHome(User u)
 	{
 		return GLOBAL_USERS_ROOTDIR + u.getUid() + File.separator;

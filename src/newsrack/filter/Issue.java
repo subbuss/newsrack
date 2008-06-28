@@ -618,9 +618,6 @@ public class Issue implements java.io.Serializable
 		sb.append("---- categories for this issue ----\n");
 		for (Category c: getCategories())
 			sb.append(c);
-		sb.append("\n---- concepts for this issue ----\n");
-		for (Iterator e = getUsedConcepts(); e.hasNext(); )
-			sb.append(e.next().toString());
 		sb.append("------------------------------------\n");
 
 		return sb.toString();
@@ -631,8 +628,8 @@ public class Issue implements java.io.Serializable
 		return _user.getWorkDir();
 	}
 
-	private Iterator<Concept> getUsedConcepts() 
-	{ 
+	private Iterator<Concept> getUsedConcepts()
+	{
 		if (_usedConcepts == null) {
 			_usedConcepts = new HashSet<Concept>();
 			for (Category c: getCategories())
@@ -768,6 +765,9 @@ public class Issue implements java.io.Serializable
 		pw.println("\t\t{ return " + JFLEX_SCANNER_TOKEN_CLASS + ".CATCHALL_TOKEN; }");
 		pw.println("}");
 		pw.close();
+
+			// Clear them out and free up space!
+		_usedConcepts = null;
 	}
 
 	private void loadScannerClass(String workDir)

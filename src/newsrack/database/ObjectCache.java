@@ -59,6 +59,11 @@ public class ObjectCache
 				_osCacheAdmin.flushGroup(g);
 		}
 
+		void clear()
+		{
+			_osCacheAdmin.flushAll();
+		}
+
 		Object get(String key)
 		{
 				// @FIXME  Test efficiency
@@ -224,5 +229,11 @@ public class ObjectCache
 	public void purgeCacheEntriesForUser(User u)
 	{
 		removeEntriesForGroups(new String[]{u.getUid(), u.getKey().toString()});
+	}
+
+	public void clearCaches()
+	{
+		for (OCache c: _caches.values())
+			c.clear();
 	}
 }

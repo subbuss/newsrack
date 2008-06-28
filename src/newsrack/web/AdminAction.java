@@ -61,6 +61,26 @@ public class AdminAction extends BaseAction
 		}
 	}
 
+	public String makeReadOnly()
+	{
+		GlobalConstants.setProperty("readonly", "true");
+		GlobalConstants.setProperty("testing", "true");
+		return Action.SUCCESS;
+	}
+
+	public String makeReadWrite()
+	{
+		GlobalConstants.setProperty("readonly", "false");
+		GlobalConstants.setProperty("testing", "false");
+		return Action.SUCCESS;
+	}
+
+	public String clearCache()
+	{
+		GlobalConstants.getDBInterface().clearCache();
+		return Action.SUCCESS;
+	}
+
 	public String refreshCachingRules()
 	{
 		User u = getAdmin();

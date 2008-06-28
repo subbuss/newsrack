@@ -33,6 +33,9 @@
 
     <h1> Admin Commands </h1>
     <ul>
+      <li> <a href="<@s.url namespace="/admin" action="clear-cache" />">Clear DB Cache</a> </li>
+      <li> <a href="<@s.url namespace="/admin" action="make-read-only" />">Read Only Mode</a> </li>
+      <li> <a href="<@s.url namespace="/admin" action="make-read-write" />">Read Write Mode</a> </li>
       <li> <a href="<@s.url namespace="/admin" action="refresh-caching-rules" />">Refresh News Caching Rules</a> </li>
       <li> <a href="<@s.url namespace="/admin" action="refresh-global-properties" />">Refresh Global Properties</a> (CAUTION: This is just a short-cut ... be careful what properties you change and refresh while the app is running ...) </li>
     </ul>

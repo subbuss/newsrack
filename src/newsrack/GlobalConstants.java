@@ -164,11 +164,18 @@ public final class GlobalConstants
 	/** Returns the full path of the webapp */
 	public static String getWebappPath() { return _webappPath; }
 
+	public static DB_Interface getDBInterface() { return _db; }
+
 	/** Gets the property value for a named property
 	 *  @param pname Property whose value is requested
 	 *  @return the requested property value
 	 */ 
 	public static String getProperty(String pname) { return _nrProps.getProperty(pname); }
+
+	public static void setProperty(String name, String value)
+	{
+		_nrProps.setProperty(name, value);
+	}
 
 	public static String getDirPathProperty(String pname)
 	{
