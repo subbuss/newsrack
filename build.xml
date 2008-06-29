@@ -15,10 +15,10 @@
   </target>
   
   <property name="container.dir"     value="/var/lib/tomcat5.5" />
-  <property name="webapp.name"       value="newsrack" />
+  <property name="webapp.name"       value="ROOT" />
   <property name="home"              location="." />
   <property name="srcdir"            location="${home}/src" />
-  <property name="javadir"           location="${srcdir}/${webapp.name}" />
+  <property name="javadir"           location="${srcdir}/newsrack" />
   <property name="viewdir"           location="${srcdir}/views" />
   <property name="libdir"            location="${home}/lib" />
   <property name="webapp.config"     location="${home}/config" />
@@ -87,6 +87,9 @@
     <copy todir="${webinf}/lib">      <fileset dir="${libdir}"/> </copy>
     <copy todir="${webinf}/crawlers"> <fileset dir="${home}/crawlers"/> </copy>
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
+    <copy todir="${wardir}/js">         <fileset dir="js" /> </copy>
+    <copy todir="${wardir}/icons">         <fileset dir="icons" /> </copy>
+    <copy todir="${wardir}/crawled.feeds">         <fileset dir="crawled.feeds" /> </copy>
     <copy todir="${classdir}">        <fileset dir="${webapp.resources}"/> </copy>
 	 <copy todir="${classdir}">
 	 	<fileset dir="${srcdir}">

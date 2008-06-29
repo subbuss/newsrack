@@ -186,6 +186,7 @@ public class User implements java.io.Serializable
          _password = pwd;
          _workDir  = (_db == null) ? "" : _db.getUserSpaceWorkDir(this);
          _isInitialized = initialized;
+		   _isAdmin = uname.equals("admin");
       }
       catch (Exception e) {
          _log.error("Caught exception while creating user object for " + uname, e);

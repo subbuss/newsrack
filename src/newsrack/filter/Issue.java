@@ -541,7 +541,7 @@ public class Issue implements java.io.Serializable
 
 	private void outputCatMap()
 	{
-		String dir = _user.getFileUploadArea();
+		String dir = _user.getWorkDir();
 		String osFriendlyName = StringUtils.getOSFriendlyName(getName());
 		String catMapFile = dir + osFriendlyName + "_ISSUE_CAT_MAP.xml";
 		try {

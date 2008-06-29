@@ -63,6 +63,10 @@ public class AdminAction extends BaseAction
 
 	public String makeReadOnly()
 	{
+		User u = getAdmin();
+		if (u == null)
+			return Action.ERROR;
+
 		GlobalConstants.setProperty("readonly", "true");
 		GlobalConstants.setProperty("testing", "true");
 		return Action.SUCCESS;
@@ -70,6 +74,10 @@ public class AdminAction extends BaseAction
 
 	public String makeReadWrite()
 	{
+		User u = getAdmin();
+		if (u == null)
+			return Action.ERROR;
+
 		GlobalConstants.setProperty("readonly", "false");
 		GlobalConstants.setProperty("testing", "false");
 		return Action.SUCCESS;
@@ -77,6 +85,10 @@ public class AdminAction extends BaseAction
 
 	public String clearCache()
 	{
+		User u = getAdmin();
+		if (u == null)
+			return Action.ERROR;
+
 		GlobalConstants.getDBInterface().clearCache();
 		return Action.SUCCESS;
 	}

@@ -205,13 +205,12 @@ function toggleCheckBoxes(divObj)
 			[/#if]
 			[#if addNTButton]
 <script type="text/javascript">
-[#-- FIXME! --]
-newstrust_publication_name = '${vsEsc.javascript(srcName)}';
+newstrust_publication_name = '${srcName?js_string}';
 newstrust_story_url = '${url}';
-newstrust_story_title = '${vsEsc.javascript(storyTitle)}';
+newstrust_story_title = '${storyTitle?js_string}';
 newstrust_story_subject = '${issueName}';
 newstrust_story_topic = '${cat.name}';
-newstrust_story_date = '${vsDate.format("yyyy-MM-dd", ni.date)}';
+newstrust_story_date = '${ni.date?string("yyyy-MM-dd")}';
 </script>
 <script src="http://www.newstrust.net/js/submit_story.js" type="text/javascript"></script>
          [/#if]

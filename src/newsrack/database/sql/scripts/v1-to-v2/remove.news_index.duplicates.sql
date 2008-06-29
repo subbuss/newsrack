@@ -1,5 +1,5 @@
 -- Identify unique news indexes
-create table unique_news_indexes (
+create table if not exists unique_news_indexes (
 	ni_key bigint, 
 	date_string char(10), 
 	created_at timestamp, 
@@ -10,7 +10,7 @@ insert ignore into unique_news_indexes (select * from news_indexes where feed_ke
 alter table unique_news_indexes add index efgh(ni_key);
 
 -- Identify duplicate entries
-create table duplicates (
+create table if not exists duplicates (
 	feed_key bigint, 
 	date_string char(10), 
 	ni_key bigint
