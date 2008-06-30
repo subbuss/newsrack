@@ -939,7 +939,7 @@ public enum SQL_Stmt
 		false
 	),
    GET_ALL_PUBLIC_FILES(
-      "SELECT file_name, u_key FROM user_files ORDER BY u_key",
+      "SELECT uf.file_name, uf.u_key FROM user_files uf, users u WHERE uf.u_key = u.u_key AND u.validated = true ORDER BY uf.u_key",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,

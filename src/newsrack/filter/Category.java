@@ -546,7 +546,7 @@ public class Category implements Comparable, java.io.Serializable
 
 	private void initFeed()
 	{
-		_log.info("Initializing feed for category: " + getName());
+		if (_log.isDebugEnabled()) _log.debug("Initializing feed for category: " + getName());
 
 		String feedName  = getRSSDir() + GlobalConstants.getProperty("rssfeedName");
 		String feedTitle = "NewsRack: " + _taxonomyPath;
@@ -561,7 +561,7 @@ public class Category implements Comparable, java.io.Serializable
 		if (_outputFeed == null) 
 			initFeed();
 
-		_log.info("Reading in current feed for category: " + getName());
+		if (_log.isDebugEnabled()) _log.debug("Reading in current feed for category: " + getName());
 		try {
 			_outputFeed.readInCurrentRSSFeed();
 		}

@@ -65,8 +65,10 @@ public class SiteCrawlerTask extends TimerTask
 			// If the file is modified after this, the file will be read again!
 		_lastReadTime = (new Date()).getTime();
 
-		if (!crawlersFile.exists())
+		if (!crawlersFile.exists()) {
+			_log.error("Did not find crawlers file - " + crawlersFile);
 			return;
+		}
 
 			// Get a date object set to 6 am -- this is the default time
 			// for running site crawlers

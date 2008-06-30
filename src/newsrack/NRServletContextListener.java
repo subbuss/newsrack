@@ -46,7 +46,7 @@ public class NRServletContextListener implements ServletContextListener
 			_context = event.getServletContext();
 			GlobalConstants.startup(_context, APP_PROPERTIES_FILE);
 			_tm = new ThreadManager();
-			_tm.initialize(new File(GlobalConstants.getWebappPath() + File.separator + CRAWLERS_FILE));
+			_tm.initialize(new File(GlobalConstants.getWebappPath() + File.separator + "WEB-INF" + File.separator + "classes" + File.separator + CRAWLERS_FILE));
 			_initialized = true;
 		}
 		catch (Exception e) {

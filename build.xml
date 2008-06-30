@@ -13,9 +13,12 @@
     "ant war"      builds the war file
      </echo>
   </target>
+
+  <property file="build.properties"/>
   
-  <property name="container.dir"     value="/var/lib/tomcat5.5" />
-  <property name="webapp.name"       value="ROOT" />
+  <property name="container.dir"     value="/var/lib/tomcat5.5/webapps" />
+  <property name="webapp.name"       value="ROOT" /> <!-- override in build.properties -->
+  <property name="webapp.target.dir" location="${container.dir}/${webapp.name}" />
   <property name="home"              location="." />
   <property name="srcdir"            location="${home}/src" />
   <property name="javadir"           location="${srcdir}/newsrack" />
@@ -83,6 +86,15 @@
   <target name="rebuild" depends="clean,build" description="Cleanly compiles all sources." />
 
   <target name="prepare" description="Copies all necessary resources into the build dir">
+	   <!-- First, copy over files from the current deployed webapp -->
+	 <copy todir="${wardir}/crawled.feeds" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/crawled.feeds" /> </copy>
+	 <copy todir="${wardir}/rss" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/rss" /> </copy>
+    <copy todir="${home}/crawlers" preservelastmodified="true">
+	 	<fileset dir="${webapp.target.dir}/WEB-INF/crawlers">
+		  <include name="**/*.lastfetched" />
+		</fileset>
+	 </copy>
+	    <!-- Next, copy all other files to the build dir -->
     <copy todir="${webinf}">          <fileset dir="${webapp.config}"/> </copy>
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
     <copy todir="${webinf}/lib">      <fileset dir="${libdir}"/> </copy>
@@ -104,11 +116,11 @@
   </target>
 
   <target name="deploy" depends="war" description="Deploys the web application">
-    <copy file="${builddir}/${webapp.name}.war" todir="${container.dir}/webapps/" />
+    <copy file="${builddir}/${webapp.name}.war" todir="${container.dir}/" />
   </target>
 
   <target name="updateweb" description="Updates ftl files in the deployed app">
-     <copy todir="${container.dir}/webapps/${webapp.name}/"> <fileset dir="${viewdir}" /> </copy>
+     <copy todir="${container.dir}/${webapp.name}/"> <fileset dir="${viewdir}" /> </copy>
   </target>
 
   <target name="clean" description="Remove all generated class and build files.">

@@ -794,7 +794,6 @@ public class User implements java.io.Serializable
 	public boolean passwordMatches(final String p)
 	{
 		final String encPassword = PasswordService.encrypt(p);
-		_log.info("user password - " + _password + "; p - " + p + "enc - " + encPassword);
 		return encPassword.equals(_password);
 	}
 

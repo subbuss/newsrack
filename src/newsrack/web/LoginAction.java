@@ -41,6 +41,7 @@ public class LoginAction extends BaseAction
 			User u = User.signInUser(uid, pass);
 			_session.put(GlobalConstants.UID_KEY, u.getUid());
 			_session.put(GlobalConstants.USER_KEY, u);
+			_log.info("Signed in user " + uid);
 			if (u.isAdmin())
 				return "admin.login";
 			else
