@@ -60,6 +60,19 @@ require "$scriptDir/crawler.lib.pl";
    "7830" => "1",
 );
 
+sub FixupTitle
+{
+   my $title = $_[0];
+   $title =~ s/\s+/ /g;
+   $title =~ s/News:\s*HindustanDainik.com\s*//i;
+   $title =~ s/\s*HindustanDainik.com\s*//i;
+	$title =~ s/AddMyLinkImage.*//i;
+   $title =~ s{<script>.*</script>}{}ig;
+	$title =~ s/<.*?>//g;
+	$title =~ s{[^\s]*("/.*").*$}{}g;
+   return $title;
+}
+
 # -- Process a downloaded page
 sub ProcessPage
 {
@@ -80,11 +93,13 @@ sub ProcessPage
    $/=$x;
 
       # Get the title of the page
-   if ($content =~ m{<title>(.*?)</title>}is) {
-      $title = $1;
-      $title =~ s/\s+/ /g;
-      print "TITLE of $url is $title\n";
-      $links{$url} = $title;
+   if (!$links{$url} && ($content =~ m{<title>(.*?)</title>}is)) {
+      $title = &FixupTitle($1);
+      if ($title) {
+         $title = Encode::decode_utf8($title);
+         print "PAGE TITLE of $url is $title\n";
+         $links{$url} = $title;
+      }
    }
 
       # Process base href declaration
@@ -109,6 +124,7 @@ sub ProcessPage
       # Match anchors -- across multiple lines, and match all instances
    while ($content =~ m{<a.*?href=(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
+      $link = &FixupTitle($link);
 		$link = Encode::decode_utf8($link);
 		$urlRef = &FIX_URL($urlRef);
       print LOG "REF - $urlRef; LINK - $link; "; 
@@ -149,20 +165,27 @@ sub ProcessPage
          $newUrl = $baseHref.$urlRef;
       }
 
+		$newUrl = &FIX_URL($newUrl);
       ($newUrl =~ s{://}{###}g); 
       ($newUrl =~ s{//}{/}g); 
       ($newUrl =~ s{###}{://}g); 
+		$newUrl = $UNICODE_GATEWAY_PREFIX.$newUrl;
 
          # Add or ignore, as appropriate
       if ($ignore) {
          print LOG "IGNORING NEW ($msg) - $newUrl\n"
       }
-      elsif (!($newUrl =~ /.*\s*#$/) && !$links{$newUrl}) {
-         $link =~ s/\s+/ /g;
-			$newUrl = $UNICODE_GATEWAY_PREFIX.$newUrl;
-         print LOG "ADDING NEW - $newUrl\n";
-         $urlList[scalar(@urlList)] = $newUrl; 
-         $links{$newUrl} = $link;
+      elsif ($newUrl =~ /.*\s*#.*$/) {
+         $msg    = "-local anchor-";
+         print LOG "IGNORING NEW ($msg) - $newUrl\n"
+      }
+      elsif (!$links{$newUrl}) {
+         ($secNum, $artNum) = ($1, $2) if ($newUrl =~ m{/news/(\d+)_(\d+),.*});
+         if (!$skipSections{$secNum}) {
+            print LOG "ADDING NEW - $newUrl\n";
+            $urlList[scalar(@urlList)] = $newUrl; 
+            $links{$newUrl} = $link;
+         }
       }
    }
 
@@ -231,12 +254,14 @@ while (@urlList) {
 		$title = $links{$url};
 
 			# But, not for Hindustan Dainik
-		$title =~ s/<.*?>//g;
-		$title =~ s/AddMyLinkImage.*//i;
-		$title =~ s{[^\s]*("/.*").*$}{}g;
 		if ($title =~ /^\s*$/) {
-			$title = &ReadTitle($url, "<td class=\"bkhd1\" colspan=\"2\">", "</td>");
+         $title = &FixupTitle(&ReadTitle($url, "<td class=\"bkhd1\" colspan=\"2\">", "</td>"));
+			$title = Encode::decode_utf8(title);
+         print "READTITLE-DECODE: $title\n";
 		}
+      else {
+		   print "PRESET TITLE: $title\n";
+      }
 ##
 ## END CUSTOM CODE 2
 ##

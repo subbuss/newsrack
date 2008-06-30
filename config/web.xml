@@ -15,7 +15,7 @@
 
   <context-param>
     <param-name>server-url</param-name>
-    <param-value>http://localhost:8180/newsrack</param-value>
+    <param-value>http://newsrack.in</param-value>
   </context-param>
 
 <!-- URLRewrite filter -->

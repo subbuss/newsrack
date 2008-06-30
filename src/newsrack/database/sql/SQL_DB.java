@@ -896,16 +896,19 @@ public class SQL_DB extends DB_Interface
 																  + dateStr[0] + File.separator
 																  + ni.getFeed().getTag() + File.separator;
 		String fullPath = pathPrefix + localName;
-		if ((new File(fullPath)).exists()) {
+
 				// The common case for all news items going forward
+		if ((new File(fullPath)).isFile())
 			return IOUtils.getUTF8Reader(fullPath);
-		}
-		else {
-				// The news item is stored using the old style naming
-			localName = StringUtils.getBaseFileName(ni.getURL());
-			if (_log.isDebugEnabled()) _log.debug("Looking for " + fullPath);
-			return IOUtils.getUTF8Reader(pathPrefix + localName);
-		}
+
+			// The news item is stored using the old style naming
+		localName = StringUtils.getBaseFileName(ni.getURL());
+		fullPath = pathPrefix + localName;
+		if (_log.isDebugEnabled()) _log.debug("Looking for " + fullPath);
+		if ((new File(fullPath)).isFile())
+			return IOUtils.getUTF8Reader(fullPath);
+
+      return IOUtils.getUTF8Reader(pathPrefix + GET_NEWS_ITEM_LOCALNAME.get(ni.getKey()));
 	}
 
 	/**

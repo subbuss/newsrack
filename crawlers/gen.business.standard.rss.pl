@@ -145,6 +145,7 @@ $url         = "$defSiteRoot/bsheadline/sectionhome.php";
 &Initialize("", $url);
 
 ## Process the url list while crawling the site
+$mainUrl = $url;
 while (@urlList) {
    $total++;
    $url = shift @urlList;
@@ -177,7 +178,7 @@ while (@urlList) {
       $desc  = $title;
 		&PrintRSSItem();
    }
-   else {
+   elsif ($url =~ $mainUrl) {
 		&CrawlWebPage($url);
    }
 }

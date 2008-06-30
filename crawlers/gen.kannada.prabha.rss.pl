@@ -134,7 +134,7 @@ $prefix             = "kp";
 ## Sometimes, the URL structure for the site has the date string in it
 $urlDateString      = `date +"%Y%m%d"`;
 chop $urlDateString;
-print "URL Date string is $urlDateString\n";
+#print "URL Date string is $urlDateString\n";
 $defSiteRoot        = "http://kannadaprabha.com";
 $url                = "$defSiteRoot/index.asp";
 

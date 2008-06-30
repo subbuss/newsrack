@@ -217,7 +217,8 @@ while (@urlList) {
       $desc = $title;
 		&PrintRSSItem();
    }
-   elsif (($url =~ m{News.asp\?}) || ($url =~ m{Column.asp.*old$}) || ($url =~ m{colItems.asp})) {
+   elsif (($url =~ m{News.asp\?}) || ($url =~ m{Column.asp.*old$}) || ($url =~ m{colItems.asp}) || ($url =~ m{Topic=.*?\d+}) || ($url =~ m{Archives})) {
+      ## Skip these!!
 	}
 #   elsif ($url =~ $rootURL) {
    else {

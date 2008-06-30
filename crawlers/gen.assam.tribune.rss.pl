@@ -142,8 +142,7 @@ $date               = `date +"%d %b %y"`;
 ($day, $mon, $year) = ($date =~ /(\d+) (\w+) (\d+)/);
 $mon                = lcfirst $mon;
 $urlDateString      = "$mon$day$year";
-###$defSiteRoot        = "http://www.assamtribune.com/$urlDateString";
-###$url                = "$defSiteRoot/main.html";
+#$urlDateString      = "jun1008";
 $defSiteRoot        = "http://www.assamtribune.com/scripts/details.asp?id=$urlDateString";
 $url                = "$defSiteRoot/main";
 ##
@@ -152,6 +151,7 @@ $url                = "$defSiteRoot/main";
 
 ## Initialize
 &Initialize("", $url);
+#&Initialize("", $url, "Tue, 10 Jun 2008 06:43:49 +0530");
 
 ## Process the url list while crawling the site
 while (@urlList) {

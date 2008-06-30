@@ -125,7 +125,7 @@ $prefix             = "cc";
 $date               = `date +"%Y%m%d"`;
 chop $date;
 $urlDateString      = "$date";
-#$urlDateString      = "20040103";
+#$urlDateString      = "20080610";
 #$date = "Tue, 3 Jan 2006 11:37:03 +0530";
 $defSiteRoot        = "http://www.centralchronicle.com/$urlDateString";
 $url                = "$defSiteRoot/index.htm";
@@ -134,6 +134,7 @@ $url                = "$defSiteRoot/index.htm";
 ##
 
 ## Initialize
+#&Initialize("", $url, "Tue, 10 Jun 2008 11:37:03 +0530");
 &Initialize("", $url);
 
 ## Add any additional urls in addition to the root URL

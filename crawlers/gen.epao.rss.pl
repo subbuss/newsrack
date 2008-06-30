@@ -123,7 +123,7 @@ sub ProcessPage
 
 $newspaper   = "Manipur E-Pao";
 $prefix      = "epao";
-$defSiteRoot = "http://www.e-pao.net";
+$defSiteRoot = "http://e-pao.net";
 $url         = "$defSiteRoot/index.html";
 
 ##
@@ -140,6 +140,11 @@ $url         = "$defSiteRoot/index.html";
 while (@urlList) {
    $total++;
    $url = shift @urlList;
+
+      # Canonicalize urls
+   $url =~ s{epRelatedNews.asp}{ge.asp}i;
+   $url =~ s{\&mx=}{}i;
+
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
 
@@ -149,33 +154,35 @@ while (@urlList) {
    print LOG "PROCESSING $url ==> $links{$url}\n";
    $urlMap{$url} = $url;
 
-##
-## BEGIN CUSTOM CODE 2: This section needs to be customized for every
-## newspaper depending on how their site is structured.  This line
-## tries to identify URLs that pertain to news stories (as opposed to
-## index pages).  This check crucially relies on knowledge of the site
-## structure and organization and needs to be customized for different
-## newspapers.
-##
       ## The next line uses information about E-Pao's site structure
-		## http://www.e-pao.net/GE.asp?heading=1&src=161206
-   if ($url =~ m{GE.asp\?heading=(\d+)\&src=\d+}) {
-			# For most sites, the next line suffices!
+		## http://www.e-pao.net/ge.asp?heading=1&src=161206
+   if ($url =~ m{ge.asp\?heading=(\d+)\&src=(\d+08)}i) {
+      $origUrl = $url;
+##    print "MATCH for $url\n";
+##    $dateStr = $2;
+##    ($y,$m,$d) = ($3,$2,$1) if ($dateStr =~ /(\d\d)(\d\d)(\d\d)/);
+##    $y = "20$y";
 		$title = $links{$url};
 		$title =~ s/<.*?>//g;
 		$title =~ s/^\s*//g;
 		$title =~ s/\s*$//g;
-##
-## END CUSTOM CODE 2
-##
-		$title =~ s/<.*?>//g;
+      if (!$title || ($title =~ m{^\s*$})) {
+         $title = &ReadTitle($url);
+         $title =~ s{:.*$}{};
+      }
 		print "TITLE of $url is \'$title\'\n";
       $desc  = $title;
+##		$dateStr = &GetRFC822Date($y,$m,$d);
+##		&PrintRSSItem($dateStr);
 		&PrintRSSItem();
+
+         ## TEMPORARY!
+##		&CrawlWebPage($origUrl);
    }
-##	else {
+	else {
+##      print "SKIPPING $url\n";
 ##		&CrawlWebPage($url);
-##	}
+	}
 }
 
 &FinalizeRSSFeed();

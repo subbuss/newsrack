@@ -224,7 +224,7 @@ while (@urlList) {
       $desc  = $title;
 		&PrintRSSItem();
    }
-   elsif (($url =~ $rootURL) || ($url =~ m/$citiesSiteRoot/)) {
+   elsif (!($url =~ /archive/) && (($url =~ $rootURL) || ($url =~ m/$citiesSiteRoot/))) {
 		&CrawlWebPage($url);
    }
 }

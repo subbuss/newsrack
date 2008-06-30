@@ -283,7 +283,7 @@ sub PrintRSSItem
 {
    my $dateStr = $_[0];
    if ($dateStr) {
-      $dateStr = "\n\t\t\t<pubDate>$dateStr</pubDate>";
+      $dateStr = "\n         <pubDate>$dateStr</pubDate>";
    }
 
 			## Make title, url, and desc XML-friendly

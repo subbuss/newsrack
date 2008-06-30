@@ -442,6 +442,14 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		true
 	),
+   GET_NEWS_ITEM_LOCALNAME(
+      "SELECT local_file_name FROM news_item_localnames WHERE n_key=?",
+      new SQL_ValType[] { LONG },
+      SQL_StmtType.QUERY,
+		null,
+		new GetStringResultProcessor(),
+		true
+   ),
 	GET_NEWS_INDEX(
 		"SELECT ni_key, date_string, created_at FROM news_indexes WHERE ni_key = ?",
 		new SQL_ValType[] {LONG},

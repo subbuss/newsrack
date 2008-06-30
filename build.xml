@@ -84,12 +84,10 @@
 
   <target name="prepare" description="Copies all necessary resources into the build dir">
     <copy todir="${webinf}">          <fileset dir="${webapp.config}"/> </copy>
+    <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
     <copy todir="${webinf}/lib">      <fileset dir="${libdir}"/> </copy>
     <copy todir="${webinf}/crawlers"> <fileset dir="${home}/crawlers"/> </copy>
-    <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
-    <copy todir="${wardir}/js">         <fileset dir="js" /> </copy>
-    <copy todir="${wardir}/icons">         <fileset dir="icons" /> </copy>
-    <copy todir="${wardir}/crawled.feeds">         <fileset dir="crawled.feeds" /> </copy>
+    <copy todir="${wardir}/scripts">  <fileset dir="scripts" /> </copy>
     <copy todir="${classdir}">        <fileset dir="${webapp.resources}"/> </copy>
 	 <copy todir="${classdir}">
 	 	<fileset dir="${srcdir}">

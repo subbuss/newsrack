@@ -13,7 +13,6 @@ sub ProcessPage
 {
    my ($fileName, $url) = ($_[0], $_[1]);
    ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?$}i);
-	$baseHref = &FIX_URL($baseHref);
    $baseHref .= "/";
    print LOG "URL               - $url\n";
    print LOG "FILE              - $fileName\n";
@@ -58,7 +57,6 @@ sub ProcessPage
    while ($content =~ m{<a.*?href=(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
 		$link = Encode::decode_utf8($link);
-		$urlRef = &FIX_URL($urlRef);
       print LOG "REF - $urlRef; LINK - $link; "; 
       $msg="";
       $ignore = 0;
@@ -107,7 +105,6 @@ sub ProcessPage
       }
       elsif (!($newUrl =~ /.*\s*#$/) && !$links{$newUrl}) {
          $link =~ s/\s+/ /g;
-			$newUrl =  $newUrl;
          print LOG "ADDING NEW - $newUrl\n";
          $urlList[scalar(@urlList)] = $newUrl; 
          $links{$newUrl} = $link;

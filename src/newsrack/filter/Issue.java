@@ -1081,7 +1081,7 @@ public class Issue implements java.io.Serializable
 
 	private void initFeed()
 	{
-		_log.info("Initializing feed for issue: " + getName());
+		if (_log.isDebugEnabled()) _log.debug("Initializing feed for issue: " + getName());
 
 		String feedName  = getRSSDir() + GlobalConstants.getProperty("rssfeedName");
 		String feedTitle = "NewsRack: " + _taxonomyPath;
@@ -1097,7 +1097,7 @@ public class Issue implements java.io.Serializable
 
 			// Read in current RSS feed so that new items can be added to it
 		try {
-			_log.info("Reading in current feed for issue: " + getName());
+			if (_log.isDebugEnabled()) _log.debug("Reading in current feed for issue: " + getName());
 			_outputFeed.readInCurrentRSSFeed();
 		}
 		catch (Exception e) {

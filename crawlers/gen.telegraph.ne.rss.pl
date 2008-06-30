@@ -134,15 +134,16 @@ $date               = `date +"%d %m %y"`;
 ($day, $mon, $year) = ($date =~ /(\d+) (\d+) (\d+)/);
 $mon                = lcfirst $mon;
 $urlDateString      = "1$year$mon$day";
-$defSiteRoot        = "http://www.telegraphindia.com/$urlDateString/asp/northeast";
-$url                = "$defSiteRoot/index.asp";
+#$urlDateString      = "1080610";
+$defSiteRoot        = "http://www.telegraphindia.com/$urlDateString/jsp/northeast";
+$url                = "$defSiteRoot/index.jsp";
 
 ##
 ## END CUSTOM CODE 1
 ##
 
 &Initialize("", $url);
-# &Initialize("", $url, "Sun, 8 Oct 2006 18:41:31 +0530");
+#&Initialize("", $url, "Tue, 10 Jun 2008 18:41:31 +0530");
 
 ## Process the url list while crawling the site
 while (@urlList) {
@@ -166,7 +167,7 @@ while (@urlList) {
 ## newspapers.
 ##
       # The next line uses information about Telegraph site organization
-		# http://www.telegraphindia.com/1061108/asp/northeast/story_6971157.asp
+		# http://www.telegraphindia.com/1061108/jsp/northeast/story_6971157.jsp
 		# Only the main page has links to articles on the site
    if ($url =~ m{$defSiteRoot/story_.*}) {
 		print "... added to RSS - $url\n";

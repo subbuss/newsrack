@@ -135,6 +135,7 @@ $date               = `date -R`;
 ($day, $mon, $year) = ($date =~ /.*, 0*(\d+) (\w+) (\d+) .*/);
 $mon                = lcfirst $mon;
 $urlDateString      = "$mon$day$year";
+#$urlDateString      = "jun102008";
 $defSiteRoot        = "http://www.deccanherald.com/Content/$urlDateString";
 $url                = "$defSiteRoot/index.asp";
 ##
@@ -143,6 +144,7 @@ $url                = "$defSiteRoot/index.asp";
 
 ## Initialize
 &Initialize("", $url);
+#&Initialize("", $url, "Tue, 10 Jun 2008 06:43:49 +0530");
 
 ## Add any additional urls in addition to the root URL
 ## this is necessary for Deccan Herald, for instance

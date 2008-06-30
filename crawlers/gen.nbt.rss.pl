@@ -183,7 +183,8 @@ while (@urlList) {
       </item>
 RSSITEM
    }
-   else {
+   # Temporary hack
+   elsif (!($url =~ /movielist/) && !($url =~ /moviereview/) && !($url =~ /moviearticlelist/) && !($url =~ /specialcoverage/)) {
 		&CrawlWebPage($url);
    }
 }

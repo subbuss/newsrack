@@ -37,10 +37,11 @@ sub ProcessPage
       # Process base href declaration
    if ($content =~ m{base\s+href=(["|']?)([^'"]*/)[^/]*\1}i) {
       ($baseHref) = $2;
-#      print "BASE HREF         - $baseHref\n";
-#      ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
-#      print "SITE ROOT         - $siteRoot\n";
+      print "BASE HREF         - $baseHref\n";
    }
+
+   ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
+#   print "SITE ROOT - $siteRoot\n";
 
       # Check if absolute URLs are okay with this page 
    ($x) = ($baseHref    =~ m{^(http://[^/]*)/*$}i);
@@ -76,10 +77,12 @@ sub ProcessPage
          $msg    = "-http-";
          $ignore = 1;
       }
-      elsif ($rejectAbsoluteUrls && ($urlRef =~ /^\//)) {
+      elsif ($urlRef =~ /^\//) {
          $newUrl = $siteRoot.$urlRef;
-         $msg    = "-ABSOLUTE-";
-         $ignore = 1;
+			if ($rejectAbsoluteUrls) {
+				$msg    = "-ABSOLUTE-";
+				$ignore = 1;
+			}
       }
       elsif ($urlRef =~ /^\.\./) {
          $newUrl = $baseHref.$urlRef;
@@ -125,8 +128,10 @@ sub ProcessPage
 
 $newspaper   = "Dainik Jagaran";
 $prefix      = "dj";
-$defSiteRoot = "http://ind.jagran.com/news";
-$url         = "$defSiteRoot/default.aspx";
+##$defSiteRoot = "http://ind.jagran.com/news";
+$defSiteRoot = "http://in.jagran.yahoo.com/news";
+$url         = "$defSiteRoot/";
+$startUrl    = $url;
 $artnum1     = &OpenArtNumFile("100000");
 
 ##
@@ -144,6 +149,9 @@ while (@urlList) {
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
    next if ($url =~ /#/); 		 	 # Skip if this URL has javascript or local anchors
 
+      ## For now, only tracking national, opinion, and editorial news!
+   next if (!($url eq $startUrl) && !($url =~ m{/(national|editorial|opinion)[/\.]}));
+
       # Get the new page and process it
    $processed++;
    print     "PROCESSING $url ==> $links{$url}\n";
@@ -159,22 +167,30 @@ while (@urlList) {
 ## newspapers.
 ##
       # The next line uses information about Dainik Jagran's site organization
-		# http://ind.jagran.com/news/citynews.aspx?id=2928246&stateid=1&cityid=23
-   if ($url =~ m{$defSiteRoot/.*(\?|\&)id=(\d+).*$}) {
-		$artNum = $2;
-		print "Article number = $artNum\n";
-		next if ($artNum < $startingArtNum);
+		# OLD DJ: http://ind.jagran.com/news/citynews.aspx?id=2928246&stateid=1&cityid=23
+		# NEW DJ: http://in.jagran.yahoo.com/news/national/general/5_1_3775825.html
+      #         http://in.jagran.yahoo.com/news/entertainment/news/210_230_203531.html
+   if ($url =~ m{$defSiteRoot/.*/(\d*)_(\d*)_(\d+).*$}) {
+      $secNum = $1;
+      if (($1 != 210) && ($1 != 15) && ($1 != 16) && ($1 != 4)) {  # 210 is entertainment .. we'll let that be ...
+         $artNum = $3;
+         print "Article number = $artNum\n";
+         next if ($artNum < $startingArtNum);
 
-		if ($artNum > $maxArtNum) {
-			$maxArtNum = $artNum;
-		}
+         if ($artNum > $maxArtNum) {
+            $maxArtNum = $artNum;
+         }
+      }
 
 			# For most sites, the next line suffices!
       $title = $links{$url};
+		$title =~ s/<.*?>//g;
+      if (!$title || ($title =~ m{^\s*$})) {
+         $title = Encode::decode_utf8(&ReadTitle($url, "<h1[^<>]*>", "</h1>"));
+      }
 ##
 ## END CUSTOM CODE 2
 ##
-		$title =~ s/<.*?>//g;
 		print     "TITLE of $url is $title\n";
 		print LOG "TITLE of $url is $title\n";
       $desc  = $title;
