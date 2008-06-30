@@ -48,6 +48,9 @@ public abstract class DB_Interface
 
 	public abstract void printStats();
 
+	/** This method returns stats */
+	public abstract String getStats();
+
 	/** This method loads the user table */
 	public abstract void       loadUserTable();
 

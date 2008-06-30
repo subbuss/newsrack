@@ -214,6 +214,10 @@
       <result name="input">/ftl/admin/home.ftl</result>
     </action>
 
+    <action name="show-stats" class="newsrack.web.AdminAction" method="showStats">
+      <result>/ftl/admin/stats.ftl</result>
+    </action>
+
     <action name="refresh-caching-rules" class="newsrack.web.AdminAction" method="refreshCachingRules" />
     <action name="refresh-global-properties" class="newsrack.web.AdminAction" method="refreshGlobalProperties" />
     <action name="clear-cache" class="newsrack.web.AdminAction" method="clearCache" />

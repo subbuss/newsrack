@@ -17,6 +17,9 @@ public class AdminAction extends BaseAction
 {
    private static final Log log = LogFactory.getLog(AdminAction.class); /* Logger for this action class */
 
+	private String _stats;
+	public String getStats() { return _stats; }
+
    private User getAdmin()
    {
 		if (_user != null && !_user.isAdmin()) { // Check if this is indeed the admin
@@ -90,6 +93,16 @@ public class AdminAction extends BaseAction
 			return Action.ERROR;
 
 		GlobalConstants.getDBInterface().clearCache();
+		return Action.SUCCESS;
+	}
+
+	public String showStats()
+	{
+		User u = getAdmin();
+		if (u == null)
+			return Action.ERROR;
+
+		_stats = GlobalConstants.getDBInterface().getStats();
 		return Action.SUCCESS;
 	}
 

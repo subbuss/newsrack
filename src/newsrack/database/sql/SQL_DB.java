@@ -545,9 +545,19 @@ public class SQL_DB extends DB_Interface
 
 	public void printStats()
 	{
-		_cache.printStats();
-		SQL_StmtExecutor.printStats(_log);
+		if (_log.isInfoEnabled())
+			_log.info(getStats());
 	}
+
+	/** This method returns stats */
+	public String getStats()
+	{
+		StringBuffer sb = new StringBuffer();
+		_cache.printStats(sb);
+		sb.append(SQL_StmtExecutor.getStats());
+		return sb.toString();
+	}
+
 	/**
 	 * @param fromUid  Uid of the user whose collection is being imported by another user
 	 * @param toUid    Uid of the user who is importing a collection from another user
@@ -1323,7 +1333,8 @@ public class SQL_DB extends DB_Interface
 	public void finalizeNewsDownload(Feed f)
 	{
 			// Nothing else to do!
-		printStats();
+		if (GlobalConstants.inDebugMode())
+			printStats();
 	}
 
 	private Long persistRuleTerm(Long uKey, Long filtKey, RuleTerm r)
@@ -1508,9 +1519,6 @@ public class SQL_DB extends DB_Interface
 			// 3. Add categories
 		for (Category c: i.getCategories())
 			addCategory(uKey, c);
-
-			// print cache stats!
-		_cache.printStats();
 	}
 
 	/**

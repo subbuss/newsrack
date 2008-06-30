@@ -78,23 +78,20 @@ public class ObjectCache
 			}
 		}
 
-		void printStats()
+		void printStats(StringBuffer sb)
 		{
-			if (!_log.isInfoEnabled())
-				return;
-
-			_log.info("#### CACHE STATS for " + _name + " ####");
+			sb.append("#### CACHE STATS for " + _name + " ####").append("\n");
 			Object[] elList = _osCacheAdmin.getCache().getCacheEventListenerList().getListenerList();
 			for (int i = 0; i < elList.length; i++) {
 				Object el = elList[i];
 				if (el instanceof CacheEntryEventListenerImpl) {
-					_log.info("Cache Entry Event Listener Stats: " + el.toString());
+					sb.append("Cache Entry Event Listener Stats: ").append(el.toString()).append("\n");
 				}
 				else if (el instanceof CacheMapAccessEventListenerImpl) {
-					_log.info("Cache Map Access Event Listener Stats: " + el.toString());
+					sb.append("Cache Map Access Event Listener Stats: ").append(el.toString()).append("\n");
 				}
 				else {
-					_log.debug("OTHER stats: " + el.toString());
+					sb.append("OTHER stats: " + el.toString()).append("\n");
 				}
 			}
 		}
@@ -136,10 +133,10 @@ public class ObjectCache
 		_objectCache  = buildCache("object", Object.class, p); 	// 10000
 	}
 
-	public void printStats()
+	public void printStats(StringBuffer sb)
 	{
 		for (OCache c: _caches.values())
-			c.printStats();
+			c.printStats(sb);
 	}
 
 	public void add(String[] cacheGroups, Object key, Class c, Object o)

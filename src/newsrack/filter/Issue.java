@@ -941,7 +941,7 @@ public class Issue implements java.io.Serializable
 			PrintWriter pw = null;
 			String      fn = workDir + StringUtils.getOSFriendlyName(getName()) + ".tokens";
 			try {
-				_log.debug("Looking for utf8 writer for " + fn);
+				if (_log.isDebugEnabled()) _log.debug("Looking for utf8 writer for " + fn);
 				pw = IOUtils.getUTF8Writer(fn);
 			}
 			catch (java.io.IOException e) {
@@ -1019,7 +1019,7 @@ public class Issue implements java.io.Serializable
 					classifyArticle(ni, numTokens, tokTable);
 				}
 				catch (java.io.FileNotFoundException e) {
-					_log.error("FNFE ERROR ", e);
+					_log.error("ScanAndClassify: FNFE ERROR " + e);	// Don't print the stack trace
 				}
 				catch (java.io.IOException e) {
 					_log.error("IO ERROR ", e);

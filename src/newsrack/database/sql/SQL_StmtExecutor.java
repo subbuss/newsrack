@@ -83,12 +83,15 @@ public class SQL_StmtExecutor
 		_db = db;
    }
 
-	public static void printStats(Log l)
+	public static String getStats()
 	{
-		l.info("Total SQL executions: " + _stmtExecutionCount);
+		StringBuffer sb = new StringBuffer();
+		sb.append("Total SQL executions: ").append(_stmtExecutionCount).append("\n");
 		for (SQL_StmtType t: SQL_StmtType.values()) {
-			l.info("Executions of SQL stmt type " + t + ": " + t._executionCount);
+			sb.append("Executions of SQL stmt type ").append(t.toString()).append(": ").append(t._executionCount).append("\n");
 		}
+
+		return sb.toString();
 	}
 
 	static void closeConnection(Connection c)

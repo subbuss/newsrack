@@ -33,6 +33,7 @@
 
     <h1> Admin Commands </h1>
     <ul>
+      <li> <a href="<@s.url namespace="/admin" action="show-stats" />">Show Stats</a> </li>
       <li> <a href="<@s.url namespace="/admin" action="clear-cache" />">Clear DB Cache</a> </li>
       <li> <a href="<@s.url namespace="/admin" action="make-read-only" />">Read Only Mode</a> </li>
       <li> <a href="<@s.url namespace="/admin" action="make-read-write" />">Read Write Mode</a> </li>
