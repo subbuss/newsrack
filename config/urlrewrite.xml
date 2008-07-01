@@ -7,6 +7,14 @@
     http://tuckey.org/urlrewrite/
 -->
 <urlrewrite use-query-string="true">
+  <!-- ##### Kick out requests from Radio Tamil toolbar #### -->
+  <rule>
+      <condition name="user-agent">Radio\s+Tamil.*</condition>
+      <from>.*</from>
+		<set type="status">404</set>
+      <to>null</to>
+  </rule>
+
   <!-- ###################################################################### 
        The first set of rules match urls from the current installation and
 		 sends a 301 permanent redirect to the new urls.  This should ensure
@@ -99,10 +107,34 @@
 	 <to>$1</to>
   </rule>
 
-  <!-- ######################################################################
-       The only outbound rule at this time.  Strips the ".action" suffix in urls
-       ###################################################################### -->
+  <!-- #############################
+       Outbound rules begin here ...
+       ############################# -->
   <outbound-rule>
+    <name>Strip URL Session ID's -- copied from the urlrewrite manual</name>
+    <note>
+        Strip ;jsession=XXX from urls passed through response.encodeURL().
+        The characters ? and # are the only things we can use to find out where the jsessionid ends.
+        The expression in 'from' below contains three capture groups, the last two being optional.
+            1, everything before ;jesessionid
+            2, everything after ;jesessionid=XXX starting with a ?  (to get the query string) up to #
+            3, everything ;jesessionid=XXX and optionally ?XXX starting with a # (to get the target)
+        eg,
+        from index.jsp;jsessionid=sss?qqq to index.jsp?qqq
+        from index.jsp;jsessionid=sss?qqq#ttt to index.jsp?qqq#ttt
+        from index.jsp;jsessionid=asdasdasdsadsadasd#dfds - index.jsp#dfds
+        from u.jsp;jsessionid=wert.hg - u.jsp
+        from /;jsessionid=tyu - /
+    </note>
+    <condition name="user-agent">googlebot</condition>
+    <from>^(.*?)(?:\;jsessionid=[^\?#]*)?(\?[^#]*)?(#.*)?$</from>
+    <to>$1$2$3</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <note>
+        Strips the ".action" suffix in urls
+    </note>
     <from>(.*)\.action(.*)$</from>
 	 <to>$1$2</to>
   </outbound-rule>
