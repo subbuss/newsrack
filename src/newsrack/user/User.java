@@ -547,6 +547,7 @@ public class User implements java.io.Serializable
 
 	public Source getSourceById(String tag)
 	{
+      _log.info("Requesting source by tag: " + tag);
 		return _db.getSource(this, tag);
 	}
 
@@ -924,7 +925,9 @@ public class User implements java.io.Serializable
 				for (int i = 0; i < srcs.length; i++) {
 					if (concurrentProfileModification())
 						break;
-					issue.reclassifyNews(getSourceById(srcs[i]), allDates, sd, ed);
+					// I am getting source keys, not tags anymore
+					//issue.reclassifyNews(getSourceById(srcs[i]), allDates, sd, ed);
+					issue.reclassifyNews(_db.getSource(Long.parseLong(srcs[i])), allDates, sd, ed);
 				}
 			}
 

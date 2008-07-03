@@ -95,7 +95,7 @@ public class Feed implements java.io.Serializable
          // Normalize URL
       feed = normalizeURL(feed);
       _feedsWithoutCachedTextDisplay.add(feed);
-      _log.info("Got " + feed);
+      _log.debug("Got " + feed);
    }
 
    /**
@@ -106,7 +106,7 @@ public class Feed implements java.io.Serializable
          // Normalize URL
       domain = normalizeURL(domain);
       _domainsWithoutCachedTextDisplay.add(domain);
-      _log.info("Got " + domain);
+      _log.debug("Got " + domain);
    }
 
    private static void readCachedTextDisplayRules()

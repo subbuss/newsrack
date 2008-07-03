@@ -461,6 +461,7 @@ public class SQL_DB extends DB_Interface
 		return name;
 	}
 
+   // FIXME: Not being used anywhere!!
 	public void addSource(User u, Source s)
 	{
 		if ((s.getKey() == null) || (s.getKey() == -1)) {

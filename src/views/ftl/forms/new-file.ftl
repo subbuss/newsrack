@@ -38,7 +38,7 @@ function resetForm()
 <@s.form name="editform" cssClass="editfileform" namespace="/file" action="new" method="post">
 <h1>New file</span></h1>
 <div class="center">
-<textarea class="textarea" name="content" rows="30" cols="70">
+<textarea class="textarea" name="fileContent" rows="30" cols="70">
 (** HERE IS AN EXAMPLE OF A PROFILE ... USE THIS TEMPLATE TO
  ** SUITABLY EDIT IT TO YOUR NEEDS.  FOR MORE HELP, CLICK ON
  ** THE HELP OR USER GUIDE LINKS. YOU CAN GET RID OF THESE 4 

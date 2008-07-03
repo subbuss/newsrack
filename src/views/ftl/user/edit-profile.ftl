@@ -78,7 +78,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 
 			<form class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
 			<input class="file_browse" size="10" name="uploadedFile" type="file" />
-			<div align="center"><input class="submit" name="submit" value="Upload" type="submit"></div>
+			<div align="center"><input class="submit" value="Upload" type="submit"></div>
 			</form>
 
 			<a class="newfile" href="<@s.url namespace="/" action="public-files" />">Get from other users</a>

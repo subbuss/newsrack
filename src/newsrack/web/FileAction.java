@@ -41,9 +41,10 @@ public class FileAction extends BaseAction implements ServletResponseAware
 	public String getFileContent() { return _fileContent; }
 
 		// The FileUpload Interceptor will set up these values below!
-	public void setUploadedFile(File f) { _uploadedFile = f; }
-	public void setUploadedContentType(String ct) { _uploadedContentType = ct; }
-	public void setUploadedFileName(String n) { _file = n; }
+	public void setUploadedFile(File f) { _log.info("Setting uploaded file to: " + f); _uploadedFile = f; }
+	public void setUploadedContentType(String ct) { _log.info("Setting uploaded content type to: " + ct); _uploadedContentType = ct; }
+	public void setUploadedFileName(String n) { _log.info("Seting uploaded file name to: " + n); _file = n; }
+	public void setSubmit(Object o) { _log.info("Hmm !!! " + o); }
 
 	private boolean haveValidParams()
 	{

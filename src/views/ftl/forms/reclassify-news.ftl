@@ -78,7 +78,7 @@
 	<select name="srcs" multiple size="10">
   <#assign srcs = user.getIssue(issue).monitoredSources>
   <#foreach s in srcs>
-  <option value="${s.tag}">${s.name}</option>
+  <option value="${s.key?c}">${s.name}</option>
   </#foreach>
   </select>
 	</tr>
