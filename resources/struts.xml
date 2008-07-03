@@ -28,6 +28,14 @@
         <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
       </interceptor-stack>
 
+      <interceptor-stack name="simpleStackWithParams">
+        <interceptor-ref name="servletConfig" /> 
+        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
+        <interceptor-ref name="conversionError" /> 
+        <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+        <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
+      </interceptor-stack>
+
       <!-- Simple stack with authentication -->
       <interceptor-stack name="simpleLoginStack">
         <interceptor-ref name="servletConfig" /> 
@@ -79,6 +87,7 @@
     <action name="selected-topics"> <result>/ftl/category.selection.ftl</result> </action>
 
     <action name="register" class="newsrack.web.RegisterAction">
+      <interceptor-ref name="simpleStackWithParams" />
       <result>/ftl/user/registration-success.ftl</result>
       <result name="input">/ftl/forms/register.ftl</result>
     </action>
