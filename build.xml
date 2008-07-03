@@ -94,7 +94,6 @@
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
     <copy todir="${webinf}/lib">      <fileset dir="${libdir}"/> </copy>
     <copy todir="${wardir}/report">   <fileset dir="report"/> </copy>
-    <copy todir="${wardir}/scripts">  <fileset dir="scripts" /> </copy>
     <copy todir="${classdir}">        <fileset dir="${webapp.resources}"/> </copy>
 	 <copy todir="${classdir}">
 	 	<fileset dir="${srcdir}">
@@ -102,14 +101,6 @@
 			<include name="**/*.properties" />
 			<include name="**/*.xml" />
 			<exclude name="**/rss.xml" />
-		</fileset>
-	 </copy>
-    <copy todir="${webinf}/crawlers"> <fileset dir="${home}/crawlers"/> </copy>
-	   <!-- Fix permissions of the crawler and other scripts!  Note: works only on unix-like systems -->
-	 <exec executable="fixperms.sh" osfamily="unix"> <arg line="${webinf}/crawlers ${wardir}/scripts" /> </exec>
-    <copy todir="${home}/crawlers" preservelastmodified="true">
-	 	<fileset dir="${webapp.target.dir}/WEB-INF/crawlers">
-		  <include name="**/*.lastfetched" />
 		</fileset>
 	 </copy>
   </target>

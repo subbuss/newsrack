@@ -255,7 +255,7 @@ public class Feed implements java.io.Serializable
       if (_log.isDebugEnabled())_log.debug("Checking feed turn off for: " + f);
       if (_feedsWithoutCachedTextDisplay.contains(f)) {
          _cachedTextDisplayFlag = false;
-         if (_log.isDebugEnabled())_log.debug("Turning off cached text display for (feed) " + _feedUrl);
+         if (_log.isInfoEnabled())_log.info("Turning off cached text display for (feed) " + _feedUrl);
       }
       else {
             // Get the domain name!
@@ -263,7 +263,7 @@ public class Feed implements java.io.Serializable
          if (_log.isDebugEnabled()) _log.debug("Checking domain turn off for: " + f);
          if (_domainsWithoutCachedTextDisplay.contains(f)) {
             _cachedTextDisplayFlag = false;
-            if (_log.isDebugEnabled())_log.debug("Turning off cached text display for (domain) " + _feedUrl);
+            if (_log.isInfoEnabled())_log.info("Turning off cached text display for (domain) " + _feedUrl);
          }
       }
    }

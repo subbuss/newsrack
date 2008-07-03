@@ -40,7 +40,6 @@ public class DownloadNewsTask extends TimerTask
 
       public void run()
       {
-         List    sNews = null;
          boolean done  = false;
          int     count = 0;
 

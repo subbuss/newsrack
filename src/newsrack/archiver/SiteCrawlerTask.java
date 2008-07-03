@@ -174,7 +174,7 @@ public class SiteCrawlerTask extends TimerTask
 		final Date   nowTime  = new Date();
 		final String cName    = _name;
 		final String cPath    = _path;
-		final String cDir     = GlobalConstants.getWebappPath() + File.separator + GlobalConstants.getProperty("crawlers.home");
+		final String cDir     = GlobalConstants.getProperty("crawlers.home");
 		final String fullPath = cDir + File.separator + cPath;
 
 		if (_log.isInfoEnabled()) {

@@ -44,7 +44,7 @@ public class PasswordResetAction extends BaseAction
 		}
 		catch (javax.mail.MessagingException e) {
 			addActionError(getText("internal.app.error"));
-			_log.error("Error sending reset password email for user: " + uid, e);
+			_log.error("Error sending reset password email for user: " + uid + " with email id: " + u.getEmail(), e);
 			return "internal.app.error";
 		}
 	}

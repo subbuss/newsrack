@@ -90,18 +90,6 @@ public class MailUtils
       }
 
       Session session = Session.getDefaultInstance(p, _smtpAuth);
-/*
-      session.setDebug(true);
-      System.out.println("smtp.host - " + p.get("mail.smtp.host"));
-      System.out.println("smtp.port - " + p.get("mail.smtp.port"));
-      System.out.println("smtp.starttls.enable - " + p.get("mail.smtp.starttls.enable"));
-      System.out.println("smtp.auth - " + p.get("mail.smtp.auth"));
-      System.out.println("smtps.auth - " + p.get("mail.smtps.auth"));
-      System.out.println("smtp.debug - " + p.get("mail.smtp.debug"));
-      System.out.println("socketfactory.port - " + p.get("mail.smtp.socketFactory.port"));
-      System.out.println("socketfactory.class - " + p.get("mail.smtp.socketFactory.class"));
-      System.out.println("socketfactory.fallback - " + p.get("mail.smtp.socketFactory.fallback")); 
-*/
 
       // create a message
       Message msg = new MimeMessage(session);
@@ -170,16 +158,6 @@ public class MailUtils
       if ((useSSL != null) && (useSSL.compareToIgnoreCase("true") == 0)) {
          _smtpUseSSL = true;
       }
-/*
-      p.put("mail.smtp.host", "smtp.gmail.com");
-      p.put("mail.smtp.port", "465");
-      p.put("mail.smtp.starttls.enable","true");
-      p.put("mail.smtp.auth", "true");
-      p.put("mail.smtps.auth", "true");
-      p.put("mail.smtp.socketFactory.port", "465");
-      p.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-      p.put("mail.smtp.socketFactory.fallback", "false"); 
-*/
 
       alertAdmin("Test mail!");
    }

@@ -65,7 +65,7 @@ public class RegisterAction extends BaseAction
 		if (uid == null || uid.trim().equals(""))
 			addFieldError("username", getText("error.username.required"));
 		else
-			validateUserId(_username);
+			validateUserId(uid);
 
 		validatePasswordPair("password", "passwordConfirm");
 
