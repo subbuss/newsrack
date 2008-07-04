@@ -80,6 +80,13 @@
 	 <to type="permanent-redirect">%{context-path}/about/$1</to>
   </rule>
 
+  <rule>
+    <note> Discourage *.action urls!</note>
+    <from>^/browse\.action(.*)?$</from>
+    <set type="status">403</set>
+    <to>null</to>
+  </rule>
+
   <!-- ######################################################################
        These rules below serve 'clean-looking' urls and translate them to
 		 what struts2 is encoded to understand

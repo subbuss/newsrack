@@ -199,6 +199,7 @@
       <result>/ftl/forms/edit-file.ftl</result>
     </action>
 
+      <!-- This needs the params interceptor -->
     <action name="upload" class="newsrack.web.FileAction" method="upload">
       <interceptor-ref name="simpleStackWithParams" />
     </action>
@@ -238,6 +239,7 @@
 
     <!-- Various api calls -->
   <package name="api" extends="app-default" namespace="/api">
+    <default-interceptor-ref name="simpleStack" />
     <action name="issue-taxonomy" class="newsrack.web.GetIssueTaxonomyAction" />
   </package>
 
