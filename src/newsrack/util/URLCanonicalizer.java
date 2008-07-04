@@ -19,7 +19,7 @@ public class URLCanonicalizer
 
 	public static String canonicalize(String url)
 	{
-		if (url.indexOf("google.com/") != -1) {
+		if (url.indexOf("news.google.com/") != -1) {
 			int proxyUrlStart = url.lastIndexOf("http://");
 			if (proxyUrlStart != -1) {
 				url = url.substring(proxyUrlStart);

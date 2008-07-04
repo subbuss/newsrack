@@ -33,6 +33,12 @@
   </rule>
 
   <rule>
+    <note> Rewriting rule for GetIssueTaxonomy!  Issue a 301 redirect </note>
+    <from>^/GetIssueTaxonomy\.do(.*)?$</from>
+	 <to type="permanent-redirect">%{context-path}/api/issue-taxonomy$1</to>
+  </rule>
+
+  <rule>
     <note> Generic rewriting rule for *.do actions!  Issue a 301 redirect. FIXME: Is this rule required at all? </note>
     <from>^/(.*)\.do(.*)$</from>
 	 <to type="permanent-redirect">%{context-path}/$1$2</to>

@@ -199,7 +199,9 @@
       <result>/ftl/forms/edit-file.ftl</result>
     </action>
 
-    <action name="upload" class="newsrack.web.FileAction" method="upload" />
+    <action name="upload" class="newsrack.web.FileAction" method="upload">
+      <interceptor-ref name="simpleStackWithParams" />
+    </action>
 
     <action name="new" class="newsrack.web.FileAction" method="createNew" />
 
