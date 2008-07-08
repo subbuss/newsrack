@@ -606,6 +606,7 @@ public class Issue implements java.io.Serializable
 	/**
 	 * Output the taxonomy in XML
 	 **/
+/**
 	public String getTaxonomy()
 	{
 		StringBuffer sb = new StringBuffer();
@@ -616,6 +617,7 @@ public class Issue implements java.io.Serializable
 		sb.append("</issue>\n");
 		return sb.toString();
 	}
+**/
 
 	public String toString()
 	{

@@ -49,12 +49,14 @@ class SQL_CategoryStub extends Category
 		super.collectUsedConcepts(usedConcepts);
 	}
 
+/**
 	public String getTaxonomy()
 	{
 		getFilter();
 		getParent();
 		return super.getTaxonomy();
 	}
+**/
 
 	public User getUser()
 	{

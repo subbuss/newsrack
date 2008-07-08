@@ -1,8 +1,8 @@
 <#escape x as x?js_string>
 {
-  name : "${issue.name}",
+  name       : "${issue.name}",
   created_by : "${issue.user.uid}",
-  [
+  categories : [
   <#foreach cat in issue.categories>
     <#call displayCat(cat)>
   </#foreach>
