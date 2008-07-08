@@ -337,6 +337,16 @@ public abstract class DB_Interface
 	 */
 	public abstract void removeIssue(Issue i);
 
+	/**
+	 * Return classified news from an issue
+	 * @param i           Issue from which to fetch news
+	 * @param start       starting date (in yyyy.mm.dd format)
+	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param startIndex  starting article
+	 * @param numArts     number of articles to fetch
+	 */
+	public abstract List<NewsItem> getNews(Issue i, Date start, Date end, int startIndex, int numArts);
+
 /* #### Support for Concept #### */
 	public abstract Concept getConcept(Long key);
    public abstract void updateConceptLexerToken (Concept c);
@@ -399,7 +409,17 @@ public abstract class DB_Interface
 	 * @param cat     Category for which news is being sought
 	 * @param numArts Number of articles requested
 	 */
-	public abstract Iterator getNews(Category cat, int numArts);
+	public abstract List<NewsItem> getNews(Category cat, int numArts);
+
+	/**
+	 * Return classified news from a category (leaf or non-leaf)
+	 * @param c           Category to fetch news from
+	 * @param start       starting date (in yyyy.mm.dd format)
+	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param startIndex  starting article
+	 * @param numArts     number of articles to fetch
+	 */
+	public abstract List<NewsItem> getNews(Category c, Date start, Date end, int startIndex, int numArts);
 
 	/**
 	 * Gets list of articles classified in a category
@@ -408,7 +428,7 @@ public abstract class DB_Interface
 	 * @param startId The starting index
 	 * @param numArts Number of articles requested
 	 */
-	public abstract Iterator getNews(Category cat, int startId, int numArts);
+	public abstract List<NewsItem> getNews(Category cat, int startId, int numArts);
 
 	/**
 	 * Clears the list of articles classified in a category

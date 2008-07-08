@@ -505,6 +505,30 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		false
 	),
+	GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES(
+		"SELECT n_key FROM cat_news WHERE c_key = ? AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
+		new SQL_ValType[] {LONG, TIMESTAMP, TIMESTAMP, INT, INT},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
+	GET_NEWS_KEYS_FROM_ISSUE(
+		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.cat_key ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
+		new SQL_ValType[] {LONG, INT, INT},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
+	GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES(
+		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.cat_key AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
+		new SQL_ValType[] {LONG, TIMESTAMP, TIMESTAMP, INT, INT},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
 	GET_CATS_FOR_NEWSITEM(
 		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.num_new_articles, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
 		new SQL_ValType[] {LONG},

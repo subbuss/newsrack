@@ -226,6 +226,19 @@ public class Category implements Comparable, java.io.Serializable
 
 	public List<Category> getChildren() { return (_children == null) ? EMPTY_LIST : _children; /* FIXME: any way to return a read-only list?? */ }
 
+	/** Get all leaf categories rooted at this sub-tree */
+	public List<Category> getLeafCats()
+	{
+		List<Category> l = new ArrayList();
+		for (Category c: _children) {
+			if (c.isLeafCategory())
+				l.add(c);
+			else
+				l.addAll(c.getLeafCats());
+		}
+		return l;
+	}
+
 	public void setIssue(Issue i) { _issue = i; }
 
 	public Issue getIssue() { return _issue; }
@@ -334,17 +347,20 @@ public class Category implements Comparable, java.io.Serializable
 	 * This method generates an XML taxonomy.  There is also going to
 	 * be appropriate indenting of the nested categories.
 	 */
+/**
 	public String getTaxonomy()
 	{
-		final String oldI = _indent;
-		final String newI = new String(oldI + StringUtils.TAB);
+		String oldI = _indent;
+		String newI = new String(oldI + StringUtils.TAB);
 		_indent = newI;
 
-		final StringBuffer sb = new StringBuffer();
+		StringBuffer sb = new StringBuffer();
 		sb.append(oldI + "<category>\n");
 		sb.append(newI + "<name> " + _name + " </name>\n");
-		if (_filter != null)
+		sb.append(newI + "<id> " + getCatId() + " </id>\n");
+		if (_filter != null) {
 			sb.append(newI + "<rule>" + _filter._ruleString + "</rule>\n");
+		}
 		else if (!isLeafCategory()) {
 			for (Category c: _children)
 				sb.append(c.getTaxonomy());
@@ -354,15 +370,22 @@ public class Category implements Comparable, java.io.Serializable
 
 		return sb.toString();
 	}
+**/
 
 	/**
 	 * gets the news classified into this category
 	 * @param n Number of news items that need to be returned
 	 */
-	public Iterator getNews(final int n)
-	{
-		return _db.getNews(this, n);
-	}
+	public List<NewsItem> getNews(final int n) { return _db.getNews(this, n); }
+
+	/**
+	 * Return classified news for this category
+	 * @param start       starting date (in yyyy.mm.dd format)
+	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param startIndex  starting article
+	 * @param numArts     number of articles to fetch
+	 */
+	public List<NewsItem> getNews(Date start, Date end, int startIndex, int numArts) { return _db.getNews(this, start, end, startIndex, numArts); }
 
 	/**
 	 * gets the news classified into this category 
@@ -370,7 +393,7 @@ public class Category implements Comparable, java.io.Serializable
 	 * @param startId  The starting index
 	 * @param n        Number of news items that need to be returned
 	 */
-	public Iterator getNews(final int startId, final int n)
+	public List<NewsItem> getNews(final int startId, final int n)
 	{
 		return _db.getNews(this, startId, n);
 	}

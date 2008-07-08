@@ -36,13 +36,13 @@ public abstract class BaseAction extends ActionSupport implements SessionAware, 
       _user = User.getUser((String)_session.get(GlobalConstants.UID_KEY));
 	}
 
-	String getParam(String key)
+	protected String getParam(String key)
 	{
 		String[] vals = (String[])_params.get(key);
 		return (vals == null) ? null : vals[0];
 	}
 
-	String[] getParamValues(String key)
+	protected String[] getParamValues(String key)
 	{
 		return (String[])_params.get(key);
 	}

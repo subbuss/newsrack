@@ -20,9 +20,6 @@
       <!-- Simple stack without authentication -->
       <interceptor-stack name="simpleStack">
         <interceptor-ref name="servletConfig" /> 
-		  <!--
-        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
-		  -->
         <interceptor-ref name="conversionError" /> 
         <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
         <interceptor-ref name="workflow"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
@@ -39,9 +36,6 @@
       <!-- Simple stack with authentication -->
       <interceptor-stack name="simpleLoginStack">
         <interceptor-ref name="servletConfig" /> 
-		  <!--
-        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
-		  -->
         <interceptor-ref name="login" />
         <interceptor-ref name="conversionError" /> 
         <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
@@ -52,9 +46,7 @@
       <interceptor-stack name="simpleLoginFileStack">
         <interceptor-ref name="servletConfig" /> 
         <interceptor-ref name="fileUpload" />         
-		  <!--
-        <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
-		  -->
+		  <interceptor-ref name="params"> <param name="excludeParams">dojo\..*</param> </interceptor-ref>
         <interceptor-ref name="login" />
         <interceptor-ref name="conversionError" /> 
         <interceptor-ref name="validation"> <param name="excludeMethods">input,back,cancel,browse</param> </interceptor-ref>
@@ -62,7 +54,7 @@
       </interceptor-stack>        
     </interceptors>   
     
-    <default-interceptor-ref name="simpleLoginStack" />     
+    <default-interceptor-ref name="simpleStack" />
   
     <global-results>
       <result name="unhandledException">/ftl/internal.error.ftl</result>
@@ -78,8 +70,6 @@
 
     <!-- Default "root" package for newsrack --> 
   <package name="newsrack" extends="app-default">
-    <default-interceptor-ref name="simpleStack" />
-
     <action name="home" class="newsrack.web.BrowseAction">
       <result name="browse.main">/ftl/browse.main.ftl</result> <!-- this is the only possible result! -->
     </action>
@@ -116,6 +106,7 @@
   </package>
 
   <package name="news" extends="app-default" namespace="/news">
+    <default-interceptor-ref name="simpleLoginStack" />     
     <action name="delete" class="newsrack.web.DeleteArticlesAction">
       <result>/ftl/browse.news.ftl</result>
     </action>
@@ -140,8 +131,6 @@
 
     <!-- This package handles actions that present the user with various forms for signin, registration, etc. -->
   <package name="forms" extends="app-default" namespace="/forms">
-    <default-interceptor-ref name="simpleStack" />
-
     <action name="change-password">
       <interceptor-ref name="simpleLoginStack" />
       <result>/ftl/forms/change-password.ftl</result>
@@ -152,6 +141,7 @@
   </package>
 
   <package name="user" extends="app-default" namespace="/user">
+    <default-interceptor-ref name="simpleLoginStack" />     
     <action name="change-password" class="newsrack.web.UserAction" method="changePassword">
       <result>/ftl/user/home.ftl</result>
       <result name="input">/ftl/forms/change-password.ftl</result>
@@ -168,8 +158,6 @@
   </package>
 
   <package name="password" extends="app-default" namespace="/password">
-    <default-interceptor-ref name="simpleStack" />
-
     <action name="send-reset-key" class="newsrack.web.PasswordResetAction" method="sendPasswordResetKey">
       <result>/ftl/forms/login.ftl</result>
       <result name="input">/ftl/forms/forgot-password.ftl</result>
@@ -190,6 +178,7 @@
 
     <!-- File related actions -->
   <package name="file" extends="app-default" namespace="/file">
+    <default-interceptor-ref name="simpleLoginStack" />     
     <global-results>
       <result name="error">/ftl/user/edit-profile.ftl</result>
       <result name="success">/ftl/user/edit-profile.ftl</result>
@@ -201,7 +190,7 @@
 
       <!-- This needs the params interceptor -->
     <action name="upload" class="newsrack.web.FileAction" method="upload">
-      <interceptor-ref name="simpleStackWithParams" />
+      <interceptor-ref name="simpleLoginFileStack" />
     </action>
 
     <action name="new" class="newsrack.web.FileAction" method="createNew" />
@@ -212,6 +201,7 @@
 
     <!-- Administrative actions -->
   <package name="admin" extends="app-default" namespace="/admin">
+    <default-interceptor-ref name="simpleLoginStack" />     
     <global-results>
       <result name="error">/ftl/user/home.ftl</result>
       <result name="success">/ftl/admin/home.ftl</result>
@@ -239,27 +229,47 @@
 
     <!-- Various api calls -->
   <package name="api" extends="app-default" namespace="/api">
-    <default-interceptor-ref name="simpleStack" />
-    <action name="issue-taxonomy" class="newsrack.web.GetIssueTaxonomyAction" />
+    <global-results>
+      <result name="error">/ftl/api/error.ftl</result>
+	 </global-results>
+
+    <action name="issue-taxonomy" class="newsrack.web.api.GetIssueTaxonomyAction">
+	   <result name="xml">
+		  <param name="location">/ftl/api/taxonomy.xml.ftl</param>
+		  <param name="contentType">text/xml</param>
+		</result>
+	   <result name="json">
+		  <param name="location">/ftl/api/taxonomy.json.ftl</param>
+		  <param name="contentType">text/json</param>
+		</result>
+	 </action>
+
+	 <action name="news" class="newsrack.web.api.GetNewsAction">
+	   <result name="xml">
+		  <param name="location">/ftl/api/news.xml.ftl</param>
+		  <param name="contentType">text/xml</param>
+		</result>
+	   <result name="json">
+		  <param name="location">/ftl/api/news.json.ftl</param>
+		  <param name="contentType">text/json</param>
+		</result>
+	 </action>
   </package>
 
     <!-- HELP! -->
   <package name="help" extends="app-default" namespace="/help">
-    <default-interceptor-ref name="simpleStack" />
 	 	<!-- user-guide, help, example1, example2, example3 -->
     <action name="*"> <result>/ftl/help/{1}.ftl</result> </action>
   </package>
 
     <!-- Various about pages! -->
   <package name="about" extends="app-default" namespace="/about">
-    <default-interceptor-ref name="simpleStack" />
 	 	<!-- about, credits, contact, disclaimer, faq, testimonials -->
     <action name="*"> <result>/ftl/about/{1}.ftl</result> </action>
   </package>
 
     <!-- Extras -->
   <package name="extras" extends="app-default" namespace="/extras">
-    <default-interceptor-ref name="simpleStack" />
     <action name="crawled-feeds"> <result>/ftl/extras/crawled.feeds.ftl</result> </action>
     <action name="known-indian-feeds"> <result>/ftl/extras/known.indian.feeds.ftl</result> </action>
   </package>

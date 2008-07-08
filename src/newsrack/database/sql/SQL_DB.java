@@ -1741,7 +1741,7 @@ public class SQL_DB extends DB_Interface
 	 * @param cat     Category for which news is being sought
 	 * @param numArts Number of articles requested
 	 */
-	public Iterator getNews(Category cat, int numArts)
+	public List<NewsItem> getNews(Category cat, int numArts)
 	{
 //		_log.info("getNews: Request to get news for cat " + cat.getName() + "; num req - " + numArts);
 		return getNews(cat, 0, numArts);
@@ -1754,21 +1754,52 @@ public class SQL_DB extends DB_Interface
 	 * @param startId The starting index
 	 * @param numArts Number of articles requested
 	 */
-	public Iterator<NewsItem> getNews(Category cat, int startId, int numArts)
+	public List<NewsItem> getNews(Category cat, Date start, Date end, int startId, int numArts)
 	{
+			// FIXME: only caching non-datestamp requests right now 
 		String cacheKey = "CATNEWS:" + cat.getKey() + ":" + startId + ":" + numArts;
-		List   news     = (List)_cache.get(cacheKey, List.class);
+		List<NewsItem> news = (start == null) ? (List)_cache.get(cacheKey, List.class) : null;
 		if (news == null) {
-			//news = GET_NEWS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
-			List<Long> keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
 			news = new ArrayList<NewsItem>();
-			for (Long k: keys)
-				news.add(getNewsItem(k));
+			if (cat.isLeafCategory()) {
+				//news = GET_NEWS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
+				List<Long> keys;
+				if (start == null)
+					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
+				else
+					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES.execute(new Object[] {cat.getKey(), new Timestamp(start.getTime()), new Timestamp(end.getTime()), startId, numArts});
+				for (Long k: keys)
+					news.add(getNewsItem(k));
 
-			_cache.add(new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, List.class, news);
+					// FIXME: only caching non-datestamp requests right now 
+				if (start == null)
+					_cache.add(new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, List.class, news);
+			}
+			else {
+				_log.error("Fetching news from non-leaf categories not supported yet! Recd. request for cat: " + cat.getKey());
+			}
 		}
 
-		return news.iterator();
+		return news;
+	}
+
+	public List<NewsItem> getNews(Category c, int startIndex, int numArts)
+	{
+		return getNews(c, null, null, startIndex, numArts);
+	}
+
+	public List<NewsItem> getNews(Issue i, Date start, Date end, int startId, int numArts)
+	{
+		List<NewsItem> news = new ArrayList<NewsItem>();
+		List<Long> keys;
+		if (start == null)
+			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE.execute(new Object[] {i.getKey(), startId, numArts});
+		else
+			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES.execute(new Object[] {i.getKey(), new Timestamp(start.getTime()), new Timestamp(end.getTime()), startId, numArts});
+		for (Long k: keys)
+			news.add(getNewsItem(k));
+
+		return news;
 	}
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
