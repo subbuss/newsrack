@@ -189,7 +189,7 @@ function toggleCheckBoxes(divObj)
   [/#if]
 		<!-- DISPLAY NEWS -->
   [#assign startNewsId = startId-1]
-	[#assign news = cat.getNews(startNewsId, numArtsPerPage)]
+	[#assign news = cat.getNews(startNewsId, numArtsPerPage).iterator()]
 		<table class="news">
   [#foreach nc in 1..numArtsPerPage]
 		[#if news.hasNext()]

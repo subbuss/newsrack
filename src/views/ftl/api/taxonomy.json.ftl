@@ -20,10 +20,12 @@
   <#if cat.isLeafCategory()>
     rule : "${cat.filter.ruleString}"
   <#else>
+    children : [
     <#foreach c in cat.children>
       <#call displayCat(c)>
     </#foreach>
     '' # Last item -- needed because previous item ends with a comma
+    ]
   </#if>
   },
 </#escape>
