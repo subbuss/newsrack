@@ -27,9 +27,9 @@ public class GetIssueTaxonomyAction extends BaseApiAction
 	{
 		try {
 				// User - mandatory
-			String uid = getApiParamValue("user", false);
+			String uid = getApiParamValue("owner", false);
 			User   u   = (uid == null) ? null : User.getUser(uid);
-			if (!validateParam(u, "user_name", uid))
+			if (!validateParam(u, "owner_uid", uid))
 				return Action.ERROR;
 
 				// Issue - mandatory
@@ -39,7 +39,7 @@ public class GetIssueTaxonomyAction extends BaseApiAction
 				return Action.ERROR;
 
 				// Done -- XML or JSON!
-			String outType = getParam("outputType");
+			String outType = getParam("output");
 			return (outType == null) ? "xml" : outType;
 		}
 		catch (Exception e) {

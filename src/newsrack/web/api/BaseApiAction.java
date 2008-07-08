@@ -29,7 +29,7 @@ public class BaseApiAction extends BaseAction
 	protected boolean validateParam(Object o, String paramKey, String paramValue)
 	{
 		if (o == null) {
-			_errMsg = getText("error.api.bad." + paramKey);
+			_errMsg = getText("error.api.bad." + paramKey, new String[] {paramValue});
 			_log.error("API: Unknown " + paramKey + ":" + paramValue);
 			return false;
 		}

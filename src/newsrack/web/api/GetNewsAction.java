@@ -33,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
 public class GetNewsAction extends BaseApiAction
 {
    private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
-		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy.mm.dd"); }
+		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy.MM.dd"); }
 	};
 
 	private List<NewsItem> _news;
@@ -43,23 +43,23 @@ public class GetNewsAction extends BaseApiAction
 	{
 		try {
 				// User - mandatory
-			String uid = getApiParamValue("user", false);
+			String uid = getApiParamValue("owner", false);
 			User   u   = (uid == null) ? null: User.getUser(uid);
-			if (!validateParam(u, "user_name", uid))
+			if (!validateParam(u, "owner", uid))
 				return Action.ERROR;
 
 				// Issue - mandatory
 			String issueName = getApiParamValue("issue", false);
 			Issue  i         = (issueName == null) ? null : u.getIssue(issueName);
-			if (!validateParam(i, "issue_name", issueName))
+			if (!validateParam(i, "issue", issueName))
 				return Action.ERROR;
 
 				// Cat Id - optional
 			Category c = null;
-			String catId = getApiParamValue("catId", true);
+			String catId = getApiParamValue("catID", true);
 			if (catId != null) {
 				c = i.getCategory(Integer.parseInt(catId));
-				if (!validateParam(c, "cat_id", catId))
+				if (!validateParam(c, "catID", catId))
 					return Action.ERROR;
 			}
 
@@ -109,12 +109,14 @@ public class GetNewsAction extends BaseApiAction
 				}
 			}
 
+			_log.info("API: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + start + "; count - " + count + "; start - " + startDate + "; end - " + endDate);
+
 				// Set up news
 			_news = (c == null) ? i.getNews(startDate, endDate, start, count)
-			                    : i.getNews(startDate, endDate, start, count);
+			                    : c.getNews(startDate, endDate, start, count);
 
 				// Done -- XML or JSON!
-			String outType = getParam("outputType");
+			String outType = getParam("output");
 			return (outType == null) ? "xml" : outType;
 		}
 		catch (Exception e) {
