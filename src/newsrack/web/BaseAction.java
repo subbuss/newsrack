@@ -6,8 +6,6 @@ import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionSupport;
 import org.apache.struts2.interceptor.SessionAware;
 import org.apache.struts2.interceptor.ParameterAware;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import newsrack.GlobalConstants;
 import newsrack.user.User;
@@ -18,8 +16,6 @@ import newsrack.user.User;
  */
 public abstract class BaseAction extends ActionSupport implements SessionAware, ParameterAware
 {
-   private static Log _log = LogFactory.getLog(DefaultAction.class);	// Logger for this action class
-
 		// Session Aware
 	Map _session;
 	public void setSession(Map s)    { _session = s; }
@@ -39,7 +35,6 @@ public abstract class BaseAction extends ActionSupport implements SessionAware, 
 			// get latest info for a user.
 		String uid = (String)_session.get(GlobalConstants.UID_KEY);
 		if (uid != null) {
-			_log.info("Refreshing user object!");
 			User u = User.getUser(uid); 
 			_session.put(GlobalConstants.USER_KEY, u);
 			setUser(u);

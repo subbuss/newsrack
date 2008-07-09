@@ -8,7 +8,7 @@
   <constant name="struts.enable.DynamicMethodInvocation" value="false"/>
     
   <package name="app-default" extends="struts-default">
-     <!-- Change the default result type to freemarker -->
+      <!-- Change the default result type to freemarker -->
     <result-types>
       <result-type name="freemarker" class="org.apache.struts2.views.freemarker.FreemarkerResult" default="true" />
     </result-types>
@@ -96,7 +96,13 @@
       <result name="browse.cat">/ftl/browse.cat.ftl</result>
       <result name="browse.news">/ftl/browse.news.ftl</result>
       <result name="browse.user">/ftl/browse.user.ftl</result>
-      <result name="browse.source">/ftl/browse.source.ftl</result>
+    </action>
+
+    <action name="browse-source" class="newsrack.web.BrowseAction" method="browseSource">
+      <interceptor-ref name="simpleLoginStack" />
+      <result>/ftl/browse.source.ftl</result>
+      <result name="input">/ftl/forms/browse-sources.ftl</result>
+      <result name="browse.main">/ftl/browse.main.ftl</result>
     </action>
 
     <action name="public-files" class="newsrack.web.PublicFilesAction">
@@ -107,6 +113,7 @@
 
   <package name="news" extends="app-default" namespace="/news">
     <default-interceptor-ref name="simpleLoginStack" />     
+
     <action name="delete" class="newsrack.web.DeleteArticlesAction">
       <result>/ftl/browse.news.ftl</result>
     </action>

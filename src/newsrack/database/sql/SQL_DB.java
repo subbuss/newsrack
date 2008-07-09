@@ -1156,6 +1156,12 @@ public class SQL_DB extends DB_Interface
 			String localName = (String)t._c;
 			String feedTag   = (String)t._b;
 			String dateStr   = (String)t._a;
+
+				// Since we removed date string from the DB and converted date-string to a mysql date time,
+				// convert the datestring 12.11.2005 to a mysql date 2005-11-12
+			String[] dateParts = dateStr.split("\\.");
+			dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
+
 			Feed   f         = getFeedWithTag(feedTag);
 			Long   niKey     = getNewsIndexKey(f.getKey(), dateStr);
 			return (NewsItem)GET_NEWS_ITEM_FROM_LOCALPATH.execute(new Object[] {dateStr, f.getKey(), localName, niKey});
@@ -1230,8 +1236,8 @@ public class SQL_DB extends DB_Interface
 	{
 		// Since we removed date string from the DB and converted date-string to a mysql date time,
 		// convert the datestring 12.11.2005 to a mysql date 2005-11-12
-		String[] dateParts = dateStr.split("\\.");
-		dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
+		// String[] dateParts = dateStr.split("\\.");
+		// dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
 
 		String cacheKey = "NIKEY:" + feedKey + ":" + dateStr;
 		Long niKey = (Long)_cache.get(cacheKey, SQL_NewsIndex.class);
@@ -1257,6 +1263,12 @@ public class SQL_DB extends DB_Interface
 			 * downloaded previously while processing another source,
           * then n.getFeedKey() will be different from feedKey! */
 		String dateStr = sni.getDateString();
+
+				// Since we removed date string from the DB and converted date-string to a mysql date time,
+				// convert the datestring 12.11.2005 to a mysql date 2005-11-12
+		String[] dateParts = dateStr.split("\\.");
+		dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
+
 		Long   niKey   = getNewsIndexKey(feedKey, dateStr);
 		if ((niKey == null) || (niKey == -1)) {
 				// Add a new news index entry to the news index table
@@ -2068,7 +2080,8 @@ public class SQL_DB extends DB_Interface
 	{
 		if (m.startsWith("0")) m = m.substring(1);
 		if (d.startsWith("0")) d = d.substring(1);
-		String dateStr = d + "." + m + "." + y;
+		//String dateStr = d + "." + m + "." + y;
+		String dateStr = y + "-" + m + "-" + d;
 		long   feedId  = s.getFeed().getKey();
 
 		_log.info("REQUESTED NEWS for " + s._name + ":" + dateStr);

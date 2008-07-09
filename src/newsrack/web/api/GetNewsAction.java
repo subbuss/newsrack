@@ -121,7 +121,7 @@ public class GetNewsAction extends BaseApiAction
 		}
 		catch (Exception e) {
 			_log.error("API: GetNews: Error fetching news!", e);
-			errMsg = getText("internal.app.error");
+			_errMsg = getText("internal.app.error");
 			return Action.ERROR;
 		}
 	}
