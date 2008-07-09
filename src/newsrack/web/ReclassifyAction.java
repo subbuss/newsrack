@@ -2,7 +2,10 @@ package newsrack.web;
 
 import newsrack.GlobalConstants;
 import newsrack.user.User;
+
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,25 +49,25 @@ public class ReclassifyAction extends BaseAction
 		String srcs[] = getParamValues("srcs");
 
 			// Get start and end dates
-		String sd = getParam("sd");
-		String sm = getParam("sm");
-		String sy = getParam("sy");
-		String ed = getParam("ed");
-		String em = getParam("em");
-		String ey = getParam("ey");
-		if (sd.length() == 1) sd = "0" + sd;
-		if (sm.length() == 1) sm = "0" + sm;
-		if (ed.length() == 1) ed = "0" + ed;
-		if (em.length() == 1) em = "0" + em;
-		String sdate = sy + sm + sd;
-		String edate = ey + em + ed;
+		Calendar c = new java.util.GregorianCalendar();
+
+		c.set(Calendar.DAY_OF_MONTH, Integer.parseInt(getParam("sd")));
+		c.set(Calendar.MONTH, Integer.parseInt(getParam("sm"))-1);
+		c.set(Calendar.YEAR, Integer.parseInt(getParam("sy")));
+		Date sDate = c.getTime();
+
+		c.set(Calendar.DAY_OF_MONTH, Integer.parseInt(getParam("ed")));
+		c.set(Calendar.MONTH, Integer.parseInt(getParam("em"))-1);
+		c.set(Calendar.YEAR, Integer.parseInt(getParam("ey")));
+		Date eDate = c.getTime();
+
 		try {
 			if (_log.isInfoEnabled())
 				_log.info("Request for reclassification at: " + (new java.util.Date()));
 
 				// Display success message
 			if ((issue != null) && (((srcs != null) && (srcs.length != 0)) || allSrcs)) {
-				_user.reclassifyNews(issue, srcs, allSrcs, sdate, edate, allDates, resetCats);
+				_user.reclassifyNews(issue, srcs, allSrcs, sDate, eDate, allDates, resetCats);
 				return Action.SUCCESS;
 			}
 			else {

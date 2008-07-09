@@ -28,7 +28,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class BrowseAction extends BaseAction
 {
-   private static final Log _log = LogFactory.getLog(UserAction.class); /* Logger for this action class */
+   private static final Log _log = LogFactory.getLog(BrowseAction.class); /* Logger for this action class */
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy kk:mm z");
 
 		// FIXME:  Pick some other view scheme than this!
@@ -109,46 +109,14 @@ public class BrowseAction extends BaseAction
 
 		String uid = getParam("owner");
 		if (uid == null) {
-			String srcId = getParam("srcId");
-			if (srcId == null) {
-				// No uid, no source params -- send them to the top-level browse page!
-				if ((_updatesMostRecent == null) || _lastUpdateTime.before(ldt))
-					setIssueUpdateLists();
+				// No uid, -- send them to the top-level browse page!
+			if ((_updatesMostRecent == null) || _lastUpdateTime.before(ldt))
+				setIssueUpdateLists();
 
-				return "browse.main";
-			}
-
-				// If there is no valid session, send them to the generic browse page!
-			if (_user == null) {
-				_log.error("Expired session!");
-				return "browse.main";
-			}
-
-				// Fetch source
-			_src = _user.getSourceById(srcId);
-			if (_src == null) {
-				_log.error("Unknown source: " + srcId);
-				return "browse.source";
-			}
-
-			_d = getParam("d");
-			_m = getParam("m");
-			_y = getParam("y");
-			if ((_d == null) || (_m == null) && (_y == null)) {
-				_log.error("Bad date params: d- " + _d + ", m- " + _m + ", y- " + _y);
-				return "browse.source";
-			}
-
-				// Fetch news for the source for the requested date
-			_news = _src.getArchivedNews(_y, _m, _d);
-			if (_news == null)
-				_news = new ArrayList<NewsItem>();
-
-			return "browse.source";
+			return "browse.main";
 		}
 		else {
-			boolean selfBrowse = ((_user != null) && _user.getUid().equals(uid));
-			_issueOwner = selfBrowse ? _user : User.getUser(uid);
+			_issueOwner = User.getUser(uid);
 			if (_issueOwner == null) {
 					// Bad uid given!  Send the user to the top-level browse page
 				_log.error("No user with uid: " + uid);
@@ -194,5 +162,42 @@ public class BrowseAction extends BaseAction
 				// Display news in the current category in the current issue
 			return _cat.isLeafCategory() ? "browse.news" : "browse.cat";
 		}
+	}
+
+	public String browseSource()
+	{
+			// If there is no valid session, send them to the generic browse page!
+		if (_user == null) {
+			_log.error("Expired session!");
+			return "browse.main";
+		}
+
+			// Fetch source
+		String srcId = getParam("srcId");
+		if (srcId == null) {
+			_log.error("No source id provided!");
+			return Action.INPUT;
+		}
+
+		_src = _user.getSourceById(srcId);
+		if (_src == null) {
+			_log.error("Unknown source: " + srcId);
+			return Action.INPUT;
+		}
+
+		_d = getParam("d");
+		_m = getParam("m");
+		_y = getParam("y");
+		if ((_d == null) || (_m == null) && (_y == null)) {
+			_log.error("Bad date params: d- " + _d + ", m- " + _m + ", y- " + _y);
+			return Action.INPUT;
+		}
+
+			// Fetch news for the source for the requested date
+		_news = _src.getArchivedNews(_y, _m, _d);
+		if (_news == null)
+			_news = new ArrayList<NewsItem>();
+
+		return Action.SUCCESS;
 	}
 }

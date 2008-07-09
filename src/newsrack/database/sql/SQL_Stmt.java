@@ -93,7 +93,7 @@ class GetCollectionResultProcessor extends AbstractResultProcessor
 
 class GetNewsIndexResultProcessor extends AbstractResultProcessor
 {
-	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new SQL_NewsIndex(rs.getLong(1), rs.getString(2), rs.getTimestamp(3)); }
+	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new SQL_NewsIndex(rs.getLong(1), rs.getDate(2)); }
 }
 
 class GetUserResultProcessor extends AbstractResultProcessor
@@ -391,9 +391,9 @@ class GetNewsItemResultProcessor extends AbstractResultProcessor
 		String title     = rs.getString(5);
 		String desc      = rs.getString(6);
 		String author    = rs.getString(7);
-		String dateStr   = rs.getString(8);
+		Date   date      = rs.getDate(8);
 		Long   feedKey   = rs.getLong(9);
-		SQL_NewsItem ni = new SQL_NewsItem(urlRoot, urlTail, title, desc, author, feedKey, dateStr);
+		SQL_NewsItem ni = new SQL_NewsItem(urlRoot, urlTail, title, desc, author, feedKey, date);
 		ni.setKey(rs.getLong(1));
 		ni.setNewsIndexKey(rs.getLong(2));
 
@@ -404,7 +404,7 @@ class GetNewsItemResultProcessor extends AbstractResultProcessor
 public enum SQL_Stmt 
 {
 	GET_NEWS_ITEM(
-		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.title, n1.description, n1.author, n2.date_string, n2.feed_key" +
+		"SELECT n1.n_key, n1.primary_ni_key, n1.url_root, n1.url_tail, n1.title, n1.description, n1.author, n2.created_at, n2.feed_key" +
 			" FROM news_items n1, news_indexes n2" +
 			" WHERE n1.n_key = ? AND n1.primary_ni_key = n2.ni_key",
 		new SQL_ValType[] {LONG},
@@ -414,7 +414,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_NEWS_ITEM_FROM_URL(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 			" FROM news_item_url_md5_hashes h, news_items n, news_indexes ni" +
 			" WHERE h.url_hash = md5(?) AND h.n_key = n.n_key AND n.primary_ni_key = ni.ni_key",
 		new SQL_ValType[] {STRING},
@@ -451,7 +451,7 @@ public enum SQL_Stmt
 		true
    ),
 	GET_NEWS_INDEX(
-		"SELECT ni_key, date_string, created_at FROM news_indexes WHERE ni_key = ?",
+		"SELECT ni_key, created_at FROM news_indexes WHERE ni_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -459,7 +459,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NEWS_INDEX_KEY(
-		"SELECT ni_key FROM news_indexes WHERE feed_key = ? AND date_string = ?",
+		"SELECT ni_key FROM news_indexes WHERE feed_key = ? AND created_at = ?",
 		new SQL_ValType[] {LONG, STRING},
       SQL_StmtType.QUERY,
 		null,
@@ -467,8 +467,16 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_NEWS_INDEXES_FROM_FEED_ID(
-		"SELECT ni_key, date_string, created_at FROM news_indexes n WHERE n.feed_key = ?",
+		"SELECT ni_key, created_at FROM news_indexes n WHERE n.feed_key = ?",
 		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetNewsIndexResultProcessor(),
+		false
+	),
+	GET_ALL_NEWS_INDEXES_BETWEEN_DATES_FROM_FEED_ID(
+		"SELECT ni_key, created_at FROM news_indexes n WHERE n.feed_key = ? AND created_at >= ? AND created_at <= ?",
+		new SQL_ValType[] {LONG, DATE, DATE},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsIndexResultProcessor(),
@@ -486,7 +494,7 @@ public enum SQL_Stmt
 	),
 /**
 	GET_NEWS_FROM_CAT(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni, cat_news cn" +
 		   " WHERE (cn.c_key = ?) AND (cn.n_key = n.n_key) AND (cn.ni_key = ni.ni_key) " +
 		   " ORDER BY cn.date_stamp DESC, cn.n_key DESC LIMIT ?, ?",
@@ -507,7 +515,7 @@ public enum SQL_Stmt
 	),
 	GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES(
 		"SELECT n_key FROM cat_news WHERE c_key = ? AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
-		new SQL_ValType[] {LONG, TIMESTAMP, TIMESTAMP, INT, INT},
+		new SQL_ValType[] {LONG, DATE, DATE, INT, INT},
       SQL_StmtType.QUERY,
 		null,
 		new GetLongResultProcessor(),
@@ -523,7 +531,7 @@ public enum SQL_Stmt
 	),
 	GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES(
 		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.cat_key AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
-		new SQL_ValType[] {LONG, TIMESTAMP, TIMESTAMP, INT, INT},
+		new SQL_ValType[] {LONG, DATE, DATE, INT, INT},
       SQL_StmtType.QUERY,
 		null,
 		new GetLongResultProcessor(),
@@ -575,11 +583,11 @@ public enum SQL_Stmt
       // very very bad timing!  It is better to run the 2 queries
       // as independent ones and union the result sets
 	GET_NEWS_FROM_NEWSINDEX(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni" +
 		   " WHERE (n.primary_ni_key = ? AND n.primary_ni_key = ni.ni_key) " +
 		   " UNION " +
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 		   " FROM  news_items n, news_indexes ni, news_collections sn" +
 		   " WHERE (sn.ni_key = ? AND sn.n_key = n.n_key AND n.primary_ni_key = ni.ni_key)",
 		new SQL_ValType[] {LONG, LONG},
@@ -589,7 +597,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_DOWNLOADED_NEWS_FOR_FEED(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.date_string, ni.feed_key" +
+		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 		   " FROM news_items n, news_indexes ni, downloaded_news dn" +
 		   " WHERE (dn.feed_key = ?) AND (dn.n_key = n.n_key) AND (n.primary_ni_key = ni.ni_key)",
 		new SQL_ValType[] {LONG},
@@ -1004,10 +1012,10 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_NEWS_INDEX(
-		"INSERT INTO news_indexes (feed_key, date_string, created_at) VALUES (?,?,?)",
-      new SQL_ValType[] {LONG, STRING, TIMESTAMP},
+		"INSERT INTO news_indexes (feed_key, created_at) VALUES (?,?)",
+      new SQL_ValType[] {LONG, DATE},
 		SQL_StmtType.INSERT,
-		new SQL_ColumnSize[] {NONE, NEWS_INDEX_TBL_DATESTRING, NONE},
+		null,
 		new GetLongResultProcessor(),
 		true
 	),

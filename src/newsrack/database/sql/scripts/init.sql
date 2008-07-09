@@ -34,13 +34,12 @@ create table if not exists feeds (
  *          Hence the indexes on (a) key (b) feedid (c) date string
  */
 create table if not exists news_indexes (
-   ni_key      bigint      not null auto_increment,
-   feed_key    bigint      not null,
-   date_string char(10)    not null,
-   created_at  timestamp   default 0,
+   ni_key      bigint    not null auto_increment,
+   feed_key    bigint    not null,
+   created_at  date      default 0,
    primary key(ni_key),
    constraint fk_news_indexes_1 foreign key(feed_key) references feeds(feed_key),
-   index feed_date_index(feed_key, date_string),
+	index feed_index (feed_key),
 	index time_stamp_index (created_at)
 ) charset=utf8 collate=utf8_bin;
 
@@ -224,7 +223,7 @@ create table if not exists cat_news (
    c_key      bigint not null,
    n_key      bigint not null,
    ni_key     bigint not null,
-	date_stamp timestamp not null,
+	date_stamp date   not null,
    constraint fk_cat_news_1 foreign key(c_key) references categories(cat_key),
    constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
    constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),

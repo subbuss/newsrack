@@ -14,7 +14,7 @@ public class LoginInterceptor extends AbstractInterceptor
 {
 	public static final String LOGIN_TARGET_KEY = "login.target";
 
-   private static final Log log = LogFactory.getLog(LoginInterceptor.class); /* Logger for this class */
+   private static final Log _log = LogFactory.getLog(LoginInterceptor.class); /* Logger for this class */
 
 	public LoginInterceptor() { super(); }
 
@@ -48,6 +48,7 @@ public class LoginInterceptor extends AbstractInterceptor
 				// NOTE: To get around caching & invalidation problems, we need to go
 				// back to the db/cache to get the latest user object for each request!
 			User u = User.getUser((String)uid);
+			if (_log.isDebugEnabled()) _log.debug("setting user to: " + ((u == null) ? null: u.getUid()));
 
 			// FIXME: Get rid of the session user object, and maybe use the value stack as below 
 			//
@@ -58,7 +59,7 @@ public class LoginInterceptor extends AbstractInterceptor
 
 			invocation.getInvocationContext().getSession().put(GlobalConstants.USER_KEY, u);
 			if (invocation.getAction() instanceof BaseAction)
-				((BaseAction)invocation.getAction()).setUser(u);
+				 ((BaseAction)invocation.getAction()).setUser(u);
 
          return invocation.invoke();
       }

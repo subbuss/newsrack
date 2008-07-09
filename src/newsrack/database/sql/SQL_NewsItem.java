@@ -73,16 +73,16 @@ public class SQL_NewsItem extends NewsItem
 		newsrack.util.Tuple<String, String> t = SQL_DB.splitURL(url);
 		init(t._a, t._b, baseName);
 		_feedKey = feedKey;
-		setDate(getDateString(d));
+		setDate(d);
 	}
 
-	public SQL_NewsItem(String urlRoot, String urlTail, String title, String desc, String author, Long feedKey, String date)
+	public SQL_NewsItem(String urlRoot, String urlTail, String title, String desc, String author, Long feedKey, Date d)
 	{
 		String baseName = SQL_DB._sqldb.getBaseNameForArticle(urlRoot + urlTail);
 		init(urlRoot, urlTail, baseName);
 		setTitle(title);
 		setDescription(desc);
-		setDate(date);
+		setDate(d);
 		setAuthor(author);
 		_feedKey = feedKey;
 	}

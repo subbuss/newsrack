@@ -24,7 +24,7 @@
 	<h1 class="underline">Browse News By Source</h1>
 
 	<div class="ie_center_hack">
-	<form class="ie_center_hack" method="post" action="<@s.url namespace="/" action="browse" />">
+	<form class="ie_center_hack" method="post" action="<@s.url namespace="/" action="browse-source" />">
 	<table class="dates">
 
 	<tr> <td class="tblhdr center bold"> Sources </td> </tr>

@@ -12,7 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
 
 /**
  * class <code>EditProfileAction</code> implements the functionality of editing the user profile.

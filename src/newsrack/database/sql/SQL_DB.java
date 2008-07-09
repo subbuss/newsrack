@@ -127,10 +127,7 @@ public class SQL_DB extends DB_Interface
 		int      dDate   = Integer.parseInt(dirDate);
 		int      sDate   = Integer.parseInt(stDate);
 		int      eDate   = Integer.parseInt(endDate);
-		boolean  retVal  = (sDate <= dDate) && (dDate <= eDate);
-//		System.err.print("dir - " + dirDate + "; start - " + stDate + "; endDate - " + endDate);
-//		_log.error(" --> inbetween = " + retVal);
-		return retVal;
+		return (sDate <= dDate) && (dDate <= eDate);
 	}
 
 	private static String getDateString(String y, String m, String d)
@@ -1231,6 +1228,11 @@ public class SQL_DB extends DB_Interface
 
 	private Long getNewsIndexKey(Long feedKey, String dateStr)
 	{
+		// Since we removed date string from the DB and converted date-string to a mysql date time,
+		// convert the datestring 12.11.2005 to a mysql date 2005-11-12
+		String[] dateParts = dateStr.split("\\.");
+		dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
+
 		String cacheKey = "NIKEY:" + feedKey + ":" + dateStr;
 		Long niKey = (Long)_cache.get(cacheKey, SQL_NewsIndex.class);
 		if (niKey == null) {
@@ -1258,7 +1260,7 @@ public class SQL_DB extends DB_Interface
 		Long   niKey   = getNewsIndexKey(feedKey, dateStr);
 		if ((niKey == null) || (niKey == -1)) {
 				// Add a new news index entry to the news index table
-         niKey = (Long)INSERT_NEWS_INDEX.execute(new Object[] {feedKey, dateStr, new Timestamp(sni.getDate().getTime())});
+         niKey = (Long)INSERT_NEWS_INDEX.execute(new Object[] {feedKey, new java.sql.Date(sni.getDate().getTime())});
          if ((niKey == null) || (niKey == -1)) {
             _log.error("Got an invalid key creating a news index entry");
             return;
@@ -1762,12 +1764,11 @@ public class SQL_DB extends DB_Interface
 		if (news == null) {
 			news = new ArrayList<NewsItem>();
 			if (cat.isLeafCategory()) {
-				//news = GET_NEWS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
 				List<Long> keys;
 				if (start == null)
 					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
 				else
-					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES.execute(new Object[] {cat.getKey(), new Timestamp(start.getTime()), new Timestamp(end.getTime()), startId, numArts});
+					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES.execute(new Object[] {cat.getKey(), new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts});
 				for (Long k: keys)
 					news.add(getNewsItem(k));
 
@@ -1795,7 +1796,7 @@ public class SQL_DB extends DB_Interface
 		if (start == null)
 			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE.execute(new Object[] {i.getKey(), startId, numArts});
 		else
-			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES.execute(new Object[] {i.getKey(), new Timestamp(start.getTime()), new Timestamp(end.getTime()), startId, numArts});
+			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES.execute(new Object[] {i.getKey(), new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts});
 		for (Long k: keys)
 			news.add(getNewsItem(k));
 
@@ -2100,24 +2101,14 @@ public class SQL_DB extends DB_Interface
 	 *
 	 * @param s   Source for which news indexes have to be fetched
 	 * @param sd  Start date (inclusive) from which index files have to be fetched
-	 *            (in format yyyymmdd)
 	 * @param ed  End date (inclusive) beyond which index files should not be fetched
-	 *            (in format yyyymmdd)
 	 */
-	public Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Source s, String sd, String ed)
+	public Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Source s, Date sd, Date ed)
 	{
 		if (_log.isInfoEnabled()) {
 			_log.info("Start: " + sd);
 			_log.info("End  : " + ed);
 		}
-		List<NewsIndex>     res = new ArrayList<NewsIndex>();
-		List<SQL_NewsIndex> nis = (List<SQL_NewsIndex>)GET_ALL_NEWS_INDEXES_FROM_FEED_ID.get(s.getFeed().getKey());
-		for (SQL_NewsIndex si: nis) {
-			String[] flds  = si.getDateString().split("\\.");
-			if (inBetweenDates(flds[2], flds[1], flds[0], sd, ed)) {
-				res.add(new SQL_NewsIndex(si.getKey()));
-			}
-		}
-		return res.iterator();
+		return ((List<SQL_NewsIndex>)GET_ALL_NEWS_INDEXES_BETWEEN_DATES_FROM_FEED_ID.execute(new Object[]{s.getFeed().getKey(), new java.sql.Date(sd.getTime()), new java.sql.Date(ed.getTime())})).iterator();
 	}
 }

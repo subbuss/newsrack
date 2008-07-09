@@ -872,8 +872,8 @@ public class User implements java.io.Serializable
 	 * @param iname      Issue to reclassify
 	 * @param srcs       Array of sources to classify from
 	 * @param allSrcs    Should all sources be used?
-	 * @param sd         Start date from which news should be classified (format is yyyymmdd)
-	 * @param ed         End date from which news should be classified   (format is yyyymmdd)
+	 * @param sd         Start date from which news should be classified
+	 * @param ed         End date from which news should be classified
 	 * @param allDates   If true, all news items from the archive will
 	 *                   be classified.  The sdate and edate parameter values
 	 *                   will be ignored
@@ -884,7 +884,7 @@ public class User implements java.io.Serializable
 	 * FIXME: This method should actually take a range of
 	 * dates, a set of dates, or some other input like that.
 	 */
-	public void reclassifyNews(final String iname, final String[] srcs, final boolean allSrcs, final String sd, final String ed, final boolean allDates, final boolean resetCats) throws Exception
+	public void reclassifyNews(final String iname, final String[] srcs, final boolean allSrcs, final Date sd, final Date ed, final boolean allDates, final boolean resetCats) throws Exception
 	{
 		if (allDates) {
 			final String s = "Sorry! Turned off reclassification for the entire archive!" +

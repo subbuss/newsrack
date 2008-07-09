@@ -1066,7 +1066,7 @@ public class Issue implements java.io.Serializable
 			c.clearNews();
 	}
 
-	public void reclassifyNews(Source s, boolean allDates, String sd, String ed)
+	public void reclassifyNews(Source s, boolean allDates, Date sd, Date ed)
 	{
 		if (_log.isInfoEnabled()) _log.info("### Getting index files for " + s.getFeed().getTag() + " ###");
 		Iterator newsIndexes = (allDates) ? _db.getIndexesOfAllArchivedNews(s)

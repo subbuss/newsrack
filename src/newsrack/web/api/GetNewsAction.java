@@ -21,12 +21,12 @@ import org.apache.commons.logging.LogFactory;
  * class <code>GetNewsAction</code> implements the functionality of fetching news
  *
  * Ex: GET /api/news?<PARAMS>
- * . user=UID
+ * . owner=UID
  * . issue=ISSUE
- * . catId=ID
+ * . catID=ID
  * . source=SOURCE
  * . start_date=START
- * . end_data=END
+ * . end_date=END
  * . start=N
  * . count=N (max = 100)
  */
@@ -121,6 +121,7 @@ public class GetNewsAction extends BaseApiAction
 		}
 		catch (Exception e) {
 			_log.error("API: GetNews: Error fetching news!", e);
+			errMsg = getText("internal.app.error");
 			return Action.ERROR;
 		}
 	}

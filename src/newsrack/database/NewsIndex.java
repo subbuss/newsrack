@@ -1,7 +1,7 @@
 package newsrack.database; 
 
 import java.io.OutputStream;
-import java.sql.Timestamp;
+import java.sql.Date;
 import newsrack.archiver.Feed;
 
 /**
@@ -12,5 +12,5 @@ public abstract class NewsIndex implements java.io.Serializable
 {
 	abstract public Long getKey();
 	abstract public Feed getFeed();
-	abstract public Timestamp getCreationTime();
+	abstract public Date getCreationTime();
 }

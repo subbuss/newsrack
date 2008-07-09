@@ -2,14 +2,13 @@ package newsrack.web;
 
 import java.util.List;
 
+import newsrack.user.User;
 import newsrack.filter.PublicFile;
 
 import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
+
 // import org.apache.commons.logging.Log;
 // import org.apache.commons.logging.LogFactory;
-
-import newsrack.user.User;
 
 /**
  * class <code>PublicFilesAction</code> implements the functionality

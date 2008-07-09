@@ -97,7 +97,7 @@ class SQL_IssueStub extends Issue
 		return srcs;
 	}
 
-	public void reclassifyNews(Source s, boolean allDates, String sd, String ed)
+	public void reclassifyNews(Source s, boolean allDates, Date sd, Date ed)
 	{
 		getUser();
 		super.reclassifyNews(s, allDates, sd, ed);

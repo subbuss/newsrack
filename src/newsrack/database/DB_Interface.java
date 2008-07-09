@@ -621,9 +621,7 @@ public abstract class DB_Interface
 	 *
 	 * @param s   Source for which news indexes have to be fetched
 	 * @param sd  Start date (inclusive) from which indexes have to be fetched
-	 *            (in format yyyymmdd)
 	 * @param ed  End date (inclusive) beyond which indexes should not be fetched
-	 *            (in format yyyymmdd)
 	 */
-	public abstract Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Source s, String sd, String ed);
+	public abstract Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Source s, Date sd, Date ed);
 }

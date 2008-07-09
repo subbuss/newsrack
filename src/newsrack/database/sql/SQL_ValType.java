@@ -70,6 +70,15 @@ public enum SQL_ValType
 				stmt.setBoolean(argPos, (Boolean)argVal);
 		}
 	},
+   DATE { 
+		void setStmtArg(PreparedStatement stmt, int argPos, Object argVal) throws SQLException
+		{
+			if (argVal == null)
+				stmt.setNull(argPos, Types.DATE);
+			else
+				stmt.setDate(argPos, (java.sql.Date)argVal);
+		}
+	},
    TIMESTAMP { 
 		void setStmtArg(PreparedStatement stmt, int argPos, Object argVal) throws SQLException
 		{

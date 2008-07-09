@@ -44,15 +44,15 @@
 		${rangeBegin} to ${rangeEnd} of ${numArts} &nbsp;&nbsp;&nbsp;
 		<div class="navbar">
 	<#if (startId > 1)>
-		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" />"> |&lt; First</a> &nbsp;
-		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" start="${prevId}" />"> &laquo; Previous</a>
+		<a href="<@s.url namespace="/" action="browse-source" srcId="${source.tag}" d="${d}" m="${m}" y="${y}" />"> |&lt; First</a> &nbsp;
+		<a href="<@s.url namespace="/" action="browse-source" srcId="${source.tag}" d="${d}" m="${m}" y="${y}" start="${prevId}" />"> &laquo; Previous</a>
 	<#else>
 		|&lt; First &nbsp; &laquo; Previous
 	</#if>
 		&nbsp;
 	<#if (nextId <= numArts)>
-		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" start="${nextId}" />">Next &raquo;</a> &nbsp;
-		<a href="<@s.url namespace="/" action="browse" source="${source.tag}" d="${d}" m="${m}" y="${y}" start="${lastId}" />">Last &gt;|</a>
+		<a href="<@s.url namespace="/" action="browse-source" srcId="${source.tag}" d="${d}" m="${m}" y="${y}" start="${nextId}" />">Next &raquo;</a> &nbsp;
+		<a href="<@s.url namespace="/" action="browse-source" srcId="${source.tag}" d="${d}" m="${m}" y="${y}" start="${lastId}" />">Last &gt;|</a>
 	<#else>
     Next &raquo; &nbsp; Last &gt;|
 	</#if>
