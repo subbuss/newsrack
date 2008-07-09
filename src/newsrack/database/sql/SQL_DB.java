@@ -1160,6 +1160,8 @@ public class SQL_DB extends DB_Interface
 				// Since we removed date string from the DB and converted date-string to a mysql date time,
 				// convert the datestring 12.11.2005 to a mysql date 2005-11-12
 			String[] dateParts = dateStr.split("\\.");
+         if (dateParts[1].length() == 1) dateParts[1] = '0' + dateParts[1];
+         if (dateParts[0].length() == 1) dateParts[0] = '0' + dateParts[0];
 			dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
 
 			Feed   f         = getFeedWithTag(feedTag);

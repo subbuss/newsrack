@@ -82,7 +82,7 @@
 
   <rule>
     <note> Discourage *.action urls!</note>
-    <from>^/browse\.action(.*)?$</from>
+    <from>^/.*\.action(.*)?$</from>
     <set type="status">403</set>
     <to>null</to>
   </rule>

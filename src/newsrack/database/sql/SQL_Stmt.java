@@ -1060,7 +1060,7 @@ public enum SQL_Stmt
 	),
 	INSERT_INTO_CAT_NEWS_TABLE(
 		"INSERT INTO cat_news (c_key, n_key, ni_key, date_stamp) VALUES (?,?,?,?)",
-		new SQL_ValType[] {LONG, LONG, LONG, TIMESTAMP},
+		new SQL_ValType[] {LONG, LONG, LONG, DATE},
       SQL_StmtType.INSERT,
 		null,
 		new GetLongResultProcessor(),
