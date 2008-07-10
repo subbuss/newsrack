@@ -51,24 +51,11 @@ class SQL_SourceStub extends Source
 		return f;
 	}
 
-	public boolean equals(Object o)
-	{
-		if (o instanceof Source) {
-			Source s = (Source)o;
-				// Won't consider source name OR source keys in this equation!
-			return (s.getFeed() == getFeed()) && s._utag.equals(_utag) && s.getUser().getUid().equals(getUser().getUid());
-		}
-		else {
-			return false;
-		}
-	}
-
-	public Collection<NewsItem> read() throws Exception
-	{
-		getFeed();
-		return super.read();
-	}
-
    public boolean getCacheableFlag()         { return _cacheable; }
    public boolean getCachedTextDisplayFlag() { return _showCacheLinks; }
+
+		// Stubs
+	public int hashCode() { getFeed(); getUser(); return super.hashCode(); }
+	public boolean equals(Object o) { getFeed(); getUser(); return super.equals(o); }
+	public Collection<NewsItem> read() throws Exception { getFeed(); return super.read(); }
 }
