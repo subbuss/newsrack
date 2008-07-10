@@ -93,6 +93,8 @@ public class Source implements java.io.Serializable
 			_log.error("ERROR: No feed for source with tag: " + _utag);
 	}
 
+	public int hashCode() { return _feed.hashCode()*31 + _utag.hashCode()*31 + _user.getUid().hashCode()*31; }
+
 	public boolean equals(Object o) {
 		if (o instanceof Source) {
 			Source s = (Source)o;
