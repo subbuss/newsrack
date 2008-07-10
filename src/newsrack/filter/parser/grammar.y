@@ -189,6 +189,7 @@
 				if (numLeft == prevNumLeft) {
 					_log.error("Looks like we have a cycle in parse order! Aborting parse!");
 					ParseUtils.parseError(_currFile, "We are sorry!  Your files import collections from each other cylically!  Email us for help in resolving this problem and enclose this message with your email!");
+					break;
 				}
 			}
 
