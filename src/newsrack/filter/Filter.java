@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import newsrack.util.StringUtils;
+import newsrack.database.NewsItem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,9 +55,10 @@ public class Filter implements java.io.Serializable
 
 	public String getRuleString() { return _ruleString; }
 
-	public int getMatchCount(Hashtable matchCounts) { 
+	public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+	{
 		try {
-			return _rule.getMatchCount(matchCounts); 
+			return _rule.getMatchCount(article, numTokens, matchCounts); 
 		}
 		catch (Exception e) {
 			_log.error("Caught exception in match count for filter: " + _key + ": " + _ruleString, e);
@@ -87,7 +89,7 @@ public class Filter implements java.io.Serializable
 		abstract public String   toString();
 		abstract public void     print();
 		abstract public void     collectUsedConcepts(Set<Concept> usedConcepts);
-		abstract public int      getMatchCount(Hashtable matchCounts);
+		abstract public int      getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts);
 	}
 
 	/* class LeafConcept encodes a leaf concept */
@@ -115,7 +117,7 @@ public class Filter implements java.io.Serializable
 			usedConcepts.add(_concept);
 		}
 
-		public int getMatchCount(final Hashtable matchCounts)
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
 			if (_concept == null) {
 				_log.error("Null concept in Leafconcept");
@@ -150,8 +152,8 @@ public class Filter implements java.io.Serializable
 		public void print() { System.out.println(_indent + _filt.getName()); }
 
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _filt.collectUsedConcepts(usedConcepts); }
-
-		public int getMatchCount(final Hashtable matchCounts) { return _filt.getMatchCount(matchCounts); }
+ 
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts) { return _filt.getMatchCount(article, numTokens, matchCounts); }
 	}
 
 	/* class LeafCategory encodes a leaf category */
@@ -174,13 +176,17 @@ public class Filter implements java.io.Serializable
 			System.out.println(_indent + _cat.getName());
 		}
 
-		public void collectUsedConcepts(final Set<Concept> usedConcepts) { }
+		public void collectUsedConcepts(Set<Concept> usedConcepts) { }
 
-		public int getMatchCount(final Hashtable matchCounts)
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
-			final Count mc    = (Count)matchCounts.get("[" + _cat.getName() + "]");
-			final int   count = ((mc == null) ? 0 : mc.value());
-			return count;
+				// FIXME: Use hashcode instead!
+			Count mc = (Count)matchCounts.get("[" + _cat.getName() + "]");
+			if (mc == null) {
+				_log.info("CAT " + _cat.getName() + " in issue " + _cat.getIssue().getName() + " being processed recursively!");
+				mc = _cat.getMatchCount(article, numTokens, matchCounts);
+			}
+			return mc.value();
 		}
 	}
 
@@ -236,7 +242,7 @@ public class Filter implements java.io.Serializable
 			_r.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchCount(final Hashtable matchCounts)
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
 				// First, check if the context matches
 			boolean contextMatched = false;
@@ -252,7 +258,7 @@ public class Filter implements java.io.Serializable
 			if (!contextMatched)
 				return 0;
 
-			return _r.getMatchCount(matchCounts);
+			return _r.getMatchCount(article, numTokens, matchCounts);
 		}
 	}
 
@@ -281,9 +287,9 @@ public class Filter implements java.io.Serializable
 			_t.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchCount(final Hashtable matchCounts)
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
-			final int count = (MIN_REQD_MATCH_COUNT - _t.getMatchCount(matchCounts));
+			final int count = (MIN_REQD_MATCH_COUNT - _t.getMatchCount(article, numTokens, matchCounts));
 			return (count > 0) ? count : 0;
 		}
 	}
@@ -334,10 +340,10 @@ public class Filter implements java.io.Serializable
 			_rTerm.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchCount(final Hashtable matchCounts)
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
-			final int ltCount = _lTerm.getMatchCount(matchCounts);
-			final int rtCount = _rTerm.getMatchCount(matchCounts);
+			final int ltCount = _lTerm.getMatchCount(article, numTokens, matchCounts);
+			final int rtCount = _rTerm.getMatchCount(article, numTokens, matchCounts);
 			if (_op == FilterOp.AND_TERM) {
 				if ((ltCount == 0) || (rtCount == 0))
 					return 0;

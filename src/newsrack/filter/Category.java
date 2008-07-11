@@ -438,7 +438,7 @@ public class Category implements Comparable, java.io.Serializable
 	 *                     If a non-leaf category, the match count is the
 	 *                       maximum of match count of its sub-categories
 	 */
-	public synchronized Count getMatchCount(final NewsItem article, final int numTokens, final Hashtable matchCounts)
+	public synchronized Count getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 	{
 		if (_log.isDebugEnabled()) _log.debug(" --> get match count for " + _name);
 
@@ -452,7 +452,7 @@ public class Category implements Comparable, java.io.Serializable
 				// the position of the concept relative to the article size ...
 				// Basically, concepts that match at the beginning of the article
 				// are more valuable than those than match later on.
-			matchCount = _filter.getMatchCount(matchCounts);
+			matchCount = _filter.getMatchCount(article, numTokens, matchCounts);
 			if (    (matchCount >= Filter.MIN_REQD_MATCH_COUNT) 
 				 || ((numTokens < 250) && (matchCount > 0) && (matchCount < Filter.MIN_REQD_MATCH_COUNT)))
 			{
@@ -499,9 +499,9 @@ public class Category implements Comparable, java.io.Serializable
 
 			// Get rid of match counts for all nested cats since they
 			// won't be accessible in the taxonomy outside the current cat!
-		for (Category subCat: _children) {
+		for (Category subCat: _children)
 			matchCounts.remove("[" + subCat._name + "]");
-		}
+
 		return retVal;
 	}
 

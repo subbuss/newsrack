@@ -159,7 +159,6 @@
 				prevNumLeft = numLeft;
 					// In each pass, at least one file should get processed!
 				for (Object file: allFiles) {
-						// No imports!
 					if (!processedFiles.contains(file)) {
 						boolean ready = true;
 
@@ -168,7 +167,11 @@
 						List imports = (List)_fileToImportsMap.get(file);
 						if (imports != null) {
 							for (Object collName: imports) {
-								if (!processedFiles.contains(_collToFileMap.get(collName))) {
+								Object fname = _collToFileMap.get(collName);
+									// Check for readiness only if the collection is defined in some file.
+									// If not, we won't make progress on this collection and falsely say that we are stuck in a cycle!
+									// This is an undefined reference that will be caught in the second pass of parsing.
+								if ((fname != null) && !processedFiles.contains(fname)) {
 									ready = false;
 									break;
 								}

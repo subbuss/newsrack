@@ -877,7 +877,16 @@ public class Issue implements java.io.Serializable
 		int matchCount = 0;
 		ArrayList<Category> matchedCats = new ArrayList<Category>();
 		for (Category c: getCategories()) {
-			Count mv = c.getMatchCount(ni, numTokens, tokTable);
+			Count mv = (Count)tokTable.get("[" + c.getName() + "]");
+				// The category might have been processed while processing another category
+				// Ex: because of a rule like this: [Slums and Courts] = [Slums] and Courts
+				// [Slums and Courts] references the [Slums] category and so, while processing
+				// this cat, the [Slums] cat might have been processed.
+				// If so, avoid duplicate processing.
+			if (mv == null)
+				mv = c.getMatchCount(ni, numTokens, tokTable);
+			else
+				_log.info("CAT " + c.getName() + " in issue " + getName() + " has already been processed!");
 			if (mv.value() > matchCount)
 				matchCount = mv.value();
 			matchedCats.addAll(mv.getMatchedCats());
