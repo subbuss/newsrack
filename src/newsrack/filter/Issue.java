@@ -15,7 +15,6 @@ import newsrack.archiver.Feed;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
-import java.lang.System;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -886,7 +885,7 @@ public class Issue implements java.io.Serializable
 			if (mv == null)
 				mv = c.getMatchCount(ni, numTokens, tokTable);
 			else
-				_log.info("CAT " + c.getName() + " in issue " + getName() + " has already been processed!");
+				if (_log.isDebugEnabled()) _log.debug("CAT " + c.getName() + " in issue " + getName() + " has already been processed!");
 			if (mv.value() > matchCount)
 				matchCount = mv.value();
 			matchedCats.addAll(mv.getMatchedCats());
@@ -915,6 +914,51 @@ public class Issue implements java.io.Serializable
 			if (ni.getCategories().size() == 0)
 				unclassifiedArts.add(ni);
 		}
+	}
+
+	private void initScanner(Reader r, String workDir) throws Exception
+	{
+		Object[] args = new Object[1];
+		args[0] = r;
+		if (_lexer == null) {
+			// Load the scanner class, if necessary
+			if (_lexerConstr == null)
+				loadScannerClass(workDir);
+			_lexer = _lexerConstr.newInstance(args);
+		}
+		else {
+			_lexerResetMethod.invoke(_lexer, args);
+		}
+	}
+
+	private int scanNewsItem(PrintWriter pw, Hashtable tokTable) throws Exception
+	{
+		int numTokens = 0;
+
+			// MAIN SCANNER LOOP
+		while (true) {
+			ConceptToken tok = (ConceptToken)_lexerScanMethod.invoke(_lexer, (java.lang.Object [])null);
+			if (tok == null) {
+				break;
+			}
+
+				// Process token
+			numTokens++;
+			if (tok != ConceptToken.CATCHALL_TOKEN) {
+				if (tok.isMultiToken()) {
+					if (_log.isDebugEnabled()) _log.debug("MULTI token " + tok.getToken());
+					String[] toks = tok.getTokens();
+					for (int i = 0; i < toks.length; i++) {
+						processMatchedConcept(toks[i], tokTable, pw);
+					}
+				}
+				else {
+					processMatchedConcept(tok.getToken(), tokTable, pw);
+				}
+			}
+		}
+
+		return numTokens;
 	}
 
 	/**
@@ -956,10 +1000,9 @@ public class Issue implements java.io.Serializable
 		if (_log.isDebugEnabled()) _log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f._feedName));
 
 		Long maxNewsId = (long)0;
-		String workDir = _user.getWorkDir();
 		try {
 			PrintWriter pw = null;
-			String      fn = workDir + StringUtils.getOSFriendlyName(getName()) + ".tokens";
+			String      fn = _user.getWorkDir() + StringUtils.getOSFriendlyName(getName()) + ".tokens";
 			try {
 				if (_log.isDebugEnabled()) _log.debug("Looking for utf8 writer for " + fn);
 				pw = IOUtils.getUTF8Writer(fn);
@@ -992,51 +1035,16 @@ public class Issue implements java.io.Serializable
 					continue;
 				}
 
-				int numTokens = 0;
 				if (pw != null)
 					pw.println("FILE: " + ni.getLocalCopyPath());
 
 				try {
-					Reader   r    = ni.getReader();
-					Object[] args = new Object[1];
-					args[0] = r;
-					if (_lexer == null) {
-						// Load the scanner class, if necessary
-						if (_lexerConstr == null)
-							loadScannerClass(workDir);
-						_lexer = _lexerConstr.newInstance(args);
-					}
-					else {
-						_lexerResetMethod.invoke(_lexer, args);
-						numTokens = 0;
-					}
 					Hashtable tokTable = new Hashtable();
-
-						// MAIN SCANNER LOOP
-					while (true) {
-						ConceptToken tok = (ConceptToken)_lexerScanMethod.invoke(_lexer, (java.lang.Object [])null);
-						if (tok == null) {
-							break;
-						}
-
-							// Process token
-						numTokens++;
-						if (tok != ConceptToken.CATCHALL_TOKEN) {
-							if (tok.isMultiToken()) {
-								if (_log.isDebugEnabled()) _log.debug("MULTI token " + tok.getToken());
-								String[] toks = tok.getTokens();
-								for (int i = 0; i < toks.length; i++) {
-									processMatchedConcept(toks[i], tokTable, pw);
-								}
-							}
-							else {
-								processMatchedConcept(tok.getToken(), tokTable, pw);
-							}
-						}
-					}
-						// END OF SCANNING OF FILE
-					r.close();
+					Reader r = ni.getReader();
+					initScanner(r, _user.getWorkDir());
+					int numTokens = scanNewsItem(pw, tokTable);
 					classifyArticle(ni, numTokens, tokTable);
+					r.close();
 				}
 				catch (java.io.FileNotFoundException e) {
 					_log.error("ScanAndClassify: FNFE ERROR " + e);	// Don't print the stack trace
@@ -1160,5 +1168,27 @@ public class Issue implements java.io.Serializable
 
 		for (Category c: getCategories())
 			c.updateRSSFeed();
+	}
+
+	public static void main(String[] args)
+	{
+		if (args.length == 2) {
+			try {
+				Issue  i = new Issue(args[0], false, true, false);
+				Reader r = new java.io.FileReader(args[1]);
+				PrintWriter pw = new PrintWriter(args[0] + ".tokens");
+				i.initScanner(r, null);
+				i.scanNewsItem(pw, new Hashtable());
+				r.close();
+				pw.close();
+			}
+			catch (Exception e) {
+				System.err.println("Exception" + e);
+				e.printStackTrace();
+			}
+		}
+		else {
+			System.out.println("Usage: java newsrack.filter.Issue <issue-name> <file-to-filter>\n  It is assumed that the jflex scanner class has been compiled and is available in the classpath");
+		}
 	}
 }

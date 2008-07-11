@@ -183,7 +183,7 @@ public class Filter implements java.io.Serializable
 				// FIXME: Use hashcode instead!
 			Count mc = (Count)matchCounts.get("[" + _cat.getName() + "]");
 			if (mc == null) {
-				_log.info("CAT " + _cat.getName() + " in issue " + _cat.getIssue().getName() + " being processed recursively!");
+				if (_log.isDebugEnabled()) _log.debug("CAT " + _cat.getName() + " in issue " + _cat.getIssue().getName() + " being processed recursively!");
 				mc = _cat.getMatchCount(article, numTokens, matchCounts);
 			}
 			return mc.value();
