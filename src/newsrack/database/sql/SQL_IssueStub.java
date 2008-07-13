@@ -59,15 +59,6 @@ class SQL_IssueStub extends Issue
 
 	public Collection<Category> getCategories()
 	{
-/**
-      try {
-         throw new Exception();
-      }
-      catch (Exception e) {
-         SQL_DB._log.info("Where am I?", e);
-      }
-**/
-
 		Collection<Category> topLevelCats;
 		if (_loaded) {
 			topLevelCats = super.getCategories();

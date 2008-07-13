@@ -405,12 +405,6 @@ public class Category implements Comparable, java.io.Serializable
 	{
 			// clear this category
 		_db.clearNews(this);
-
-			// Reset news for all nested categories
-		if (!isLeafCategory()) {
-			for (Category c: _children)
-				c.clearNews();
-		}
 	}
 
 	/**

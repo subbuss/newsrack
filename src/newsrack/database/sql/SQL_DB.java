@@ -987,13 +987,13 @@ public class SQL_DB extends DB_Interface
       return (List<Issue>)GET_ALL_VALIDATED_ISSUES.execute(EMPTY_ARGS);
    }
 
-   public List<Feed>  getAllActiveFeeds()
+   public List<Feed> getAllActiveFeeds()
 	{
 		/* For now, we won't cache this info */
       return (List<Feed>)GET_ALL_ACTIVE_FEEDS.execute(EMPTY_ARGS);
 	}
 
-   public List<Feed>  getAllFeeds()
+   public List<Feed> getAllFeeds()
 	{
       return (List<Feed>)GET_ALL_FEEDS.execute(EMPTY_ARGS);
 	}
@@ -1003,6 +1003,7 @@ public class SQL_DB extends DB_Interface
 		String key = u.getUid() + ":" + issueName;
 		Issue i = (Issue)_cache.get(key, Issue.class);
 		if (i == null) {
+			_log.info("OSCACHE: Didn't find issue " + key + " in cache ... ");
 			i = (Issue)GET_ISSUE_BY_USER_KEY.execute(new Object[]{u.getKey(), issueName});
 			if (i != null) {
 				_cache.add(u.getKey(), key, Issue.class, i);
@@ -1017,6 +1018,7 @@ public class SQL_DB extends DB_Interface
 		List<Issue> issues = (List<Issue>)GET_ALL_ISSUES_BY_USER_KEY.execute(new Object[]{u.getKey()});
 		for (Issue i: issues) {
 			i.setUser(u);
+			_cache.add(u.getKey(), u.getUid() + ":" + i.getName(), Issue.class, i);
 		}
 		return issues;
    }
@@ -1034,7 +1036,7 @@ public class SQL_DB extends DB_Interface
 	public void invalidateUserProfile(User u)
 	{
 		// FIXME: Concurrency issues not thought through!
-		// What happens if a user is disabling it here,  while concurrently
+		// What happens if a user is disabling it here, while concurrently
 		// some other user (sharing that account) is modifying and validating it?
 	
 		Long uKey = u.getKey();
@@ -1107,7 +1109,9 @@ public class SQL_DB extends DB_Interface
 				return null;
 			}
 
-				// This should not happen at all!  But, present as a backup against some bug ...
+				// This should not happen at all!  But, present because:
+				// * need to have a backup against some bug ...
+				// * of duplicates introduced by the earlier codebase
 			_log.error("Aha! Duplicate news items found for url: " + url);
 			NewsItem n     = (NewsItem)((SQL_UniquenessConstraintViolationException)e).firstResult;
 			Long     nKey  = n.getKey();
@@ -1673,7 +1677,7 @@ public class SQL_DB extends DB_Interface
       if (numDeleted > 0) {
 			Category cat = getCategory(catKey);
 			cat.setNumArticles(cat.getNumArticles() - numDeleted);
-			updateCatInfo(cat);
+			updateCatInfo(cat, true);
          updateArtCounts(cat.getIssue());
 		}
    }
@@ -1688,6 +1692,7 @@ public class SQL_DB extends DB_Interface
 			// Purge cache of stale news
 		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + catKey});
 
+			// FIXME: Fix this bad code from the older codebase!  Just delete everything in one shot for god's sake!
 		Connection        c    = null;
 		PreparedStatement stmt = null;
 		try {
@@ -1725,7 +1730,11 @@ public class SQL_DB extends DB_Interface
          if (numDeleted > 0) {
 				Category cat = getCategory(catKey);
 				cat.setNumArticles(cat.getNumArticles() - numDeleted);
-				updateCatInfo(cat);
+					// NOTE: Order is important!
+					// This first statement updates the category and purges the cache
+					// of all objects that could have stale references to this category.
+					// issues, users ... the works ...
+				updateCatInfo(cat, true);
             updateArtCounts(cat.getIssue());
          }
 		}
@@ -1843,10 +1852,14 @@ public class SQL_DB extends DB_Interface
 			// 2. Reset article count (retain old update time)
       CLEAR_CAT_NEWS.execute(new Object[] {cat.getKey()});
 		cat.setNumArticles(0);
-		updateCatInfo(cat);
+		updateCatInfo(cat, true);
 
 			// Purge cache of stale news
 		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + cat.getKey()});
+
+			// Reset news for all nested categories
+		for (Category c: cat.getChildren())
+			c.clearNews();
 	}
 
    private static String getDateString(Date d) { return DATE_PARSER.get().format(d); }
@@ -1997,7 +2010,14 @@ public class SQL_DB extends DB_Interface
 		}
 	}
 
-	private void updateCatInfo(Category cat)
+	private void updateIssueForCat(Category cat, Issue i)
+	{
+		cat.setIssue(i);
+		for (Category c: cat.getChildren())
+			updateIssueForCat(c, i);
+	}
+
+	private void updateCatInfo(Category cat, boolean purgeAllStaleCacheEntries)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Setting article count for cat " + cat.getName() + ":" + cat.getKey() + ": to " + cat.getNumArticles());
 
@@ -2008,16 +2028,22 @@ public class SQL_DB extends DB_Interface
 			lut = new Timestamp(lut.getTime());
 		UPDATE_CAT_NEWS_INFO.execute(new Object[] {cat.getNumArticles(), lut, cat.getNumItemsSinceLastDownload(), cat.getKey()});
 
-			// Remove pertinent cached entries for this category!
-			// The issue and user objects are being removed because they
-			// might contain references to the cached objects!
-		User  u = cat.getUser();
-		Issue i = cat.getIssue();
+			// Remove stale cache entry for this category
 		_cache.remove(cat.getKey(), Category.class);
-		_cache.remove(i.getKey(), Issue.class);
-		_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
-		_cache.remove(u.getKey(), User.class);
-		_cache.remove(u.getUid(), User.class);
+
+		if (purgeAllStaleCacheEntries) {
+				// Remove other pertinent cached entries for this category!
+				// The issue and user objects are being removed because they
+				// might contain references to the cached objects!
+			User  u = cat.getUser();
+			Issue i = cat.getIssue();
+			_cache.remove(i.getKey(), Issue.class);
+			_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
+			_cache.remove(u.getKey(), User.class);
+			_cache.remove(u.getUid(), User.class);
+				// Check out a new copy of the issue & update issue references in this category and all sub-categories
+			updateIssueForCat(cat, getIssue(i.getKey()));
+		}
 	}
 
 	private int updateArtCountsForCat(Category cat)
@@ -2031,7 +2057,7 @@ public class SQL_DB extends DB_Interface
 			cat.setNumArticles(n);
 		}
 
-		updateCatInfo(cat);
+		updateCatInfo(cat, false);
 		return cat.getNumArticles();
 	}
 
@@ -2045,6 +2071,18 @@ public class SQL_DB extends DB_Interface
 
 		if (_log.isDebugEnabled()) _log.debug("Setting article count for issue " + i.getName() + ":" + i.getKey() + ": to " + n);
 		UPDATE_ARTCOUNT_FOR_TOPIC.execute(new Object[] {n, new Timestamp(i.getLastUpdateTime().getTime()), i.getNumItemsSinceLastDownload(), i.getKey()});
+
+			// Now, purge stale cache entries!
+		User u = i.getUser();
+		_cache.remove(i.getKey(), Issue.class);
+		_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
+		_cache.remove(u.getKey(), User.class);
+		_cache.remove(u.getUid(), User.class);
+
+			// Check out a fresh copy of the issue and update issue references in the issue's category subtree!
+		i = getIssue(i.getKey());
+		for (Category c: i.getCategories())
+			updateIssueForCat(c, i);
 	}
 
 	/**

@@ -29,35 +29,6 @@ class SQL_CategoryStub extends Category
 		_parentCat = parentCat;
 	}
 
-	public boolean isTopLevelCategory() { return (getParent() == null); }
-
-	public boolean isLeafCategory() { return (getFilter() != null); }
-
-	protected void setIssueKey(Long k) { _issueKey = k; }
-
-	protected void setupForDownloading(Issue issue)
-	{
-		getFilter();
-		getParent();
-		super.setupForDownloading(issue);
-	}
-
-	protected void collectUsedConcepts(Set<Concept> usedConcepts)
-	{
-		getFilter();
-		getParent();
-		super.collectUsedConcepts(usedConcepts);
-	}
-
-/**
-	public String getTaxonomy()
-	{
-		getFilter();
-		getParent();
-		return super.getTaxonomy();
-	}
-**/
-
 	public User getUser()
 	{
 		User u = super.getUser();
@@ -131,10 +102,23 @@ class SQL_CategoryStub extends Category
 		return ch;
 	}
 
-	public synchronized Count getMatchCount(final NewsItem article, final int numTokens, final Hashtable matchCounts)
-	{
-		getFilter();
-		getParent();
-		return super.getMatchCount(article, numTokens, matchCounts);
-	}
+	public boolean isTopLevelCategory() { return (getParent() == null); }
+	public boolean isLeafCategory() { return (getFilter() != null); }
+	protected void setIssueKey(Long k) { _issueKey = k; }
+
+	private void setupAll() { getFilter(); getParent(); getChildren(); }
+
+	// STUB METHODS BELOW!
+	public Category clone() { setupAll(); return super.clone(); }
+	protected void setupForDownloading(Issue issue) { setupAll(); super.setupForDownloading(issue); }
+	protected void collectUsedConcepts(Set<Concept> usedConcepts) { setupAll(); super.collectUsedConcepts(usedConcepts); }
+	public synchronized Count getMatchCount(final NewsItem article, final int numTokens, final Hashtable matchCounts) { setupAll(); return super.getMatchCount(article, numTokens, matchCounts); } 
+	// public String getTaxonomy() { setupAll return super.getTaxonomy(); }
+	//
+	public Category getCategory(final String catName) { getChildren(); return super.getCategory(catName); }
+	public List<Category> getLeafCats() { getChildren(); return super.getLeafCats(); }
+	public void readInCurrentRSSFeed() { getChildren(); super.readInCurrentRSSFeed(); }
+	public void updateRSSFeed() { getChildren(); super.updateRSSFeed(); }
+	public void freeRSSFeed() { getChildren(); super.freeRSSFeed(); }
+	public void invalidateRSSFeed() { getChildren(); super.invalidateRSSFeed(); }
 }

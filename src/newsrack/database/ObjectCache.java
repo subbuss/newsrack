@@ -108,7 +108,7 @@ public class ObjectCache
 		return c;
 	}
 
-	public ObjectCache()
+	private void buildAllCaches()
 	{
 		_caches = new java.util.HashMap<Class, OCache>(10);
 
@@ -131,6 +131,11 @@ public class ObjectCache
 
 			// Lastly, a generic object cache
 		_objectCache  = buildCache("object", Object.class, p); 	// 10000
+	}
+
+	public ObjectCache()
+	{
+		buildAllCaches();
 	}
 
 	public void printStats(StringBuffer sb)
@@ -230,7 +235,13 @@ public class ObjectCache
 
 	public void clearCaches()
 	{
-		for (OCache c: _caches.values())
-			c.clear();
+		Map<Class, OCache> oldCaches = _caches;
+
+			// Build all caches from scratch!
+		buildAllCaches();
+
+			// Destroy all the old caches
+		for (OCache c: oldCaches.values())
+			c.destroy();
 	}
 }

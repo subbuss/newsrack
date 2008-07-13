@@ -423,11 +423,16 @@ public class User implements java.io.Serializable
 		_downloadInProgress = false;
 	}
 
-	private void loadIssuesFromDB()
+	private void initIssueMap()
 	{
 		_issues = new HashMap<String, Issue>();
+	}
+
+	private void loadIssuesFromDB()
+	{
+		initIssueMap();
 		for (Issue i: _db.getIssues(this)) {
-			_log.debug("LOAD: Adding issue " + i.getName() + " to the hash table!");
+			if (_log.isDebugEnabled()) _log.debug("LOAD: Adding issue " + i.getName() + " to the hash table!");
 			_issues.put(i.getName(), i);
 		}
 	}
@@ -444,7 +449,7 @@ public class User implements java.io.Serializable
 	{
 			// Issues are added during parsing
 		if (_issues == null)
-			_issues = new HashMap<String, Issue>();
+			initIssueMap();
 
 		if (_issues.get(i.getName()) != null) {
 			throw new Exception("ERROR! An issue already exists with name " + i.getName());
@@ -479,6 +484,12 @@ public class User implements java.io.Serializable
 	 */
 	public Issue getIssue(String iname)
 	{
+		/**
+		if (_issues == null)
+			loadIssuesFromDB();
+
+		return _issues.get(iname);
+		**/
 		return (_issues == null) ? _db.getIssue(this, iname) : _issues.get(iname);
 	}
 
