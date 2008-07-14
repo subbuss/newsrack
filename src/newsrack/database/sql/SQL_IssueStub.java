@@ -66,8 +66,18 @@ class SQL_IssueStub extends Issue
 		else {
 			getUser(); // Load the user field too!
 			topLevelCats = new ArrayList<Category>();
+/**
 			List<Category> cats = (List<Category>)SQL_Stmt.GET_CATS_FOR_ISSUE.execute(new Object[] { getKey() });
 			for (Category c: cats) {
+				c.setIssue(this);
+				if (c.isTopLevelCategory())
+					topLevelCats.add(c);
+			}
+**/
+				// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
+			List<Long> catKeys = (List<Long>)SQL_Stmt.GET_CAT_KEYS_FOR_ISSUE.get(getKey());
+			for (Long k: catKeys) {
+				Category c = SQL_DB._sqldb.getCategory(k); 
 				c.setIssue(this);
 				if (c.isTopLevelCategory())
 					topLevelCats.add(c);

@@ -322,12 +322,10 @@ public class Issue implements java.io.Serializable
 	{
 		_key = null;
 		_name = name;
-		_topLevelCats = new ArrayList<Category>();
 		_catMap   = new HashMap();
 		_private = pFlag;
 		_validated = vFlag;
 		_frozen = fFlag;
-		_topLevelCats = new ArrayList<Category>();
 	}
 
 	public Issue(String name, User u) throws Exception
@@ -416,6 +414,7 @@ public class Issue implements java.io.Serializable
 	public void addCategories(Collection<Category> cats)
 	{
 			// Set this field before anything else!
+		_topLevelCats = new ArrayList<Category>();
 		_topLevelCats.addAll(cats);
 
 			// Initialize paths

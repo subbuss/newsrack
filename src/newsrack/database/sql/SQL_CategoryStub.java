@@ -2,7 +2,7 @@ package newsrack.database.sql;
 
 import java.util.Set;
 import java.util.List;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Date;
 
@@ -90,13 +90,24 @@ class SQL_CategoryStub extends Category
 	{
 		List<Category> ch = super.getChildren();
 		if (!isLeafCategory() && ch.isEmpty()) {
+/**
 			List<Category> children = (List<Category>)SQL_Stmt.GET_NESTED_CATS.execute(new Object[]{getKey()});
 			setChildren(children);
 			for (Category c: children) {
 				c.setParent(this);
 				c.setIssue(this.getIssue());
 			}
-
+**/
+				// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
+			List<Category> children = new ArrayList<Category>();
+			List<Long> childKeys = (List<Long>)SQL_Stmt.GET_NESTED_CAT_KEYS.get(getKey());
+			for (Long k: childKeys) {
+				Category c = SQL_DB._sqldb.getCategory(k); 
+				c.setParent(this);
+				c.setIssue(this.getIssue());
+				children.add(c);
+			}
+			setChildren(children);
 			ch = children;
 		}
 		return ch;

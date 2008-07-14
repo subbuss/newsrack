@@ -537,6 +537,15 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		false
 	),
+	GET_CAT_KEYS_FOR_NEWSITEM(
+		"SELECT cn.c_key FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
+/**
 	GET_CATS_FOR_NEWSITEM(
 		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.num_new_articles, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
@@ -545,6 +554,7 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(true, false, false),
 		false
 	),
+**/
 	GET_FILTER_TERMS(
 		"SELECT rt_key, term_type, arg1_key, arg2_key FROM filter_rule_terms WHERE f_key = ? ",
 		new SQL_ValType[] {LONG},
@@ -557,14 +567,6 @@ public enum SQL_Stmt
 	),
 	GET_ALL_FILTER_KEYS_FOR_USER(
 		"SELECT f_key FROM filters WHERE u_key = ? ",
-		new SQL_ValType[] {LONG},
-      SQL_StmtType.QUERY,
-		null,
-		new GetLongResultProcessor(),
-		false
-	),
-	GET_CAT_KEYS_FOR_NEWSITEM(
-		"SELECT c_key FROM cat_news WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -738,6 +740,15 @@ public enum SQL_Stmt
 		new GetIssueResultProcessor(),
 		false
    ),
+	GET_CAT_KEYS_FOR_ISSUE(
+		"SELECT cat_key FROM categories WHERE t_key = ? AND valid = true",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
+/**
 	GET_CATS_FOR_ISSUE(
 		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},
@@ -746,6 +757,7 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(true, false, true),
 		false
 	),
+**/
    GET_ALL_VALIDATED_ISSUES(
       "SELECT * FROM topics where validated = true ORDER BY lower(name)",
       new SQL_ValType[] {},
@@ -954,6 +966,15 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(true, false, false),
 		true
 	),
+	GET_NESTED_CAT_KEYS(
+		"SELECT cat_key FROM categories WHERE parent_cat = ? AND valid = true",
+		new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
+/**
 	GET_NESTED_CATS(
 		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE parent_cat = ?",
 		new SQL_ValType[] {LONG},
@@ -962,6 +983,7 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(true, false, false),
 		false
 	),
+**/
 	GET_NESTED_CATS_FROM_USER_COLLECTION(
 		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, LONG},

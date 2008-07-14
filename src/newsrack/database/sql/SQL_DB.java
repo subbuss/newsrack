@@ -458,18 +458,23 @@ public class SQL_DB extends DB_Interface
 		return name;
 	}
 
-   // FIXME: Not being used anywhere!!
-	public void addSource(User u, Source s)
+	void addSource(Long uKey, Source s)
 	{
-		if ((s.getKey() == null) || (s.getKey() == -1)) {
-			Long key = (Long)INSERT_USER_SOURCE.execute(new Object[] {u.getKey(), s.getFeed().getKey(), s.getName(), s.getTag(), s.getCacheableFlag(), s.getCachedTextDisplayFlag()});
-			s.setKey(key);
-			_cache.add(u.getKey(), key, Source.class, s);
-				/* Lot of users will use the default feed name ... try to exploit that fact
-				 * by recording a name entry only for those using customized source names 
-				 * IMPORTANT: If you change this logic, do fix up 'getSourceName()' */
-			if (!s.getFeed().getName().equals(s.getName()))
-				_sourceNames.put(new Tuple<Long,Long>(s.getFeed().getKey(), u.getKey()), s.getName());
+		Long sKey = s.getKey();
+		if (sKey == null) {
+			Long fKey = s.getFeed().getKey();
+				// Check if there is some other matching source object in the DB
+				// This can happen because the same source can be part of multiple collections
+			sKey = getSourceKey(uKey, fKey, s.getTag());
+			if (sKey == null) {
+				sKey = (Long)INSERT_USER_SOURCE.execute(new Object[] {uKey, fKey, s.getName(), s.getTag(), s.getCacheableFlag(), s.getCachedTextDisplayFlag()});
+					/* Lot of users will use the default feed name ... try to exploit that fact
+					 * by recording a name entry only for those using customized source names 
+					 * IMPORTANT: If you change this logic, do fix up 'getSourceName()' */
+				if (!s.getFeed().getName().equals(s.getName()))
+					_sourceNames.put(new Tuple<Long,Long>(s.getFeed().getKey(), uKey), s.getName());
+			}
+			s.setKey(sKey);
 		}
 	}
 
@@ -603,22 +608,7 @@ public class SQL_DB extends DB_Interface
 				params[0] = uKey;
 				while (entries.hasNext()) {
 					Source s = (Source)entries.next();
-					Long   sKey = s.getKey();
-					if (sKey == null) {
-						Long fKey = s.getFeed().getKey();
-							// Check if there is some other matching source object in the DB
-							// This can happen because the same source can be part of multiple collections
-						sKey = getSourceKey(uKey, fKey, s.getTag());
-						if (sKey == null) {
-							params[1] = fKey;
-							params[2] = s.getName(); 
-							params[3] = s.getTag();
-							params[4] = s.getCacheableFlag();
-							params[5] = s.getCachedTextDisplayFlag();
-							sKey = (Long)INSERT_USER_SOURCE.execute(params);
-						}
-						s.setKey(sKey);
-					}
+					addSource(uKey, s);
 					collParams[1] = s.getKey();
 					INSERT_ENTRY_INTO_COLLECTION.execute(collParams);
 				}
@@ -1003,10 +993,10 @@ public class SQL_DB extends DB_Interface
 		String key = u.getUid() + ":" + issueName;
 		Issue i = (Issue)_cache.get(key, Issue.class);
 		if (i == null) {
-			_log.info("OSCACHE: Didn't find issue " + key + " in cache ... ");
 			i = (Issue)GET_ISSUE_BY_USER_KEY.execute(new Object[]{u.getKey(), issueName});
 			if (i != null) {
 				_cache.add(u.getKey(), key, Issue.class, i);
+				_cache.add(u.getKey(), i.getKey(), Issue.class, i);
 				i.setUser(u);
 			}
 		}
@@ -1019,6 +1009,7 @@ public class SQL_DB extends DB_Interface
 		for (Issue i: issues) {
 			i.setUser(u);
 			_cache.add(u.getKey(), u.getUid() + ":" + i.getName(), Issue.class, i);
+			_cache.add(u.getKey(), i.getKey(), Issue.class, i);
 		}
 		return issues;
    }
@@ -1650,7 +1641,12 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void updateMaxNewsIdForIssue(Issue i, Feed f, Long maxId)
 	{
-		_cache.remove("IFINFO:" + i.getKey() + ":" + f.getKey(), Long.class);
+			// Add an updated value to the cache so that we don't have to the hit the db next time
+		String cacheKey = "IFINFO:" + i.getKey() + ":" + f.getKey();
+		_cache.remove(cacheKey, Long.class);
+		_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxId);
+
+			// Update the db
 		UPDATE_TOPIC_SOURCE_INFO.execute(new Object[]{maxId, i.getKey(), f.getKey()});
 	}
 
@@ -1828,19 +1824,30 @@ public class SQL_DB extends DB_Interface
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
 	{
-		// No need to cache this since this will be part of the news item's field!
+	/**
       List<Category> cats = (List<Category>)GET_CATS_FOR_NEWSITEM.get(ni.getKey());
 		if (cats == null)
 			cats = new ArrayList<Category>();
 		if (_log.isDebugEnabled()) _log.debug("For news item: " + ni.getKey() + ", found " + cats.size() + " categories!");
+	**/
+
+			// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
+		List<Category>cats = new ArrayList<Category>();
+		List<Long> catKeys = (List<Long>)GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+		for (Long k: catKeys)
+			cats.add(getCategory(k));
+
+		// No need to cache this since this will be part of the news item's field!
 		return cats;
 	}
 
+/**
 	protected int getClassifiedCatCountForNewsItem(SQL_NewsItem ni)
 	{
       Integer numArts = (Integer)GET_CATCOUNT_FOR_NEWSITEM.get(ni.getKey());
 		return (numArts == null) ? 0 : numArts;
 	}
+**/
 
 	/**
 	 * Clears the list of articles classified in a category
