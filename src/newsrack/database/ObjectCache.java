@@ -43,15 +43,9 @@ public class ObjectCache
 				_osCacheAdmin.putInCache(key, o, groups);
 		}
 
-		void remove(String key)
-		{
-			_osCacheAdmin.removeEntry(key);
-		}
+		void remove(String key) { _osCacheAdmin.removeEntry(key); }
 
-		void removeGroup(String group)
-		{
-			_osCacheAdmin.flushGroup(group);
-		}
+		void removeGroup(String group) { _osCacheAdmin.flushGroup(group); }
 
 		void removeGroups(String[] groups)
 		{
@@ -59,10 +53,9 @@ public class ObjectCache
 				_osCacheAdmin.flushGroup(g);
 		}
 
-		void clear()
-		{
-			_osCacheAdmin.flushAll();
-		}
+		void clear() { _osCacheAdmin.flushAll(); }
+
+      void destroy() { _osCacheAdmin.destroy(); }
 
 		Object get(String key)
 		{
