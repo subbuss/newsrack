@@ -1,6 +1,7 @@
 [#ftl]
 [#assign issueName = issue.name]
 [#assign ownerID = owner.uid]
+[#assign cats = cat.children]
 
 [#-- #################################### --]
 [#-- Recursive macro to display ancestors --]
@@ -18,6 +19,7 @@
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
 <link rel="alternate" type="application/rss+xml" title="'${cat.name}' news in '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
 <title>'${cat.name}' news in '${issueName}' topic for user ${ownerID}</title>
+<meta name="Description" content="This page set up by user ${ownerID} has the following news categories in '${issueName}' topic: [#foreach cat in cats] ${cat.name}; [/#foreach]">
 </head>
 
 <body>
@@ -58,7 +60,6 @@
             <td style="width: 125px">New since <br>${lastDownloadTime}</td>
             <td>Time of <br>last update</td>
          </tr>
-[#assign cats = cat.children]
 [#foreach cat in cats]
 			<tr>
             <td style="border-right: 0px; text-align:right;">

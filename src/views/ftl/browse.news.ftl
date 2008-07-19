@@ -71,6 +71,7 @@
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
 <link rel="alternate" type="application/rss+xml" title="[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
 <title>[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}</title>
+<meta name="Description" content="This page displays news for [#if cat?exists] '${cat.name}' category in [/#if] '${issueName}' topic set up by user ${ownerID}.">
 <style>
 div#check_all_button { 
   width:58px;

@@ -1,6 +1,7 @@
 [#ftl]
 [#assign issueName = issue.name]
 [#assign ownerID   = owner.uid]
+[#assign cats      = issue.categories]
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
@@ -10,6 +11,7 @@
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
 <link rel="alternate" type="application/rss+xml" title="'${issueName}' news for user ${ownerID}" href="${issue.getRSSFeedURL()}" />
 <title>'${issueName}' news for user ${ownerID}</title>
+<meta name="Description" content="This page set up by user ${ownerID} has the following news categories in '${issueName}' topic: [#foreach cat in cats] ${cat.name}; [/#foreach]">
 </head>
 
 <body>
@@ -52,7 +54,6 @@
             <td style="width: 125px">New since <br>${lastDownloadTime}</td>
             <td>Time of <br>last update</td>
          </tr>
-[#assign cats = issue.categories]
 [#foreach cat in cats]
 			<tr>
             <td style="border-right: 0px; text-align:right;">
