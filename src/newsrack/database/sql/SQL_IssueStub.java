@@ -59,13 +59,19 @@ class SQL_IssueStub extends Issue
 
 	public Collection<Category> getCategories()
 	{
-		Collection<Category> topLevelCats;
-		if (_loaded) {
-			topLevelCats = super.getCategories();
-		}
-		else {
+		if (_loaded)
+			return super.getCategories();
+
+		synchronized(this) {
+				// Need this second check because of potential race condition around the check
+				// outside the synchronized block.  We could avoid this second check by synchronized
+				// all code in this method, but we don't want to do that -- because in the common case,
+				// the cats would already have been loaded!
+			if (_loaded)
+				return super.getCategories();
+
 			getUser(); // Load the user field too!
-			topLevelCats = new ArrayList<Category>();
+			Collection<Category> topLevelCats = new ArrayList<Category>();
 /**
 			List<Category> cats = (List<Category>)SQL_Stmt.GET_CATS_FOR_ISSUE.execute(new Object[] { getKey() });
 			for (Category c: cats) {
@@ -83,17 +89,26 @@ class SQL_IssueStub extends Issue
 					topLevelCats.add(c);
 			}
 			_loaded = true;	// Since code in addCategories might call getCategories, set this flag before that call to avoid infinite loops
-			super.addCategories(topLevelCats);
+			super.setCategories(topLevelCats);
+			return topLevelCats;
 		}
-		return topLevelCats;
 	}
 
 	public Collection<Source> getMonitoredSources()
 	{
 		Collection<Source> srcs = super.getMonitoredSources();
 		if (srcs == null) {
-			srcs = (List<Source>)SQL_Stmt.GET_MONITORED_SOURCES_FOR_TOPIC.execute(new Object[] { getKey() });
-			super.addSources(srcs);
+			synchronized(this) {
+					// Need this second check because of potential race condition around the check
+					// outside the synchronized block.  We could avoid this second check by synchronized
+					// all code in this method, but we don't want to do that -- because in the common case,
+					// the cats would already have been loaded!
+				srcs = super.getMonitoredSources();
+				if (srcs == null) {
+					srcs = (List<Source>)SQL_Stmt.GET_MONITORED_SOURCES_FOR_TOPIC.execute(new Object[] { getKey() });
+					super.addSources(srcs);
+				}
+			}
 		}
 		return srcs;
 	}

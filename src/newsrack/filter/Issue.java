@@ -411,11 +411,16 @@ public class Issue implements java.io.Serializable
 		return (_topLevelCats == null) ? EMPTY_LIST : _topLevelCats;
 	}
 
+	public void setCategories(Collection<Category> cats)
+	{
+		_topLevelCats = new ArrayList<Category>();
+		_topLevelCats.addAll(cats);
+	}
+
 	public void addCategories(Collection<Category> cats)
 	{
 			// Set this field before anything else!
-		_topLevelCats = new ArrayList<Category>();
-		_topLevelCats.addAll(cats);
+		setCategories(cats);
 
 			// Initialize paths
 		_taxonomyPath = _user.getUid() + File.separator + StringUtils.getOSFriendlyName(_name);

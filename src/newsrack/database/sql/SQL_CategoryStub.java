@@ -89,7 +89,18 @@ class SQL_CategoryStub extends Category
 	public List<Category> getChildren()
 	{
 		List<Category> children = super.getChildren();
-		if (!isLeafCategory() && children.isEmpty()) {
+		if (isLeafCategory() || !children.isEmpty())
+			return children;
+
+		synchronized(this) {
+				// Need this second check because of potential race conditions around the check
+				// outside the synchronized block.  We could avoid this second check by synchronized
+				// all code in this method, but we don't want to do that -- because in the common case,
+				// the children would already have been loaded!
+			children = super.getChildren();
+			if (isLeafCategory() || !children.isEmpty())
+				return children;
+
 /**
 			children = (List<Category>)SQL_Stmt.GET_NESTED_CATS.execute(new Object[]{getKey()});
 			setChildren(children);
@@ -108,8 +119,8 @@ class SQL_CategoryStub extends Category
 				children.add(c);
 			}
 			setChildren(children);
+			return children;
 		}
-		return children;
 	}
 
 	public boolean isTopLevelCategory() { return (getParent() == null); }
