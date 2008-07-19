@@ -16,8 +16,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
-<link rel="alternate" type="application/rss+xml" title="RSS feed for ${cat.name}" href="${cat.getRSSFeedURL()}" />
-<title>News archived in the ${cat.name} category in the ${issueName} topic for user ${ownerID}</title>
+<link rel="alternate" type="application/rss+xml" title="'${cat.name}' news in '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
+<title>'${cat.name}' news in '${issueName}' topic for user ${ownerID}</title>
 </head>
 
 <body>

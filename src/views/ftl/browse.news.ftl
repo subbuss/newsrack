@@ -69,8 +69,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
-<link rel="alternate" type="application/rss+xml" title="RSS feed for ${cat.name}" href="${cat.getRSSFeedURL()}" />
-<title>News archived in the [#if cat?exists] ${cat.name} category in the [/#if] ${issueName} topic for user ${ownerID}</title>
+<link rel="alternate" type="application/rss+xml" title="[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
+<title>[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}</title>
 <style>
 div#check_all_button { 
   width:58px;

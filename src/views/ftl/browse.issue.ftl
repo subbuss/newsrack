@@ -8,8 +8,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
-<link rel="alternate" type="application/rss+xml" title="RSS feed for ${issue.name}" href="${issue.getRSSFeedURL()}" />
-<title>News archived in the ${issueName} topic for user ${ownerID}</title>
+<link rel="alternate" type="application/rss+xml" title="'${issueName}' news for user ${ownerID}" href="${issue.getRSSFeedURL()}" />
+<title>'${issueName}' news for user ${ownerID}</title>
 </head>
 
 <body>
