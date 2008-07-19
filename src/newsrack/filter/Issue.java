@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -415,6 +416,17 @@ public class Issue implements java.io.Serializable
 	{
 		_topLevelCats = new ArrayList<Category>();
 		_topLevelCats.addAll(cats);
+   
+         // Set up a cat-id <--> category map
+         // Issue nodes always have id 0
+      _catMap.put(new Integer(0), this);
+      LinkedList<Category> l = new LinkedList<Category>();
+      l.addAll(_topLevelCats);
+      while (!l.isEmpty()) {
+         Category c = l.removeFirst();
+         _catMap.put(new Integer(c.getCatId()), c);
+         l.addAll(c.getChildren());
+      }
 	}
 
 	public void addCategories(Collection<Category> cats)
