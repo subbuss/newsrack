@@ -82,7 +82,7 @@ class SQL_IssueStub extends Issue
 				if (c.isTopLevelCategory())
 					topLevelCats.add(c);
 			}
-			_loaded = true;	// Set this flag before adding categories to avoid infinite loops!
+			_loaded = true;	// Since code in addCategories might call getCategories, set this flag before that call to avoid infinite loops
 			super.addCategories(topLevelCats);
 		}
 		return topLevelCats;

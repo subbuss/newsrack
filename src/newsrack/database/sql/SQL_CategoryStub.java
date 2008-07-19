@@ -88,10 +88,10 @@ class SQL_CategoryStub extends Category
 
 	public List<Category> getChildren()
 	{
-		List<Category> ch = super.getChildren();
-		if (!isLeafCategory() && ch.isEmpty()) {
+		List<Category> children = super.getChildren();
+		if (!isLeafCategory() && children.isEmpty()) {
 /**
-			List<Category> children = (List<Category>)SQL_Stmt.GET_NESTED_CATS.execute(new Object[]{getKey()});
+			children = (List<Category>)SQL_Stmt.GET_NESTED_CATS.execute(new Object[]{getKey()});
 			setChildren(children);
 			for (Category c: children) {
 				c.setParent(this);
@@ -99,7 +99,7 @@ class SQL_CategoryStub extends Category
 			}
 **/
 				// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
-			List<Category> children = new ArrayList<Category>();
+			children = new ArrayList<Category>();
 			List<Long> childKeys = (List<Long>)SQL_Stmt.GET_NESTED_CAT_KEYS.get(getKey());
 			for (Long k: childKeys) {
 				Category c = SQL_DB._sqldb.getCategory(k); 
@@ -108,9 +108,8 @@ class SQL_CategoryStub extends Category
 				children.add(c);
 			}
 			setChildren(children);
-			ch = children;
 		}
-		return ch;
+		return children;
 	}
 
 	public boolean isTopLevelCategory() { return (getParent() == null); }

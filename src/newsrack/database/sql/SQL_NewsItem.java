@@ -54,7 +54,7 @@ public class SQL_NewsItem extends NewsItem
 	Long    _feedKey;			// DB key of the feed that this news item belongs to!
 	Long           _newsIndexKey;	// Key of the news index that this news item belongs to
 	SQL_NewsIndex  _newsIndex;		// news index that this news item belongs to
-	List<Category> _cats;			// Categories that this news item belongs to
+	// List<Category> _cats;			// Categories that this news item belongs to
 
 	private void init(String urlRoot, String urlTail, String baseName)
 	{
@@ -146,9 +146,10 @@ public class SQL_NewsItem extends NewsItem
 	public String  getDescription() { return _description; }
 	public String  getURL()         { return _urlRoot + _urlTail; }
 	public List<Category> getCategories() {
-		if (_cats == null)
-			_cats = SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); 
-		return _cats;
+		//if (_cats == null)
+		//	_cats = SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); 
+		//return _cats;
+		return SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); 
 	}
 	public int     getNumCats()       { return getCategories().size(); }
 	public Long    getFeedKey()       { return _feedKey; }

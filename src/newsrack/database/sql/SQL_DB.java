@@ -1837,7 +1837,8 @@ public class SQL_DB extends DB_Interface
 		for (Long k: catKeys)
 			cats.add(getCategory(k));
 
-		// No need to cache this since this will be part of the news item's field!
+			// Don't cache -- far too many news items are fetched, and they are not necessarily frequently accessed
+			// If we want to optimize, we need to profile for ni.getKey(), and start caching after a threshold
 		return cats;
 	}
 
