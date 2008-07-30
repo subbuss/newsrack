@@ -240,7 +240,7 @@
       <result name="error">/ftl/api/error.ftl</result>
 	 </global-results>
 
-    <action name="issue-taxonomy" class="newsrack.web.api.GetIssueTaxonomyAction">
+    <action name="issue-taxonomy" class="newsrack.web.api.IssueAction" method="getTaxonomy">
 	   <result name="xml">
 		  <param name="location">/ftl/api/taxonomy.xml.ftl</param>
 		  <param name="contentType">text/xml</param>
@@ -251,7 +251,18 @@
 		</result>
 	 </action>
 
-	 <action name="news" class="newsrack.web.api.GetNewsAction">
+    <action name="sources" class="newsrack.web.api.IssueAction" method="getMonitoredSources">
+	   <result name="xml">
+		  <param name="location">/ftl/api/sources.xml.ftl</param>
+		  <param name="contentType">text/xml</param>
+		</result>
+	   <result name="json">
+		  <param name="location">/ftl/api/sources.json.ftl</param>
+		  <param name="contentType">text/json</param>
+		</result>
+	 </action>
+
+	 <action name="news" class="newsrack.web.api.NewsAction">
 	   <result name="xml">
 		  <param name="location">/ftl/api/news.xml.ftl</param>
 		  <param name="contentType">text/xml</param>
