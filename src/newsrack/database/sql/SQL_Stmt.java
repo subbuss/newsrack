@@ -505,22 +505,6 @@ public enum SQL_Stmt
 		false
 	),
 **/
-	GET_NEWS_KEYS_FROM_CAT(
-		"SELECT n_key FROM cat_news WHERE c_key = ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
-		new SQL_ValType[] {LONG, INT, INT},
-      SQL_StmtType.QUERY,
-		null,
-		new GetLongResultProcessor(),
-		false
-	),
-	GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES(
-		"SELECT n_key FROM cat_news WHERE c_key = ? AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
-		new SQL_ValType[] {LONG, DATE, DATE, INT, INT},
-      SQL_StmtType.QUERY,
-		null,
-		new GetLongResultProcessor(),
-		false
-	),
 	GET_NEWS_KEYS_FROM_ISSUE(
 		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.cat_key ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, INT, INT},
@@ -635,6 +619,14 @@ public enum SQL_Stmt
 	GET_SOURCE(
 		"SELECT src_key, u_key, feed_key, src_name, src_tag, cacheable, show_cache_links FROM sources WHERE src_key = ?",
       new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetSourceResultProcessor(),
+		true
+	),
+	GET_TOPIC_SOURCE(
+		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM topic_sources t, sources s WHERE t.t_key = ? and t.src_key = s.src_key and s.src_tag = ?",
+      new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
 		new GetSourceResultProcessor(),

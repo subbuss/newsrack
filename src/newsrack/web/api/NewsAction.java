@@ -3,12 +3,14 @@ package newsrack.web.api;
 import newsrack.filter.Issue;
 import newsrack.filter.Category;
 import newsrack.user.User;
+import newsrack.archiver.Source;
 import newsrack.database.NewsItem;
 import newsrack.web.BaseAction;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 
 import com.opensymphony.xwork2.Action;
@@ -18,19 +20,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * class <code>GetNewsAction</code> implements the functionality of fetching news
+ * class <code>NewsAction</code> implements the functionality of fetching news
  *
  * Ex: GET /api/news?<PARAMS>
  * . owner=UID
  * . issue=ISSUE
  * . catID=ID
- * . source=SOURCE
+ * . source_tag=SOURCE
  * . start_date=START
  * . end_date=END
  * . start=N
  * . count=N (max = 100)
  */
-public class GetNewsAction extends BaseApiAction
+public class NewsAction extends BaseApiAction
 {
    private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
 		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy.MM.dd"); }
@@ -109,18 +111,24 @@ public class GetNewsAction extends BaseApiAction
 				}
 			}
 
-			_log.info("API: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + start + "; count - " + count + "; start - " + startDate + "; end - " + endDate);
+				// source tag - optional
+			String srcTag = getApiParamValue("source_tag", true);
+			Source src    = null;
+			if (srcTag != null)
+				src = i.getSourceByTag(srcTag);
+
+			_log.info("API: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + start + "; count - " + count + "; start - " + startDate + "; end - " + endDate + "; srcTag - " + srcTag + "; src - " + (src != null ? src.getKey() : null));
 
 				// Set up news
-			_news = (c == null) ? i.getNews(startDate, endDate, start, count)
-			                    : c.getNews(startDate, endDate, start, count);
+			_news = (c == null) ? new ArrayList<NewsItem>() //i.getNews(startDate, endDate, src, start, count)
+			                    : c.getNews(startDate, endDate, src, start, count);
 
 				// Done -- XML or JSON!
 			String outType = getParam("output");
 			return (outType == null) ? "xml" : outType;
 		}
 		catch (Exception e) {
-			_log.error("API: GetNews: Error fetching news!", e);
+			_log.error("API: News: Error fetching news!", e);
 			_errMsg = getText("internal.app.error");
 			return Action.ERROR;
 		}

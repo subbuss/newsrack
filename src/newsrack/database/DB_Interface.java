@@ -149,11 +149,18 @@ public abstract class DB_Interface
 	public abstract Source getSource(Long key);
 
 	/**
-	 * Get a source object for a feed, given a feed url, a user and his/her preferred tag for the source
+	 * Get a source object given a src tag, the user defining it
 	 * @param u       user requesting the source 
 	 * @param tag     tag assigned by the user to the feed
 	 */
 	public abstract Source getSource(User u, String tag);
+
+	/**
+	 * Get a source object given a src tag, and the topic that monitors it 
+	 * @param i       topic monitoring the source 
+	 * @param tag     tag assigned by the user to the feed
+	 */
+	public abstract Source getSource(Issue i, String tag);
 
 /* #### Support for User #### */
 	/**
@@ -342,10 +349,11 @@ public abstract class DB_Interface
 	 * @param i           Issue from which to fetch news
 	 * @param start       starting date (in yyyy.mm.dd format)
 	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param src         The source from which news is needed
 	 * @param startIndex  starting article
 	 * @param numArts     number of articles to fetch
 	 */
-	public abstract List<NewsItem> getNews(Issue i, Date start, Date end, int startIndex, int numArts);
+	//public abstract List<NewsItem> getNews(Issue i, Date start, Date end, Source src, int startIndex, int numArts);
 
 /* #### Support for Concept #### */
 	public abstract Concept getConcept(Long key);
@@ -416,10 +424,11 @@ public abstract class DB_Interface
 	 * @param c           Category to fetch news from
 	 * @param start       starting date (in yyyy.mm.dd format)
 	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param src         The source from which news is needed
 	 * @param startIndex  starting article
 	 * @param numArts     number of articles to fetch
 	 */
-	public abstract List<NewsItem> getNews(Category c, Date start, Date end, int startIndex, int numArts);
+	public abstract List<NewsItem> getNews(Category c, Date start, Date end, Source src, int startIndex, int numArts);
 
 	/**
 	 * Gets list of articles classified in a category

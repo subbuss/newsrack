@@ -4,6 +4,7 @@ import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 import newsrack.GlobalConstants;
 import newsrack.user.User;
+import newsrack.archiver.Source;
 import newsrack.database.DB_Interface;
 import newsrack.database.NewsItem;
 import newsrack.filter.Filter.RuleTerm;
@@ -382,10 +383,14 @@ public class Category implements Comparable, java.io.Serializable
 	 * Return classified news for this category
 	 * @param start       starting date (in yyyy.mm.dd format)
 	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param src         the news source from which we need the news (can be null)
 	 * @param startIndex  starting article
 	 * @param numArts     number of articles to fetch
 	 */
-	public List<NewsItem> getNews(Date start, Date end, int startIndex, int numArts) { return _db.getNews(this, start, end, startIndex, numArts); }
+	public List<NewsItem> getNews(Date start, Date end, Source src, int startIndex, int numArts) 
+	{ 
+		return _db.getNews(this, start, end, src, startIndex, numArts); 
+	}
 
 	/**
 	 * gets the news classified into this category 

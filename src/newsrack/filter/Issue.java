@@ -384,15 +384,23 @@ public class Issue implements java.io.Serializable
 	 * Return classified news for this issue
 	 * @param start       starting date (in yyyy.mm.dd format)
 	 * @param end         end date      (in yyyy.mm.dd format)
+	 * @param src         the news source from which we need the news (can be null)
 	 * @param startIndex  starting article
 	 * @param numArts     number of articles to fetch
 	 */
-	public List<NewsItem> getNews(Date start, Date end, int startIndex, int numArts) { return _db.getNews(this, start, end, startIndex, numArts); }
+/**
+	public List<NewsItem> getNews(Date start, Date end, Source src, int startIndex, int numArts) 
+	{ 
+		return _db.getNews(this, start, end, src, startIndex, numArts); 
+	}
+**/
 
 	/** Gets the sources monitored by this issue */
 	public Collection<Source> getMonitoredSources() { return (_sources == null) ? null : _sources; }
 
 	public void addSources(Collection<Source> srcs) { _sources = srcs; }
+
+	public Source getSourceByTag(String tag) { return _db.getSource(this, tag); }
 
 	/**
 	 * Gets a category, given its id.

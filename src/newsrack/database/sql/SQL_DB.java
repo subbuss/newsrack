@@ -31,6 +31,7 @@ import newsrack.filter.NR_FilterCollection;
 import static newsrack.filter.Filter.FilterOp.*;
 import static newsrack.filter.NR_CollectionType.*;
 import static newsrack.database.sql.SQL_Stmt.*;
+import static newsrack.database.sql.SQL_ValType.*;
 
 import java.io.File;
 import java.io.Reader;
@@ -424,14 +425,14 @@ public class SQL_DB extends DB_Interface
 	/**
 	 * Get a source object for a feed, given a feed url, a user and his/her preferred tag for the source
 	 * @param u       user requesting the source 
-	 * @param userTag tag assigned by the user to the feed
+	 * @param srcTag tag assigned by the user to the feed
 	 */
-	public Source getSource(User u, String userTag)
+	public Source getSource(User u, String srcTag)
 	{
-		String k = u.getUid() + ":" + userTag;
+		String k = u.getUid() + ":" + srcTag;
 		Source s = (Source)_cache.get(k, Source.class);
 		if (s == null) {
-			s = (Source)GET_USER_SOURCE.execute(new Object[]{u.getKey(), userTag});
+			s = (Source)GET_USER_SOURCE.execute(new Object[]{u.getKey(), srcTag});
 			if (s != null) {
 				_cache.add(u.getKey(), s.getKey(), Source.class, s);
 				_cache.add(u.getKey(), k, Source.class, s);
@@ -440,6 +441,27 @@ public class SQL_DB extends DB_Interface
 		}
 		return s;
 	}
+
+	public Source getSource(Issue i, String srcTag)
+	{
+		User   u = i.getUser();
+		String k = i.getKey() + ":" + srcTag;
+		Source s = (Source)_cache.get(k, Source.class);
+		if (s == null) {
+			s = (Source)GET_TOPIC_SOURCE.execute(new Object[]{i.getKey(), srcTag});
+			if (s != null) {
+				String[] cacheGrps = new String[] {u.getKey().toString(), i.getKey().toString()};
+				_cache.add(cacheGrps, s.getKey(), Source.class, s);
+				_cache.add(cacheGrps, k, Source.class, s);
+				s.setUser(u);
+			}
+			else {
+				_log.info("DID NOT FIND source: " + k);
+			}
+		}
+		return s;
+	}
+
 
 	public Long getSourceKey(Long userKey, Long feedKey, String srcTag)
 	{
@@ -1643,7 +1665,6 @@ public class SQL_DB extends DB_Interface
 	{
 			// Add an updated value to the cache so that we don't have to the hit the db next time
 		String cacheKey = "IFINFO:" + i.getKey() + ":" + f.getKey();
-		_cache.remove(cacheKey, Long.class);
 		_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxId);
 
 			// Update the db
@@ -1758,37 +1779,54 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * Gets list of articles classified in a category
-	 * @param cat     Category for which news is being sought
-	 * @param numArts Number of articles requested
+	 * Gets list of articles classified in a category -- starting at a specified index
 	 */
-	public List<NewsItem> getNews(Category cat, int numArts)
+	public List<NewsItem> getNews(Category cat, Date start, Date end, Source src, int startId, int numArts)
 	{
-//		_log.info("getNews: Request to get news for cat " + cat.getName() + "; num req - " + numArts);
-		return getNews(cat, 0, numArts);
-	}
-
-	/**
-	 * Gets list of articles classified in a category
-	 * -- starting at a specified index
-	 * @param c 		Category for which news is being sought
-	 * @param startId The starting index
-	 * @param numArts Number of articles requested
-	 */
-	public List<NewsItem> getNews(Category cat, Date start, Date end, int startId, int numArts)
-	{
+		Long   catKey   = cat.getKey();
+		String cacheKey = "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts;
 			// FIXME: only caching non-datestamp requests right now 
-		String cacheKey = "CATNEWS:" + cat.getKey() + ":" + startId + ":" + numArts;
 		List<NewsItem> news = (start == null) ? (List)_cache.get(cacheKey, List.class) : null;
 		if (news == null) {
 			news = new ArrayList<NewsItem>();
 			if (cat.isLeafCategory()) {
-				List<Long> keys;
-				if (start == null)
-					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT.execute(new Object[] {cat.getKey(), startId, numArts});
-				else
-					keys = (List<Long>)GET_NEWS_KEYS_FROM_CAT_BETWEEN_DATES.execute(new Object[] {cat.getKey(), new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts});
-				for (Long k: keys)
+				String        query;
+				Object[]      args;
+				SQL_ValType[] argTypes;
+				Object keys;
+				if (src == null) {
+					if (start == null) {
+						query = "SELECT n_key FROM cat_news WHERE c_key = ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
+						args = new Object[] {catKey, startId, numArts};
+						argTypes = new SQL_ValType[] {LONG, INT, INT};
+					}
+					else {
+						query =   "SELECT n_key FROM cat_news WHERE c_key = ? AND date_stamp >= ? AND date_stamp <= ? "
+								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
+						args = new Object[] {catKey, new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts};
+						argTypes = new SQL_ValType[] {LONG, DATE, DATE, INT, INT};
+					}
+				}
+				else {
+					Long feedKey = src.getFeed().getKey();
+					if (start == null) {
+						query =   "SELECT n_key FROM cat_news c, news_indexes ni WHERE c_key = ? AND c.ni_key = ni.ni_key AND ni.feed_key = ? "
+								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
+						args = new Object[] {catKey, feedKey, startId, numArts};
+						argTypes = new SQL_ValType[] {LONG, LONG, INT, INT};
+					}
+					else {
+						query =   "SELECT n_key FROM cat_news c, news_indexes ni "
+						        + "WHERE c_key = ? AND c.ni_key = ni.ni_key AND ni.feed_key = ? AND date_stamp >= ? AND date_stamp <= ? "
+								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
+						args = new Object[] {catKey, feedKey, new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts};
+						argTypes = new SQL_ValType[] {LONG, LONG, DATE, DATE, INT, INT};
+					}
+				}
+				_log.info("QUERY is " + query);
+				keys = SQL_StmtExecutor.execute(query, SQL_StmtType.QUERY, args, argTypes, null, new GetLongResultProcessor(), false);
+
+				for (Long k: (List<Long>)keys)
 					news.add(getNewsItem(k));
 
 					// FIXME: only caching non-datestamp requests right now 
@@ -1805,10 +1843,21 @@ public class SQL_DB extends DB_Interface
 
 	public List<NewsItem> getNews(Category c, int startIndex, int numArts)
 	{
-		return getNews(c, null, null, startIndex, numArts);
+		return getNews(c, null, null, null, startIndex, numArts);
 	}
 
-	public List<NewsItem> getNews(Issue i, Date start, Date end, int startId, int numArts)
+	/**
+	 * Gets list of articles classified in a category
+	 * @param cat     Category for which news is being sought
+	 * @param numArts Number of articles requested
+	 */
+	public List<NewsItem> getNews(Category cat, int numArts)
+	{
+		return getNews(cat, null, null, null, 0, numArts);
+	}
+
+/**
+	public List<NewsItem> getNews(Issue i, Date start, Date end, Source src, int startId, int numArts)
 	{
 		List<NewsItem> news = new ArrayList<NewsItem>();
 		List<Long> keys;
@@ -1821,6 +1870,7 @@ public class SQL_DB extends DB_Interface
 
 		return news;
 	}
+**/
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
 	{

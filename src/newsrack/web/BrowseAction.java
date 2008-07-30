@@ -179,7 +179,7 @@ public class BrowseAction extends BaseAction
 			return Action.INPUT;
 		}
 
-		_src = _user.getSourceById(srcId);
+		_src = _user.getSourceByTag(srcId);
 		if (_src == null) {
 			_log.error("Unknown source: " + srcId);
 			return Action.INPUT;
