@@ -1039,9 +1039,9 @@ public enum SQL_Stmt
 		new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.INSERT
 	),
-	INSERT_INTO_SHARED_NEWS_TABLE(
-		"INSERT IGNORE INTO news_collections (ni_key, n_key) VALUES (?, ?)",
-		new SQL_ValType[] {LONG, LONG},
+	INSERT_INTO_NEWS_COLLECTION(
+		"INSERT IGNORE INTO news_collections (n_key, ni_key, feed_key) VALUES (?, ?, ?)",
+		new SQL_ValType[] {LONG, LONG, LONG},
       SQL_StmtType.INSERT
 	),
 	INSERT_INTO_RECENT_DOWNLOAD_TABLE(

@@ -1288,7 +1288,7 @@ public class SQL_DB extends DB_Interface
 		String[] dateParts = dateStr.split("\\.");
 		dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
 
-		Long   niKey   = getNewsIndexKey(feedKey, dateStr);
+		Long niKey = getNewsIndexKey(feedKey, dateStr);
 		if ((niKey == null) || (niKey == -1)) {
 				// Add a new news index entry to the news index table
          niKey = (Long)INSERT_NEWS_INDEX.execute(new Object[] {feedKey, new java.sql.Date(sni.getDate().getTime())});
@@ -1323,13 +1323,11 @@ public class SQL_DB extends DB_Interface
 			_log.debug("news item: " + sni._title + ": already in the DB " + sni.getKey() + " in index " + sni._newsIndexKey);
 		}
 
-			// Add the news item to the shared news index if the news item does not
-         // belong to the same source to whose index it is being added!
+			// Record the news-item <--> news_index association
 			//
 			// NOTE: The insert statement will fail if the insert will violate uniqueness of (n_key, ni_key)
 			// but, because it is an INSERT IGNORE, we get the desired effect!
-		if (!feedKey.equals(sni.getFeedKey()))
-         INSERT_INTO_SHARED_NEWS_TABLE.execute(new Object[] {niKey, sni.getKey()});
+      INSERT_INTO_NEWS_COLLECTION.execute(new Object[] {sni.getKey(), niKey, feedKey});
 
 			// Add this news item to the list of recently downloaded news items
 		INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
