@@ -186,7 +186,7 @@ public class BrowseAction extends BaseAction
 					_start = 0;
 				}
 				else {
-					_start = Integer.parseInt(startVal);
+					_start = Integer.parseInt(startVal)-1;
 					if (_start < 0)
 						_start = 0;
 					else if (_start > _numArts)
