@@ -1,25 +1,37 @@
 [#ftl]
+
+[#-- Initialize various parameters --]
+
 [#assign issueName = issue.name]
 [#assign ownerID = owner.uid]
-
-[#if Parameters.count?exists]
-	[#assign numArtsPerPage = Parameters.count?number]
-	[#if (numArtsPerPage>200)]
-		[#assign errorMessage = "Will only display a maximum of 200 articles per page"]
-		[#assign numArtsPerPage = 200]
-	[#elseif numArtsPerPage < 5]
-		[#assign numArtsPerPage = 5]
-	[/#if]
-[#else]
-	[#assign numArtsPerPage = 20]
-[/#if]
-
-[#if Parameters.start?exists]
-	[#assign start = Parameters.start]
+[#assign startId = start+1]
+[#assign numArtsPerPage = count]
+[#assign nextId = startId + numArtsPerPage]
+[#assign prevId = startId-numArtsPerPage]
+[#if prevId < 1]
+    [#assign prevId = 1]
 [/#if]
 
 [#if Session?exists && Session.user?exists]
 	[#assign user = Session.user]
+[/#if]
+
+[#-- Check if we are browsing news filtered by date or source .. in those situations, paging will be implemented differently! --]
+[#if Parameters.start_date?exists || (Parameters.source_tag?exists && Parameters.source_tag != "")]
+	[#assign filteredBySrcDate = true]
+[#else]
+	[#assign filteredBySrcDate = false]
+  [#assign rangeBegin = startId]
+  [#assign rangeEnd = startId + numArtsPerPage-1]
+  [#if (rangeEnd>numArts)]
+    [#assign rangeEnd = numArts]
+  [/#if]
+  [#assign lastId = numArts-numArtsPerPage + 1]
+  [#if lastId < 1]
+    [#assign lastId = 1]
+  [#elseif lastId < nextId]
+    [#assign lastId = nextId]
+  [/#if]
 [/#if]
 
 [#-- Check if there is a currently signed in user and if so, if the user owns the issue being displayed --]
@@ -34,6 +46,57 @@
 [#if dispDelFlag]
 	<input type="submit" id="delArts" name="DEL" value="Delete">
 [/#if]
+[#if filteredBySrcDate]
+	&nbsp;&nbsp;&nbsp; [#-- filler to ensure this navbar has some vertical space --]
+  <div class="navbar">
+  [#if Parameters.start_date?exists && Parameters.source_tag?exists]
+    [#assign sd = Parameters.start_date]
+    [#assign ed = Parameters.end_date]
+    [#assign stag = Parameters.source_tag]
+    [#if start < 1]
+		|&lt; First &nbsp; &lt;&lt; Previous
+    [#else]
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${sd}" end_date="${ed}" source_tag="${stag}" /]"> |&lt; First</a> &nbsp;
+    <a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${sd}" end_date="${ed}" source_tag="${stag}" start="${prevId?c}" /]"> &lt;&lt; Previous</a> &nbsp;
+    [/#if]
+    [#if news.size() < numArtsPerPage]
+    Next &gt; &gt;
+    [#else]
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${sd}" end_date="${ed}" source_tag="${stag}" start="${nextId?c}" /]">Next &gt;&gt;</a>
+    [/#if]
+		&nbsp; Last &gt;|
+  [#elseif Parameters.start_date?exists]
+    [#assign sd = Parameters.start_date]
+    [#assign ed = Parameters.end_date]
+    [#if start < 1]
+		|&lt; First &nbsp; &lt;&lt; Previous
+    [#else]
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${sd}" end_date="${ed}" /]"> |&lt; First</a> &nbsp;
+    <a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${sd}" end_date="${ed}" start="${prevId?c}" /]"> &lt;&lt; Previous</a> &nbsp;
+    [/#if]
+    [#if news.size() < numArtsPerPage]
+    Next &gt; &gt;
+    [#else]
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${sd}" end_date="${ed}" start="${nextId?c}" /]">Next &gt;&gt;</a>
+    [/#if]
+		&nbsp; Last &gt;|
+  [#else]
+    [#assign stag = Parameters.source_tag]
+    [#if start < 1]
+		|&lt; First &nbsp; &lt;&lt; Previous
+    [#else]
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${stag}" /]"> |&lt; First</a> &nbsp;
+    <a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${stag}" start="${prevId?c}" /]"> &lt;&lt; Previous</a> &nbsp;
+    [/#if]
+    [#if news.size() < numArtsPerPage]
+    Next &gt; &gt;
+    [#else]
+		<a href="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${stag}" start="${nextId?c}" /]">Next &gt;&gt;</a>
+    [/#if]
+		&nbsp; Last &gt;|
+  [/#if] 
+	</div>
+[#else]
 	${rangeBegin} to ${rangeEnd} of ${numArts} &nbsp;&nbsp;&nbsp;
    <div class="navbar">
    [#if (startId>1)]
@@ -52,6 +115,7 @@
 		Next &gt;&gt; &nbsp; Last &gt;|
    [/#if]
 	</div>
+[/#if]
 </div>
 [/#macro]
 
@@ -63,6 +127,7 @@
 [/#foreach]
 [/#macro]
 
+[#-- ######### Now, we begin with the actual page display ######## --]
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 
@@ -87,6 +152,7 @@ div#check_all_button {
 }
 </style>
 <script type="text/javascript">
+[#if dispDelFlag]
 var checked = false;
 function toggleCheckBoxes(divObj)
 {
@@ -109,10 +175,43 @@ function toggleCheckBoxes(divObj)
     divObj.style.width = "58px";
   }
 }
+[/#if]
+
+function updateUrl(sourceTag)
+{
+   [#-- replace any existing source tag + removed any existing start count + add new source tag --]
+   newUrl = document.location.href.replace(/&source_tag=[^&]*/, '').replace(/&start=[^&]*/, '');
+   if (sourceTag != "")
+     newUrl += "&source_tag=" + sourceTag;
+   document.location.href = newUrl;
+}
+
+function getObj(objId)  { return document.getElementById(objId); }
+function hide(obj)      { obj.style.display = 'none'; }
+function hideObj(objId) { hide(getObj(objId)); }
+function show(obj, style) { obj.style.display = style; }
+
+function init()
+{
+  hideObj('filter_submit');   // submit only for browsers with js turned off 
+[#if Parameters.source_tag?exists]
+  var source_tag = '${Parameters.source_tag}';
+  var selobj = getObj('source_select');
+  hide(selobj);
+  var opts = selobj.options
+  for (i = 0; i < opts.length; i++) {
+     if (opts[i].value == source_tag) {
+        selobj.selectedIndex = i
+        break;
+     }
+  }
+  show(selobj, 'inline');
+[/#if]
+}
 </script>
 </head>
 
-<body>
+<body onload="init()">
 
 <div class="bodymain">
 <table class="userhome" cellspacing="0">
@@ -151,35 +250,18 @@ function toggleCheckBoxes(divObj)
 			<a class="rssfeed" href="${cat.getRSSFeedURL()}"><img src="/icons/rss-12x12.jpg" alt="RSS 2.0"></a>
          </div>
       </div>
-
-  [#-- COMPUTE VARIOUS INDICES INTO THE LIST --]
-[#assign numArts = cat.numArticles]
-[#if start?exists]
-	[#assign startId = start?number]
-	[#if startId < 1]
-		[#assign startId = 1]
-	[#elseif (startId>numArts)]
-		[#assign startId = numArts]
-	[/#if]
-[#else]
-	[#assign startId = 1]
-[/#if]
-[#assign rangeBegin = startId]
-[#assign rangeEnd = startId + numArtsPerPage-1]
-[#if (rangeEnd>numArts)]
-	[#assign rangeEnd = numArts]
-[/#if]
-[#assign prevId = startId-numArtsPerPage]
-[#assign nextId = startId + numArtsPerPage]
-[#assign lastId = numArts-numArtsPerPage + 1]
-[#if prevId < 1]
-	[#assign prevId = 1]
-[/#if]
-[#if lastId < 1]
-	[#assign lastId = 1]
-[#elseif lastId < nextId]
-	[#assign lastId = nextId]
-[/#if>
+      <div class="newsnavbar" style="margin:0;padding:5px;font-size:10px;">
+         <form action="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]" method="post">
+         Filter by source:
+         <select id="source_select" name="source_tag" size="1" onchange="updateUrl(this.options[this.selectedIndex].value)">
+         <option value="">All Sources</option>
+         [#foreach s in issue.monitoredSources]
+         <option value="${s.tag}">${s.name}</option>
+         [/#foreach]
+         </select>
+         &nbsp;&nbsp;&nbsp; <input id="filter_submit" style="font-size:11px;font-weight:bold;" type="submit" name="Filter" value="Filter">
+         </form>
+      </div>
 [#if numArts == 0]
 		<p class="bold center"> No news yet in this category! </p>
 [#else]
@@ -189,12 +271,11 @@ function toggleCheckBoxes(divObj)
   <div id="check_all_button" onclick="toggleCheckBoxes(this)">Check all</div>
   [/#if]
 		<!-- DISPLAY NEWS -->
-  [#assign startNewsId = startId-1]
-	[#assign news = cat.getNews(startNewsId, numArtsPerPage).iterator()]
+	[#assign newsIt = news.iterator()]
 		<table class="news">
   [#foreach nc in 1..numArtsPerPage]
-		[#if news.hasNext()]
-			[#assign ni = news.next()]
+		[#if newsIt.hasNext()]
+			[#assign ni = newsIt.next()]
 			[#assign url = ni.getURL()]
 			[#assign storyTitle = ni.title]
 			[#assign srcName = ni.getSourceNameForUser(owner)]

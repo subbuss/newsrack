@@ -1810,20 +1810,26 @@ public class SQL_DB extends DB_Interface
 				else {
 					Long feedKey = src.getFeed().getKey();
 					if (start == null) {
-						query =   "SELECT n_key FROM cat_news c, news_indexes ni WHERE c_key = ? AND c.ni_key = ni.ni_key AND ni.feed_key = ? "
+						query =   "SELECT c.n_key FROM cat_news c, news_collections nc "
+						        + "WHERE c_key = ? AND c.n_key = nc.n_key AND nc.feed_key = ? "
 								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
 						args = new Object[] {catKey, feedKey, startId, numArts};
 						argTypes = new SQL_ValType[] {LONG, LONG, INT, INT};
 					}
 					else {
-						query =   "SELECT n_key FROM cat_news c, news_indexes ni "
-						        + "WHERE c_key = ? AND c.ni_key = ni.ni_key AND ni.feed_key = ? AND date_stamp >= ? AND date_stamp <= ? "
+						query =   "SELECT c.n_key FROM cat_news c, news_collections nc "
+						        + "WHERE c_key = ? AND c.n_key = nc.n_key AND nc.feed_key = ? AND date_stamp >= ? AND date_stamp <= ? "
 								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
 						args = new Object[] {catKey, feedKey, new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts};
 						argTypes = new SQL_ValType[] {LONG, LONG, DATE, DATE, INT, INT};
 					}
 				}
+/*
 				_log.info("QUERY is " + query);
+				for (int i = 0; i < args.length; i++)
+					_log.info("Arg " + i + " is " + args[i]);
+*/
+
 				keys = SQL_StmtExecutor.execute(query, SQL_StmtType.QUERY, args, argTypes, null, new GetLongResultProcessor(), false);
 
 				for (Long k: (List<Long>)keys)
@@ -2159,7 +2165,7 @@ public class SQL_DB extends DB_Interface
 			// But, at runtime, the actual generic type parameter itself is not available.
 			// so, I can cast it to damn well what I please!  If it were available, this typecheck
 			// will fail because, the query processor creates a generic list, not a list of newsitems.
-      return (List<NewsItem>)GET_NEWS_FROM_NEWSINDEX.execute(new Object[] {indexKey, indexKey});
+      return (List<NewsItem>)GET_NEWS_FROM_NEWSINDEX.execute(new Object[] {indexKey});
 	}
 
 	public Collection<NewsItem> getArchivedNews(NewsIndex index)

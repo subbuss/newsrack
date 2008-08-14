@@ -565,18 +565,11 @@ public enum SQL_Stmt
 		new GetIntResultProcessor(),
 		true
 	),
-      // MERGING the 2 queries into a single one using OR gives
-      // very very bad timing!  It is better to run the 2 queries
-      // as independent ones and union the result sets
 	GET_NEWS_FROM_NEWSINDEX(
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
-		   " FROM  news_items n, news_indexes ni" +
-		   " WHERE (n.primary_ni_key = ? AND n.primary_ni_key = ni.ni_key) " +
-		   " UNION " +
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
-		   " FROM  news_items n, news_indexes ni, news_collections sn" +
-		   " WHERE (sn.ni_key = ? AND sn.n_key = n.n_key AND n.primary_ni_key = ni.ni_key)",
-		new SQL_ValType[] {LONG, LONG},
+		   " FROM  news_items n, news_indexes ni, news_collections nc" +
+		   " WHERE (nc.ni_key = ? AND nc.n_key = n.n_key AND ni.ni_key = nc.ni_key)",
+		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),

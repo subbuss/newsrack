@@ -28,14 +28,25 @@ import org.apache.commons.logging.LogFactory;
  */
 public class BrowseAction extends BaseAction
 {
+   private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy.MM.dd"); }
+	};
+
+   private static final ThreadLocal<SimpleDateFormat> SDF = new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("MMM dd yyyy kk:mm z"); }
+	};
+
    private static final Log _log = LogFactory.getLog(BrowseAction.class); /* Logger for this action class */
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy kk:mm z");
 
 		// FIXME:  Pick some other view scheme than this!
 	private static Date        _lastUpdateTime = null;
    private static List<Issue> _updatesMostRecent = null;
    private static List<Issue> _updatesLast24Hrs = null;
    private static List<Issue> _updatesMoreThan24Hrs = null;
+
+	private static final int DEF_NUM_ARTS_PER_PAGE = 20;
+	private static final int MIN_NUM_ARTS_PER_PAGE = 5;
+	private static final int MAX_NUM_ARTS_PER_PAGE = 200;
 
 		// Caching!
    public static void setIssueUpdateLists()
@@ -69,6 +80,9 @@ public class BrowseAction extends BaseAction
 	private Issue    _issue;
 	private Category _cat;
 	private List<Category> _catAncestors;
+	private int      _numArts;
+	private int      _start;
+	private int      _count;
 
 		/* These 4 params are for the uncommon browse case:
 		 * for browsing news by source */
@@ -82,6 +96,9 @@ public class BrowseAction extends BaseAction
 
 	public String getLastDownloadTime() { return _lastDownloadTime; }
 	public Date   getLastUpdateTime()   { return _lastUpdateTime; }
+	public int    getNumArts()          { return _numArts; }
+	public int    getStart()            { return _start; }
+	public int    getCount()            { return _count; }
 	public Collection<NewsItem> getNews() { return _news; }
 
 	public User getOwner() { return _issueOwner; } 
@@ -103,9 +120,7 @@ public class BrowseAction extends BaseAction
 		/* Do some error checking, fetch the issue, and the referenced category
 		 * and pass control to the news display routine */
 		Date ldt = DownloadNewsTask.getLastDownloadTime();
-		synchronized(sdf) {
-			_lastDownloadTime = sdf.format(ldt);
-		}
+		_lastDownloadTime = SDF.get().format(ldt);
 
 		String uid = getParam("owner");
 		if (uid == null) {
@@ -119,7 +134,7 @@ public class BrowseAction extends BaseAction
 			_issueOwner = User.getUser(uid);
 			if (_issueOwner == null) {
 					// Bad uid given!  Send the user to the top-level browse page
-				_log.error("No user with uid: " + uid);
+				_log.info("Browse: No user with uid: " + uid);
 				return "browse.main";
 			}
 
@@ -132,7 +147,7 @@ public class BrowseAction extends BaseAction
 			_issue = _issueOwner.getIssue(issueName);
 			if (_issue == null) {
 					// Bad issue-name parameter.  Send them to a issue listing page for that user!
-				_log.error("No issue with name: " + issueName + " defined for user: " + uid);
+				_log.info("Browse: No issue with name: " + issueName + " defined for user: " + uid);
 				return "browse.user";
 			}
 
@@ -145,7 +160,7 @@ public class BrowseAction extends BaseAction
 			_cat = _issue.getCategory(Integer.parseInt(catId));
 			if (_cat == null) {
 					// Bad category!  Send them to a listing page for the issue! 
-				_log.error("Category with id " + catId + " not defined in issue " + issueName + " for user: " + uid);
+				_log.info("Browse: Category with id " + catId + " not defined in issue " + issueName + " for user: " + uid);
 				return "browse.issue";
 			}
 
@@ -160,7 +175,75 @@ public class BrowseAction extends BaseAction
 			_catAncestors = ancestors;
 
 				// Display news in the current category in the current issue
-			return _cat.isLeafCategory() ? "browse.news" : "browse.cat";
+			if (!_cat.isLeafCategory()) {
+				return "browse.cat";
+			}
+			else {
+				_numArts = _cat.getNumArticles(); 
+					// Start
+				String startVal = getParam("start");
+				if (startVal == null) {
+					_start = 0;
+				}
+				else {
+					_start = Integer.parseInt(startVal);
+					if (_start < 0)
+						_start = 0;
+					else if (_start > _numArts)
+						_start = _numArts;
+				}
+
+					// Count
+				String countVal = getParam("count");
+				if (countVal == null) {
+					_count = DEF_NUM_ARTS_PER_PAGE;
+				}
+				else {
+					_count = Integer.parseInt(countVal);
+					if (_count < MIN_NUM_ARTS_PER_PAGE)
+						_count = MIN_NUM_ARTS_PER_PAGE;
+					else if (_count > MAX_NUM_ARTS_PER_PAGE)
+						_count = MAX_NUM_ARTS_PER_PAGE;
+				}
+
+					// Filter by source
+			   String srcTag = getParam("source_tag");
+				Source src    = null;
+				if ((srcTag != null) && (srcTag != ""))
+					src = _issue.getSourceByTag(srcTag);
+
+				Date startDate = null;
+				String sdStr = getParam("start_date");
+				if (sdStr != null) {
+					try {
+						startDate = DATE_PARSER.get().parse(sdStr);
+					}
+					catch (Exception e) {
+						addActionError(getText("bad.date", sdStr));
+						_log.info("Error parsing date: " + sdStr + e);
+					}
+				}
+
+					// Filter by start & end dates
+				Date endDate = null;
+				String edStr = getParam("end_date");
+				if (edStr != null) {
+					try {
+						endDate = DATE_PARSER.get().parse(edStr);
+					}
+					catch (Exception e) {
+						addActionError(getText("bad.date", edStr));
+						_log.info("Error parsing date: " + edStr + e);
+					}
+				}
+
+				//_log.info("Browse: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + _start + "; count - " + _count + "; start - " + startDate + "; end - " + endDate + "; srcTag - " + srcTag + "; src - " + (src != null ? src.getKey() : null));
+
+					// Fetch news!
+				_news  = _cat.getNews(startDate, endDate, src, _start, _count);
+
+				return "browse.news";
+			}
 		}
 	}
 
