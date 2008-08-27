@@ -7,14 +7,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Collection;
 import java.io.IOException;
 
 import newsrack.GlobalConstants;
 import newsrack.user.User;
 import newsrack.filter.Issue;
 import newsrack.filter.Category;
+import newsrack.database.NewsItem;
+import newsrack.archiver.Source;
 
 /**
  * class <code>DeleteArticlesAction</code> implements the functionality
@@ -25,9 +29,14 @@ public class DeleteArticlesAction extends BaseAction
    private static Log _log = LogFactory.getLog(DeleteArticlesAction.class);	/* Logger for this action class */
 
 	private Issue    _issue;
-	private Category _currCat;
+	private Category _cat;
 	private List<Category> _catAncestors;
 	private String _lastDownloadTime;
+
+	private int _numArts;
+	private int _start;
+	private int _count;
+	private Collection<NewsItem> _news;
 
    private String getParamValue(String paramName)
    {
@@ -42,9 +51,13 @@ public class DeleteArticlesAction extends BaseAction
    }
 
 	public String getLastDownloadTime() { return _lastDownloadTime; }
+	public int    getNumArts()          { return _numArts; }
+	public int    getStart()            { return _start; }
+	public int    getCount()            { return _count; }
+	public Collection<NewsItem> getNews() { return _news; }
 	public User getOwner() { return _user; } 
 	public Issue getIssue() { return _issue; } 
-	public Category getCat() { return _currCat; } 
+	public Category getCat() { return _cat; } 
 	public List<Category> getCatAncestors() { return _catAncestors; }
 
    public String execute()
@@ -116,17 +129,79 @@ public class DeleteArticlesAction extends BaseAction
          _issue = _user.getIssue(issueName);
          if (_issue != null) {
 				if (catID > 0) {
-					_currCat = _issue.getCategory(catID);
-               if (_currCat != null) {
+					_cat = _issue.getCategory(catID);
+               if (_cat != null) {
                      // Set up ancestor list
                   LinkedList<Category> ancestors = new LinkedList<Category>();
-						Category cat = _currCat;
+						Category cat = _cat;
                   while (cat != null) {
                      cat = cat.getParent();
                      if (cat != null)
                         ancestors.addFirst(cat);
                   }
 						_catAncestors = ancestors;
+                  _numArts = _cat.getNumArticles(); 
+                     // Start
+                  String startVal = getParam("start");
+                  if (startVal == null) {
+                     _start = 0;
+                  }
+                  else {
+                     _start = Integer.parseInt(startVal)-1;
+                     if (_start < 0)
+                        _start = 0;
+                     else if (_start > _numArts)
+                        _start = _numArts;
+                  }
+
+                     // Count
+                  String countVal = getParam("count");
+                  if (countVal == null) {
+                     _count = BrowseAction.DEF_NUM_ARTS_PER_PAGE;
+                  }
+                  else {
+                     _count = Integer.parseInt(countVal);
+                     if (_count < BrowseAction.MIN_NUM_ARTS_PER_PAGE)
+                        _count = BrowseAction.MIN_NUM_ARTS_PER_PAGE;
+                     else if (_count > BrowseAction.MAX_NUM_ARTS_PER_PAGE)
+                        _count = BrowseAction.MAX_NUM_ARTS_PER_PAGE;
+                  }
+
+                     // Filter by source
+                  String srcTag = getParam("source_tag");
+                  Source src    = null;
+                  if ((srcTag != null) && (srcTag != ""))
+                     src = _issue.getSourceByTag(srcTag);
+
+                  Date startDate = null;
+                  String sdStr = getParam("start_date");
+                  if (sdStr != null) {
+                     try {
+                        startDate = BrowseAction.DATE_PARSER.get().parse(sdStr);
+                     }
+                     catch (Exception e) {
+                        addActionError(getText("bad.date", sdStr));
+                        _log.info("Error parsing date: " + sdStr + e);
+                     }
+                  }
+
+                     // Filter by start & end dates
+                  Date endDate = null;
+                  String edStr = getParam("end_date");
+                  if (edStr != null) {
+                     try {
+                        endDate = BrowseAction.DATE_PARSER.get().parse(edStr);
+                     }
+                     catch (Exception e) {
+                        addActionError(getText("bad.date", edStr));
+                        _log.info("Error parsing date: " + edStr + e);
+                     }
+                  }
+
+                  //_log.info("Browse: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + _start + "; count - " + _count + "; start - " + startDate + "; end - " + endDate + "; srcTag - " + srcTag + "; src - " + (src != null ? src.getKey() : null));
+
+                     // Fetch news!
+                  _news  = _cat.getNews(startDate, endDate, src, _start, _count);
                }
             }
          }

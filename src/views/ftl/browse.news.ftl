@@ -9,7 +9,7 @@
 [#assign nextId = startId + numArtsPerPage]
 [#assign prevId = startId - numArtsPerPage]
 [#if prevId < 1]
-    [#assign prevId = 1]
+  [#assign prevId = 1]
 [/#if]
 
 [#if Session?exists && Session.user?exists]
@@ -192,16 +192,6 @@ function show(obj, style) { obj.style.display = style; }
 <td class="user_news_space">
 [#include "/ftl/layout/errors.ftl"]
 [#include "/ftl/layout/messages.ftl"]
-[#if dispDelFlag]
-<form action="[@s.url namespace="/news" action="delete" /]" method="post">
-<input type="hidden" name="issue" value="${issueName}">
-  [#if Parameters.start?exists] <input type="hidden" name="start" value="${Parameters.start}"> [/#if]
-  [#if Parameters.count?exists] <input type="hidden" name="count" value="${Parameters.count}"> [/#if]
-  [#if cat?exists]
-<input type="hidden" name="catID" value="${cat.catId}">
-<input type="hidden" name="globalCatKey" value="${cat.key?c}">
-  [/#if]
-[/#if]
 [#-- DISPLAY THE HEADER --]
       <div class="browsenewshdr">
          User: <span class="impHdrElt">${ownerID}</span>
@@ -249,6 +239,17 @@ function show(obj, style) { obj.style.display = style; }
         <div style="clear:both;height:0"></div>
       </form>
       </div>
+
+[#if dispDelFlag]
+<form action="[@s.url namespace="/news" action="delete" /]" method="post">
+<input type="hidden" name="issue" value="${issueName}">
+  [#if Parameters.start?exists] <input type="hidden" name="start" value="${Parameters.start}"> [/#if]
+  [#if Parameters.count?exists] <input type="hidden" name="count" value="${Parameters.count}"> [/#if]
+  [#if cat?exists]
+<input type="hidden" name="catID" value="${cat.catId}">
+<input type="hidden" name="globalCatKey" value="${cat.key?c}">
+  [/#if]
+[/#if]
 
 [#if numArts == 0]
 		<p class="bold center"> No news yet in this category! </p>

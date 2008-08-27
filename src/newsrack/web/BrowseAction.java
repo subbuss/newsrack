@@ -28,9 +28,13 @@ import org.apache.commons.logging.LogFactory;
  */
 public class BrowseAction extends BaseAction
 {
-   private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
+   public static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
 		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy.MM.dd"); }
 	};
+
+	public static final int DEF_NUM_ARTS_PER_PAGE = 20;
+	public static final int MIN_NUM_ARTS_PER_PAGE = 5;
+	public static final int MAX_NUM_ARTS_PER_PAGE = 200;
 
    private static final ThreadLocal<SimpleDateFormat> SDF = new ThreadLocal<SimpleDateFormat>() {
 		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("MMM dd yyyy kk:mm z"); }
@@ -43,10 +47,6 @@ public class BrowseAction extends BaseAction
    private static List<Issue> _updatesMostRecent = null;
    private static List<Issue> _updatesLast24Hrs = null;
    private static List<Issue> _updatesMoreThan24Hrs = null;
-
-	private static final int DEF_NUM_ARTS_PER_PAGE = 20;
-	private static final int MIN_NUM_ARTS_PER_PAGE = 5;
-	private static final int MAX_NUM_ARTS_PER_PAGE = 200;
 
 		// Caching!
    public static void setIssueUpdateLists()
