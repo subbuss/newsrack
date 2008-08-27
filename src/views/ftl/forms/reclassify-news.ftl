@@ -93,11 +93,13 @@
   </select>
 	<select name="sm">
   <#foreach month in months>
+    <#if (months?seq_index_of(month) > 5)>
     <option value="${1+months?seq_index_of(month)}">${month}</option>
+    </#if>
   </#foreach>
 	</select>
 	<select name="sy">
-  <#foreach num in 2004..2008>
+  <#foreach num in 2008..2008>
     <option value="${num?c}">${num?c}</option>
   </#foreach>
   </select>
@@ -112,11 +114,13 @@
   </select>
 	<select name="em">
   <#foreach month in months>
+    <#if (months?seq_index_of(month) > 5)>
     <option value="${1+months?seq_index_of(month)}">${month}</option>
+    </#if>
   </#foreach>
 	</select>
 	<select name="ey">
-  <#foreach num in 2004..2008>
+  <#foreach num in 2008..2008>
     <option value="${num?c}">${num?c}</option>
   </#foreach>
 	</select>
@@ -125,7 +129,9 @@
 
 	<tr>
 	<td colspan="2" class="brownish center">
+<#--
 	<hr /> <b>Entire archive</b> <input type="checkbox" name="completeArchive"> <hr />
+-->
 	<input type="hidden" name="issue" value="${issue}">
 	<input type="submit" class="submit" name="Reclassify" value="Reclassify News">
 	</td>
@@ -139,8 +145,7 @@
 	<ul>
 	<li style="color:#ff4400; font-weight: bold">
 	In the current design and implementation of NewsRack, this is a VERY slow process!
-	Sometimes, classifying from all known 250 sources for the entire archive (currently
-	over 9 months) might take upto an hour.  So, start this process, do other work and 
+	So, start this process, do other work and 
 	come back to check on this ... This design is fixable and will be fixed in time when
 	more programmer resources become available ... 
 	<li>
