@@ -458,12 +458,9 @@ public class Category implements Comparable, java.io.Serializable
 					// NOTE: we are checking this here rather than before trying to match to minimize
 					// the # of db queries ... if there is no match with the filter, then, we won't bother
 					// querying the db ... so, all is well!
-				if (containsArticle(article))
-					return DEFAULT_COUNT;
-
-				matchedCats.add(this);
+				if (!containsArticle(article))
+				   matchedCats.add(this);
 			}
-
 		}
       else {
 			// Go through all nested categories and match rules
@@ -480,6 +477,7 @@ public class Category implements Comparable, java.io.Serializable
 			if (_log.isDebugEnabled()) _log.debug("CAT:"+ _name + ": DONE processing subcats ...");
       }
 
+			// Note that if this article has already been added to the category, matchedCats will be empty
 		if (!matchedCats.isEmpty()) {
 			_outputFeed.addNewsItem(article, matchedCats); 	// Add the news item to the RSS feed 
 			_db.addNewsItem(article, this, matchCount); 		// Record this in the database
