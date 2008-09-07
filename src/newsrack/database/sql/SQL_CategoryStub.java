@@ -119,6 +119,7 @@ class SQL_CategoryStub extends Category
 				children.add(c);
 			}
 			setChildren(children);
+
 			return children;
 		}
 	}

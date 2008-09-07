@@ -1273,8 +1273,13 @@ public class SQL_DB extends DB_Interface
 		SQL_NewsItem sni = (SQL_NewsItem)ni;
 
 			// Nothing will change in this case!
-		if (feedKey.equals(sni.getFeedKey()) && sni.inTheDB())
-			return;
+		if (feedKey.equals(sni.getFeedKey()) && sni.inTheDB()) {
+            // Add it to the list of recently downloaded news so that if a download is interrupted,
+            // the news downloaded in an interrupted download is available to a later download (unless
+            // of course, those news items are not present in a rss feed any more).
+         INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
+         return;
+      }
 
          /* IMPORTANT: Use feed id from the source and not from
 			 * the news item because we are adding the news item to
@@ -1663,6 +1668,8 @@ public class SQL_DB extends DB_Interface
 	{
 			// Add an updated value to the cache so that we don't have to the hit the db next time
 		String cacheKey = "IFINFO:" + i.getKey() + ":" + f.getKey();
+      // FIXME: This is causing deadlocks!!
+		//_cache.remove(cacheKey, Long.class);
 		_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxId);
 
 			// Update the db

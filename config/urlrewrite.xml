@@ -82,9 +82,8 @@
 
   <rule>
     <note> Discourage *.action urls!</note>
-    <from>^/.*\.action(.*)?$</from>
-    <set type="status">403</set>
-    <to>null</to>
+    <from>^/(.*)\.action(.*)$</from>
+	 <to type="permanent-redirect">%{context-path}/$1$2</to>
   </rule>
 
   <!-- ######################################################################
