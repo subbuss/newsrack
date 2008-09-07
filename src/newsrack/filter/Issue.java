@@ -1114,7 +1114,7 @@ public class Issue implements java.io.Serializable
 													 : _db.getIndexesOfAllArchivedNews(s, sd, ed);
 		while (newsIndexes.hasNext()) {
 			NewsIndex newsIndex = (NewsIndex)newsIndexes.next();
-			if (_log.isInfoEnabled()) _log.info("--> Classifying news for " + newsIndex);
+			if (_log.isInfoEnabled()) _log.info("--> Classifying news for " + newsIndex.getCreationTime() + ":" + newsIndex.getFeed().getTag());
 				// Ignore the already processed flag for news items
 			scanAndClassifyNewsItems(s.getFeed(), _db.getArchivedNews(newsIndex), false);
 		}

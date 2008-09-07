@@ -98,12 +98,14 @@ create table if not exists news_item_localnames (
  * additional space usage is perhaps not significant?
  */
 create table if not exists news_collections (
-   ni_key bigint not null,
-   n_key  bigint not null,
+   ni_key   bigint not null,
+   n_key    bigint not null,
+	feed_key bigint,
 	unique(ni_key, n_key),
 	-- index n_index(n_key),
    constraint fk_news_collections_1 foreign key(ni_key) references news_indexes(ni_key),
-   constraint fk_news_collections_2 foreign key(n_key) references news_items(n_key)
+   constraint fk_news_collections_2 foreign key(n_key) references news_items(n_key),
+   constraint fk_news_collections_3 foreign key(feed_key) references feeds(feed_key)
 );
 
 /**

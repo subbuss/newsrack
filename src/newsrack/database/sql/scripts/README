@@ -1,7 +1,2 @@
-June 9, 2008
-------------
-. Run 001.sql to 003.sql if you have a newsrack database prior to June 1, 2008.  If you can dump the old db and start from scratch, ignore these migrations.
-
-June 20, 2008
--------------
-. Run 004.sql if you have a newsrack database prior to June 20, 2008.  If you can dump the old db and start from scratch, ignore this migration.
+- No need to run migration scripts *.sql unless you need to migrate existing data.
+- init.sql will always be in sync with the existing db schema.
