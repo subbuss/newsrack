@@ -203,7 +203,23 @@ public class HTMLFilter extends NodeVisitor
 
 	public void run() throws Exception
 	{
-		Parser parser = new Parser((_url != null) ? _url : _file);
+		Parser parser;
+		try {
+		   parser = new Parser((_url != null) ? _url : _file);
+		}
+		catch (Exception e) {
+			String msg = e.toString();
+			int    i   = msg.indexOf("no protocol:");
+			if (i > 0 && _url != null) {
+				String domain    = _url.substring(0, _url.indexOf("/", 7));
+				String urlSuffix = msg.substring(i + 13);
+				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + domain + urlSuffix);
+				parser = new Parser(domain + urlSuffix);
+			}
+			else {
+				throw e;
+			}
+		}
 		parseNow(parser, this);
 		_url = parser.getURL();
 		_origHtml = parser.getLexer().getPage().getText();
@@ -493,7 +509,7 @@ public class HTMLFilter extends NodeVisitor
 
    /**
     * Returns the HTML tag that signals the beginning of the body text and
-    * end of the preamble / header in the body text (see code for PrintFile)
+    * end of the preamble / header in the body text (see code for printFile)
     */
    public static String getHTMLTagSignallingEndOfPreamble() { return "h1"; }
 
