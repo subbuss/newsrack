@@ -1,6 +1,6 @@
 package newsrack.util;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.database.DB_Interface;
 import java.io.File;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ public class NewsRackEntityResolver implements EntityResolver
 	{
 		if (dtd.indexOf(File.separator) != -1)
 			throw new java.io.IOException("Cannot have / in dtd name.  Access denied");
-		String DTD_DIR = GlobalConstants.getWebappPath() + File.separator + GlobalConstants.getProperty("dtdDir");
+		String DTD_DIR = NewsRack.getWebappPath() + File.separator + NewsRack.getProperty("dtdDir");
 		String dtdPath = DTD_DIR + File.separator + dtd;
 		System.out.println("Returning IS for " + dtdPath);
 		return new FileInputStream(dtdPath);
@@ -44,7 +44,7 @@ public class NewsRackEntityResolver implements EntityResolver
 			try {
 				return new InputSource(getDTD(dtd));
 /**
-			   DB_Interface db = GlobalConstants.getDBInterface();
+			   DB_Interface db = NewsRack.getDBInterface();
 				if (db == null) {
 					String dtdPath = "/usr/local/resin/webapps/newsrack/dtds/" + dtd;
 					System.out.println("Returning FIS for " + dtdPath);

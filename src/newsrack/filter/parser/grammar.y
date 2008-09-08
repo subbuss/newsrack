@@ -9,7 +9,6 @@
 %import "java.util.HashSet";
 %import "java.util.ArrayList";
 %import "java.util.Stack";
-%import "newsrack.GlobalConstants";
 %import "newsrack.filter.UserFile";
 %import "newsrack.filter.Issue";
 %import "newsrack.filter.Concept";

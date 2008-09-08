@@ -9,7 +9,7 @@ import java.io.File;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.util.ThreadManager;
 
 /**
@@ -35,7 +35,7 @@ public class NRServletContextListener implements ServletContextListener
    {
       _context = null;
 		_tm.destroy();
-		GlobalConstants.shutdown();
+		NewsRack.shutdown();
 		log.info("News rack has been shut down");
    }
   
@@ -44,9 +44,9 @@ public class NRServletContextListener implements ServletContextListener
 		try {
 			_initialized = false;
 			_context = event.getServletContext();
-			GlobalConstants.startup(_context, APP_PROPERTIES_FILE);
+			NewsRack.startup(_context, APP_PROPERTIES_FILE);
 			_tm = new ThreadManager();
-			_tm.initialize(new File(GlobalConstants.getWebappPath() + File.separator + "WEB-INF" + File.separator + "classes" + File.separator + CRAWLERS_FILE));
+			_tm.initialize(new File(NewsRack.getWebappPath() + File.separator + "WEB-INF" + File.separator + "classes" + File.separator + CRAWLERS_FILE));
 			_initialized = true;
 		}
 		catch (Exception e) {

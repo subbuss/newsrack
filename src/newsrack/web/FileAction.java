@@ -16,7 +16,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.struts2.interceptor.ServletResponseAware;
 
-import newsrack.GlobalConstants;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 

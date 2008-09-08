@@ -9,7 +9,7 @@ import java.util.Hashtable;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Properties;
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.util.ProcessReader;
 import newsrack.util.ThreadManager;
 
@@ -174,7 +174,7 @@ public class SiteCrawlerTask extends TimerTask
 		final Date   nowTime  = new Date();
 		final String cName    = _name;
 		final String cPath    = _path;
-		final String cDir     = GlobalConstants.getProperty("crawlers.home");
+		final String cDir     = NewsRack.getProperty("crawlers.home");
 		final String fullPath = cDir + File.separator + cPath;
 
 		if (_log.isInfoEnabled()) {

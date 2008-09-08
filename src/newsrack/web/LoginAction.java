@@ -7,7 +7,7 @@ import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 
 public class LoginAction extends BaseAction
@@ -39,8 +39,8 @@ public class LoginAction extends BaseAction
 		try {
 				// FIXME: Get rid of the user object from the session!
 			User u = User.signInUser(uid, pass);
-			_session.put(GlobalConstants.UID_KEY, u.getUid());
-			_session.put(GlobalConstants.USER_KEY, u);
+			_session.put(NewsRack.UID_KEY, u.getUid());
+			_session.put(NewsRack.USER_KEY, u);
 			_log.info("Signed in user " + uid);
 			if (u.isAdmin())
 				return "admin.login";

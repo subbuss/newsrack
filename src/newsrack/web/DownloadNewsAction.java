@@ -1,6 +1,5 @@
 package newsrack.web;
 
-import newsrack.GlobalConstants;
 import newsrack.user.User;
 
 import org.apache.commons.logging.Log;

@@ -1,6 +1,6 @@
 package newsrack.archiver;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 import newsrack.database.DB_Interface;
@@ -66,8 +66,8 @@ public class Feed implements java.io.Serializable
    public static void init(DB_Interface db)
    {
 		_db = db;
-		_newsArchiveDir = GlobalConstants.getGlobalNewsArchive();
-      MAX_DESC_SIZE = Integer.parseInt(GlobalConstants.getProperty("rss.max_description_size"));
+		_newsArchiveDir = NewsRack.getGlobalNewsArchive();
+      MAX_DESC_SIZE = Integer.parseInt(NewsRack.getProperty("rss.max_description_size"));
       readCachedTextDisplayRules();
    }
 
@@ -246,7 +246,7 @@ public class Feed implements java.io.Serializable
    private void setCachedTextDisplayFlag()
    {
          // Global default
-      if (GlobalConstants.isFalse("cached.links.display")) {
+      if (NewsRack.isFalse("cached.links.display")) {
          _cachedTextDisplayFlag = false;
          return;
       }

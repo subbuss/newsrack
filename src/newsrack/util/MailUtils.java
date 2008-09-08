@@ -1,6 +1,6 @@
 package newsrack.util;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 
 import javax.mail.*;
 import javax.mail.internet.*;
@@ -27,20 +27,20 @@ public class MailUtils
 
    public static void init()
    {
-      _adminEmail = GlobalConstants.getProperty("email.admin.emailid");
-      _systemFrom = GlobalConstants.getProperty("email.system.fromid");
-      _smtpServer = GlobalConstants.getProperty("email.smtp.server");
-      _smtpPort   = GlobalConstants.getProperty("email.smtp.port");
+      _adminEmail = NewsRack.getProperty("email.admin.emailid");
+      _systemFrom = NewsRack.getProperty("email.system.fromid");
+      _smtpServer = NewsRack.getProperty("email.smtp.server");
+      _smtpPort   = NewsRack.getProperty("email.smtp.port");
       if (_smtpPort == null)
          _smtpPort = SMTP_PORT;
 
-      if (GlobalConstants.isTrue("email.smtp.auth")) {
-         String smtpAuthUser   = GlobalConstants.getProperty("email.smtp.auth.user");
-         String smtpAuthPasswd = GlobalConstants.getProperty("email.smtp.auth.passwd");
+      if (NewsRack.isTrue("email.smtp.auth")) {
+         String smtpAuthUser   = NewsRack.getProperty("email.smtp.auth.user");
+         String smtpAuthPasswd = NewsRack.getProperty("email.smtp.auth.passwd");
          _smtpAuth = new SMTPAuthenticator(smtpAuthUser, smtpAuthPasswd);
       }
 
-      if (GlobalConstants.isTrue("email.smtp.ssl"))
+      if (NewsRack.isTrue("email.smtp.ssl"))
          _smtpUseSSL = true;
    }
 
@@ -51,7 +51,7 @@ public class MailUtils
          sendEmail(_sysAdminEmail,
                    "NEWSRACK ALERT",
                    "This is an automated message from NewsRack @ "
-                   + GlobalConstants.getServerURL()
+                   + NewsRack.getServerURL()
                    + "\n\n  Potential fatal error!\n"
                    + message
                    + "\n\n. Could you please alert the newsrack admin too?",

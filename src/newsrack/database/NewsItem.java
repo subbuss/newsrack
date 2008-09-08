@@ -1,6 +1,5 @@
 package newsrack.database;
 
-import newsrack.GlobalConstants;
 import newsrack.archiver.Feed;
 import newsrack.user.User;
 import newsrack.filter.Category;

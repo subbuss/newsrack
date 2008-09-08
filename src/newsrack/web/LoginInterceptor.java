@@ -7,7 +7,7 @@ import org.apache.commons.logging.LogFactory;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 
 public class LoginInterceptor extends AbstractInterceptor
@@ -23,7 +23,7 @@ public class LoginInterceptor extends AbstractInterceptor
 	{
 		Map session       = invocation.getInvocationContext().getSession();
 		Map requestParams = invocation.getInvocationContext().getParameters();
-      Object uid = session.get(GlobalConstants.UID_KEY);
+      Object uid = session.get(NewsRack.UID_KEY);
       if (uid == null) {
     		int    count = 0;
     		String requestString = "";
@@ -52,12 +52,12 @@ public class LoginInterceptor extends AbstractInterceptor
 
 			// FIXME: Get rid of the session user object, and maybe use the value stack as below 
 			//
-			// invocation.getStack().set(GlobalConstants.USER_KEY, u); // Push the user object on the value stack
+			// invocation.getStack().set(NewsRack.USER_KEY, u); // Push the user object on the value stack
 			//
 			// But, the problem is those actions where the user object changes as a result of the action
 			// ... login, admin, reset-password ... how do I get rid of the session put there??
 
-			invocation.getInvocationContext().getSession().put(GlobalConstants.USER_KEY, u);
+			invocation.getInvocationContext().getSession().put(NewsRack.USER_KEY, u);
 			if (invocation.getAction() instanceof BaseAction)
 				 ((BaseAction)invocation.getAction()).setUser(u);
 

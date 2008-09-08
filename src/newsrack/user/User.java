@@ -1,6 +1,6 @@
 package newsrack.user;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.database.DB_Interface;
 import newsrack.filter.Issue;
 import newsrack.filter.NR_Collection;
@@ -141,7 +141,7 @@ public class User implements java.io.Serializable
 		User u = new User(uid, PasswordService.encrypt(password));
 		u.setName(name);
 		u.setEmail(emailId);
-		IOUtils.createDir(GlobalConstants.getBaseRssDir() + File.separator + u.getUid());
+		IOUtils.createDir(NewsRack.getBaseRssDir() + File.separator + u.getUid());
 		_db.registerUser(u);
 		return u;
 	}
@@ -398,7 +398,7 @@ public class User implements java.io.Serializable
 	 */
 	public String getLastDownloadTime_String()
 	{ 
-		return GlobalConstants.DF.format(getLastDownloadTime());
+		return NewsRack.DF.format(getLastDownloadTime());
 	}
 
 	public Date getLastDownloadTime()

@@ -1,7 +1,6 @@
 package newsrack.filter;
 
 import java.util.List;
-import newsrack.GlobalConstants;
 import newsrack.database.DB_Interface;
 import newsrack.user.User;
 

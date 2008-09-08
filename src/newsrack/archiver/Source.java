@@ -3,7 +3,6 @@ package newsrack.archiver;
 import newsrack.user.User;
 import newsrack.database.NewsItem;
 import newsrack.database.DB_Interface;
-import newsrack.GlobalConstants;
 
 import java.util.Collection;
 import java.util.List;

@@ -16,37 +16,6 @@ import org.apache.commons.logging.LogFactory;
 
 import newsrack.database.DB_Interface;
 
-// Represents an interface for processing SQL query results
-interface ResultProcessor
-{
-		// Processors that use object state during result processing
-		// might return clones!  Otherwise, we will have conflicts
-		// for those processors since the result processing code do not
-		// synchronize on these objects
-	public ResultProcessor getNewInstance();
-
-		// IMPORTANT: processResultSet methods *should complete* WITHOUT
-		// attempting to acquire additional db resources!  Otherwise, we
-		// will deadlock.  I might stall waiting for db resources within
-		// processResultSet, while another thread might also have stalled 
-		// in another processResultSet waiting for db resources!
-	public Object processResultSet(ResultSet rs) throws java.sql.SQLException;
-	public Object processOutput(Object o);
-	public List   processOutputList(List l);
-}
-
-abstract class AbstractResultProcessor implements ResultProcessor
-{
-		// The default implementation assumes that the result processor
-		// do not use instance state for processing sql query results.
-		// Those processors that do use instance state are responsible
-		// for overriding this method where required.
-	public          ResultProcessor getNewInstance() { return this; } /* Identity operation */
-	public          Object processOutput(Object o)   { return o; }		/* Identity operation */
-	public          List   processOutputList(List l) { return l; }		/* Identity operation */
-	public abstract Object processResultSet(ResultSet rs) throws java.sql.SQLException;
-}
-
 class GetStringResultProcessor extends AbstractResultProcessor
 {
 	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return rs.getString(1); }
@@ -59,12 +28,7 @@ class GetIntResultProcessor extends AbstractResultProcessor
 
 class GetLongResultProcessor extends AbstractResultProcessor
 {
-	public Object processResultSet(ResultSet rs) throws java.sql.SQLException 
-	{ 
-		long retval = rs.getLong(1);
-		if (SQL_StmtExecutor._log.isDebugEnabled()) SQL_Stmt._log.debug("Long Val Result processor: Returning " + retval);
-		return new Long(retval); 
-	}
+	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new Long(rs.getLong(1)); }
 }
 
 public class SQL_StmtExecutor
@@ -310,6 +274,11 @@ public class SQL_StmtExecutor
 			closeConnection(c);
       }
    }
+
+   public static Object query(String stmtString, SQL_ValType[] argTypes, Object[] args, ResultProcessor rp, boolean singleRowOutput)
+	{
+		return execute(stmtString, SQL_StmtType.QUERY, args, argTypes, null, rp, singleRowOutput);
+	}
 
    public static Object update(String stmtString, SQL_ValType[] argTypes, Object[] args)
 	{

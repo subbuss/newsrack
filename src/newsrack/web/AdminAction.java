@@ -7,7 +7,7 @@ import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 
 /**
@@ -52,8 +52,8 @@ public class AdminAction extends BaseAction
 			log.info("ADMIN: Signed in as user " + u.getUid());
 
 				// Record the new user info in the action class
-			_session.put(GlobalConstants.UID_KEY, u.getUid());
-			_session.put(GlobalConstants.USER_KEY, u);
+			_session.put(NewsRack.UID_KEY, u.getUid());
+			_session.put(NewsRack.USER_KEY, u);
 			_user = u;
 			return Action.SUCCESS;
 		}
@@ -70,8 +70,8 @@ public class AdminAction extends BaseAction
 		if (u == null)
 			return Action.ERROR;
 
-		GlobalConstants.setProperty("readonly", "true");
-		GlobalConstants.setProperty("testing", "true");
+		NewsRack.setProperty("readonly", "true");
+		NewsRack.setProperty("testing", "true");
 		return Action.SUCCESS;
 	}
 
@@ -81,8 +81,8 @@ public class AdminAction extends BaseAction
 		if (u == null)
 			return Action.ERROR;
 
-		GlobalConstants.setProperty("readonly", "false");
-		GlobalConstants.setProperty("testing", "false");
+		NewsRack.setProperty("readonly", "false");
+		NewsRack.setProperty("testing", "false");
 		return Action.SUCCESS;
 	}
 
@@ -92,7 +92,7 @@ public class AdminAction extends BaseAction
 		if (u == null)
 			return Action.ERROR;
 
-		GlobalConstants.getDBInterface().clearCache();
+		NewsRack.getDBInterface().clearCache();
 		return Action.SUCCESS;
 	}
 
@@ -102,7 +102,7 @@ public class AdminAction extends BaseAction
 		if (u == null)
 			return Action.ERROR;
 
-		_stats = GlobalConstants.getDBInterface().getStats();
+		_stats = NewsRack.getDBInterface().getStats();
 		return Action.SUCCESS;
 	}
 
@@ -122,7 +122,7 @@ public class AdminAction extends BaseAction
 		if (u == null)
 			return Action.ERROR;
 
-      GlobalConstants.loadGlobalProperties();
+      NewsRack.loadGlobalProperties();
 		return Action.SUCCESS;
 	}
 }

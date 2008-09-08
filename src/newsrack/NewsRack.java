@@ -12,15 +12,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * class <code>GlobalConstants</code> records system information
+ * class <code>NewsRack</code> records system information
  * that is needed by the rest of the code, like paths, property values, etc.
  *
  * @author Subramanya Sastry
  */
-public final class GlobalConstants
+public final class NewsRack
 {
 		// DUMMY
-	private GlobalConstants() { }
+	private NewsRack() { }
 
 	private static boolean 		 _initialized;
 	private static String 		 _serverURL;
@@ -31,7 +31,7 @@ public final class GlobalConstants
 	private static Properties   _nrProps = new Properties();
 
    	/* Logging output for this plug in instance. */
-   private static Log _log = LogFactory.getLog((new GlobalConstants()).getClass());
+   private static Log _log = LogFactory.getLog((new NewsRack()).getClass());
 
 	public static void loadDefaultProperties()
 	{
@@ -74,7 +74,7 @@ public final class GlobalConstants
 	private static void loadProperties(String propertiesFile)
 	{
 		try {
-			_nrProps.load((new GlobalConstants()).getClass().getClassLoader().getResourceAsStream(propertiesFile));
+			_nrProps.load((new NewsRack()).getClass().getClassLoader().getResourceAsStream(propertiesFile));
 			java.util.Enumeration props = _nrProps.propertyNames();
 			while (props.hasMoreElements()) {
 				String pName = (String)props.nextElement();

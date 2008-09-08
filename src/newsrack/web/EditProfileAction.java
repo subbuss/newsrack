@@ -1,6 +1,5 @@
 package newsrack.web;
 
-import newsrack.GlobalConstants;
 import newsrack.user.User;
 import newsrack.util.ParseUtils;
 import newsrack.filter.Issue;

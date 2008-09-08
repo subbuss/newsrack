@@ -7,7 +7,7 @@ import com.opensymphony.xwork2.ActionSupport;
 import org.apache.struts2.interceptor.SessionAware;
 import org.apache.struts2.interceptor.ParameterAware;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 
 /**
@@ -33,10 +33,10 @@ public abstract class BaseAction extends ActionSupport implements SessionAware, 
 			// NOTE: To get around caching & invalidation problems, we need to go
 			// back to the db/cache for every user request -- so that we always
 			// get latest info for a user.
-		String uid = (String)_session.get(GlobalConstants.UID_KEY);
+		String uid = (String)_session.get(NewsRack.UID_KEY);
 		if (uid != null) {
 			User u = User.getUser(uid); 
-			_session.put(GlobalConstants.USER_KEY, u);
+			_session.put(NewsRack.USER_KEY, u);
 			setUser(u);
 		}
 	}

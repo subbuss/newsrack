@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Collection;
 import java.util.TimerTask;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.filter.Issue;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
@@ -153,7 +153,7 @@ public class DownloadNewsTask extends TimerTask
    {
       String p = "";
       try {
-         p = GlobalConstants.getProperty(propName);
+         p = NewsRack.getProperty(propName);
          if (p == null) {
             if (_log.isInfoEnabled()) _log.info("Did not find property value for " + propName + "; Using default value - " + defaultVal);
             return defaultVal;
@@ -203,7 +203,7 @@ public class DownloadNewsTask extends TimerTask
     * active news feeds across all registered users. **/
    public void run()
    {
-      if (GlobalConstants.testing() || GlobalConstants.isTrue("readonly"))
+      if (NewsRack.testing() || NewsRack.isTrue("readonly"))
          return;
 
          // Check if the site crawlers file has been modified 

@@ -1,6 +1,5 @@
 package newsrack.filter;
 
-import newsrack.GlobalConstants;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 import java.lang.String;

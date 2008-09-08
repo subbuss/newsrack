@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Iterator;
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.archiver.Feed;
 import newsrack.archiver.Source;
 import newsrack.user.User;
@@ -64,7 +64,7 @@ public abstract class DB_Interface
 	 */
 	public File getTempFilePath(String base)
 	{
-		return new File(GlobalConstants.getGlobalNewsArchive() + File.separator + TMPDIR + File.separator + "tmp." + base.hashCode());
+		return new File(NewsRack.getGlobalNewsArchive() + File.separator + TMPDIR + File.separator + "tmp." + base.hashCode());
 	}
 
 	/** This method clears out the cache */

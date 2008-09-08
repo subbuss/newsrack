@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Date;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.util.Tuple;
 
 import org.apache.commons.logging.Log;
@@ -40,7 +40,7 @@ public final class PasswordService
       _instance = new PasswordService(); 
       _passwordResetKeys = new HashMap<String,Tuple>();
 
-      String rkvString = GlobalConstants.getProperty("password.resetkey.timevalidity");
+      String rkvString = NewsRack.getProperty("password.resetkey.timevalidity");
       try {
          if (rkvString != null)
             _resetKeyValidityTime = Integer.parseInt(rkvString);

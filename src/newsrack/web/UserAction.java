@@ -7,7 +7,7 @@ import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 
 /**
@@ -42,8 +42,8 @@ public class UserAction extends BaseAction
 	{
 			// The ClearSessionInterceptor clears the session, so, nothing else to do here!
 			// FIXME: ClearSessionInterceptor is not working for some reason ... what am I doing wrong?
-		_session.remove(GlobalConstants.USER_KEY);
-		_session.remove(GlobalConstants.UID_KEY);
+		_session.remove(NewsRack.USER_KEY);
+		_session.remove(NewsRack.UID_KEY);
 		return "home";
 	}
 }

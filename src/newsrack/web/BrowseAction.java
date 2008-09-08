@@ -1,6 +1,5 @@
 package newsrack.web;
 
-import newsrack.GlobalConstants;
 import newsrack.filter.Category;
 import newsrack.filter.Issue;
 import newsrack.archiver.Source;

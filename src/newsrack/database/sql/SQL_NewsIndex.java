@@ -4,7 +4,7 @@ import newsrack.database.NewsIndex;
 import newsrack.archiver.Feed;
 import java.sql.Date;
 
-class SQL_NewsIndex extends NewsIndex
+public class SQL_NewsIndex extends NewsIndex
 {
 	private Long _niKey;
 	private Long _feedKey;

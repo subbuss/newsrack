@@ -1,6 +1,6 @@
 package newsrack.database.sql.scripts;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 import newsrack.filter.Issue;
 import newsrack.archiver.Feed;
@@ -117,7 +117,7 @@ public class UserMigration
 		String action = args[1];
 
 		System.out.println("Properties file: " + appPropertiesFile);
-		GlobalConstants.startup(null, appPropertiesFile);
+		NewsRack.startup(null, appPropertiesFile);
 
 		if (action.equals("migrate")) {
 			migrateAllV1UsersToV2();

@@ -1,6 +1,6 @@
 package newsrack.database;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 import newsrack.archiver.Feed;
 import newsrack.archiver.Source;
@@ -94,7 +94,7 @@ public class ObjectCache
 
 	private OCache buildCache(String name, Class clazz, Properties p)
 	{
-		p.setProperty("cache.capacity", GlobalConstants.getProperty(name + ".cache.size"));
+		p.setProperty("cache.capacity", NewsRack.getProperty(name + ".cache.size"));
 		OCache c = new OCache(name.toUpperCase(), p);
 		_caches.put(clazz, c);
 		return c;
@@ -108,7 +108,7 @@ public class ObjectCache
 
 		// No disk persistence!
 		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
-		// p.setProperty("cache.path", GlobalConstants.getProperty("cache.path"));
+		// p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
 
 		p.setProperty("cache.memory", "true");
 		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");

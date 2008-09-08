@@ -5,7 +5,7 @@ import newsrack.database.ObjectCache;
 import newsrack.database.NewsIndex;
 import newsrack.database.NewsItem;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
@@ -147,7 +147,7 @@ public class SQL_DB extends DB_Interface
 /**
 	public static void main(String[] args)
 	{
-		GlobalConstants.loadDefaultProperties();
+		NewsRack.loadDefaultProperties();
 		SQL_DB sqldb = new SQL_DB();
 		sqldb.initDirPaths();
 	}
@@ -160,9 +160,9 @@ public class SQL_DB extends DB_Interface
 
 	private void initDirPaths() 
 	{
-		GLOBAL_USERS_ROOTDIR    = GlobalConstants.getDirPathProperty("sql.userHome");
-		GLOBAL_NEWS_ARCHIVE_DIR = GlobalConstants.getDirPathProperty("sql.archiveHome");
-		USER_INFO_DIR           = GlobalConstants.getDirPathProperty("sql.userInfoDir");
+		GLOBAL_USERS_ROOTDIR    = NewsRack.getDirPathProperty("sql.userHome");
+		GLOBAL_NEWS_ARCHIVE_DIR = NewsRack.getDirPathProperty("sql.archiveHome");
+		USER_INFO_DIR           = NewsRack.getDirPathProperty("sql.userInfoDir");
 	}
 
 	private SQL_DB() 
@@ -183,13 +183,13 @@ public class SQL_DB extends DB_Interface
 		}
 
 			// Set up the db driver
-		DB_DRIVER        = GlobalConstants.getProperty("sql.driver");
-		DB_URL           = GlobalConstants.getProperty("sql.dbUrl");
-		DB_NAME          = GlobalConstants.getProperty("sql.dbName");
-		DB_USER          = GlobalConstants.getProperty("sql.user");
-		DB_PASSWORD      = GlobalConstants.getProperty("sql.password");
-		DB_CONNPOOL_SIZE = Integer.parseInt(GlobalConstants.getProperty("sql.dbConnPoolSize"));
-		DB_MAX_CONNS     = Integer.parseInt(GlobalConstants.getProperty("sql.dbMaxConnections"));
+		DB_DRIVER        = NewsRack.getProperty("sql.driver");
+		DB_URL           = NewsRack.getProperty("sql.dbUrl");
+		DB_NAME          = NewsRack.getProperty("sql.dbName");
+		DB_USER          = NewsRack.getProperty("sql.user");
+		DB_PASSWORD      = NewsRack.getProperty("sql.password");
+		DB_CONNPOOL_SIZE = Integer.parseInt(NewsRack.getProperty("sql.dbConnPoolSize"));
+		DB_MAX_CONNS     = Integer.parseInt(NewsRack.getProperty("sql.dbMaxConnections"));
 
 			// Load the connection driver and initialize the connection pool
 		try {
@@ -273,7 +273,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public String getUserSpaceWorkDir(User u)
 	{
-		return (u == null) ? "" : getFileUploadArea(u) + GlobalConstants.getDirPathProperty("sql.userWorkDir");
+		return (u == null) ? "" : getFileUploadArea(u) + NewsRack.getDirPathProperty("sql.userWorkDir");
 	}
 
 	/**
@@ -1280,6 +1280,7 @@ public class SQL_DB extends DB_Interface
          INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
          return;
       }
+		}
 
          /* IMPORTANT: Use feed id from the source and not from
 			 * the news item because we are adding the news item to
@@ -1370,7 +1371,7 @@ public class SQL_DB extends DB_Interface
 	public void finalizeNewsDownload(Feed f)
 	{
 			// Nothing else to do!
-		if (GlobalConstants.inDebugMode())
+		if (NewsRack.inDebugMode())
 			printStats();
 	}
 

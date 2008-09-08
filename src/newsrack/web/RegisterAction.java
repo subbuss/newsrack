@@ -7,7 +7,6 @@ import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.GlobalConstants;
 import newsrack.user.User;
 
 public class RegisterAction extends BaseAction

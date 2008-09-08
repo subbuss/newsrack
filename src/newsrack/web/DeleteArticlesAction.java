@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import java.util.Collection;
 import java.io.IOException;
 
-import newsrack.GlobalConstants;
+import newsrack.NewsRack;
 import newsrack.user.User;
 import newsrack.filter.Issue;
 import newsrack.filter.Category;
@@ -121,8 +121,8 @@ public class DeleteArticlesAction extends BaseAction
 
          // Now, send the user back to the same query page from where this action was initiated!
 		java.util.Date ldt = newsrack.archiver.DownloadNewsTask.getLastDownloadTime();
-		synchronized(GlobalConstants.DF) {
-			_lastDownloadTime = GlobalConstants.DF.format(ldt);
+		synchronized(NewsRack.DF) {
+			_lastDownloadTime = NewsRack.DF.format(ldt);
 		}
 
       if (issueName != null) {

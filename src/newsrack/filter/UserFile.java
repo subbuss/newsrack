@@ -2,7 +2,6 @@ package newsrack.filter;
 
 import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
-import newsrack.GlobalConstants;
 import newsrack.user.User;
 import java.io.Reader;
 import java.net.URL;
