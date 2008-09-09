@@ -169,32 +169,20 @@ public class Feed implements java.io.Serializable
     * is restricted to under 'MAX_DESC_SIZE' ... when doing that
     * strip the text of HTML tags ...
     */
-   private static String processDescription(SyndEntry se)
+   private static void processDescription(SyndEntry se)
    {
-      String desc    = (se.getDescription() == null) ? "" : se.getDescription().getValue();
-      int    descLen = desc.length();
-      if (descLen > MAX_DESC_SIZE) {
+      String desc = (se.getDescription() == null) ? "" : se.getDescription().getValue();
+		if (desc.length() > MAX_DESC_SIZE) {
          SyndContent newDesc = new SyndContentImpl();
          newDesc.setType("text/plain");
-         try {
-            StringBuffer sbText = HTMLFilter.getFilteredTextFromString(desc);
-            int          k      = sbText.lastIndexOf(" ", MAX_DESC_SIZE - 5);
-            String       ndv    = StringUtils.filterForXMLOutput(sbText.substring(0, k)) + " ...";
-            newDesc.setValue(ndv);
-            if (_log.isDebugEnabled()) {
-               _log.debug("#### ORIG - " + desc);
-               _log.debug("#### Processed - " + sbText);
-               _log.debug("#### k - " + k); 
-               _log.debug("#### NEW - " + ndv);
-            }
-            if (_log.isInfoEnabled()) _log.info("### Shortened description from " + descLen + " characters to " + MAX_DESC_SIZE + " charactors");
-         }
+			try {
+            newDesc.setValue(StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE));
+			}
          catch (Exception e) {
             newDesc.setValue(se.getTitle());
          }
          se.setDescription(newDesc);
-      }
-      return desc;
+		}
    }
 
 // ############### NON-STATIC FIELDS AND METHODS ############
@@ -365,6 +353,11 @@ public class Feed implements java.io.Serializable
 
 			// 3. Convert the wire feed to a syndfeed!
 		SyndFeed f = new SyndFeedImpl(wf);
+
+			// HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
+		if (_id == 241)
+			rssPubDate = new Date();
+
 		if (rssPubDate == null)
 			rssPubDate = f.getPublishedDate();
 		if (_log.isInfoEnabled()) _log.info("Publishing date : " + rssPubDate);
@@ -414,9 +407,9 @@ public class Feed implements java.io.Serializable
 /**
 				sb.append("\nauthor    - " + se.getAuthor());
 //				sb.append("\nNI   date - " + niDate);
-            processDescription(se);
 				if (se.getDescription() != null)
 					sb.append("\ndesc      - " + se.getDescription());
+            processDescription(se);
 				sb.append("\n--------------------");
 **/
 				_log.info(sb);
@@ -427,11 +420,12 @@ public class Feed implements java.io.Serializable
 					// For some bad RSS feeds (Doordarshan), there exist initial
 					// <item> objects that have all their entries set to null!
 					// Hence the above check!
-				NewsItem ni = downloadNewsItem(baseUrl, se, niDate);
+				NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), niDate);
 				if (ni != null) {
 					String title = se.getTitle();
 					String auth  = se.getAuthor();
 					String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
+					try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = title; }
 					ni.setTitle((title != null) ? title.trim() : null);
 					ni.setAuthor((auth != null) ? auth.trim() : null);
 					ni.setDescription((desc != null) ? desc.trim() : null);
@@ -446,7 +440,7 @@ public class Feed implements java.io.Serializable
 		_db.finalizeNewsDownload(this);
 	}
 
-	private NewsItem downloadNewsItem(String baseUrl, SyndEntry se,  Date date)
+	private NewsItem downloadNewsItem(String baseUrl, String storyUrl,  Date date)
 	{
 	/* Download the nEws item identified by the URL 'u' and create
 	 * (1) local copy of the article, and 
@@ -458,7 +452,7 @@ public class Feed implements java.io.Serializable
 		NewsItem    ni     = null;
 		try {
 				// 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
-         String origURL = URLCanonicalizer.cleanup(baseUrl, se.getLink());
+         String origURL = URLCanonicalizer.cleanup(baseUrl, storyUrl);
 
 				// 1b. Canonicalize it so that we can catch duplicate urls more easily! 
 			String canonicalUrl = URLCanonicalizer.canonicalize(origURL);
@@ -531,7 +525,7 @@ public class Feed implements java.io.Serializable
 			if (origPw != null) origPw.close();
 			if (filtPw != null) filtPw.close();
 			if (_log.isInfoEnabled()) _log.info(" ... FAILED!");
-			_log.error("Exception downloading news item : " + se.getLink().trim(), e);
+			_log.error("Exception downloading news item : " + storyUrl.trim(), e);
 
 			return null;
 		}

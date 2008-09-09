@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.security.MessageDigest;
+import newsrack.archiver.HTMLFilter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -284,6 +285,27 @@ public final class StringUtils
 	{
 		synchronized (_dc_dfs[2]) {
 			return _dc_dfs[2].format(d);
+		}
+	}
+
+	public static String truncateHTMLString(String str, int maxLen) throws Exception
+	{
+      int strLen = str.length();
+      if (strLen <= maxLen) {
+		  return str;
+      }
+		else {
+         StringBuffer sbText = HTMLFilter.getFilteredTextFromString(str);
+         int          k      = sbText.lastIndexOf(" ", maxLen - 5);
+         String       newStr = filterForXMLOutput(sbText.substring(0, k)) + " ...";
+         if (_log.isDebugEnabled()) {
+            _log.debug("#### ORIG - " + str);
+            _log.debug("#### Processed - " + sbText);
+            _log.debug("#### k - " + k); 
+            _log.debug("#### NEW - " + newStr);
+         }
+         if (_log.isInfoEnabled()) _log.info("### Shortened description from " + strLen + " characters to " + maxLen + " charactors");
+			return newStr;
 		}
 	}
 

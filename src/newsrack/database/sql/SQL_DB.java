@@ -1280,7 +1280,6 @@ public class SQL_DB extends DB_Interface
          INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
          return;
       }
-		}
 
          /* IMPORTANT: Use feed id from the source and not from
 			 * the news item because we are adding the news item to
