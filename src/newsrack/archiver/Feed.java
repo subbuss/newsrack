@@ -452,10 +452,8 @@ public class Feed implements java.io.Serializable
 		NewsItem    ni     = null;
 		try {
 				// 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
-         String origURL = URLCanonicalizer.cleanup(baseUrl, storyUrl);
-
 				// 1b. Canonicalize it so that we can catch duplicate urls more easily! 
-			String canonicalUrl = URLCanonicalizer.canonicalize(origURL);
+			String canonicalUrl = URLCanonicalizer.canonicalize(URLCanonicalizer.cleanup(baseUrl, storyUrl));
 			if (_log.isInfoEnabled()) _log.info("URL :" + canonicalUrl);
 
 				// 2. Check if the article has already been downloaded previously
@@ -481,7 +479,7 @@ public class Feed implements java.io.Serializable
                int numTries = 0;
                do {
                   numTries++;
-						HTMLFilter hf = new HTMLFilter(origURL, filtPw, true);
+						HTMLFilter hf = new HTMLFilter(canonicalUrl, filtPw, true);
 						hf.run();
 						String origText = hf.getOrigHtml();
                      // Null implies there was an error downloading the url
@@ -493,13 +491,13 @@ public class Feed implements java.io.Serializable
                      done = true;
                   }
                   else {
-                     _log.info("Error downloading from url: " + origURL + " Retrying (max 3 times) once more after 5 seconds!");
+                     _log.info("Error downloading from url: " + canonicalUrl + " Retrying (max 3 times) once more after 5 seconds!");
                      StringUtils.sleep(5);
                   }
                } while (!done && (numTries < 3));
             }
             else {
-               _log.info("Ignoring! There already exists a downloaded file for url: " + origURL);
+               _log.info("Ignoring! There already exists a downloaded file for url: " + canonicalUrl);
             }
 			}
 			catch (Exception e) {
