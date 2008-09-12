@@ -521,7 +521,12 @@ public class User implements java.io.Serializable
 				User u = _db.getUser(uKey);
 				if (u.isValidated()) {
 					_log.info("Will invalidate dependent user: " + u.getUid());
-					u.invalidateAllIssues();
+					try {
+						u.invalidateAllIssues();
+					} 
+					catch(Exception e) {
+						_log.error("Exception invalidating user: " + u.getUid(), e);
+					}
 				}
 				else {
 					_log.info("Ignoring invalidated dependent user: " + u.getUid());
@@ -775,7 +780,12 @@ public class User implements java.io.Serializable
 					User u = _db.getUser(uKey);
 					if (!u.isValidated()) {
 						_log.info("Validating dependent user: " + u.getUid());
-						u.validateIssues(true);
+						try {
+							u.validateIssues(true);
+						} 
+						catch(Exception e) {
+							_log.error("Exception validating user: " + u.getUid(), e);
+						}
 					}
 					else {
 						_log.info("Ignoring validated dependent user: " + u.getUid());

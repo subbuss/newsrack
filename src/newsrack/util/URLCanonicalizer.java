@@ -19,7 +19,7 @@ public class URLCanonicalizer
 
 		/* These are patterns for detecting feed proxies */
 	static String[] proxyREStrs = new String[] { 
-		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$" 
+		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$", "^.*hindustan.*redir.aspx.*$"
 	};
 
 		/* Domains & corresponding url-split rule */
@@ -29,10 +29,11 @@ public class URLCanonicalizer
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
 	static String[] domainsWithDefaultFixupRule = new String[] {
+		"nytimes.com", "rockymountainnews.com",
 		"cbsnews.com", "newscientist.com", "washingtonpost.com", "guardian.co.uk",
 		"boston.com", "publicradio.org", "cnn.com", "chicagotribune.com",
 		"latimes.com", "twincities.com", "mercurynews.com", "wsj.com",
-		"seattletimes.nwsource.com", "reuters.com", "sltrib.com", "nytimes.com"
+		"seattletimes.nwsource.com", "reuters.com", "sltrib.com"
    };
 
 	static Pattern[] proxyREs;
