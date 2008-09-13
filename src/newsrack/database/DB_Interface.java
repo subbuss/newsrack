@@ -585,6 +585,9 @@ public abstract class DB_Interface
 	public abstract void commitNewsToArchive(Issue i);
 
 /* #### Support for News Indexes #### */
+   /** Gets the newsindex object given its key */
+      public abstract NewsIndex getNewsIndex(Long key);
+
 	/**
 	 * Get the directory where index files and rss files for a feed
 	 * for a particular date is stored

@@ -108,13 +108,12 @@ public final class NewsRack
 		if (sc != null) {
 			_serverURL  = sc.getInitParameter("server-url");
 			_webappPath = sc.getRealPath("");
+         _log.info("Server URL  - " + _serverURL);
+         _log.info("webapp path - " + _webappPath);
 		}
 		else {
 			_log.error("Servlet context is null!");
 		}
-
-		_log.info("Server URL  - " + _serverURL);
-		_log.info("webapp path - " + _webappPath);
 
 			// First, load default properties
 		loadDefaultProperties();
@@ -124,7 +123,8 @@ public final class NewsRack
 		loadGlobalProperties();
 
 			// Create the base RSS directory
-		IOUtils.createDir(getBaseRssDir());
+      if (sc != null)
+         IOUtils.createDir(getBaseRssDir());
 
 			// Try loading the database interface
 		try {

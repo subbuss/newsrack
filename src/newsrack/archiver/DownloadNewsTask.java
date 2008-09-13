@@ -52,7 +52,7 @@ public class DownloadNewsTask extends TimerTask
                done = true;
             }
             catch (Exception e) {
-               _log.error("Exception reading feed " + feed.getTag() + " with feed " + feed._feedUrl);
+               _log.error("Exception reading feed " + feed.getTag() + " with feed " + feed._feedUrl, e);
             }
          }
 

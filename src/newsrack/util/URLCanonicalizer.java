@@ -113,6 +113,8 @@ public class URLCanonicalizer
 			String newUrl = conn.getURL().toString();
 			if (conn instanceof java.net.HttpURLConnection)
 				((java.net.HttpURLConnection)conn).disconnect();
+         else
+            _log.error("Connection is not a HttpURLConnection!");
 			return newUrl;
 		}
 		catch (Exception e) {
