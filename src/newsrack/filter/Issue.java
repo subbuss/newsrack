@@ -1062,19 +1062,22 @@ public class Issue implements java.io.Serializable
 				if (pw != null)
 					pw.println("FILE: " + ni.getLocalCopyPath());
 
+				Reader r = null;
 				try {
 					Hashtable tokTable = new Hashtable();
-					Reader r = ni.getReader();
+					r = ni.getReader();
 					initScanner(r, _user.getWorkDir());
 					int numTokens = scanNewsItem(pw, tokTable);
 					classifyArticle(ni, numTokens, tokTable);
-					r.close();
 				}
 				catch (java.io.FileNotFoundException e) {
 					_log.error("ScanAndClassify: FNFE ERROR " + e);	// Don't print the stack trace
 				}
 				catch (java.io.IOException e) {
 					_log.error("IO ERROR ", e);
+				}
+				finally {
+					if (r != null) r.close();
 				}
 
 				if (pw != null)

@@ -277,40 +277,46 @@ public class Feed implements java.io.Serializable
 		String rssFeedBase = "rss." + StringUtils.getBaseFileName(u.toString()); // Add "rss." prefix to prevent clash with "index.xml" index file names
 		File   rssFeedFile;
 		synchronized (this) {
-			InputStream is = IOUtils.getURLInputStream(u, NUM_RETRIES); // FIXME: Note that info about HTTP encoding is lost here!
-			if (is == null) {
-					// We will get a null value ONLY IF the feed has not changed since the previous download.
-				rssFeedFile = _rssFeedCache.get(u);
-				if (rssFeedFile == null) {
-					_log.error("Could not open RSS url, and there is no local cached copy either");
-					return;
+			InputStream      is  = null;
+			FileOutputStream fos = null;
+			try {
+				is = IOUtils.getURLInputStream(u, NUM_RETRIES); // FIXME: Note that info about HTTP encoding is lost here!
+				if (is == null) {
+						// We will get a null value ONLY IF the feed has not changed since the previous download.
+					rssFeedFile = _rssFeedCache.get(u);
+					if (rssFeedFile == null) {
+						_log.error("Could not open RSS url, and there is no local cached copy either");
+						return;
+					}
+					downloaded = false;
 				}
-				downloaded = false;
-			}
-			else {
-					// Download the feed into a temporary file and record the location in the cache
-					// NOTE: 
-					// 1. Before we download and parse the feed, we won't know its final location!
-					// 2. We cannot use the "WireFeedOutput" to output the feeds directly to the location
-					//    after parsing, because if the input feeds do not conform to the standard
-					//    (Hindustan Times, Times Now), then, the output modules that are strict in
-					//    enforcing standards will fail!
-					// Hence the dance of storing in a temporary file and moving it to its final location.
-				rssFeedFile = _db.getTempFilePath(rssFeedBase);
-				FileOutputStream fos = new FileOutputStream(rssFeedFile);
-				IOUtils.copyInputToOutput(is, fos);
-				fos.close();
-				is.close(); // close the HTTP connection AFTER building the feed
+				else {
+						// Download the feed into a temporary file and record the location in the cache
+						// NOTE: 
+						// 1. Before we download and parse the feed, we won't know its final location!
+						// 2. We cannot use the "WireFeedOutput" to output the feeds directly to the location
+						//    after parsing, because if the input feeds do not conform to the standard
+						//    (Hindustan Times, Times Now), then, the output modules that are strict in
+						//    enforcing standards will fail!
+						// Hence the dance of storing in a temporary file and moving it to its final location.
+					rssFeedFile = _db.getTempFilePath(rssFeedBase);
+					fos = new FileOutputStream(rssFeedFile);
+					IOUtils.copyInputToOutput(is, fos);
 
-					// FIXME: Why not just store the feed in the cache
-					// as opposed to just the file path of the cached feed??
-				_rssFeedCache.put(u, rssFeedFile);
+						// FIXME: Why not just store the feed in the cache
+						// as opposed to just the file path of the cached feed??
+					_rssFeedCache.put(u, rssFeedFile);
+				}
+			}
+			finally {
+				if (is != null) is.close();
+				if (fos != null) fos.close();
 			}
 		}
 
 			// 2. Open the feed for parsing, parse it and build a wire feed and close it!
-		XmlReader r  = new XmlReader(rssFeedFile);
 		WireFeed  wf = null;
+		XmlReader r  = new XmlReader(rssFeedFile);
 		try {
 			wf = (new WireFeedInput()).build(r);
 		}
@@ -326,6 +332,9 @@ public class Feed implements java.io.Serializable
 				// Retry building the wirefeed!
 			r  = new XmlReader(rssFeedFile);
 			wf = (new WireFeedInput()).build(r);
+		}
+		finally {
+			if (r != null) r.close();
 		}
 
 			// 2b. Handle some special cases when the feed is a RSS feed
@@ -360,11 +369,13 @@ public class Feed implements java.io.Serializable
 
 		if (rssPubDate == null)
 			rssPubDate = f.getPublishedDate();
-		if (_log.isInfoEnabled()) _log.info("Publishing date : " + rssPubDate);
+
 		if (rssPubDate == null) {
 			if (_log.isErrorEnabled()) _log.error("ERROR: For feed " + _feedUrl + "; Publishing date : null .. using today's date");
 			rssPubDate = new Date();
 		}
+
+		if (_log.isInfoEnabled()) _log.info("Publishing date : " + rssPubDate);
 
 			// 4. Move the feed to its final location!
 		if (downloaded) {
@@ -404,14 +415,6 @@ public class Feed implements java.io.Serializable
 				sb.append("\ntitle     - " + se.getTitle());
 				sb.append("\nlink      - " + se.getLink());
 				sb.append("\nITEM date - " + itemDate);
-/**
-				sb.append("\nauthor    - " + se.getAuthor());
-//				sb.append("\nNI   date - " + niDate);
-				if (se.getDescription() != null)
-					sb.append("\ndesc      - " + se.getDescription());
-            processDescription(se);
-				sb.append("\n--------------------");
-**/
 				_log.info(sb);
 			}
 
@@ -505,12 +508,14 @@ public class Feed implements java.io.Serializable
 					// trigger a false hit in the archive later on!
 				if (filtPw != null)
 					_db.deleteFilteredArticle(ni);
+
 				throw e;
 			}
-
-				// close the files
-			if (origPw != null) origPw.close();
-			if (filtPw != null) filtPw.close();
+			finally {
+					// close the files
+				if (origPw != null) origPw.close();
+				if (filtPw != null) filtPw.close();
+			}
 
             // 4e. After a download, sleep for 1 second to prevent bombarding the 
             //     remote server with downloads
@@ -520,8 +525,6 @@ public class Feed implements java.io.Serializable
 			return ni;
 		}
 		catch (Exception e) {
-			if (origPw != null) origPw.close();
-			if (filtPw != null) filtPw.close();
 			if (_log.isInfoEnabled()) _log.info(" ... FAILED!");
 			_log.error("Exception downloading news item : " + storyUrl.trim(), e);
 

@@ -98,7 +98,11 @@ public class URLCanonicalizer
 	private static String getTargetUrl(String url)
 	{
 		try {
-			return cm.openConnection(new java.net.URL(url)).getURL().toString();
+			java.net.URLConnection conn = cm.openConnection(new java.net.URL(url));
+			String newUrl = conn.getURL().toString();
+			if (conn instanceof java.net.HttpURLConnection)
+				((java.net.HttpURLConnection)conn).disconnect();
+			return newUrl;
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) _log.debug("Got exception: " + e);
