@@ -285,6 +285,8 @@ public abstract class DB_Interface
 	 * uploaded.  For example, if the user is uploading "../../myfiles/my.concepts.xml"
 	 * the uploaded file will have the name "my.concepts.xml".
 	 *
+	 * NOTE: The caller is responsible for closing the input stream
+	 *
 	 * @param fname The name of the local file into which the file should be uploaded.
 	 * @param is    The input stream from which the file should be uploaded. 
 	 * @param u     The user who is uploaded the file .

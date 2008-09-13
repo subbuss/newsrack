@@ -1,5 +1,6 @@
 package newsrack.archiver;
 
+import newsrack.NewsRack;
 import newsrack.util.IOUtils;
 
 import org.htmlparser.Parser;
@@ -69,7 +70,7 @@ public class HTMLFilter extends NodeVisitor
 
 		org.htmlparser.scanners.ScriptScanner.STRICT = false;	// Turn off strict parsing of cdata
       org.htmlparser.lexer.Lexer.STRICT_REMARKS = false; 	// Turn off strict parsing of HTML comments
-		java.net.HttpURLConnection.setFollowRedirects(false);				// Turn off automatic redirect processing
+		java.net.HttpURLConnection.setFollowRedirects(false);	// Turn off automatic redirect processing
 	}
 
 	private static String  _lineSep;	// Line separator
@@ -107,8 +108,16 @@ public class HTMLFilter extends NodeVisitor
 		_spanTagStack     = new Stack();
       _outputToFile     = true;     // By default, content is written to file!
 
+			// Set up some default connection properties!
+		Hashtable headers = new Hashtable();
+		String ua = NewsRack.getProperty("useragent.string");
+		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
+		headers.put ("User-Agent", ua);
+      headers.put ("Accept-Encoding", "gzip, deflate");
+
 		Parser.getConnectionManager().setCookieProcessingEnabled(true);
 		Parser.getConnectionManager().setRedirectionProcessingEnabled(true);
+		Parser.getConnectionManager().setDefaultRequestProperties(headers);
 	}
 
 	private HTMLFilter()

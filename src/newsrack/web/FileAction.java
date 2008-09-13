@@ -87,15 +87,19 @@ public class FileAction extends BaseAction implements ServletResponseAware
 		if (!haveValidParams())
 			return Action.ERROR;
 
+		FileInputStream fis = null;
 		try {
-			// FIXME: How do I get the file input stream??
-			_user.uploadFile(new FileInputStream(_uploadedFile), _file);
+			fis = new FileInputStream(_uploadedFile);
+			_user.uploadFile(fis, _file);
 			addActionMessage(getText("msg.file.uploaded"));
 			return Action.SUCCESS;
 		}
 		catch (java.lang.Exception e) {
 			addActionError(getText("error.file.upload", new String[]{_file}));
 			return Action.ERROR;
+		}
+		finally {
+			try { if (fis != null) fis.close(); } catch(Exception e) {}
 		}
 	}
 
@@ -112,9 +116,9 @@ public class FileAction extends BaseAction implements ServletResponseAware
 		String owner = getParam("owner");
 		try {
 			if (owner == null)
-				IOUtils.copyInputToOutput(_user.getInputStream(_file), _response.getOutputStream());
+				IOUtils.copyInputToOutput(_user.getInputStream(_file), _response.getOutputStream(), true);
 			else
-				IOUtils.copyInputToOutput(_user.getInputStream(owner, _file), _response.getOutputStream());
+				IOUtils.copyInputToOutput(_user.getInputStream(owner, _file), _response.getOutputStream(), true);
 		}
 		catch (Exception e) {
 			_log.error("Exception", e);
@@ -201,12 +205,11 @@ public class FileAction extends BaseAction implements ServletResponseAware
 		String owner = getParam("owner");
 		if (_user.canAccessFile(owner, _file)) {
 			try {
-				InputStream inStr = _user.getInputStream(owner, _file);
 					/* Set output content type to 'octet-stream' to force a
 					 * download dialog on the user's browser */
 				_response.setContentType("application/octet-stream");
 				_response.setHeader("Content-Disposition","attachment; filename=\"" + _file + "\"");
-				IOUtils.copyInputToOutput(inStr, _response.getOutputStream());
+				IOUtils.copyInputToOutput(_user.getInputStream(owner, _file), _response.getOutputStream(), true);
 
 					/* Don't return anything!  Stay on the same mapping page since
 					 * a response has already been sent back */
@@ -233,8 +236,7 @@ public class FileAction extends BaseAction implements ServletResponseAware
 		String owner = getParam("owner");
 		if (_user.canAccessFile(owner, _file)) {
 			try {
-				InputStream inStr = _user.getInputStream(owner, _file);
-				IOUtils.copyInputToOutput(inStr, _user.getOutputStream(_file));
+				IOUtils.copyInputToOutput(_user.getInputStream(owner, _file), _user.getOutputStream(_file), true);
 				_user.addFile(_file);
 
 					// Invalidate issues -- they need to be re-validated with addition of new content

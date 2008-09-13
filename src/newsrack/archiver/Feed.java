@@ -301,7 +301,7 @@ public class Feed implements java.io.Serializable
 						// Hence the dance of storing in a temporary file and moving it to its final location.
 					rssFeedFile = _db.getTempFilePath(rssFeedBase);
 					fos = new FileOutputStream(rssFeedFile);
-					IOUtils.copyInputToOutput(is, fos);
+					IOUtils.copyInputToOutput(is, fos, false);
 
 						// FIXME: Why not just store the feed in the cache
 						// as opposed to just the file path of the cached feed??
@@ -314,7 +314,7 @@ public class Feed implements java.io.Serializable
 			}
 		}
 
-			// 2. Open the feed for parsing, parse it and build a wire feed and close it!
+			// 2. Open the feed (stored on file now) for parsing, parse it, and build a wire feed and close it!
 		WireFeed  wf = null;
 		XmlReader r  = new XmlReader(rssFeedFile);
 		try {
@@ -445,7 +445,7 @@ public class Feed implements java.io.Serializable
 
 	private NewsItem downloadNewsItem(String baseUrl, String storyUrl,  Date date)
 	{
-	/* Download the nEws item identified by the URL 'u' and create
+	/* Download the news item identified by the URL 'u' and create
 	 * (1) local copy of the article, and 
 	 * (2) a filtered version of the same article 
 	 */

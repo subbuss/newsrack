@@ -1,9 +1,12 @@
 package newsrack.util;
 
-import org.htmlparser.http.ConnectionManager;
+import newsrack.NewsRack;
+
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.regex.Pattern;
 
+import org.htmlparser.http.ConnectionManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,10 +43,18 @@ public class URLCanonicalizer
 	static HashMap<String,Pattern> urlFixupRules;
 
 	static {
+			// Set up some default connection properties!
+		Hashtable headers = new Hashtable();
+		String ua = NewsRack.getProperty("useragent.string");
+		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
+		headers.put ("User-Agent", ua);
+      headers.put ("Accept-Encoding", "gzip, deflate");
+
 			// Set up a connection manager to follow redirects while using cookies
 		cm = new ConnectionManager();
 		cm.setRedirectionProcessingEnabled(true);
 		cm.setCookieProcessingEnabled(true);
+		cm.setDefaultRequestProperties(headers);
 
 			// Compile proxy domain patterns 
 		proxyREs = new Pattern[proxyREStrs.length];
