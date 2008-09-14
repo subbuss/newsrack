@@ -4,6 +4,7 @@ import newsrack.archiver.Feed;
 import newsrack.user.User;
 import newsrack.filter.Category;
 
+import java.io.File;
 import java.io.Reader;
 import java.io.PrintWriter;
 import java.lang.String;
@@ -36,7 +37,9 @@ abstract public class NewsItem implements java.io.Serializable
 	abstract public String   getAuthor();
 	abstract public String   getDescription();
 	abstract public String   getLinkForCachedItem();
-	abstract public String   getLocalCopyPath();	// Full path for the local copy
+   abstract public File     getRelativeFilePath();
+   abstract public File     getOrigFilePath();
+   abstract public File     getFilteredFilePath();
 	/** Returns a reader object to read the contents of the news item */
 	abstract public Reader   getReader() throws Exception;
 	abstract public int      getNumCats();

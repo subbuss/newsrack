@@ -1060,7 +1060,7 @@ public class Issue implements java.io.Serializable
 				}
 
 				if (pw != null)
-					pw.println("FILE: " + ni.getLocalCopyPath());
+					pw.println("FILE: " + ni.getRelativeFilePath());
 
 				Reader r = null;
 				try {

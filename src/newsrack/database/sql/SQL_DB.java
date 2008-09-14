@@ -1941,7 +1941,7 @@ public class SQL_DB extends DB_Interface
 	 * @param s  Source from which news is being downloaded
 	 * @param d  Date of publishing
 	 */
-	private String getArchiveDir(Feed f, Date d)
+	public String getArchiveDir(Feed f, Date d)
 	{
 			// Get the directory name for the source
 		return getDateString(d) + File.separator + f.getTag() + File.separator;
@@ -1955,7 +1955,7 @@ public class SQL_DB extends DB_Interface
 	 * @param f        Feed from which article is being downloaded
 	 * @param artDate  Date when the article is published -- provided by the RSS feed 
 	 */
-	private String getArchiveDirForOrigArticles(Feed f, Date artDate)
+	public String getArchiveDirForOrigArticles(Feed f, Date artDate)
 	{
 		String d = "orig" + File.separator + getArchiveDir(f, artDate);
 		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + d);
@@ -1971,7 +1971,7 @@ public class SQL_DB extends DB_Interface
 	 * @param f        Feed from which article is being downloaded
 	 * @param artDate  Date when the article is published -- provided by the RSS feed 
 	 */
-	private String getArchiveDirForFilteredArticles(Feed f, Date artDate)
+	public String getArchiveDirForFilteredArticles(Feed f, Date artDate)
 	{
 		String d = "filtered" + File.separator + getArchiveDir(f, artDate);
 		IOUtils.createDir(GLOBAL_NEWS_ARCHIVE_DIR + d);

@@ -31,7 +31,7 @@ public class SQL_NewsItem extends NewsItem
    private static Log _log = LogFactory.getLog(SQL_DB.class);
 
 	// Solution courtesy: http://publicobject.com/2006/05/simpledateformat-considered-harmful.html
-   private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
+   public static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
 		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("d.M.yyyy"); }
 	};
 
@@ -115,7 +115,8 @@ public class SQL_NewsItem extends NewsItem
 		if (_description != null)
 			sb.append("\t\t<description val=\"" + StringUtils.filterForXMLOutput(_description) + "\" />\n");
 		sb.append("\t\t<url val=\"" + StringUtils.filterForXMLOutput(getURL()) + "\" />\n");
-		sb.append("\t\t<localcopy path=\"" + StringUtils.filterForXMLOutput(getLocalCopyPath()) + "\" />\n");
+	   String localCopyPath = getDateString() + File.separator + getFeed().getTag() + File.separator + _localCopyName;
+		sb.append("\t\t<localcopy path=\"" + StringUtils.filterForXMLOutput(localCopyPath) + "\" />\n");
 		sb.append("\t</item>\n");
 
 		return sb.toString();
@@ -145,17 +146,26 @@ public class SQL_NewsItem extends NewsItem
 	public String  getAuthor()      { return _author; }
 	public String  getDescription() { return _description; }
 	public String  getURL()         { return _urlRoot + _urlTail; }
-	public List<Category> getCategories() {
-		//if (_cats == null)
-		//	_cats = SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); 
-		//return _cats;
-		return SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); 
-	}
-	public int     getNumCats()       { return getCategories().size(); }
-	public Long    getFeedKey()       { return _feedKey; }
-	public Feed    getFeed()          { return SQL_DB._sqldb.getFeed(_feedKey); }
+	public List<Category> getCategories() { return SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); }
+	public int     getNumCats()           { return getCategories().size(); }
+	public Long    getFeedKey()           { return _feedKey; }
+	public Feed    getFeed()              { return SQL_DB._sqldb.getFeed(_feedKey); }
 	public String  getLinkForCachedItem() { return _localCopyName + ":" + _nKey; }
-	public String  getLocalCopyPath() { return getDateString() + File.separator + getFeed().getTag() + File.separator + _localCopyName; }
+
+   public File    getRelativeFilePath()  { return new File(SQL_DB._sqldb.getArchiveDir(getFeed(), getDate()) + getLocalFileName()); }
+
+   public File    getOrigFilePath()
+   { 
+      return new File(  SQL_DB._sqldb.getGlobalNewsArchive() + File.separator 
+                      + SQL_DB._sqldb.getArchiveDirForOrigArticles(getFeed(), getDate()) + getLocalFileName()); 
+   }
+
+   public File    getFilteredFilePath()
+   { 
+      return new File(  SQL_DB._sqldb.getGlobalNewsArchive() + File.separator 
+                      + SQL_DB._sqldb.getArchiveDirForFilteredArticles(getFeed(), getDate()) + getLocalFileName());
+   }
+
 	public SQL_NewsIndex getNewsIndex() 
 	{ 
 		if (_newsIndex == null)

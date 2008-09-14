@@ -462,7 +462,7 @@ public class Feed implements java.io.Serializable
 				// 2. Check if the article has already been downloaded previously
 			ni = _db.getNewsItemFromURL(canonicalUrl);
 			if (ni != null) {
-				if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getLocalCopyPath());
+				if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
 				return ni;
 			}
 
