@@ -362,11 +362,6 @@ public class Feed implements java.io.Serializable
 
 			// 3. Convert the wire feed to a syndfeed!
 		SyndFeed f = new SyndFeedImpl(wf);
-
-			// HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
-		if (_id == 241)
-			rssPubDate = new Date();
-
 		if (rssPubDate == null)
 			rssPubDate = f.getPublishedDate();
 
@@ -408,6 +403,9 @@ public class Feed implements java.io.Serializable
 				// If no item date, default is the pub date of the RSS feed
 			Date itemDate = se.getPublishedDate();
 			Date niDate   = (itemDate != null) ? itemDate: rssPubDate;
+				// HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
+			if (_id == 241)
+				niDate = new Date();
 
 				// 7b. Spit out some debug information
 			if (_log.isInfoEnabled()) {
