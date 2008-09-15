@@ -102,6 +102,9 @@ sub ProcessPage
       ($newUrl =~ s{//}{/}g); 
       ($newUrl =~ s{###}{://}g); 
 
+			# Strip useless stuff from the url
+		$newUrl =~ s{(&Title=[^&?]*).*}{$1};
+
          # Add or ignore, as appropriate
       if ($ignore) {
          print LOG "IGNORING NEW ($msg) - $newUrl\n"
@@ -131,8 +134,9 @@ $prefix      = "nie";
 $date        = `date +"%Y%m%d"`;
 chop $date;
 print "Date is $date\n";
-$defSiteRoot = "http://www.newindpress.com";
-$url         = "$defSiteRoot/topHeadlines.asp";
+#$defSiteRoot = "http://www.newindpress.com";
+$defSiteRoot = "http://www.expressbuzz.com";
+$url         = "$defSiteRoot/edition/default.aspx";
 
 ##
 ## END CUSTOM CODE 1
@@ -164,10 +168,7 @@ while (@urlList) {
 ## newspapers.
 ##
       ## The next line uses information about New Indian Express' URL structure
-   if (  ($url =~ m{NewsItems.asp\?ID=\w+\d+&})
-      || ($url =~ m{newspages.asp\?page=.*}) 
-      || ($url =~ m{Column.asp\?ID=IE\d+$}))
-	{
+   if ($url =~ m{/edition/story.aspx}) {
 			# Skip uninteresting articles ...
 			# I am not interested in articles about stars, their treks, or their lifestyles!
 ##		next if (!($url =~ m{$date}));
@@ -176,51 +177,33 @@ while (@urlList) {
 
 			# For most sites, the next line suffices!
 		$title = $links{$url};
-
-			# These lines below are also specific to Indian Express
-			# For Indian Express -- process the page to get the title of the page
-			# Otherwise, all titles become 'Full Story' if this is picked from the
-			# <a href=""> ... </a> links
-		$title =~ s/- Newindpress.com//g;
-		$title =~ s/Newindpress.com//g;
+		$title =~ s/Express Buzz -//g;
 		$title =~ s/<.*?>//g;
-      if (!$title || ($title =~ m{^\s*$}) || ($title =~ m/\s*HEADLINE\s*/i) || ($title =~ m/Full Story/)) {
-         $title = &ReadTitle($url, "<font face=\"Arial\" color=\"black\">", "</font>");
-         $title =~ s/- Newindpress.com//g;
-         $title =~ s/Newindpress.com//g;
-			$title =~ s/<.*?>//g;
-         if (!$title || ($title =~ m{^\s*$}) || ($title =~ m/\s*HEADLINE\s*/i) || ($title =~ m/Full Story/)) {
-            $title = &ReadTitle($url, "<font face=\"Arial\" color=\"#804040\">", "</font>");
-				$title =~ s/- Newindpress.com//g;
-				$title =~ s/Newindpress.com//g;
-				$title =~ s/<.*?>//g;
-            if (!$title || ($title =~ m{^\s*$}) || ($title =~ m/\s*HEADLINE\s*/i) || ($title =~ m/Full Story/)) {
-               $title = "ERROR: NewsRack could not identify title";
-            }
-         }
-      }
 
 			# Skip the article if it is not current and is from the archives;
 		next if ($title =~ /Login Archives/);
 
-			# For NIE, URL junk after the news id is unnecessary
-			# and get rid of it.
-		$url =~ s/\&.*//g;
+      if (!$title || ($title =~ m{^\s*$}) || ($title =~ m/\s*\.\.\.Read\s*/i)) {
+			$title = $1 if ($url =~ /Title=(.*)/);
+			$title =~ s/\+/ /g;
+      	if (!$title || ($title =~ m{^\s*$})) {
+				$title = &ReadTitle($url, "<span id=\"ctl00_ContentPlaceHolder1_lblStoryHeadline1\">", "</span>");
+			}
+		}
+
 		if ($title =~ m{^\s*$}) {
          $title = "ERROR: NewsRack could not identify title";
 		}
 ##
 ## END CUSTOM CODE 2
 ##
-
 		print "TITLE of $url is $title\n";
       $desc = $title;
 		&PrintRSSItem();
    }
-   elsif (($url =~ m{News.asp\?}) || ($url =~ m{Column.asp.*old$}) || ($url =~ m{colItems.asp}) || ($url =~ m{Topic=.*?\d+}) || ($url =~ m{Archives})) {
+   elsif (($url =~ m{gallery(view)?.aspx}) || ($url =~ m{aspx.*aspx.*}) || ($url =~ m{content.aspx})) {
       ## Skip these!!
 	}
-#   elsif ($url =~ $rootURL) {
    else {
 		&CrawlWebPage($url);
    }
