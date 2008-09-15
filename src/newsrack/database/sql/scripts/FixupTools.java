@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Date;
 import java.io.File;
+import java.io.BufferedReader;
 
 import newsrack.NewsRack;
 import newsrack.database.DB_Interface;
@@ -16,6 +17,7 @@ import newsrack.database.sql.SQL_Stmt;
 import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.user.User;
 import newsrack.filter.Issue;
+import newsrack.filter.Category;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,33 +55,30 @@ public class FixupTools
       System.out.println("delete from cat_news where n_key in (" + buf + ");");
 	}
 
-   public static void changeNewsIndexDate(long niKey, Date newDate)
+   public static void changeNewsIndexDate(Long niKey, Date newDate)
    {
 		((SQL_NewsIndex)_db.getNewsIndex(niKey)).changeDate(newDate);
-/**
-      Date      origDate = ni.getCreationTime();
-
-		SQL_StmtExecutor.update("UPDATE news_indexes SET created_at = ? WHERE ni_key = ?",
-		                        new SQL_ValType[] { SQL_ValType.DATE, SQL_ValType.LONG },
-										new Object[] { newDate, niKey });
-		SQL_StmtExecutor.update("UPDATE cat_news SET date_stamp = ? WHERE ni_key = ?",
-		                        new SQL_ValType[] { SQL_ValType.DATE, SQL_ValType.LONG },
-										new Object[] { newDate, niKey });
-
-		Collection<NewsItem> news = _db.getArchivedNews(ni);
-
-		for (NewsItem n: news) {
-         File origorig = ((SQL_NewsItem)n).getOrigFilePath();
-         File origfilt = ((SQL_NewsItem)n).getFilteredFilePath();
-         n.setDate(newDate);
-         File neworig = ((SQL_NewsItem)n).getOrigFilePath();
-         File newfilt = ((SQL_NewsItem)n).getFilteredFilePath();
-
-         //System.out.println("ORIG: For news item: " + n.getKey() + "; ORIG: " + origorig + "; NEW: " + neworig);
-         //System.out.println("FILT: For news item: " + n.getKey() + "; ORIG: " + origfilt + "; NEW: " + newfilt);
-      }
-**/
    }
+
+	public static void addNewsItemsToCat(Long catKey, String newsKeysFile)
+	{
+		try {
+			Category       cat = _db.getCategory(catKey);
+			BufferedReader br  = new BufferedReader(new java.io.FileReader(newsKeysFile));
+			String         line;
+
+			do {
+				line = br.readLine();
+				if (line != null)
+					_db.addNewsItem(_db.getNewsItem(Long.parseLong(line)), cat, 2);
+			} while (line != null);
+
+			br.close();
+		}
+		catch (Exception e) {
+			System.out.println("Exception: " + e);
+		}
+	}
 
 	public static void updateCountsForAllIssues()
 	{
@@ -111,6 +110,9 @@ public class FixupTools
       }
       else if (action.equals("change-newsindex-date")) {
 	      changeNewsIndexDate(Long.parseLong(args[2]), newsrack.database.sql.SQL_NewsItem.DATE_PARSER.get().parse(args[3]));
+      }
+      else if (action.equals("add-news-to-cat")) {
+	      addNewsItemsToCat(Long.parseLong(args[2]), args[3]);
       }
       else {
          System.out.println("Unknown action: " + action);

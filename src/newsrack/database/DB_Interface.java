@@ -448,6 +448,11 @@ public abstract class DB_Interface
 	public abstract void clearNews(Category c);
 
 	/**
+	 * Fetches a news item given its key
+	 */
+	public abstract NewsItem getNewsItem(Long key);
+
+	/**
 	 * This method returns a character reader for displaying a news item
 	 * that has been archived in the local installation of News Rack.
 	 *
