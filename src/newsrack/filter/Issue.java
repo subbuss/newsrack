@@ -1071,7 +1071,7 @@ public class Issue implements java.io.Serializable
 					classifyArticle(ni, numTokens, tokTable);
 				}
 				catch (java.io.FileNotFoundException e) {
-					_log.error("ScanAndClassify: FNFE ERROR " + e);	// Don't print the stack trace
+					_log.error("ScanAndClassify: FNFE: key - " + ni.getKey() + " Expected: " + ni.getFilteredFilePath());	// Don't print the stack trace
 				}
 				catch (java.io.IOException e) {
 					_log.error("IO ERROR ", e);
