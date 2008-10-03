@@ -47,6 +47,7 @@
       <#foreach i in issues>
 			<tr>
 			<td style="text-align:right">
+        <#if i.frozen> (<span style="color:00a;font-weight:bold;"> FROZEN </span>) </#if>
 				<a class="browsecat" href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${i.name}" />">${i.name}</a>
 				<span class="artcount">[${i.numArticles}]</span>
 			</td>

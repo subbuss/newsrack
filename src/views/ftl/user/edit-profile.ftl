@@ -95,7 +95,7 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
 				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="name" /></@s.url>">Freeze</a>,
       </@s.if>
       <@s.else>
-				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="name" /></@s.url>">Unfreeze</a>,
+				<a style="color:#070;font-weight:bold;" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="name" /></@s.url>">Unfreeze</a>,
       </@s.else>
 				<a href="<@s.url namespace="/forms" action="reclassify-news"><@s.param name="issue" value="name" /></@s.url>">Reclassify</a>
 			</td>
