@@ -189,11 +189,21 @@ while (@urlList) {
 ## END CUSTOM CODE 2
 ##
 		$title =~ s/<.*?>//g;
+      $title = &ReadTitle($url, "<p align=\"left\"><font color=\"#000000\"><b><big><big>", "</big></big></b></font></p>") if ($title =~ /^\s*$/);
 		print "ADDING: TITLE of $url is $title\n";
       $desc  = $title;
-		&PrintRSSItem();
+            ## ...asp= KPO20080927112033..
+      if ($url =~ /ID=...(\d\d\d\d)(\d\d)(\d\d)\d+/) {
+         ($y,$m,$d) = ($1,$2,$3);
+         print "y - $y; m - $m; d - $d; url - $url\n";
+         $dateStr = &GetRFC822Date($y,$m,$d);
+         &PrintRSSItem($dateStr);
+      }
+      else {
+		   &PrintRSSItem($dateStr);
+      }
    }
-   elsif (($url =~ m{Gallery}i) || ($url =~ m{CineItems}i) || ($url =~ m{visheshanka}i) || ($url =~ m{chitraprabha}i)) {
+   elsif (($url =~ m{News.asp}) || ($url =~ m{Gallery}i) || ($url =~ m{CineItems}i) || ($url =~ m{visheshanka}i) || ($url =~ m{chitraprabha}i)) {
 		# ignore ... 
 	}
 	else {

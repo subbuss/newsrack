@@ -172,6 +172,11 @@ while (@urlList) {
 ## END CUSTOM CODE 2
 ##
       $title = $links{$url};
+      $title =~ s/<.*?>//g;
+      if ($title =~ /^\s*more\s*/i) {
+         $title = &ReadTitle($url);
+         $title =~ s/\s*oHeraldo\s*::\s*//i;
+      }
       $desc  = $title;
 		&PrintRSSItem();
    }
