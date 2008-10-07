@@ -62,6 +62,7 @@ sub ProcessPage
       ($urlRef, $link) = ($2, $3);
 		$link = Encode::decode_utf8($link);
 		$urlRef = &FIX_URL($urlRef);
+		$urlRef =~ s/www.//g;
       print LOG "REF - $urlRef; LINK - $link; "; 
       $msg="";
       $ignore = 0;
@@ -150,6 +151,7 @@ $UNICODE_GATEWAY_PREFIX="http://uni.medhas.org/unicode.php5?file=";
 while (@urlList) {
    $total++;
    $url = shift @urlList;
+
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
 
