@@ -102,7 +102,7 @@ public class AdminAction extends BaseAction
 		if (u == null)
 			return Action.ERROR;
 
-		_stats = NewsRack.getDBInterface().getStats();
+		_stats = NewsRack.getDBInterface().getStats().replaceAll("\n", "<br />");
 		return Action.SUCCESS;
 	}
 

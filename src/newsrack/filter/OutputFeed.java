@@ -187,23 +187,23 @@ public class OutputFeed implements java.io.Serializable
 		_rssFeed.setPublishedDate(new Date()); // Update the publishing date of the feed
 		purgeOldFeedEntries();
 		try {
-			final PrintWriter    pw = IOUtils.getUTF8Writer(_feedFileName);
+			PrintWriter pw = IOUtils.getUTF8Writer(_feedFileName);
 			(new SyndFeedOutput()).output(_rssFeed, pw);
 			pw.close();
 		}
-		catch (final Exception e) {
+		catch (Exception e) {
 			_log.error("Exception while writing RSS feed " + _feedFileName, e);
 		}
 	}
 
 	public void invalidate()
 	{
-		final File feedFile = new File(_feedFileName);
-		if (!feedFile.exists())
+		File feedFile = new File(_feedFileName);
+		if (!feedFile.exists()) {
 			IOUtils.createDir(_rssDir);
-
-		createNewRSSFeed();
-		publish();
+			createNewRSSFeed();
+			publish();
+		}
 	}
 
 	public void update()

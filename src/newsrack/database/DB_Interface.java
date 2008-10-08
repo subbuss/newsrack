@@ -70,6 +70,9 @@ public abstract class DB_Interface
 	/** This method clears out the cache */
 	public abstract void clearCache();
 
+	/** This method clears out the downloaded news table */
+	public abstract void clearDownloadedNewsTable();
+
 /* #### Support for Collections #### */
 	/**
 	 * @param fromUid  Uid of the user whose collection is being imported by another user

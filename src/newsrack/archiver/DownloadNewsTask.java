@@ -300,6 +300,9 @@ public class DownloadNewsTask extends TimerTask
 					noChangeIntervals = 0;
 				}
          }
+
+				// Clear the downloaded news table -- since we are done processing all of them
+			NewsRack.getDBInterface().clearDownloadedNewsTable();
             
 			for (User u: users)
             u.doPostDownloadBookkeeping();

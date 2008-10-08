@@ -573,6 +573,14 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
+	GET_ALL_FEEDS_FOR_NEWS(
+		"SELECT feed_key FROM news_collections where n_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
 	GET_DOWNLOADED_NEWS_FOR_FEED(
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 		   " FROM news_items n, news_indexes ni, downloaded_news dn" +
@@ -1225,6 +1233,11 @@ public enum SQL_Stmt
 	CLEAR_DOWNLOADED_NEWS_FOR_FEED(
 		"DELETE FROM downloaded_news WHERE feed_key = ?",
 		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
+	),
+	CLEAR_DOWNLOADED_NEWS_TABLE(
+		"TRUNCATE downloaded_news",
+		new SQL_ValType[] {},
       SQL_StmtType.DELETE
 	),
 	DELETE_NEWS_FROM_CAT(

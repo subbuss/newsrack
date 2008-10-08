@@ -240,6 +240,12 @@ public class SQL_DB extends DB_Interface
 		_cache.clearCaches();
 	}
 
+	/** This method clears out the downloaded news table */
+	public void clearDownloadedNewsTable()
+	{
+		CLEAR_DOWNLOADED_NEWS_TABLE.execute(new Object[]{});
+	}
+
 	private String getUserHome(User u)
 	{
 		return GLOBAL_USERS_ROOTDIR + u.getUid() + File.separator;
@@ -410,8 +416,11 @@ public class SQL_DB extends DB_Interface
 		NewsItem n = (NewsItem)_cache.get(key, NewsItem.class);
 		if (n == null) {
 			n = (NewsItem)GET_NEWS_ITEM.get(key);
-			if (n != null)
+			if (n != null) {
+					// Add newsitem both by key & url
 				_cache.add((Long)null, key, NewsItem.class, n);
+				_cache.add((Long)null, n.getURL(), NewsItem.class, n);
+			}
 		}
 		return n;
 	}
@@ -893,6 +902,17 @@ public class SQL_DB extends DB_Interface
 		}
 	}
 
+	private Reader getReader(String pathPrefix, String pathSuffix, List<Long> feedKeys) throws java.io.IOException
+	{
+		for (Long f: feedKeys) {
+			String fullPath = pathPrefix + File.separator + getFeed(f).getTag() + File.separator + pathSuffix;
+			if ((new File(fullPath)).isFile())
+				return IOUtils.getUTF8Reader(fullPath);
+		}
+
+		return null;
+	}
+
 	/**
 	 * This method returns a character reader for displaying a news item
 	 * that has been archived in the local installation of News Rack.
@@ -907,28 +927,32 @@ public class SQL_DB extends DB_Interface
 			return null;
 		}
 
-		// Convert 12.11.2005 --> 2005/11/12/src/file
+			// Convert 12.11.2005 --> 2005/11/12/
 		String[] dateStr = ni.getDateString().split("\\.");
+		String pathPrefix = GLOBAL_NEWS_ARCHIVE_DIR + "filtered" + File.separator + dateStr[2] + File.separator + dateStr[1] + File.separator + dateStr[0];
+
+			// 1. FAST common case -- try with md5-hashed local name + feed passed in with the news item
 		String localName = ((SQL_NewsItem)ni).getLocalFileName();
-		String pathPrefix = GLOBAL_NEWS_ARCHIVE_DIR + "filtered" + File.separator
-																  + dateStr[2] + File.separator 
-																  + dateStr[1] + File.separator
-																  + dateStr[0] + File.separator
-																  + ni.getFeed().getTag() + File.separator;
-		String fullPath = pathPrefix + localName;
-
-				// The common case for all news items going forward
+		String fullPath = pathPrefix + File.separator + ni.getFeed().getTag() + File.separator + localName;
 		if ((new File(fullPath)).isFile())
 			return IOUtils.getUTF8Reader(fullPath);
 
-			// The news item is stored using the old style naming
-		localName = StringUtils.getBaseFileName(ni.getURL());
-		fullPath = pathPrefix + localName;
-		if (_log.isDebugEnabled()) _log.debug("Looking for " + fullPath);
-		if ((new File(fullPath)).isFile())
-			return IOUtils.getUTF8Reader(fullPath);
+			// 2. Didn't work .. check if this news item has been associated with other feeds
+		List<Long> allFeedKeys = (List<Long>)GET_ALL_FEEDS_FOR_NEWS.get(ni.getKey());
+		Reader r = getReader(pathPrefix, localName, allFeedKeys);
 
-      return IOUtils.getUTF8Reader(pathPrefix + GET_NEWS_ITEM_LOCALNAME.get(ni.getKey()));
+			// 3. Check with old syle naming -- backward compatibility
+		if (r == null)
+			r = getReader(pathPrefix, StringUtils.getBaseFileName(ni.getURL()), allFeedKeys);
+
+			// 4. Check with local name stored in the db -- backward compatibility
+		if (r == null)
+			r = getReader(pathPrefix, (String)GET_NEWS_ITEM_LOCALNAME.get(ni.getKey()), allFeedKeys);
+
+		if (r != null)
+			return r;
+		else
+			throw new java.io.FileNotFoundException();
 	}
 
 	/**
@@ -1093,7 +1117,7 @@ public class SQL_DB extends DB_Interface
 	public void initializeNewsDownload(Feed f, Date pubDate)
 	{
 			// Remove all entries for 'f' from the downloaded news table
-		CLEAR_DOWNLOADED_NEWS_FOR_FEED.execute(new Object[]{f.getKey()});
+		// CLEAR_DOWNLOADED_NEWS_FOR_FEED.execute(new Object[]{f.getKey()});
 
 			// Create the output directories, if they don't exist
 		getArchiveDirForOrigArticles(f, pubDate);
@@ -1110,7 +1134,16 @@ public class SQL_DB extends DB_Interface
 	public NewsItem getNewsItemFromURL(String url)
 	{
 		try {
-      	return (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
+			NewsItem n = (NewsItem)_cache.get(url, NewsItem.class);
+			if (n == null) {
+      		n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
+				if (n != null) {
+						// Add newsitem both by key & url
+					_cache.add((Long)null, n.getKey(), NewsItem.class, n);
+					_cache.add((Long)null, url, NewsItem.class, n);
+				}
+			}
+			return n;
 		}
 		catch (Exception e) {
 				// FIXME: Bad boy Subbu! ... But what to do ... if I declare that the stmt executor throws an
@@ -1277,15 +1310,10 @@ public class SQL_DB extends DB_Interface
             // Add it to the list of recently downloaded news so that if a download is interrupted,
             // the news downloaded in an interrupted download is available to a later download (unless
             // of course, those news items are not present in a rss feed any more).
-         INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
+         // INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
          return;
       }
 
-         /* IMPORTANT: Use feed id from the source and not from
-			 * the news item because we are adding the news item to
-			 * the index of the source.  If the news item has been
-			 * downloaded previously while processing another source,
-          * then n.getFeedKey() will be different from feedKey! */
 		String dateStr = sni.getDateString();
 
 				// Since we removed date string from the DB and converted date-string to a mysql date time,
@@ -1293,6 +1321,11 @@ public class SQL_DB extends DB_Interface
 		String[] dateParts = dateStr.split("\\.");
 		dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
 
+         /* IMPORTANT: Use feed id from the source and not from
+			 * the news item because we are adding the news item to
+			 * the index of the source.  If the news item has been
+			 * downloaded previously while processing another source,
+          * then n.getFeedKey() will be different from feedKey! */
 		Long niKey = getNewsIndexKey(feedKey, dateStr);
 		if ((niKey == null) || (niKey == -1)) {
 				// Add a new news index entry to the news index table

@@ -22,18 +22,18 @@ public class URLCanonicalizer
 
 		/* These are patterns for detecting feed proxies */
 	static String[] proxyREStrs = new String[] { 
-		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$", "^.*hindustan.*redir.aspx.*$"
+		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$"
 	};
 
 		/* Domains & corresponding url-split rule */
 	static String[] urlFixupRuleStrings = new String[] {
-      "sfgate.com:&feed=.*", "marketwatch.com:&dist=.*", "bloomberg.com:&refer=.*"
+      "sfgate.com:&feed=.*", "marketwatch.com:&dist=.*", "bloomberg.com:&refer=.*", "cbsnews.com:\\?source=[^?&]*"
    };
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
 	static String[] domainsWithDefaultFixupRule = new String[] {
 		"nytimes.com", "rockymountainnews.com",
-		"cbsnews.com", "newscientist.com", "washingtonpost.com", "guardian.co.uk",
+		"newscientist.com", "washingtonpost.com", "guardian.co.uk",
 		"boston.com", "publicradio.org", "cnn.com", "chicagotribune.com",
 		"latimes.com", "twincities.com", "mercurynews.com", "wsj.com",
 		"seattletimes.nwsource.com", "reuters.com", "sltrib.com"

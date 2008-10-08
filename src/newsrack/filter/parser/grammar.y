@@ -1073,10 +1073,10 @@ Concept_Decl      = Concept_Def_Id.id EQUAL Keywords.kwds
 								/** NO NEED TO allocate db-specific lists here, since the keywords will get
 								 ** recreated anyway after normalization **/
 Keywords          = String.s           {: List l = new ArrayList(); l.add(s); return new Symbol(l); :}
-                  | HYPHEN String.s    {: List l = new ArrayList(); l.add("-"+s); return new Symbol(l); :}
+               /* | HYPHEN String.s    {: List l = new ArrayList(); l.add("-"+s); return new Symbol(l); :} */
                   | Cpt_Macro_Use_Id.c {: List l = new ArrayList(); l.add(c); return new Symbol(l); :}
                   | Keywords.slist COMMA String.s           {: slist.add(s); return _symbol_slist; :}
-                  | Keywords.slist COMMA HYPHEN String.s    {: slist.add("-"+s); return _symbol_slist; :}
+               /* | Keywords.slist COMMA HYPHEN String.s    {: slist.add("-"+s); return _symbol_slist; :} */
                   | Keywords.slist COMMA Cpt_Macro_Use_Id.c {: slist.add(c); return _symbol_slist; :}
                   ;
 Cat_Collection    = DEF_CATS Collection_Id.cid Category_Decls.clist EndCats
