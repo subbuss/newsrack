@@ -127,8 +127,7 @@ sub ProcessPage
 $newspaper   = "The Navhind Times";
 $prefix      = "nht";
 $defSiteRoot = "http://www.navhindtimes.com";
-$url         = "$defSiteRoot/mainpage.php";
-$artnum1     = &OpenArtNumFile("11000");
+$url         = "$defSiteRoot/homepage.php";
 
 ##
 ## END CUSTOM CODE 1
@@ -156,16 +155,7 @@ while (@urlList) {
 ## structure and organization and needs to be customized for different
 ## newspapers.
 ##
-      # The next line uses information about Navhind Times' site organization
-		# http://www.navhindtimes.com/articles.php?Story_ID=092646
-   if ($url =~ m{articles.php\?Story_ID=(\d+)}) {
-		$artNum = $1;
-#		print "Article number = $artNum\n";
-#		next if ($artNum < $startingArtNum);
-
-		if ($artNum > $maxArtNum) {
-			$maxArtNum = $artNum;
-		}
+   if ($url =~ m{story.php\?story=(\d+)}) {
 
 			# For most sites, the next line suffices!
 		$title = $links{$url};
@@ -184,5 +174,4 @@ while (@urlList) {
 }
 
 &FinalizeRSSFeed();
-&SaveArtNumFile();
 &PrintStatsAndCleanup();
