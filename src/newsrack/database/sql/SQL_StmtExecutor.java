@@ -38,6 +38,7 @@ public class SQL_StmtExecutor
    private static ConnectionPool _dbPool;
    private static boolean        _adminAlerted;
 	private static int            _stmtExecutionCount;
+	private static HashMap<String, Integer> _stmtStats;
 
    public static void init(ConnectionPool p, Log l, DB_Interface db)
    {
@@ -45,6 +46,7 @@ public class SQL_StmtExecutor
       _log    = l;
       _adminAlerted = false;
 		_db = db;
+		_stmtStats = new HashMap<String,Integer>();
    }
 
 	public static String getStats()
@@ -53,6 +55,9 @@ public class SQL_StmtExecutor
 		sb.append("Total SQL executions: ").append(_stmtExecutionCount).append("\n");
 		for (SQL_StmtType t: SQL_StmtType.values()) {
 			sb.append("Executions of SQL stmt type ").append(t.toString()).append(": ").append(t._executionCount).append("\n");
+		}
+		for (String s: _stmtStats.keySet()) {
+			sb.append("STMT: ").append(_stmtStats.get(s)).append(": ").append(s).append("\n");
 		}
 
 		return sb.toString();
@@ -192,8 +197,13 @@ public class SQL_StmtExecutor
 **/
          }
 
+				// Update stats!
 			_stmtExecutionCount++;
 			stmtType._executionCount++;
+			Integer count = _stmtStats.get(stmtString);
+			_stmtStats.put(stmtString, count == null ? 1 : count + 1);
+
+				// Do it now ...
          switch (stmtType) {
             case QUERY  :
                rs = stmt.executeQuery();

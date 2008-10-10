@@ -157,6 +157,7 @@ public class SQL_DB extends DB_Interface
 
 	private ObjectCache _cache;
 	private Map<Tuple<Long,Long>, String> _sourceNames;
+	private Map<Long, List<Category>> _leafCatsToCommit;
 
 	private void initDirPaths() 
 	{
@@ -287,7 +288,8 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void init()
 	{
-		// nothing to do ... the constructor has done everything
+		// nothing else to do ... the constructor has done everything
+		_leafCatsToCommit = new HashMap<Long, List<Category>>();
 	}
 
 	public Source getSource(Long key)
@@ -1013,14 +1015,20 @@ public class SQL_DB extends DB_Interface
 
    public List<Issue> getAllIssues()
    {
-		/* For now, we won't cache this info */
-      return (List<Issue>)GET_ALL_ISSUES.execute(EMPTY_ARGS);
+		List<Issue> issues = new ArrayList<Issue>();
+      List<Long> tkeys = (List<Long>)GET_ALL_ISSUE_KEYS.execute(EMPTY_ARGS);
+		for (Long k: tkeys)
+			issues.add(getIssue(k));
+		return issues;
    }
 
    public List<Issue> getAllValidatedIssues()
    {
-		/* For now, we won't cache this info */
-      return (List<Issue>)GET_ALL_VALIDATED_ISSUES.execute(EMPTY_ARGS);
+		List<Issue> issues = new ArrayList<Issue>();
+      List<Long> tkeys = (List<Long>)GET_ALL_VALIDATED_ISSUE_KEYS.execute(EMPTY_ARGS);
+		for (Long k: tkeys)
+			issues.add(getIssue(k));
+		return issues;
    }
 
    public List<Feed> getAllActiveFeeds()
@@ -1136,7 +1144,8 @@ public class SQL_DB extends DB_Interface
 		try {
 			NewsItem n = (NewsItem)_cache.get(url, NewsItem.class);
 			if (n == null) {
-      		n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
+				Tuple<String,String> t = splitURL(url);
+      		n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{t._a, t._b});
 				if (n != null) {
 						// Add newsitem both by key & url
 					_cache.add((Long)null, n.getKey(), NewsItem.class, n);
@@ -1149,7 +1158,6 @@ public class SQL_DB extends DB_Interface
 				// FIXME: Bad boy Subbu! ... But what to do ... if I declare that the stmt executor throws an
 				// exception, I have to add try-catch everywhere which will make everything a bloody mess ...
 				// So, I am using this workaround for now
-
 			if (!(e instanceof SQL_UniquenessConstraintViolationException)) {
 				_log.error("Exception while fetching news item", e);
 				return null;
@@ -1163,12 +1171,12 @@ public class SQL_DB extends DB_Interface
 			Long     nKey  = n.getKey();
 			Long     niKey = n.getNewsIndex().getKey();
 
-			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{url});
+			Tuple<String,String> t = splitURL(url);
+			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{t._a, t._b});
 			for (Long k: allItems) {
 				if (!k.equals(nKey)) {
 					_log.error(" ... Deleting duplicate news item with key: " + k);
 					DELETE_NEWS_ITEM.delete(k);
-					DELETE_URL_HASH_ENTRY.delete(k);
 
 						// Replace all occurences of 'k' with 'nKey' in news_collections & cat_news tables
 					UPDATE_SHARED_NEWS_ITEM_ENTRIES.execute(new Object[] {nKey, k});
@@ -1345,7 +1353,6 @@ public class SQL_DB extends DB_Interface
 				SQL_NewsItem x = (SQL_NewsItem)getNewsItemFromURL(u);
 				if (x == null) {
 					Long key = (Long)INSERT_NEWS_ITEM.execute(new Object[] {niKey, sni._urlRoot, sni._urlTail, sni._title, sni._description, sni._author});
-					INSERT_URL_HASH.execute(new Object[] {key, u}); // Add a url hash too -- should I start using triggers?? 
 					sni.setKey(key);
 					sni.setNewsIndexKey(niKey); // Record the news index that the news item belongs to!
 				}
@@ -1645,14 +1652,22 @@ public class SQL_DB extends DB_Interface
 			SQL_NewsIndex idx = sni.getNewsIndex();
          INSERT_INTO_CAT_NEWS_TABLE.execute(new Object[] {cat.getKey(), sni.getKey(), idx.getKey(), idx.getCreationTime()});
 
-			// Increment # of unique articles in the category
+				// Increment # of unique articles in the category
 			cat.setNumArticles(1+cat.getNumArticles());
 
 				// Do not commit anything to the database yet!
 				// It is done in one pass after the download phase is complete!
+				// Record cat in a table
+			List<Category> l = (List<Category>)_leafCatsToCommit.get(cat.getIssue().getKey());
+			if (l == null) {
+				l = new ArrayList<Category>();
+				_leafCatsToCommit.put(cat.getIssue().getKey(), l);
+			}
+			l.add(cat);
+
 				// FIXME: Relies on the fact that the category objects are live
 				// through the entire news classification phase
-			//updateCatInfo(cat);
+			//commitCatToDB(cat, false);
 		}
 	}
 
@@ -1701,7 +1716,7 @@ public class SQL_DB extends DB_Interface
 	{
 			// Add an updated value to the cache so that we don't have to the hit the db next time
 		String cacheKey = "IFINFO:" + i.getKey() + ":" + f.getKey();
-      // FIXME: This is causing deadlocks!!
+      // FIXME: This causes deadlocks!!
 		//_cache.remove(cacheKey, Long.class);
 		_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxId);
 
@@ -1732,7 +1747,7 @@ public class SQL_DB extends DB_Interface
       if (numDeleted > 0) {
 			Category cat = getCategory(catKey);
 			cat.setNumArticles(cat.getNumArticles() - numDeleted);
-			updateCatInfo(cat, true);
+			commitCatToDB(cat, true);
          updateArtCounts(cat.getIssue());
 		}
    }
@@ -1789,7 +1804,7 @@ public class SQL_DB extends DB_Interface
 					// This first statement updates the category and purges the cache
 					// of all objects that could have stale references to this category.
 					// issues, users ... the works ...
-				updateCatInfo(cat, true);
+				commitCatToDB(cat, true);
             updateArtCounts(cat.getIssue());
          }
 		}
@@ -1954,7 +1969,7 @@ public class SQL_DB extends DB_Interface
 			// 2. Reset article count (retain old update time)
       CLEAR_CAT_NEWS.execute(new Object[] {cat.getKey()});
 		cat.setNumArticles(0);
-		updateCatInfo(cat, true);
+		commitCatToDB(cat, true);
 
 			// Purge cache of stale news
 		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + cat.getKey()});
@@ -2119,7 +2134,7 @@ public class SQL_DB extends DB_Interface
 			updateIssueForCat(c, i);
 	}
 
-	private void updateCatInfo(Category cat, boolean purgeAllStaleCacheEntries)
+	private void commitCatToDB(Category cat, boolean purgeAllStaleCacheEntries)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Setting article count for cat " + cat.getName() + ":" + cat.getKey() + ": to " + cat.getNumArticles());
 
@@ -2128,12 +2143,16 @@ public class SQL_DB extends DB_Interface
 		Date lut = cat.getLastUpdateTime();
 		if (lut != null)
 			lut = new Timestamp(lut.getTime());
-		UPDATE_CAT_NEWS_INFO.execute(new Object[] {cat.getNumArticles(), lut, cat.getNumItemsSinceLastDownload(), cat.getKey()});
 
-			// Remove stale cache entry for this category
-		_cache.remove(cat.getKey(), Category.class);
+		if (cat.isLeafCategory())
+			UPDATE_LEAF_CAT_NEWS_INFO.execute(new Object[] {lut, cat.getNumItemsSinceLastDownload(), cat.getKey()});
+		else
+			UPDATE_CAT_NEWS_INFO.execute(new Object[] {cat.getNumArticles(), lut, cat.getNumItemsSinceLastDownload(), cat.getKey()});
 
 		if (purgeAllStaleCacheEntries) {
+				// Remove stale cache entry for this category
+			_cache.remove(cat.getKey(), Category.class);
+
 				// Remove other pertinent cached entries for this category!
 				// The issue and user objects are being removed because they
 				// might contain references to the cached objects!
@@ -2146,45 +2165,56 @@ public class SQL_DB extends DB_Interface
 				// Check out a new copy of the issue & update issue references in this category and all sub-categories
 			updateIssueForCat(cat, getIssue(i.getKey()));
 		}
+		else if (cat.isLeafCategory()) {
+				// Update info in place!  FIXME: This should not be necessary ... but, in case the count has gone off-key ...
+			Triple info = (Triple)GET_CAT_INFO.execute(new Object[]{cat.getIssue().getKey(), cat.getCatId()});
+			cat.setNumArticles((Integer)info._b);
+		}
 	}
 
 	private int updateArtCountsForCat(Category cat)
 	{
 			// Process in depth-first order!
 		if (!cat.isLeafCategory()) {
+			int orig = cat.getNumArticles();
 			int n = 0;
 			for (Category ch: cat.getChildren())
 				n += updateArtCountsForCat(ch);
 
-			cat.setNumArticles(n);
+			if (orig != n) {
+				cat.setNumArticles(n);
+				commitCatToDB(cat, false);
+			}
 		}
 
-		updateCatInfo(cat, false);
 		return cat.getNumArticles();
 	}
 
 	private void updateArtCounts(Issue i)
 	{
-		int n = 0;
+		int n    = 0;
+		int orig = i.getNumArticles();
 		for (Category c: i.getCategories())
 			n += updateArtCountsForCat(c);
 
-		i.setNumArticles(n);
+		if (orig != n) {
+			i.setNumArticles(n);
 
-		if (_log.isDebugEnabled()) _log.debug("Setting article count for issue " + i.getName() + ":" + i.getKey() + ": to " + n);
-		UPDATE_ARTCOUNT_FOR_TOPIC.execute(new Object[] {n, new Timestamp(i.getLastUpdateTime().getTime()), i.getNumItemsSinceLastDownload(), i.getKey()});
+			if (_log.isDebugEnabled()) _log.debug("Setting article count for issue " + i.getName() + ":" + i.getKey() + ": to " + n);
+			UPDATE_ARTCOUNT_FOR_TOPIC.execute(new Object[] {n, new Timestamp(i.getLastUpdateTime().getTime()), i.getNumItemsSinceLastDownload(), i.getKey()});
 
-			// Now, purge stale cache entries!
-		User u = i.getUser();
-		_cache.remove(i.getKey(), Issue.class);
-		_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
-		_cache.remove(u.getKey(), User.class);
-		_cache.remove(u.getUid(), User.class);
+				// Now, purge stale cache entries!
+			User u = i.getUser();
+			_cache.remove(i.getKey(), Issue.class);
+			_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
+			_cache.remove(u.getKey(), User.class);
+			_cache.remove(u.getUid(), User.class);
 
-			// Check out a fresh copy of the issue and update issue references in the issue's category subtree!
-		i = getIssue(i.getKey());
-		for (Category c: i.getCategories())
-			updateIssueForCat(c, i);
+				// Check out a fresh copy of the issue and update issue references in the issue's category subtree!
+			i = getIssue(i.getKey());
+			for (Category c: i.getCategories())
+				updateIssueForCat(c, i);
+		}
 	}
 
 	/**
@@ -2193,7 +2223,16 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void commitNewsToArchive(Issue i)
 	{
-      updateArtCounts(i);
+			// Commit all leaf cats in the issue
+		List<Category> leafCats = _leafCatsToCommit.get(i.getKey());
+		if (leafCats != null) {
+			for (Category c: leafCats)
+				commitCatToDB(c, false);
+			leafCats.clear();
+
+				// Update article counts
+			updateArtCounts(i);
+		}
 	}
 
 	private Collection<NewsItem> getNewsForIndex(long indexKey)

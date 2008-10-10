@@ -68,16 +68,15 @@ create table if not exists news_items (
    author           text,
    primary key(n_key),
    constraint fk_news_items_1 foreign key(primary_ni_key) references news_indexes(ni_key),
---   constraint fk_news_items_2 foreign key(feed_key) references feeds(feed_key),
-   index cached_item_name_index(cached_item_name)
+	index url_index(url_root, url_tail)
 ) charset=utf8 collate=utf8_bin;
 
-create table if not exists news_item_url_md5_hashes (
-   n_key    bigint   not null,
-   url_hash char(32) not null,
-   constraint fk_1 foreign key(n_key) references news_items(n_key),
-   index hash_index(url_hash)
-) charset=utf8 collate=utf8_bin;
+--create table if not exists news_item_url_md5_hashes (
+--   n_key    bigint   not null,
+--   url_hash char(32) not null,
+--   constraint fk_1 foreign key(n_key) references news_items(n_key),
+--   index hash_index(url_hash)
+--) charset=utf8 collate=utf8_bin;
 
 /** This table is present for backward compability purposes **/
 create table if not exists news_item_localnames (

@@ -415,17 +415,17 @@ public enum SQL_Stmt
 	),
    GET_NEWS_ITEM_FROM_URL(
 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
-			" FROM news_item_url_md5_hashes h, news_items n, news_indexes ni" +
-			" WHERE h.url_hash = md5(?) AND h.n_key = n.n_key AND n.primary_ni_key = ni.ni_key",
-		new SQL_ValType[] {STRING},
+			" FROM news_items n, news_indexes ni" +
+			" WHERE n.url_root = ? AND n.url_tail = ? AND n.primary_ni_key = ni.ni_key",
+		new SQL_ValType[] {STRING, STRING},
       SQL_StmtType.QUERY,
 		null,
 		new GetNewsItemResultProcessor(),
 		true
 	),
 	GET_ALL_NEWS_ITEMS_WITH_URL(
-		"SELECT n_key FROM news_item_url_md5_hashes WHERE url_hash = md5(?)",
-		new SQL_ValType[] {STRING},
+		"SELECT n_key FROM news_items WHERE url_root = ? AND url_tail = ?",
+		new SQL_ValType[] {STRING, STRING},
       SQL_StmtType.QUERY,
 		null,
 		new GetLongResultProcessor(),
@@ -715,14 +715,6 @@ public enum SQL_Stmt
 		new GetIssueResultProcessor(),
 		true
    ),
-   GET_ISSUE_BY_USER_ID(
-      "SELECT * FROM topics t, users u WHERE u.uid = ? AND t.u_key = u.u_key AND name = ?",
-      new SQL_ValType[] {STRING, STRING},
-		SQL_StmtType.QUERY,
-		null,
-		new GetIssueResultProcessor(),
-		true
-   ),
    GET_ALL_ISSUES_BY_USER_KEY(
       "SELECT * FROM topics WHERE u_key = ? ORDER BY lower(name)",
       new SQL_ValType[] {LONG},
@@ -747,20 +739,20 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(true, false, true),
 		false
 	),
-   GET_ALL_VALIDATED_ISSUES(
-      "SELECT * FROM topics where validated = true ORDER BY lower(name)",
+   GET_ALL_VALIDATED_ISSUE_KEYS(
+      "SELECT t_key FROM topics where validated = true ORDER BY lower(name)",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
-		new GetIssueResultProcessor(),
+		new GetLongResultProcessor(),
 		false
    ),
-   GET_ALL_ISSUES(
-      "SELECT * FROM topics ORDER BY lower(name)",
+   GET_ALL_ISSUE_KEYS(
+      "SELECT t_key FROM topics ORDER BY lower(name)",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
-		new GetIssueResultProcessor(),
+		new GetLongResultProcessor(),
 		false
    ),
 	GET_IMPORTING_USERS(
@@ -1036,11 +1028,6 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		true
 	),
-	INSERT_URL_HASH(
-		"INSERT INTO news_item_url_md5_hashes(n_key, url_hash) VALUES(?, md5(?))",
-		new SQL_ValType[] {LONG, STRING},
-		SQL_StmtType.INSERT
-	),
 	INSERT_INTO_NEWS_COLLECTION(
 		"INSERT IGNORE INTO news_collections (n_key, ni_key, feed_key) VALUES (?, ?, ?)",
 		new SQL_ValType[] {LONG, LONG, LONG},
@@ -1181,14 +1168,19 @@ public enum SQL_Stmt
 		new SQL_ValType[] {LONG},
       SQL_StmtType.UPDATE
 	),
+	UPDATE_LEAF_CAT_NEWS_INFO(
+		"UPDATE categories SET last_update = ?, num_new_articles = ?, num_articles = (select count(*) from cat_news where c_key = categories.cat_key) WHERE cat_key = ?",
+      new SQL_ValType[] {TIMESTAMP, INT, LONG},
+		SQL_StmtType.UPDATE
+	),
 	UPDATE_CAT_NEWS_INFO(
 		"UPDATE categories SET num_articles = ?, last_update = ?, num_new_articles = ? WHERE cat_key = ?",
-      new SQL_ValType[] {INT, TIMESTAMP, INT, LONG}, 
+      new SQL_ValType[] {INT, TIMESTAMP, INT, LONG},
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_FILTER(
 		"UPDATE filters SET rule_key = ? WHERE f_key = ?",
-      new SQL_ValType[] {LONG, LONG}, 
+      new SQL_ValType[] {LONG, LONG},
 		SQL_StmtType.UPDATE
 	),
    RENAME_CAT(
@@ -1262,11 +1254,6 @@ public enum SQL_Stmt
 	),
 	DELETE_SHARED_NEWS_ITEM_ENTRIES(
 	   "DELETE FROM news_collections WHERE n_key = ?",
-		new SQL_ValType[] {LONG},
-      SQL_StmtType.DELETE
-	),
-	DELETE_URL_HASH_ENTRY(
-	   "DELETE FROM news_item_url_md5_hashes WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
@@ -1380,12 +1367,12 @@ public enum SQL_Stmt
 		_db = db;
    }
 
-   public final String          _stmtString;
+   public final String           _stmtString;
    public final SQL_ValType[]    _argTypes;
    public final SQL_StmtType     _stmtType;
    public final SQL_ColumnSize[] _colSizes;
-	public final ResultProcessor _rp;
-	public final boolean         _singleRowOutput;
+	public final ResultProcessor  _rp;
+	public final boolean          _singleRowOutput;
 
    SQL_Stmt(String stmt, SQL_ValType[] aTypes, SQL_StmtType type, SQL_ColumnSize[] colSizes, ResultProcessor rp, boolean singleRow)
    {
