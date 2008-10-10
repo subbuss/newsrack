@@ -1144,8 +1144,9 @@ public class SQL_DB extends DB_Interface
 		try {
 			NewsItem n = (NewsItem)_cache.get(url, NewsItem.class);
 			if (n == null) {
-				Tuple<String,String> t = splitURL(url);
-      		n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{t._a, t._b});
+      		n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
+				//Tuple<String,String> t = splitURL(url);
+      		//n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{t._a, t._b});
 				if (n != null) {
 						// Add newsitem both by key & url
 					_cache.add((Long)null, n.getKey(), NewsItem.class, n);
@@ -1171,12 +1172,14 @@ public class SQL_DB extends DB_Interface
 			Long     nKey  = n.getKey();
 			Long     niKey = n.getNewsIndex().getKey();
 
-			Tuple<String,String> t = splitURL(url);
-			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{t._a, t._b});
+			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{url});
+//			Tuple<String,String> t = splitURL(url);
+//			List<Long> allItems = (List<Long>)GET_ALL_NEWS_ITEMS_WITH_URL.execute(new Object[]{t._a, t._b});
 			for (Long k: allItems) {
 				if (!k.equals(nKey)) {
 					_log.error(" ... Deleting duplicate news item with key: " + k);
 					DELETE_NEWS_ITEM.delete(k);
+					DELETE_URL_HASH_ENTRY.delete(k);
 
 						// Replace all occurences of 'k' with 'nKey' in news_collections & cat_news tables
 					UPDATE_SHARED_NEWS_ITEM_ENTRIES.execute(new Object[] {nKey, k});
@@ -1353,6 +1356,7 @@ public class SQL_DB extends DB_Interface
 				SQL_NewsItem x = (SQL_NewsItem)getNewsItemFromURL(u);
 				if (x == null) {
 					Long key = (Long)INSERT_NEWS_ITEM.execute(new Object[] {niKey, sni._urlRoot, sni._urlTail, sni._title, sni._description, sni._author});
+					INSERT_URL_HASH.execute(new Object[] {key, u}); // Add a url hash too -- should I start using triggers?? 
 					sni.setKey(key);
 					sni.setNewsIndexKey(niKey); // Record the news index that the news item belongs to!
 				}

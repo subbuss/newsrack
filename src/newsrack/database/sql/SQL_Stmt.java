@@ -413,19 +413,19 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		true
 	),
-   GET_NEWS_ITEM_FROM_URL(
-		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
-			" FROM news_items n, news_indexes ni" +
-			" WHERE n.url_root = ? AND n.url_tail = ? AND n.primary_ni_key = ni.ni_key",
-		new SQL_ValType[] {STRING, STRING},
-      SQL_StmtType.QUERY,
-		null,
-		new GetNewsItemResultProcessor(),
-		true
-	),
+    GET_NEWS_ITEM_FROM_URL(
+ 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
+			" FROM news_item_url_md5_hashes h, news_items n, news_indexes ni" +
+			" WHERE h.url_hash = md5(?) AND h.n_key = n.n_key AND n.primary_ni_key = ni.ni_key",
+		new SQL_ValType[] {STRING},
+       SQL_StmtType.QUERY,
+ 		null,
+ 		new GetNewsItemResultProcessor(),
+ 		true
+ 	),
 	GET_ALL_NEWS_ITEMS_WITH_URL(
-		"SELECT n_key FROM news_items WHERE url_root = ? AND url_tail = ?",
-		new SQL_ValType[] {STRING, STRING},
+		"SELECT n_key FROM news_item_url_md5_hashes WHERE url_hash = md5(?)",
+		new SQL_ValType[] {STRING},
       SQL_StmtType.QUERY,
 		null,
 		new GetLongResultProcessor(),
@@ -1033,6 +1033,11 @@ public enum SQL_Stmt
 		new SQL_ValType[] {LONG, LONG, LONG},
       SQL_StmtType.INSERT
 	),
+	INSERT_URL_HASH(
+		"INSERT INTO news_item_url_md5_hashes(n_key, url_hash) VALUES(?, md5(?))",
+		new SQL_ValType[] {LONG, STRING},
+		SQL_StmtType.INSERT
+	),
 	INSERT_INTO_RECENT_DOWNLOAD_TABLE(
 		"INSERT IGNORE INTO downloaded_news (feed_key, n_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
@@ -1249,6 +1254,11 @@ public enum SQL_Stmt
 	),
 	DELETE_NEWS_ITEM(
 	   "DELETE FROM news_items WHERE n_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
+	),
+	DELETE_URL_HASH_ENTRY(
+	   "DELETE FROM news_item_url_md5_hashes WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
