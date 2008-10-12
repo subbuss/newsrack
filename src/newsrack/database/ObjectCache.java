@@ -8,6 +8,7 @@ import newsrack.filter.Category;
 import newsrack.filter.Concept;
 import newsrack.filter.Filter;
 import newsrack.filter.Issue;
+import newsrack.util.Tuple;
 
 import java.io.PrintWriter;
 import java.util.Properties;
@@ -89,20 +90,20 @@ public class ObjectCache
 		}
 	}
 
-	private Map<Class, OCache> _caches;	// Class-specific caches
+	private Map<String, OCache> _caches;	// Item-specific caches
 	private OCache _objectCache;			// Special catch-all cache
 
-	private OCache buildCache(String name, Class clazz, Properties p)
+	private OCache buildCache(String name, Properties p)
 	{
 		p.setProperty("cache.capacity", NewsRack.getProperty(name + ".cache.size"));
 		OCache c = new OCache(name.toUpperCase(), p);
-		_caches.put(clazz, c);
+		_caches.put(name.toUpperCase(), c);
 		return c;
 	}
 
 	private void buildAllCaches()
 	{
-		_caches = new java.util.HashMap<Class, OCache>(10);
+		_caches = new java.util.HashMap<String, OCache>(10);
 
 		Properties p = new Properties();
 
@@ -113,16 +114,32 @@ public class ObjectCache
 		p.setProperty("cache.memory", "true");
 		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
 
-		buildCache("user", User.class, p);
-		buildCache("issue", Issue.class, p);
-		buildCache("feed", Feed.class, p);
-		buildCache("source", Source.class, p);
-		buildCache("category", Category.class, p);
-		buildCache("filter", Filter.class, p);
-		buildCache("newsitem", NewsItem.class, p);
+		buildCache("user", p);
+		buildCache("issue", p);
+		buildCache("feed", p);
+		buildCache("source", p);
+		buildCache("category", p);
+		buildCache("filter", p);
+		buildCache("newsitem", p);
 
 			// Lastly, a generic object cache
-		_objectCache  = buildCache("object", Object.class, p); 	// 10000
+		_objectCache  = buildCache("object", p); 	// 10000
+	}
+
+	private Tuple<OCache, String> getCacheAndKey(String cacheName, Object key)
+	{
+		String nKey;
+		OCache cache = _caches.get(cacheName);
+
+		if (cache == null) {
+			nKey = cacheName + ":" + key.toString();
+			cache = _objectCache;
+		}
+		else {
+			nKey = key.toString();
+		}
+
+		return new Tuple<OCache, String>(cache, nKey);
 	}
 
 	public ObjectCache()
@@ -136,82 +153,36 @@ public class ObjectCache
 			c.printStats(sb);
 	}
 
-	public void add(String[] cacheGroups, Object key, Class c, Object o)
+	public void add(String cacheName, String[] cacheGroups, Object key, Object o)
 	{
-		String nKey;
-		OCache cache = _caches.get(c);
-
-		if (cache == null) {
-			nKey = Integer.toString(c.hashCode()) + ":" + key.toString();
-			cache = _objectCache;
-		}
-		else {
-			nKey = key.toString();
-		}
-
-		//_log.info("Adding " + o.hashCode() + " to cache " + cache.hashCode() + " for class " + c + " for key " + nKey);
-
-		cache.add(cacheGroups, nKey, o);
+		Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
+		t._a.add(cacheGroups, t._b, o);
 	}
 
-	public void add(Long userKey, Object key, Class c, Object o)
+	public void add(String cacheName, Long userKey, Object key, Object o)
 	{
 		String[] cacheGroups = null;
 		if (userKey != null)
 			cacheGroups = new String[]{userKey.toString()};
 
-		add(cacheGroups, key, c, o);
+		add(cacheName, cacheGroups, key, o);
 	}
 
-/**
- * Problem with these is when different object types are added / queried 
- * for the same abstract class.  Ex: SQL_IssueStub vs. Issue; ArrayList vs. LinkedList
- *
-	public void add(Long userKey, Object key, Object o)
+	public void add(String cacheName, Object key, Object o)
 	{
-		add(userKey, key, o.getClass(), o);
+		add(cacheName, (String[])null, key, o);
 	}
 
-	public void add(String[] cacheGroups, Object key, Object o)
+	public Object get(String cacheName, Object key)
 	{
-		add(cacheGroups, key, o.getClass(), o);
-	}
-**/
-
-	public Object get(Object key, Class c)
-	{
-		String nKey;
-		OCache cache = _caches.get(c);
-
-		if (cache == null) {
-			nKey = Integer.toString(c.hashCode()) + ":" + key.toString();
-			cache = _objectCache;
-		}
-		else {
-			nKey = key.toString();
-		}
-
-		Object o = cache.get(nKey);
-
-		//_log.info("Fetching " + ((o != null) ? o.hashCode() : "null") + " from cache " + cache.hashCode() + " for class " + c + " and key " + nKey);
-
-		return cache.get(nKey);
+		Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
+		return t._a.get(t._b);
 	}
 
-	public void remove(Object key, Class c)
+	public void remove(String cacheName, Object key)
 	{
-		String nKey;
-		OCache cache = _caches.get(c);
-
-		if (cache == null) {
-			nKey = Integer.toString(c.hashCode()) + ":" + key.toString();
-			cache = _objectCache;
-		}
-		else {
-			nKey = key.toString();
-		}
-
-		cache.remove(nKey);
+		Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
+		t._a.remove(t._b);
 	}
 
 	public void removeEntriesForGroups(String[] cacheGroups)
@@ -227,7 +198,7 @@ public class ObjectCache
 
 	public void clearCaches()
 	{
-		Map<Class, OCache> oldCaches = _caches;
+		Map<String, OCache> oldCaches = _caches;
 
 			// Build all caches from scratch!
 		buildAllCaches();

@@ -244,6 +244,7 @@ public class SQL_DB extends DB_Interface
 	/** This method clears out the downloaded news table */
 	public void clearDownloadedNewsTable()
 	{
+		_cache.removeEntriesForGroups(new String[]{"DN_NEWS"});
 		CLEAR_DOWNLOADED_NEWS_TABLE.execute(new Object[]{});
 	}
 
@@ -299,12 +300,12 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		Source s = (Source)_cache.get(key, Source.class);
+		Source s = (Source)_cache.get("SOURCE", key);
 		if (s == null) {
 			s = (Source)GET_SOURCE.get(key);
 			if (s != null) {
-				_cache.add(s.getUserKey(), key, Source.class, s);
-				_cache.add(s.getUserKey(), s.getTag(), Source.class, s);
+				_cache.add("SOURCE", s.getUserKey(), key, s);
+				_cache.add("SOURCE", s.getUserKey(), s.getTag(), s);
 			}
 		}
 		return s;
@@ -317,11 +318,11 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		Feed f = (Feed)_cache.get(key, Feed.class);
+		Feed f = (Feed)_cache.get("FEED", key);
 		if (f == null) {
 			f = (Feed)GET_FEED.get(key);
 			if (f != null)
-				_cache.add((Long)null, key, Feed.class, f);
+				_cache.add("FEED", key, f);
 		}
 		return f;
 	}
@@ -333,11 +334,11 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		User u = (User)_cache.get(key, User.class);
+		User u = (User)_cache.get("USER", key);
 		if (u == null) {
 			u = (User)GET_USER.get(key);
 			if (u != null)
-				_cache.add((Long)null, key, User.class, u);
+				_cache.add("USER", key, u);
 		}
 
 		return u;
@@ -350,11 +351,11 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		Issue i = (Issue)_cache.get(key, Issue.class);
+		Issue i = (Issue)_cache.get("ISSUE", key);
 		if (i == null) {
 			i = (Issue)GET_ISSUE.get(key);
 			if (i != null)
-				_cache.add(i.getUserKey(), key, Issue.class, i);
+				_cache.add("ISSUE", i.getUserKey(), key, i);
 		}
 		return i;
 	}
@@ -366,11 +367,11 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		Concept c = (Concept)_cache.get(key, Concept.class);
+		Concept c = (Concept)_cache.get("CONCEPT", key);
 		if (c == null) {
 			Tuple<Long, Concept> t = (Tuple<Long, Concept>)GET_CONCEPT.get(key);
 			if (t != null) {
-				_cache.add(t._a, key, Concept.class, t._b);
+				_cache.add("CONCEPT", t._a, key, t._b);
 				c = t._b;
 			}
 		}
@@ -384,12 +385,12 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		Filter f = (Filter)_cache.get(key, Filter.class);
+		Filter f = (Filter)_cache.get("FILTER", key);
 		if (f == null) {
 			Tuple<Long, Filter> t = (Tuple<Long, Filter>)GET_FILTER.get(key);
 			if (t != null) {
 				f = t._b;
-				_cache.add(t._a, key, Filter.class, f);
+				_cache.add("FILTER", t._a, key, f);
 			}
 		}
 		return f;
@@ -402,12 +403,12 @@ public class SQL_DB extends DB_Interface
 		if (key == null)
 			return null;
 
-		Category c = (Category)_cache.get(key, Category.class);
+		Category c = (Category)_cache.get("CATEGORY", key);
 		if (c == null) {
 			Tuple<Long, Category> t = (Tuple<Long, Category>)GET_CATEGORY.get(key);
 			if (t != null) {
 				c = t._b;
-				_cache.add(t._a, key, Category.class, c);
+				_cache.add("CATEGORY", t._a, key, c);
 			}
 		}
 		return c;
@@ -415,13 +416,13 @@ public class SQL_DB extends DB_Interface
 
 	public NewsItem getNewsItem(Long key)
 	{
-		NewsItem n = (NewsItem)_cache.get(key, NewsItem.class);
+		NewsItem n = (NewsItem)_cache.get("NEWSITEM", key);
 		if (n == null) {
 			n = (NewsItem)GET_NEWS_ITEM.get(key);
 			if (n != null) {
 					// Add newsitem both by key & url
-				_cache.add((Long)null, key, NewsItem.class, n);
-				_cache.add((Long)null, n.getURL(), NewsItem.class, n);
+				_cache.add("NEWSITEM", key, n);
+				_cache.add("NEWSITEM", n.getURL(), n);
 			}
 		}
 		return n;
@@ -441,12 +442,12 @@ public class SQL_DB extends DB_Interface
 	public Source getSource(User u, String srcTag)
 	{
 		String k = u.getUid() + ":" + srcTag;
-		Source s = (Source)_cache.get(k, Source.class);
+		Source s = (Source)_cache.get("SOURCE", k);
 		if (s == null) {
 			s = (Source)GET_USER_SOURCE.execute(new Object[]{u.getKey(), srcTag});
 			if (s != null) {
-				_cache.add(u.getKey(), s.getKey(), Source.class, s);
-				_cache.add(u.getKey(), k, Source.class, s);
+				_cache.add("SOURCE", u.getKey(), s.getKey(), s);
+				_cache.add("SOURCE", u.getKey(), k, s);
 				s.setUser(u);
 			}
 		}
@@ -457,13 +458,13 @@ public class SQL_DB extends DB_Interface
 	{
 		User   u = i.getUser();
 		String k = i.getKey() + ":" + srcTag;
-		Source s = (Source)_cache.get(k, Source.class);
+		Source s = (Source)_cache.get("SOURCE", k);
 		if (s == null) {
 			s = (Source)GET_TOPIC_SOURCE.execute(new Object[]{i.getKey(), srcTag});
 			if (s != null) {
 				String[] cacheGrps = new String[] {u.getKey().toString(), i.getKey().toString()};
-				_cache.add(cacheGrps, s.getKey(), Source.class, s);
-				_cache.add(cacheGrps, k, Source.class, s);
+				_cache.add("SOURCE", cacheGrps, s.getKey(), s);
+				_cache.add("SOURCE", cacheGrps, k, s);
 				s.setUser(u);
 			}
 			else {
@@ -555,8 +556,8 @@ public class SQL_DB extends DB_Interface
 		UPDATE_USER.execute(new Object[]{u.getPassword(), u.getName(), u.getEmail(), u.isValidated(), u.getKey()});
 
 			// Clear the cache
-		_cache.remove(u.getKey(), User.class);
-		_cache.remove(u.getUid(), User.class);
+		_cache.remove("USER", u.getKey());
+		_cache.remove("USER", u.getUid());
 	}
 
 	/**
@@ -567,7 +568,7 @@ public class SQL_DB extends DB_Interface
 	{
 		UPDATE_FEED_CACHEABILITY.execute(new Object[] {f.getCacheableFlag(), f.getCachedTextDisplayFlag(), f.getKey()});
 
-		_cache.remove(f.getKey(), Feed.class);
+		_cache.remove("FEED", f.getKey());
 	}
 
 	/**
@@ -997,11 +998,11 @@ public class SQL_DB extends DB_Interface
 		if (uid == null)
 			return null;
 
-		User u = (User)_cache.get(uid, User.class);
+		User u = (User)_cache.get("USER", uid);
 		if (u == null) {
 			u = (User)GET_USER_FROM_UID.execute(new Object[]{uid});
 			if (u != null)
-				_cache.add((Long)null, uid, User.class, u);
+				_cache.add("USER", uid, u);
 		}
 
 		return u;
@@ -1045,12 +1046,12 @@ public class SQL_DB extends DB_Interface
    public Issue getIssue(User u, String issueName)
    {
 		String key = u.getUid() + ":" + issueName;
-		Issue i = (Issue)_cache.get(key, Issue.class);
+		Issue i = (Issue)_cache.get("ISSUE", key);
 		if (i == null) {
 			i = (Issue)GET_ISSUE_BY_USER_KEY.execute(new Object[]{u.getKey(), issueName});
 			if (i != null) {
-				_cache.add(u.getKey(), key, Issue.class, i);
-				_cache.add(u.getKey(), i.getKey(), Issue.class, i);
+				_cache.add("ISSUE", u.getKey(), key, i);
+				_cache.add("ISSUE", u.getKey(), i.getKey(), i);
 				i.setUser(u);
 			}
 		}
@@ -1062,8 +1063,8 @@ public class SQL_DB extends DB_Interface
 		List<Issue> issues = (List<Issue>)GET_ALL_ISSUES_BY_USER_KEY.execute(new Object[]{u.getKey()});
 		for (Issue i: issues) {
 			i.setUser(u);
-			_cache.add(u.getKey(), u.getUid() + ":" + i.getName(), Issue.class, i);
-			_cache.add(u.getKey(), i.getKey(), Issue.class, i);
+			_cache.add("ISSUE", u.getKey(), u.getUid() + ":" + i.getName(), i);
+			_cache.add("ISSUE", u.getKey(), i.getKey(), i);
 		}
 		return issues;
    }
@@ -1142,15 +1143,15 @@ public class SQL_DB extends DB_Interface
 	public NewsItem getNewsItemFromURL(String url)
 	{
 		try {
-			NewsItem n = (NewsItem)_cache.get(url, NewsItem.class);
+			NewsItem n = (NewsItem)_cache.get("NEWSITEM", url);
 			if (n == null) {
       		n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{url});
 				//Tuple<String,String> t = splitURL(url);
       		//n = (NewsItem)GET_NEWS_ITEM_FROM_URL.execute(new Object[]{t._a, t._b});
 				if (n != null) {
 						// Add newsitem both by key & url
-					_cache.add((Long)null, n.getKey(), NewsItem.class, n);
-					_cache.add((Long)null, url, NewsItem.class, n);
+					_cache.add("NEWSITEM", n.getKey(), n);
+					_cache.add("NEWSITEM", url, n);
 				}
 			}
 			return n;
@@ -1286,11 +1287,11 @@ public class SQL_DB extends DB_Interface
 	{
 		// _log.info("Looking for news index with key: " + niKey);
 
-		SQL_NewsIndex ni = (SQL_NewsIndex)_cache.get(niKey, SQL_NewsIndex.class);
+		SQL_NewsIndex ni = (SQL_NewsIndex)_cache.get("SQL_NEWS_INDEX", niKey);
 		if (ni == null) {
 			ni = (SQL_NewsIndex)GET_NEWS_INDEX.get(niKey);
 			if (ni != null)
-				_cache.add((Long)null, niKey, SQL_NewsIndex.class, ni);
+				_cache.add("SQL_NEWS_INDEX", niKey, ni);
 		}
 		return ni;
 	}
@@ -1303,11 +1304,11 @@ public class SQL_DB extends DB_Interface
 		// dateStr = ((new StringBuffer(dateParts[2])).append('-').append(dateParts[1]).append('-').append(dateParts[0])).toString();
 
 		String cacheKey = "NIKEY:" + feedKey + ":" + dateStr;
-		Long niKey = (Long)_cache.get(cacheKey, SQL_NewsIndex.class);
+		Long niKey = (Long)_cache.get("SQL_NEWS_INDEX", cacheKey);
 		if (niKey == null) {
       	niKey = (Long)GET_NEWS_INDEX_KEY.execute(new Object[] {feedKey, dateStr});
 			if (niKey != null)
-				_cache.add((Long)null, cacheKey, Long.class, niKey);
+				_cache.add("SQL_NEWS_INDEX", cacheKey, niKey);
 		}
 		return niKey;
 	}
@@ -1317,13 +1318,8 @@ public class SQL_DB extends DB_Interface
 		SQL_NewsItem sni = (SQL_NewsItem)ni;
 
 			// Nothing will change in this case!
-		if (feedKey.equals(sni.getFeedKey()) && sni.inTheDB()) {
-            // Add it to the list of recently downloaded news so that if a download is interrupted,
-            // the news downloaded in an interrupted download is available to a later download (unless
-            // of course, those news items are not present in a rss feed any more).
-         // INSERT_INTO_RECENT_DOWNLOAD_TABLE.execute(new Object[] {feedKey, sni.getKey()});
+		if (feedKey.equals(sni.getFeedKey()) && sni.inTheDB())
          return;
-      }
 
 		String dateStr = sni.getDateString();
 
@@ -1402,7 +1398,19 @@ public class SQL_DB extends DB_Interface
 	 */
 	public Collection<NewsItem> getDownloadedNews(Feed f)
 	{
-		return (Collection<NewsItem>)GET_DOWNLOADED_NEWS_FOR_FEED.get(f.getKey());
+		String     cacheKey = "DN" + ":" + f.getKey();
+		List<Long> keys     = (List<Long>)_cache.get("FEED", cacheKey);
+		if (keys == null) {
+			_log.info("CACHE MISS for " + cacheKey);
+			keys = (List<Long>)GET_DOWNLOADED_NEWS_KEYS_FOR_FEED.get(f.getKey());
+			_cache.add("FEED", new String[] {"DN_NEWS"}, cacheKey, keys);
+		}
+
+		List<NewsItem> news = new ArrayList<NewsItem>();
+		for (Long k: keys)
+			news.add(getNewsItem(k));
+
+		return news;
 	}
 
 	/**
@@ -1684,8 +1692,13 @@ public class SQL_DB extends DB_Interface
 	 */
 	public boolean newsItemHasBeenProcessedForIssue(NewsItem ni, Issue i)
 	{
-		String cacheKey = "IFINFO:" + i.getKey() + ":" + ni.getFeedKey();
-		Long   maxNiKey = (Long)_cache.get(cacheKey, Long.class);
+		String  cacheKey = "IFINFO:" + i.getKey();
+		HashMap maxNiKeyMap = (HashMap)_cache.get("ISSUE", cacheKey);
+		if (maxNiKeyMap == null) {
+			maxNiKeyMap = new HashMap();
+			_cache.add("ISSUE", new String[]{i.getUserKey().toString(), cacheKey}, cacheKey, maxNiKeyMap);
+		}
+		Long maxNiKey = (Long)maxNiKeyMap.get(ni.getFeedKey());
 		if (maxNiKey == null) {
 				// 1. There can be multiple entries for a feed because a user might have
 				//    specified the same feed multiple times (inadvertently) using different
@@ -1699,12 +1712,11 @@ public class SQL_DB extends DB_Interface
 				//    We will not try to fix this problem ... and conservatively indicate that
 				//    the news item has not been processed.
 			List<Long> niKeys = (List<Long>)GET_TOPIC_SOURCE_ROW.execute(new Object[]{i.getKey(), ni.getFeedKey()});
-			if (niKeys.isEmpty()) {
+			if (niKeys.isEmpty())
 				return false;
-				// select feed_key from news_indexes where ni_key in (select ni_key from news_collections where n_key=4624064);
-			}
+
 			maxNiKey = niKeys.get(0);
-			_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxNiKey);
+			maxNiKeyMap.put(ni.getFeedKey(), maxNiKey);
 		}
 
 		return ((maxNiKey != null) && (maxNiKey > ni.getKey()));
@@ -1718,11 +1730,15 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void updateMaxNewsIdForIssue(Issue i, Feed f, Long maxId)
 	{
+		String cacheKey = "IFINFO:" + i.getKey();
+		HashMap maxNiKeyMap = (HashMap)_cache.get("ISSUE", cacheKey);
+		if (maxNiKeyMap == null) {
+			maxNiKeyMap = new HashMap();
+			_cache.add("ISSUE", new String[]{i.getUserKey().toString(), cacheKey}, cacheKey, maxNiKeyMap);
+		}
+
 			// Add an updated value to the cache so that we don't have to the hit the db next time
-		String cacheKey = "IFINFO:" + i.getKey() + ":" + f.getKey();
-      // FIXME: This causes deadlocks!!
-		//_cache.remove(cacheKey, Long.class);
-		_cache.add(new String[]{i.getUserKey().toString(), "IFINFO:" + i.getKey()}, cacheKey, Long.class, maxId);
+		maxNiKeyMap.put(f.getKey(), maxId);
 
 			// Update the db
 		UPDATE_TOPIC_SOURCE_INFO.execute(new Object[]{maxId, i.getKey(), f.getKey()});
@@ -1843,7 +1859,7 @@ public class SQL_DB extends DB_Interface
 		Long   catKey   = cat.getKey();
 		String cacheKey = "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts;
 			// FIXME: only caching non-datestamp requests right now 
-		List<NewsItem> news = (start == null) ? (List)_cache.get(cacheKey, List.class) : null;
+		List<NewsItem> news = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
 		if (news == null) {
 			news = new ArrayList<NewsItem>();
 			if (cat.isLeafCategory()) {
@@ -1888,13 +1904,12 @@ public class SQL_DB extends DB_Interface
 */
 
 				keys = SQL_StmtExecutor.execute(query, SQL_StmtType.QUERY, args, argTypes, null, new GetLongResultProcessor(), false);
-
 				for (Long k: (List<Long>)keys)
 					news.add(getNewsItem(k));
 
 					// FIXME: only caching non-datestamp requests right now 
 				if (start == null)
-					_cache.add(new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, List.class, news);
+					_cache.add("LIST", new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, news);
 			}
 			else {
 				_log.error("Fetching news from non-leaf categories not supported yet! Recd. request for cat: " + cat.getKey());
@@ -2155,17 +2170,17 @@ public class SQL_DB extends DB_Interface
 
 		if (purgeAllStaleCacheEntries) {
 				// Remove stale cache entry for this category
-			_cache.remove(cat.getKey(), Category.class);
+			_cache.remove("CATEGORY", cat.getKey());
 
 				// Remove other pertinent cached entries for this category!
 				// The issue and user objects are being removed because they
 				// might contain references to the cached objects!
 			User  u = cat.getUser();
 			Issue i = cat.getIssue();
-			_cache.remove(i.getKey(), Issue.class);
-			_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
-			_cache.remove(u.getKey(), User.class);
-			_cache.remove(u.getUid(), User.class);
+			_cache.remove("ISSUE", i.getKey());
+			_cache.remove("ISSUE", u.getUid() + ":" + i.getName());
+			_cache.remove("USER", u.getKey());
+			_cache.remove("USER", u.getUid());
 				// Check out a new copy of the issue & update issue references in this category and all sub-categories
 			updateIssueForCat(cat, getIssue(i.getKey()));
 		}
@@ -2209,10 +2224,10 @@ public class SQL_DB extends DB_Interface
 
 				// Now, purge stale cache entries!
 			User u = i.getUser();
-			_cache.remove(i.getKey(), Issue.class);
-			_cache.remove(u.getUid() + ":" + i.getName(), Issue.class);
-			_cache.remove(u.getKey(), User.class);
-			_cache.remove(u.getUid(), User.class);
+			_cache.remove("ISSUE", i.getKey());
+			_cache.remove("ISSUE", u.getUid() + ":" + i.getName());
+			_cache.remove("USER", u.getKey());
+			_cache.remove("USER", u.getUid());
 
 				// Check out a fresh copy of the issue and update issue references in the issue's category subtree!
 			i = getIssue(i.getKey());

@@ -591,6 +591,14 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
+	GET_DOWNLOADED_NEWS_KEYS_FOR_FEED(
+		"SELECT n_key FROM downloaded_news dn WHERE (dn.feed_key = ?)",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
 	GET_FEED(
 		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
