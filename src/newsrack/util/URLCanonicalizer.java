@@ -16,7 +16,7 @@ import org.apache.commons.logging.LogFactory;
 // an external file that specifies match-rewrite rules for urls
 public class URLCanonicalizer
 {
-   static Log _log = LogFactory.getLog(StringUtils.class);
+   static Log _log = LogFactory.getLog(URLCanonicalizer.class);
 
 	static ConnectionManager cm;
 
@@ -27,7 +27,8 @@ public class URLCanonicalizer
 
 		/* Domains & corresponding url-split rule */
 	static String[] urlFixupRuleStrings = new String[] {
-      "sfgate.com:&feed=.*", "marketwatch.com:&dist=.*", "bloomberg.com:&refer=.*", "cbsnews.com:\\?source=[^?&]*"
+      "sfgate.com:&feed=.*", "marketwatch.com:&dist=.*", "bloomberg.com:&refer=.*", "cbsnews.com:\\?source=[^?&]*",
+		"vaildaily.com:\\/-1\\/rss.*", "news.newamericamedia.org:&from=.*"
    };
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
@@ -49,6 +50,9 @@ public class URLCanonicalizer
 		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
 		headers.put ("User-Agent", ua);
       headers.put ("Accept-Encoding", "gzip, deflate");
+
+			// Turn off automatic redirect processing
+		java.net.HttpURLConnection.setFollowRedirects(false);
 
 			// Set up a connection manager to follow redirects while using cookies
 		cm = new ConnectionManager();
@@ -118,8 +122,19 @@ public class URLCanonicalizer
 			return newUrl;
 		}
 		catch (Exception e) {
-			if (_log.isDebugEnabled()) _log.debug("Got exception: " + e);
-			return url;
+			String msg = e.toString();
+			int    i   = msg.indexOf("no protocol:");
+			if (i > 0 && url != null) {
+				String domain    = url.substring(0, url.indexOf("/", 7));
+				String urlSuffix = msg.substring(i + 13);
+				String newUrl    = domain + urlSuffix;
+				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + newUrl);
+				return getTargetUrl(newUrl);
+			}
+			else {
+				if (_log.isDebugEnabled()) _log.debug("Got exception: " + e);
+				return url;
+			}
 		}
 	}
 
