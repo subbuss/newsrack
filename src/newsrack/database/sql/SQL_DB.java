@@ -1859,14 +1859,12 @@ public class SQL_DB extends DB_Interface
 		Long   catKey   = cat.getKey();
 		String cacheKey = "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts;
 			// FIXME: only caching non-datestamp requests right now 
-		List<NewsItem> news = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
-		if (news == null) {
-			news = new ArrayList<NewsItem>();
+		Object keys = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
+		if (keys == null) {
 			if (cat.isLeafCategory()) {
 				String        query;
 				Object[]      args;
 				SQL_ValType[] argTypes;
-				Object keys;
 				if (src == null) {
 					if (start == null) {
 						query = "SELECT n_key FROM cat_news WHERE c_key = ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
@@ -1904,17 +1902,19 @@ public class SQL_DB extends DB_Interface
 */
 
 				keys = SQL_StmtExecutor.execute(query, SQL_StmtType.QUERY, args, argTypes, null, new GetLongResultProcessor(), false);
-				for (Long k: (List<Long>)keys)
-					news.add(getNewsItem(k));
 
 					// FIXME: only caching non-datestamp requests right now 
 				if (start == null)
-					_cache.add("LIST", new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, news);
+					_cache.add("LIST", new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, keys);
 			}
 			else {
 				_log.error("Fetching news from non-leaf categories not supported yet! Recd. request for cat: " + cat.getKey());
 			}
 		}
+
+		List<NewsItem> news = new ArrayList<NewsItem>();
+		for (Long k: (List<Long>)keys)
+			news.add(getNewsItem(k));
 
 		return news;
 	}
