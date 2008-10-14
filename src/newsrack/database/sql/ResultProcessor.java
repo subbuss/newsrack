@@ -7,9 +7,9 @@ import java.util.List;
 interface ResultProcessor
 {
 		// Processors that use object state during result processing
-		// might return clones!  Otherwise, we will have conflicts
-		// for those processors since the result processing code do not
-		// synchronize on these objects
+		// might return clones!  If we don't return cloned objects, we
+		// will have data conflicts since the result processing code
+		// does not synchronize on these objects.
 	public ResultProcessor getNewInstance();
 
 		// IMPORTANT: processResultSet methods *should complete* WITHOUT

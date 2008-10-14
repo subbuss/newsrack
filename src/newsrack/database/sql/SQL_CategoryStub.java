@@ -101,14 +101,6 @@ class SQL_CategoryStub extends Category
 			if (isLeafCategory() || !children.isEmpty())
 				return children;
 
-/**
-			children = (List<Category>)SQL_Stmt.GET_NESTED_CATS.execute(new Object[]{getKey()});
-			setChildren(children);
-			for (Category c: children) {
-				c.setParent(this);
-				c.setIssue(this.getIssue());
-			}
-**/
 				// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
 			children = new ArrayList<Category>();
 			List<Long> childKeys = (List<Long>)SQL_Stmt.GET_NESTED_CAT_KEYS.get(getKey());

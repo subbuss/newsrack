@@ -835,12 +835,12 @@ public enum SQL_Stmt
 		new GetSourceResultProcessor(),
 		true
 	),
-	GET_MONITORED_SOURCES_FOR_TOPIC(
-		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM topic_sources t, sources s WHERE t.t_key = ? AND t.src_key = s.src_key ORDER BY lower(s.src_name)",
+	GET_MONITORED_SOURCE_KEYS_FOR_TOPIC(
+		"SELECT t.src_key FROM topic_sources t WHERE t.t_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
-		new GetSourceResultProcessor(),
+		new GetLongResultProcessor(),
 		false
 	),
 	GET_ALL_MONITORED_SOURCES_FOR_USER(

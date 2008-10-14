@@ -12,5 +12,7 @@ public abstract class AbstractResultProcessor implements ResultProcessor
 	public          ResultProcessor getNewInstance() { return this; } /* Identity operation */
 	public          Object processOutput(Object o)   { return o; }		/* Identity operation */
 	public          List   processOutputList(List l) { return l; }		/* Identity operation */
+		// IMPORTANT: processResultSet methods *should complete* WITHOUT attempting
+		// to acquire additional db resources!  Otherwise, we could deadlock.
 	public abstract Object processResultSet(ResultSet rs) throws java.sql.SQLException;
 }

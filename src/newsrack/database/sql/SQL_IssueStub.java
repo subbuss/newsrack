@@ -62,9 +62,11 @@ class SQL_IssueStub extends Issue
 		if (_loaded)
 			return super.getCategories();
 
+			// NOTE: It is okay to synchronize on 'this' because it will come from a cache -- and is hence
+			// shared across all threads
 		synchronized(this) {
-				// Need this second check because of potential race condition around the check
-				// outside the synchronized block.  We could avoid this second check by synchronized
+				// Need this second check because of potential race condition around the if (_loaded) check
+				// outside the synchronized block.  We could avoid this second check by synchronizing
 				// all code in this method, but we don't want to do that -- because in the common case,
 				// the cats would already have been loaded!
 			if (_loaded)
@@ -72,14 +74,6 @@ class SQL_IssueStub extends Issue
 
 			getUser(); // Load the user field too!
 			Collection<Category> topLevelCats = new ArrayList<Category>();
-/**
-			List<Category> cats = (List<Category>)SQL_Stmt.GET_CATS_FOR_ISSUE.execute(new Object[] { getKey() });
-			for (Category c: cats) {
-				c.setIssue(this);
-				if (c.isTopLevelCategory())
-					topLevelCats.add(c);
-			}
-**/
 				// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
 			List<Long> catKeys = (List<Long>)SQL_Stmt.GET_CAT_KEYS_FOR_ISSUE.get(getKey());
 			for (Long k: catKeys) {
@@ -98,14 +92,22 @@ class SQL_IssueStub extends Issue
 	{
 		Collection<Source> srcs = super.getMonitoredSources();
 		if (srcs == null) {
+				// NOTE: It is okay to synchronize on 'this' because it will come from a cache -- and is hence
+				// shared across all threads
 			synchronized(this) {
-					// Need this second check because of potential race condition around the check
+					// Need this second check because of potential race condition around the check (if srcs == null)
 					// outside the synchronized block.  We could avoid this second check by synchronized
 					// all code in this method, but we don't want to do that -- because in the common case,
-					// the cats would already have been loaded!
+					// the srcs would already have been loaded!
 				srcs = super.getMonitoredSources();
 				if (srcs == null) {
-					srcs = (List<Source>)SQL_Stmt.GET_MONITORED_SOURCES_FOR_TOPIC.execute(new Object[] { getKey() });
+					List<Long> keys = (List<Long>)SQL_Stmt.GET_MONITORED_SOURCE_KEYS_FOR_TOPIC.execute(new Object[] { getKey() });
+					srcs = new ArrayList<Source>();
+					for (Long k: keys)
+						srcs.add(SQL_DB._sqldb.getSource(k));
+
+						// Sort by name
+					java.util.Collections.sort((List)srcs, Source.sourceComparator);
 					super.addSources(srcs);
 				}
 			}

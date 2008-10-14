@@ -18,9 +18,27 @@ import org.apache.commons.logging.LogFactory;
 
 public class Source implements java.io.Serializable
 {
+	static private class SourceComparator implements java.util.Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Source s1 = (Source)o1;
+			Source s2 = (Source)o2;
+
+				// Handle the equals case first
+			if (s1._key.equals(s2._key))
+				return 0;
+
+			int x = s1._name.compareTo(s2._name);
+			return (x != 0) ? x : ((s1._key < s2._key) ? -1 : 1);
+		}
+	}
+
 // ############### STATIC FIELDS AND METHODS ############
    	/* Logging output for this plug in instance. */
    protected static Log _log = LogFactory.getLog(Source.class);
+
+	public final static java.util.Comparator sourceComparator = new SourceComparator();
 
 	private static DB_Interface _db;
 
