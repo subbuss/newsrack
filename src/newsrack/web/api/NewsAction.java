@@ -41,6 +41,11 @@ public class NewsAction extends BaseApiAction
 	private List<NewsItem> _news;
 	public List<NewsItem> getNews() { return _news;}
 
+	private Category _cat;
+	private Category getCategory() { return _cat; }
+
+	private String getSiteUrl() { return NewsRack.getServerURL(); }
+
    public String execute()
 	{
 		try {
@@ -122,6 +127,8 @@ public class NewsAction extends BaseApiAction
 				// Set up news
 			_news = (c == null) ? new ArrayList<NewsItem>() //i.getNews(startDate, endDate, src, start, count)
 			                    : c.getNews(startDate, endDate, src, start, count);
+
+			_cat = c;
 
 				// Done -- XML or JSON!
 			String outType = getParam("output");
