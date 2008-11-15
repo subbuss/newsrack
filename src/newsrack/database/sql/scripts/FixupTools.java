@@ -69,8 +69,11 @@ public class FixupTools
 
 			do {
 				line = br.readLine();
-				if (line != null)
-					_db.addNewsItem(_db.getNewsItem(Long.parseLong(line)), cat, 2);
+				if (line != null) {
+               NewsItem ni = _db.getNewsItem(Long.parseLong(line));
+               //System.out.println("Will add " + ni.getTitle());
+					_db.addNewsItem(ni, cat, 2);
+            }
 			} while (line != null);
 
 			br.close();

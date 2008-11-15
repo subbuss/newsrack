@@ -862,6 +862,7 @@ public class User implements java.io.Serializable
 				i.updateRSSFeed();
 				i.storeNewsToArchive();
 				i.freeRSSFeed();
+            i.unloadScanners();
 			}
 		}
 		catch (final Exception e) {
@@ -954,6 +955,7 @@ public class User implements java.io.Serializable
 
 				// Clean up after classification is done
 			issue.freeRSSFeed();
+         issue.unloadScanners();
 		}
 		catch (final Exception e) {
 			throw e;

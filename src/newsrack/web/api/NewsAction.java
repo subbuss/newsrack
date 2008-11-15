@@ -42,9 +42,9 @@ public class NewsAction extends BaseApiAction
 	public List<NewsItem> getNews() { return _news;}
 
 	private Category _cat;
-	private Category getCategory() { return _cat; }
+	public Category getCategory() { return _cat; }
 
-	private String getSiteUrl() { return NewsRack.getServerURL(); }
+	public String getSiteUrl() { return newsrack.NewsRack.getServerURL(); }
 
    public String execute()
 	{

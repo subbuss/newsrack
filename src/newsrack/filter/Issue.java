@@ -1101,6 +1101,15 @@ public class Issue implements java.io.Serializable
 		_db.commitNewsToArchive(this);
 	}
 
+   public void unloadScanners()
+   {
+         // Set these fields to null so that the scanners can be gc'ed as necessary!
+      _lexerScanMethod = null;
+      _lexerResetMethod = null;
+      _lexerConstr = null;
+      _lexer = null;
+   }
+
 	/**
 	 * This method clears all previously categorized news
 	 */

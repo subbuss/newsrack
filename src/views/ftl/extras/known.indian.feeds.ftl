@@ -3,7 +3,7 @@
 <head> 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title> List of all known RSS feeds for Indian newspapers and magazines </title> 
-<link rel="stylesheet" href="<@s.url namespace="/" value="/css/main.css" />" type="text/css">
+<link rel="stylesheet" href="<@s.url value="//css/main.css" />" type="text/css">
 <style>
 td.user_space table { background: #f8f8f8; }
 td.user_space td { vertical-align: top; margin: 2px; padding: 3px 4px; }
@@ -21,14 +21,14 @@ td.user_space a:hover { padding: 3px 0px; text-decoration: none; background-colo
 <h1> List of all known RSS feeds for Indian newspapers and magazines </h1>
 
 <p>
-The name of the magazine / newspaper (or newspaper section, as the case might be) is linked to the RSS feed for that magazine / newspaper.  <span class="bold">If you find any error or find a feed that should be listed here, please <a href="<@s.url namespace="/" value="ftl/contact.ftl" />">get in touch</a>!</span>
+The name of the magazine / newspaper (or newspaper section, as the case might be) is linked to the RSS feed for that magazine / newspaper.  <span class="bold">If you find any error or find a feed that should be listed here, please <a href="<@s.url value="/ftl/contact.ftl" />">get in touch</a>!</span>
 </p>
 
 <table>
 <tr>
 <td>
-<a href="<@s.url namespace="/" value="crawled.feeds/frontline.rss.xml" />">Frontline</a> <br />
-<a href="<@s.url namespace="/" value="crawled.feeds/outlook.rss.xml" />">Outlook</a> <br />
+<a href="<@s.url value="/crawled.feeds/frontline.rss.xml" />">Frontline</a> <br />
+<a href="<@s.url value="/crawled.feeds/outlook.rss.xml" />">Outlook</a> <br />
 <a href="http://businesstoday.digitaltoday.in/rssforallsec.php?issueid=14">Business Today</a> <br /> 
 <a href="http://www.businessworld.in/component/option,com_rss/feed,RSS2.0/no_html,1/">Business World</a> <br /> 
 <a href="http://www.indiatogether.org/rss/home.xml">India Together</a> <br /> 
@@ -39,23 +39,24 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <a href="http://www.indiatogether.org/rss/women/home.xml">India Together - Women</a> <br /> 
 <a href="http://www.downtoearth.org.in/rss.xml">Down to Earth</a> <br />
 <a href="http://goodnewsindia.com/index.php/Supplement/rss/">Good News India</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/nbt.rss.xml" />">नवभारत टैम्स</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/nbt.rss.xml" />">नवभारत टैम्स</a> <br /> 
 <a href="http://www.mumbaimirror.com/nmirror/mirror/rss%5C2006%5C4%5C23%5C20%5Cmmrss.xml">Mumbai Mirror</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/dj.rss.xml" />"> दैनिक जागरण (Dainik Jagran)</a> <br />
-<a href="<@s.url namespace="/" value="crawled.feeds/db.rss.xml" />"> दैनिक भास्कर (Dainik Bhaskar)</a> <br />
-<a href="<@s.url namespace="/" value="crawled.feeds/hd.rss.xml" />"> हिन्दुस्तान दैनिक (Hindustan Dainik)</a>  <br />
-<a href="<@s.url namespace="/" value="crawled.feeds/goi.pib.rss.xml" />">Govt of india: PIB</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/statesman.rss.xml" />">The Statesman</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/som.rss.xml" />">Star of Mysore</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/bs.rss.xml" />">Business Standard</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/cc.rss.xml" />">Central Chronicle</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/ct.rss.xml" />">Chandigarh Tribune</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/pioneer.rss.xml" />">The Pioneer</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/nie.rss.xml" />">New Indian Express</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/at.rss.xml" />">The Assam Tribune</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/dh.rss.xml" />">Deccan Herald</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/kp.rss.xml" />"> ಕನ್ನಡ  ಪ್ರಭ (Kannada Prabha) </a> <br />
-<a href="<@s.url namespace="/" value="crawled.feeds/nht.rss.xml" />">The Navhind Times</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/dj.rss.xml" />"> दैनिक जागरण (Dainik Jagran)</a> <br />
+<a href="<@s.url value="/crawled.feeds/db.rss.xml" />"> दैनिक भास्कर (Dainik Bhaskar)</a> <br />
+<a href="<@s.url value="/crawled.feeds/hd.rss.xml" />"> हिन्दुस्तान दैनिक (Hindustan Dainik)</a>  <br />
+<a href="<@s.url value="/crawled.feeds/goi.pib.rss.xml" />">Govt of india: PIB</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/statesman.rss.xml" />">The Statesman</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/som.rss.xml" />">Star of Mysore</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/bs.rss.xml" />">Business Standard</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/cc.rss.xml" />">Central Chronicle</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/ct.rss.xml" />">Chandigarh Tribune</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/pioneer.rss.xml" />">The Pioneer</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/nie.rss.xml" />">New Indian Express</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/at.rss.xml" />">The Assam Tribune</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/dh.rss.xml" />">Deccan Herald</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/kp.rss.xml" />"> ಕನ್ನಡ  ಪ್ರಭ (Kannada Prabha) </a> <br />
+<a href="<@s.url value="/crawled.feeds/nht.rss.xml" />">The Navhind Times</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/oh.rss.xml" />">OHeraldo (Goa)</a> <br /> 
 <a href="http://telegraphindia.com/feeds/rss.asp?id=3">Telegraph: Front Page</a> <br /> 
 <a href="http://telegraphindia.com/feeds/rss.asp?id=4">Telegraph: Nation</a> <br /> 
 <a href="http://telegraphindia.com/feeds/rss.asp?id=5">Telegraph: Calcutta</a> <br /> 
@@ -65,7 +66,9 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <a href="http://telegraphindia.com/feeds/rss.asp?id=9">Telegraph: Business</a> <br /> 
 <a href="http://telegraphindia.com/feeds/rss.asp?id=13">Telegraph: Intl.</a> <br /> 
 <a href="http://telegraphindia.com/feeds/rss.asp?id=14">Telegraph: North Bengal</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/telegraph.ne.rss.xml" />">Telegraph: North East</a> <br /> 
+<a href="<@s.url value="/crawled.feeds/telegraph.ne.rss.xml" />">Telegraph: North East</a> <br /> 
+<a href="http://sify.com/rss/news.php">Sify News</a> <br /> 
+<a href="http://sify.com/rss/finance.php">Sify Finance</a> <br /> 
 <a href="http://www.ndtv.com/convergence/ndtv/rssnat.asp">NDTV National</a> <br /> 
 <a href="http://www.ndtv.com/convergence/ndtv/rssbus.asp">NDTV Business</a> <br /> 
 <a href="http://www.ddinews.gov.in/rssCMS">Doordarshan</a> <br /> 
@@ -116,17 +119,26 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <a href="http://www.hindu.com/rss/edutvdmhdline.xml">Hindu EP: Thiruvananthapuram</a> <br /> 
 <a href="http://www.hindu.com/rss/eduvijwhdline.xml">Hindu EP: Vijayawada</a> <br /> 
 <a href="http://www.hindu.com/rss/eduviskhdline.xml">Hindu EP: Visakhapatnam</a> <br /> 
+<a href="http://feeds.feedburner.com/himvani/news">HimVani</a> <br />
+<a href="http://mathrubhumi.com/static/about1/news.xml">Mathrubhoomi (Malayalam)</a> <br />
+<a href="http://rss.indiainfo.com/news.xml">IndiaInfo.com</a> <br /> 
 </td>
 <td>
+<a href="http://rss.oneindia.in/news.xml">One India News</a> (<a href="http://rss.oneindia.in">More oneindia feeds</a>)<br />
+<a href="http://www.livemint.com/SectionRss.aspx">RSS feeds from Mint</a> <br />
 <a href="http://www.timesnow.tv/rssfeedsdefault.cms">Times Now: Home</a> <br /> 
 <a href="http://www.timesnow.tv/Sections/News/rssfeeds/1324315.cms">Times Now: News</a> <br /> 
 <a href="http://www.timesnow.tv/Sections/Business/rssfeeds/1324314.cms">Times Now: Business</a> <br /> 
 <a href="http://www.timesnow.tv/Sections/Only_On_TIMES_NOW/rssfeeds/1324302.cms">Only on Times Now</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/ie.rss.xml" />">Indian Express (Full Site) </a> <br /> 
+<a href="<@s.url value="/crawled.feeds/ie.rss.xml" />">Indian Express (Full Site) </a> <br /> 
 <a href="http://www.expressindia.com/syndications/ie.xml">Indian Express Front Page</a> <br /> 
 <a href="http://www.expressindia.com/syndications/ei.xml">Express India Front Page</a> <br /> 
-<a href="<@s.url namespace="/" value="crawled.feeds/fe.rss.xml" />">Financial Express (Full Site) </a> <br /> 
+<a href="<@s.url value="/crawled.feeds/fe.rss.xml" />">Financial Express (Full Site) </a> <br /> 
 <a href="http://www.expressindia.com/syndications/fe.xml">Financial Express Front Page</a> <br /> 
+<a href="http://www.dnaindia.com/syndication/rss,catID-0.xml">DNA: India</a> <br /> 
+<a href="http://www.dnaindia.com/syndication/rss,catID-1.xml">DNA: Mumbai</a> <br /> 
+<a href="http://www.dnaindia.com/syndication/rss,catID-2.xml">DNA: Top News</a> <br /> 
+<a href="http://www.dnaindia.com/syndication/rss,catID-4.xml">DNA: Money</a> <br /> 
 <a href="http://www.ptinews.com:8080/rss/topnews.xml">PTI: Top News</a> <br />
 <a href="http://www.ptinews.com:8080/rss/business.xml">PTI: Business</a> <br />
 <a href="http://www.ptinews.com:8080/rss/national.xml">PTI: National</a> <br />
@@ -211,10 +223,18 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <a href="http://cricket.indiatimes.com/rssfeeds/865632.cms">Cricket: Interviews</a> <br /> 
 </td>
 <td>
-<a href="http://rss.oneindia.in/news.xml">One India News</a> (<a href="http://rss.oneindia.in">More oneindia feeds</a>)<br />
-<a href="http://www.livemint.com/SectionRss.aspx">RSS feeds from Mint</a> <br />
-<a href="http://feeds.feedburner.com/himvani/news">HimVani</a> <br />
-<a href="http://mathrubhumi.com/static/about1/news.xml">Mathrubhoomi (Malayalam)</a> <br />
+<a href="http://feeds.business-standard.com/News-Now.xml">Business Standard: News Now</a> <br />
+<a href="http://feeds.business-standard.com/Front-Page-Headlines.xml">Business Standard: Front Page Headlines</a> <br />
+<a href="http://feeds.business-standard.com/Opinion-Analysis.xml">Business Standard: Opinion &amp; Analysis</a> <br />
+<a href="http://feeds.business-standard.com/Banking-Finance-All.xml">Business Standard: Banking &amp; Finance</a> <br />
+<a href="http://feeds.business-standard.com/Companies-Industry-All.xml">Business Standard: Companies &amp; Industry</a> <br />
+<a href="http://feeds.business-standard.com/Economy-Policy-All.xml">Business Standard: Economy &amp; Policy</a> <br />
+<a href="http://feeds.business-standard.com/Tech-World-All.xml">Business Standard: Tech World</a> <br />
+<a href="http://feeds.business-standard.com/Life-Leisure-All.xml">Business Standard: Life &amp; Leisure</a> <br />
+<a href="http://feeds.business-standard.com/Markets-Investing-All.xml">Business Standard: Markets &amp; Investing</a> <br />
+<a href="http://feeds.business-standard.com/Management-Mktg-All.xml">Business Standard: Management &amp; Mktg</a> <br />
+<a href="http://feeds.business-standard.com/Automobiles.xml">Business Standard: Automobiles</a> <br />
+<a href="http://feeds.business-standard.com/Aviation.xml">Business Standard: Aviation</a> <br />
 <a href="http://www.ft.com/rss/world/asiapacific/india">FT India</a> <br />
 <a href="http://www.ft.com/rss/world/asiapacific/india/economy">FT India: Economy</a> <br />
 <a href="http://www.ft.com/rss/world/asiapacific/india/business">FT India: Business</a> <br />
@@ -222,13 +242,6 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <a href="http://www.ft.com/rss/world/asiapacific/india/politics">FT India: Politics</a> <br />
 <a href="http://www.ft.com/rss/world/asiapacific/india/finance">FT India: Finance</a> <br />
 <a href="http://www.ft.com/rss/world/asiapacific/india/society">FT India: Society</a> <br />
-<a href="http://rss.indiainfo.com/news.xml">IndiaInfo.com</a> <br /> 
-<a href="http://sify.com/rss/news.php">Sify News</a> <br /> 
-<a href="http://sify.com/rss/finance.php">Sify Finance</a> <br /> 
-<a href="http://www.dnaindia.com/syndication/rss,catID-0.xml">DNA: India</a> <br /> 
-<a href="http://www.dnaindia.com/syndication/rss,catID-1.xml">DNA: Mumbai</a> <br /> 
-<a href="http://www.dnaindia.com/syndication/rss,catID-2.xml">DNA: Top News</a> <br /> 
-<a href="http://www.dnaindia.com/syndication/rss,catID-4.xml">DNA: Money</a> <br /> 
 <a href="http://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms">ToI: India</a> <br /> 
 <a href="http://timesofindia.indiatimes.com/rssfeeds/222022.cms">ToI: Indo-Pak Ties</a> <br /> 
 <a href="http://timesofindia.indiatimes.com/rssfeeds/222023.cms">ToI: NRI News</a> <br /> 

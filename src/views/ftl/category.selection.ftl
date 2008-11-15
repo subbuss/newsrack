@@ -47,10 +47,9 @@ a.selcat:hover { padding: 2px 0px; text-decoration: none; background-color: #882
 <#include "/ftl/layout/header.ftl"><tr>
 <#include "/ftl/layout/left.menu.ftl"><td class="user_space")">
 <div class="catselection")">
-<h1>Selected news categories</h1>
+<h1>Sample Topics</h1>
 <div>
-This is a selection of all news categories on NewsRack being monitored
-by several registered users.
+This is a sample editorial selection of all news categories on NewsRack being monitored by several registered users of NewsRack.
 <a class="bold" href="<@s.url namespace="/" action="browse" />">Browse the public archives</a>
 for a complete listing of classified news across all users.
 </div>
@@ -69,6 +68,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Bangalore" catID="4" />">&nbsp;Bangalore Metrorail</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="gujarat" catID="5" />">&nbsp;Best Bakery</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="bhopal" />">&nbsp;Bhopal</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Binayak+Sen" catID="1" />">&nbsp;Binayak Sen</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Environment" catID="1" />">&nbsp;Biodiversity</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="15" />">&nbsp;BMIC</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Bangalore" catID="7" />">&nbsp;Bus Rapid Transport (BRT)</a><br />
@@ -90,9 +90,9 @@ for a complete listing of classified news across all users.
 </td>
 <td width="33%">
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" />">&nbsp;Energy</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="2" />">&nbsp;Environmental Clearance</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="3" />">&nbsp;EIAs</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="economy" catID="2" />">&nbsp;Employment Guarantee</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="ESG+in+the+news" catID="1" />">&nbsp;ESG in the news</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="lawrenceliang" issue="Encounter+Killings" catID="4" />">&nbsp;Fake Encounters</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="rohan" issue="Foreign+Direct+Investment+in+Retail" />">&nbsp;FDI in Retail</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="venniyoor" issue="FM+Radio" catID="1" />">&nbsp;FM Radio</a><br />
@@ -121,6 +121,7 @@ for a complete listing of classified news across all users.
 </td>
 <td>
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Multilingual-Demo" />">&nbsp;Multi Languages Demo</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="iwphindi" issue="Water" catID="2" />">&nbsp;पानी</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="4" />">&nbsp;Nandigram</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="7" />">&nbsp;Narmada Dams</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="14" />">&nbsp;Narmada Rehab</a><br />
@@ -136,6 +137,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="leigh" issue="Suicides" />">&nbsp;Rural Suicides</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Health" catID="5" />">&nbsp;Sanitation</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="1" />">&nbsp;SEZ</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="lgbt" issue="Sexual+Minorities" />">&nbsp;Sexual Minorities</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="3" />">&nbsp;Singur</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Education" catID="2" />">&nbsp;Special Education</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="musafir" issue="Surveillance" catID="1" />">&nbsp;Surveillance</a><br />
@@ -174,29 +176,19 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Urban+Waste" />">&nbsp;Urban Waste</a><br />
 </td>
 </tr>
-<tr> <td class="bold center underline" colspan="3"> Topics for Boston University's IR/GE 304 Course </td> </tr>
-<td>
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Biodiversity" />">&nbsp;Biodiversity</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Climate+Change" />">&nbsp;Climate Change</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="21" />">&nbsp;Coal Mining - India</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Energy" />">&nbsp;Energy</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Energy+Extraction" />">&nbsp;Energy Extraction</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Environmental+Justice+Issues" />">&nbsp;Environmental Justice</a><br />
+<tr> 
+<td class="bold center underline" colspan="3"> 
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="flenvcenter" />">Topics set up by Fort Lewis Environmental Center</a><br />
 </td>
-<td>
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Extreme+Weather" />">&nbsp;Extreme Weather</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Agriculture" catID="2" />">&nbsp;GE Foods</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Green+Technology" />">&nbsp;Green Technology</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="milawes" issue="Land" />">&nbsp;Land conflicts - Bangalore</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" />">&nbsp;Special Econ. Zones - India</a><br />
+</tr>
+<tr> <td class="bold center underline" colspan="3"> </td> </tr>
+<tr> 
+<td class="bold center underline" colspan="3"> 
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" />">Topics set up for Boston University's IR/GE 304 Course (Fall 2007)</a><br />
 </td>
+</tr>
+<tr>
 <td>
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="12" />">&nbsp;Oil Exploration - India</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Agriculture" catID="1" />">&nbsp;Organic Agriculture</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="23" />">&nbsp;Uranium Mining - India</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Urban+Waste" />">&nbsp;Urban Waste</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" issue="Urbanization" />">&nbsp;Urbanization</a><br />
-</td>
 </table>
 
 </div>

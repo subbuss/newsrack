@@ -1,7 +1,7 @@
 <@s.set name="user" value="#session.user" />
 	<td class="left_menu">
 			<#-- DISPLAY MAIN MENU -->
-		<div class="bold menu_link"> <a href="<@s.url namespace="/" action="selected-topics" />">Topics of Interest</a> </div>
+		<div class="bold menu_link"> <a href="<@s.url namespace="/" action="selected-topics" />">Home</a> </div>
 		<div class="menu_link"> <a href="<@s.url namespace="/" action="browse"/>">Browse</a> </div>
 <@s.if test="#user != null">
 		<div class="menu_link"> &nbsp; </div>
@@ -11,7 +11,7 @@
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="change-password" />">Change Password</a> </div>
 	</@s.if>
 	<@s.else>
-		<div class="menu_link"> <a href="<@s.url namespace="/user" action="home" />">Home</a> </div>
+		<div class="menu_link"> <a href="<@s.url namespace="/user" action="home" />">My Issues</a> </div>
 		<div class="menu_link"> <a href="<@s.url namespace="/user" action="edit-profile" />">Create/Edit Issues</a> </div>
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="change-password" />">Change Password</a> </div>
 		<@s.if test="#user.issues">

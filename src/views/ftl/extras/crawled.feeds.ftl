@@ -33,6 +33,7 @@
 	<li> <a href="<@s.url value="/crawled.feeds/som.rss.xml" />">Star of Mysore</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/nht.rss.xml" />">The Navhind Times</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/bs.rss.xml" />">Business Standard</a> </li>
+	<li> <a href="<@s.url value="/crawled.feeds/oh.rss.xml" />">OHeraldo (Goa)</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/pioneer.rss.xml" />">The Pioneer</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/nie.rss.xml" />">New Indian Express</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/fe.rss.xml" />">Financial Express</a> </li>
@@ -40,7 +41,7 @@
 	<li> <a href="<@s.url value="/crawled.feeds/telegraph.ne.rss.xml" />">The Telegraph - North East</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/goi.pib.rss.xml" />">Government of India Press Information Bureau Releases</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/pm.rss.xml" />">Projects Monitor </a> </li>
-	<li> <a href="<@s.url value="/crawled.feeds/iln.rss.xml" />">Ind Law News </a> </li>
+<!-- <li> <a href="<@s.url value="/crawled.feeds/iln.rss.xml" />">Ind Law News </a> </li> -->
 	<li> <a href="<@s.url value="/crawled.feeds/frontline.rss.xml" />">Frontline</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/outlook.rss.xml" />">Outlook</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/nbt.rss.xml" />">नवभारत टैम्स (Navbharat Times) </a> </li>

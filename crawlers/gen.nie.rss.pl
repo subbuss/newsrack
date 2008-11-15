@@ -145,10 +145,17 @@ $url         = "$defSiteRoot/edition/default.aspx";
 ## Initialize
 &Initialize("", $url);
 
+$titleMap = {};
+$urlMap = {};
+
 ## Process the url list while crawling the site
 while (@urlList) {
    $total++;
    $url = shift @urlList;
+   $url =~ s/(&artid=.*?)&.*/\1/;    # all crap except for artid is useless in the url
+
+   print "URL is $url\n";
+
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
 	next if (($url =~ /\#/i));		 # Skip if the URL has a # in it
@@ -159,14 +166,6 @@ while (@urlList) {
    print LOG "PROCESSING $url ==> $links{$url}\n";
    $urlMap{$url} = $url;
 
-##
-## BEGIN CUSTOM CODE 2: This section needs to be customized for every
-## newspaper depending on how their site is structured.  This line
-## tries to identify URLs that pertain to news stories (as opposed to
-## index pages).  This check crucially relies on knowledge of the site
-## structure and organization and needs to be customized for different
-## newspapers.
-##
       ## The next line uses information about New Indian Express' URL structure
    if ($url =~ m{/edition/story.aspx}) {
 			# Skip uninteresting articles ...
@@ -191,12 +190,16 @@ while (@urlList) {
 			}
 		}
 
-		if ($title =~ m{^\s*$}) {
-         $title = "ERROR: NewsRack could not identify title";
-		}
-##
-## END CUSTOM CODE 2
-##
+         # get rid of crud in the title
+      $title =~ s/&artid=.*//g;
+      $title =~ s/(^\s+|\s+$)//g;
+
+         # Error condition?
+      $title = "ERROR: NewsRack could not identify title" if ($title =~ m{^\s*$});
+
+         # filter dupes by title too!
+      next if !($title =~ /ERROR:/) && $titleMap{$title};
+      $titleMap{$title} = 1;
 		print "TITLE of $url is $title\n";
       $desc = $title;
 		&PrintRSSItem();

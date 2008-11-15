@@ -114,6 +114,7 @@ public class DownloadNewsTask extends TimerTask
 				_i.updateRSSFeed();
 				_i.storeNewsToArchive();
 				_i.freeRSSFeed(); // Clean up after classification is done
+            _i.unloadScanners();
          } 
          catch (Exception e) {
             _log.error("Exception classifying news for issue " + _i.getName());
