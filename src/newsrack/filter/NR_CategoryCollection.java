@@ -1,7 +1,6 @@
 package newsrack.filter;
 
-import java.util.List;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -13,10 +12,9 @@ public final class NR_CategoryCollection extends NR_Collection
 	private transient Map<String, Category> _map = null;  // Name --> Category mapping .. optimization!
 	private transient boolean               _allMapped = false;
 
-	public NR_CategoryCollection(User u, String name, List entries)
+	public NR_CategoryCollection(User u, String name, Collection entries)
 	{
 		super(NR_CollectionType.CATEGORY, u, name, entries);
-      if (_log.isDebugEnabled()) _log.debug("RECORDED category collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Category getCategory(String c)
@@ -38,7 +36,7 @@ public final class NR_CategoryCollection extends NR_Collection
 			return cat;
 		}
 		else if (!_allMapped) {
-			for (Category cat: (List<Category>)_entries) {
+			for (Category cat: (Collection<Category>)_entries) {
 				_map.put(cat.getName(), cat);
 				if (cat.getName().equals(c))
 					return cat;
@@ -54,13 +52,15 @@ public final class NR_CategoryCollection extends NR_Collection
 		}
 	}
 
-	public List getEntries() { return getCategories(); }
-
-	public List getCategories()
+	public Collection getCategories()
 	{
 		if (_entries == null) 
 			_entries = _db.getAllCategoriesFromCollection(getKey());
 
 		return _entries;
 	}
+
+	public Object getEntryByName(String name) { return getCategory(name); }
+
+	public Collection getEntries() { return getCategories(); }
 }

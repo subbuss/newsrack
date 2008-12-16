@@ -1,7 +1,6 @@
 package newsrack.filter;
 
-import java.util.List;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -13,10 +12,9 @@ public final class NR_FilterCollection extends NR_Collection
 	private transient Map<String, Filter> _map = null;  // Name --> Filter mapping .. optimization!
 	private transient boolean             _allMapped = false;
 
-	public NR_FilterCollection(User u, String name, List entries)
+	public NR_FilterCollection(User u, String name, Collection entries)
 	{
 		super(NR_CollectionType.FILTER, u, name, entries);
-      if (_log.isDebugEnabled()) _log.debug("RECORDED filter collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Filter getFilter(String f)
@@ -36,7 +34,7 @@ public final class NR_FilterCollection extends NR_Collection
 			return filt;
 		}
 		else if (!_allMapped) {
-			for (Filter filt: (List<Filter>)_entries) {
+			for (Filter filt: (Collection<Filter>)_entries) {
 				_map.put(filt.getName(), filt);
 				if (filt.getName().equals(f))
 					return filt;
@@ -52,13 +50,15 @@ public final class NR_FilterCollection extends NR_Collection
 		}
 	}
 
-	public List getEntries() { return getFilters(); }
-
-	public List getFilters()
+	public Collection getFilters()
 	{
 		if (_entries == null) 
 			_entries = _db.getAllFiltersFromCollection(getKey());
 
 		return _entries;
 	}
+
+	public Object getEntryByName(String name) { return getFilter(name); }
+
+	public Collection getEntries() { return getFilters(); }
 }

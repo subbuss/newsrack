@@ -112,7 +112,7 @@ public class Category implements Comparable, java.io.Serializable
 	private   Filter   _filter;			// The filter corresponding to this category
 	private   Issue    _issue;				// Issue to which this category belongs! (might be null, if only defined as part of a collection)
 	private   Category _parent;	   	// Parent category if this is nested in other cats
-	protected List<Category> _children;	// Nested categories
+	protected Collection<Category> _children;	// Nested categories
 	private   Date       _lastUpdateTime; // Date when new items were last added to this category
 	private   int        _numArticles;	// Number of articles in this category
 	private   OutputFeed _outputFeed;	// Output rss feed for this category
@@ -142,6 +142,26 @@ public class Category implements Comparable, java.io.Serializable
 	/**
 	 * Build a leaf category
 	 */
+	public Category(final String name, final Filter f) throws Exception
+	{
+		_key = null;
+
+			// Verify that the name is an acceptable news rack name
+		try {
+			StringUtils.validateName("category", name);
+			_name = name; 
+		}
+		catch (final Exception e) {
+			_log.error("Error validating category name " + name, e);
+			throw e;
+		}
+		_filter = f;
+		_children = new ArrayList<Category>();
+	}
+
+	/**
+	 * Build a leaf category
+	 */
 	public Category(final String name, final RuleTerm r) throws Exception
 	{
 		_key = null;
@@ -162,7 +182,7 @@ public class Category implements Comparable, java.io.Serializable
 	/**
 	 * Build a container category
 	 */
-	public Category(final String name, final List<Category> cats) throws Exception
+	public Category(final String name, final Collection<Category> cats) throws Exception
 	{
 		_key = null;
 		try {
@@ -225,10 +245,10 @@ public class Category implements Comparable, java.io.Serializable
 
 	public void setChildren(List<Category> cats) { _children = cats; }
 
-	public List<Category> getChildren() { return (_children == null) ? EMPTY_LIST : _children; /* FIXME: any way to return a read-only list?? */ }
+	public Collection<Category> getChildren() { return (_children == null) ? EMPTY_LIST : _children; /* FIXME: any way to return a read-only list?? */ }
 
 	/** Get all leaf categories rooted at this sub-tree */
-	public List<Category> getLeafCats()
+	public Collection<Category> getLeafCats()
 	{
 		List<Category> l = new ArrayList();
 		for (Category c: _children) {

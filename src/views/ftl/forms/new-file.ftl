@@ -5,10 +5,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 <script language="Javascript">
-function cancelEdit()
+function cancelEdit(cancelUrl)
 {
 	if (confirm("Do you want to cancel creating a new file?")) {
-		window.location.href="../EditProfile.do";
+		window.location.href=cancelUrl;
 	}
 	return false;
 }
@@ -38,7 +38,7 @@ function resetForm()
 <@s.form name="editform" cssClass="editfileform" namespace="/file" action="new" method="post">
 <h1>New file</span></h1>
 <div class="center">
-<textarea class="textarea" name="fileContent" rows="30" cols="70">
+<textarea class="textarea" name="fileContent" rows="40" cols="85">
 (** HERE IS AN EXAMPLE OF A PROFILE ... USE THIS TEMPLATE TO
  ** SUITABLY EDIT IT TO YOUR NEEDS.  FOR MORE HELP, CLICK ON
  ** THE HELP OR USER GUIDE LINKS. YOU CAN GET RID OF THESE 4 
@@ -48,9 +48,9 @@ function resetForm()
 <br />
 <span class="bold">File Name:</span> <input type="text" name="file" class="text">
 <br />
-<input type="submit" class="submit" name="submit" value="Save">
-<input type="button" class="submit" onclick="cancelEdit()" value="Cancel">
+<input type="button" class="submit" onclick="cancelEdit('<@s.url namespace="/user" action="edit-profile"/>')" value="Cancel">
 <input type="button" class="submit" onclick="resetForm()" value="Clear">
+<input type="submit" class="submit" name="submit" value="Save">
 </div>
 </@s.form>
 

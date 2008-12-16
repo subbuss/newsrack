@@ -1,9 +1,11 @@
 %package "newsrack.filter.parser";
+%class "NRLanguageParser";
 
 %import "java.util.Hashtable";
 %import "java.util.HashMap";
 %import "java.util.Enumeration";
 %import "java.util.Iterator";
+%import "java.util.Collection";
 %import "java.util.List";
 %import "java.util.Set";
 %import "java.util.HashSet";
@@ -13,26 +15,28 @@
 %import "newsrack.filter.Issue";
 %import "newsrack.filter.Concept";
 %import "newsrack.filter.Category";
+%import "newsrack.filter.Filter";
 %import "newsrack.filter.Filter.FilterOp";
 %import "newsrack.filter.Filter.RuleTerm";
 %import "newsrack.filter.Filter.LeafConcept";
+%import "newsrack.filter.Filter.LeafFilter";
 %import "newsrack.filter.Filter.LeafCategory";
 %import "newsrack.filter.Filter.NegTerm";
 %import "newsrack.filter.Filter.ContextTerm";
-%import "newsrack.filter.Filter.NonLeafTerm";
+%import "newsrack.filter.Filter.AndOrTerm";
+%import "newsrack.filter.parser.NRLanguageScanner";
 %import "newsrack.archiver.Source";
 %import "newsrack.user.User";
 %import "newsrack.filter.NR_Collection";
 %import "newsrack.filter.NR_CollectionType";
 %import "newsrack.filter.NR_SourceCollection";
 %import "newsrack.filter.NR_ConceptCollection";
+%import "newsrack.filter.NR_FilterCollection";
 %import "newsrack.filter.NR_CategoryCollection";
 %import "newsrack.util.Triple";
 %import "newsrack.util.ParseUtils";
 %import "org.apache.commons.logging.Log";
 %import "org.apache.commons.logging.LogFactory";
-
-%class "NRLanguageParser";
 
 %embed {:
    	// Logging output for this plug in instance.
@@ -69,6 +73,8 @@
 		// references in the first pass)
 	private HashMap   _collToFileMap;		// Collection name --> File that defines that collection
 	private HashMap   _fileToImportsMap;	// File --> List of imports in that file
+	private int       _cptCounter;			// Counter that tracks generated concepts
+	private ArrayList _globalConcepts;		// Concepts defined outside of collections, system-generated concepts 
 
 	private void parseFile(String f)
 	{
@@ -78,7 +84,15 @@
 
 		try {
 			_currFile = new UserFile(_user, f);
+		   _globalConcepts = new ArrayList();
+		   _cptCounter     = 0;
 			parse(new NRLanguageScanner(_currFile.getFileReader()));
+
+			_log.debug("Found " + _cptCounter + " global concepts!");
+			if (_cptCounter > 0) {
+				_log.debug("Recording another concept collection ...");
+				recordConceptCollection(null, _globalConcepts);
+			}
 		}
 		catch (java.lang.Exception e) {
 			_log.error("Parse Error!", e);
@@ -92,15 +106,20 @@
 
 	private boolean parseFiles(boolean isFirstPass, boolean haveUnresolvedRefs, User u, Stack scopes, Iterator files, HashMap collToFileMap, HashMap fileImportsMap)
 	{
-		super.report = new NRParserEvents(); // Override the error reporting module
-		_user       = u;
-		_uid        = u.getUid();
-		_scopeStack = scopes;	// Set the scope stack
+			// Override the error reporting module
+		super.report = new NRParserEvents();
+
+			// Init
+		_user               = u;
+		_uid                = u.getUid();
+		_scopeStack         = scopes;
 		_collToFileMap      = collToFileMap;
 		_fileToImportsMap   = fileImportsMap;
-		_isFirstPass = isFirstPass;
+		_isFirstPass        = isFirstPass;
 		_haveUnresolvedRefs = haveUnresolvedRefs;
-		_files = files;
+		_files              = files;
+
+			// Parse
 		while (files.hasNext())
 			parseFile((String)files.next());
 
@@ -190,7 +209,7 @@
 					// Detect cycles
 				if (numLeft == prevNumLeft) {
 					_log.error("Looks like we have a cycle in parse order! Aborting parse!");
-					ParseUtils.parseError(_currFile, "We are sorry!  Your files import collections from each other cylically!  Email us for help in resolving this problem and enclose this message with your email!");
+					ParseUtils.parseError(_currFile, "We are sorry!  Your profile cannot be validated and needs to be fixed up.  Email us for help in resolving this problem and enclose this message with your email!");
 					break;
 				}
 			}
@@ -253,15 +272,27 @@
 
 		Scope() { init(null); }
 
+		public void addCollection(NR_Collection newC)
+		{
+				// Checks if we have a collection with the same name already, and if so,
+				// we silently merge the two rather than flagging an error!
+			String key = newC._type + ":" + newC._creator.getUid() + ":" + newC._name;
+			Object o   = _allCollections.get(key);
+			if (o == null) {
+				_definedCollections.add(newC);
+				_allCollections.put(key, newC);
+			}
+			else {
+				((NR_Collection)o).mergeCollection(newC);
+			}
+		}
+
 		public void mergeScope(Scope other)
 		{
 				// Merge defined collections
 			int n = _scopeStack.size();
-			for (Object o: other._definedCollections) {
-				_definedCollections.add(o);
-				NR_Collection c = (NR_Collection)o;
-				_allCollections.put(c._type + ":" + c._creator.getUid() + ":" + c._name, c);
-			}
+			for (Object o: other._definedCollections)
+				addCollection((NR_Collection)o);
 
 				// Merge defined issues
 			_definedIssues.addAll(other._definedIssues);
@@ -303,6 +334,15 @@
 			s._allCollEntries.put(k, NAME_CONFLICT);
 	}
 
+	private void recordFilter(Filter f)
+	{
+		Scope  s = getCurrentScope();
+		String k = NR_CollectionType.FILTER + ":" + f.getName();
+		Object o = s._allCollEntries.put(k, f);
+		if (o != null)
+			s._allCollEntries.put(k, NAME_CONFLICT);
+	}
+
 	private void recordCategory(Category c)
 	{
 		Scope  s = getCurrentScope();
@@ -312,42 +352,39 @@
 			s._allCollEntries.put(k, NAME_CONFLICT);
 	}
 
-	private void recordSourceCollection(String cName, List<Source> srcs)
+	private void recordSourceCollection(String cName, Collection<Source> srcs)
 	{
-		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
-		Scope s = getCurrentScope();
-		String uniqName = NR_CollectionType.SOURCE + ":" + _uid + ":" + cName;
-		s._allCollections.put(uniqName, nc);
-		s._definedCollections.add(nc);
+		if (cName == null)
+			cName = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_sources";
+
+			// Add the new collection to the current scope!
+		getCurrentScope().addCollection(new NR_SourceCollection(_user, cName, srcs));
 
 			// Associate this collection with the current file
-		_collToFileMap.put(uniqName, _currFile._name);
+		_collToFileMap.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, _currFile._name);
 	}
 
-	private void recordSourceCollection(String cName, Set<Source> srcSet)
+	private void recordConceptCollection(String cname, Concept[] cpts)
 	{
-		List  srcs = new ArrayList();
-		srcs.addAll(srcSet);
-		NR_Collection nc = new NR_SourceCollection(_user, cName, srcs);
-		Scope s = getCurrentScope();
-		String uniqName = NR_CollectionType.SOURCE + ":" + _uid + ":" + cName;
-		s._allCollections.put(uniqName, nc);
-		s._definedCollections.add(nc);
+		ArrayList<Concept> x = new ArrayList<Concept>();
+		for (int i = 0; i < cpts.length; i++)
+			x.add(cpts[i]);
 
-			// Associate this collection with the current file
-		_collToFileMap.put(uniqName, _currFile._name);
+		recordConceptCollection(cname, x);
 	}
 
-	private void recordConceptCollection(String cname, List cpts)
+	private void recordConceptCollection(String cName, Collection<Concept> cpts)
 	{
-		NR_ConceptCollection nc = new NR_ConceptCollection(_user, cname, cpts);
-		Scope s = getCurrentScope();
-		String uniqName = NR_CollectionType.CONCEPT + ":" + _uid + ":" + cname;
-		s._allCollections.put(uniqName, nc);
-		s._definedCollections.add(nc);
+			// If no collection name is provided, simply store them all in a single global collection (on a per-file basis)
+		if (cName == null)
+			cName = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_concepts";
+
+			// Add the new collection to the current scope!
+		NR_ConceptCollection nc = new NR_ConceptCollection(_user, cName, cpts);
+		getCurrentScope().addCollection(nc);
 
 			// Associate this collection with the current file
-		_collToFileMap.put(uniqName, _currFile._name);
+		_collToFileMap.put(NR_CollectionType.CONCEPT + ":" + _uid + ":" + cName, _currFile._name);
 
 			// Set the containing collection for the concept
 			// All concepts are part of some collection or the other!
@@ -357,16 +394,25 @@
 		}
 	}
 
-	private void recordCategoryCollection(String c, List cats)
+	private void recordFilterCollection(String c, Filter[] filters)
 	{
-		NR_Collection nc = new NR_CategoryCollection(_user, c, cats);
-		Scope s = getCurrentScope();
-		String uniqName = NR_CollectionType.CATEGORY + ":" +_uid + ":" + c;
-		s._allCollections.put(uniqName, nc);
-		s._definedCollections.add(nc);
+		ArrayList<Filter> x = new ArrayList<Filter>();
+		for (int i = 0; i < filters.length; i++)
+			x.add(filters[i]);
+
+		recordFilterCollection(c, filters);
+	}
+
+	private void recordFilterCollection(String c, Collection<Filter> filters)
+	{
+		if (c == null)
+			c = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_filters";
+
+			// Add the new collection to the current scope!
+		getCurrentScope().addCollection(new NR_FilterCollection(_user, c, filters));
 
 			// Associate this collection with the current file
-		_collToFileMap.put(uniqName, _currFile._name);
+		_collToFileMap.put(NR_CollectionType.FILTER + ":" + _uid + ":" + c, _currFile._name);
 	}
 
 	private NR_Collection importCollection(String newColl, NR_CollectionType cType, String fromUid, String cid)
@@ -392,7 +438,7 @@
 			while (i >= 0) {
 				c = (NR_Collection)((Scope)_scopeStack.get(i))._allCollections.get(uniqCollName);
 				if (c != null) {
-					if (!newColl.equals(cid))
+					if (newColl != null && !newColl.equals(cid))
 						s._allCollections.put(cType + ":" +_uid + ":" + newColl, c);
 					break;
 				}
@@ -407,7 +453,7 @@
 		}
 
 		if ((c == null) && _isFirstPass) {
-					// Try to parse other files & try importing again
+				// Try to parse other files & try importing again
 			if (getFromMyself && parseOtherFiles()) {
 				return importCollection(newColl, cType, fromUid, cid);
 			}
@@ -454,49 +500,43 @@
 		return importCollection(newColl, cType, _uid, cid);
 	}
 
-	private Concept getConcept(String c)
+	private Object getItemFromScope(NR_CollectionType itemType, String itemName, boolean recordError)
 	{
-		if (_log.isDebugEnabled()) DEBUG_OUT("getConcept: Looking for " + c);
-
 		int i = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(NR_CollectionType.CONCEPT + ":" + c);
-			if (o == NAME_CONFLICT) {
-					// record conflict as a parsing error
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple concepts found with name <b>" + c + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Use \"{Agriculture Concepts}.farming\" rather than \"farming\" where \"{Agriculture Concepts}\" is a concept set you have defined that contains the \"farming\" concept you want to use.");
-				return null;
-			}
-			else if (o != null) {
-				if (_log.isDebugEnabled()) DEBUG_OUT("Returning " + o);
-				return (Concept)o;
-			}
+			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(itemType + ":" + itemName);
+			if (o != null)
+				return o;
 
 			i--;
 		}
 
 			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED CONCEPT ...");
-			_haveUnresolvedRefs = true;
+		if (recordError) {
+			if (_isFirstPass) {
+				_haveUnresolvedRefs = true;
+			}
+				// Parse error
+			else {
+				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any " + itemType + " with name <b>" + itemName + "</b>.  Did you (a) forget to define what the " + itemType + " is (b) forget to import the collection where it is defined (c) mis-spell the name?");
+			}
 		}
-		else {
-			// Parse error
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept with name <b>" + c + "</b>.  Did you (a) forget to define what the concept is (b) forget to import the collection where it is defined (c) mis-spell the name?");
-		}
+
 		return null;
 	}
 
-	private Concept getConcept(String cc, String c)
+	private Object getItemFromScope(NR_CollectionType itemType, String collName, String itemName, boolean recordError)
 	{
-		if (_log.isDebugEnabled()) DEBUG_OUT("getConcept: Looking for " + cc + ":" + c);
+		if (collName == null)
+			return getItemFromScope(itemType, itemName, recordError);
 
 		boolean found = false;
 		int     i     = _scopeStack.size() - 1;
 		while (i >= 0) {
-			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.CONCEPT + ":" +_uid + ":" + cc);
+			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(itemType + ":" +_uid + ":" + collName);
 			if (nrc != null) {
 				found = true;
-				Concept o = ((NR_ConceptCollection)nrc).getConcept(c);
+				Object o = ((NR_Collection)nrc).getEntryByName(itemName);
 				if (o != null)
 					return o;
 			}
@@ -504,189 +544,98 @@
 			i--;
 		}
 
-			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED CONCEPT ...");
-			_haveUnresolvedRefs = true;
-		}
-		else {
-			if (found) {
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept with name <b>" + c + "</b> in the collection named <b>" + cc + "</b>. Did you (a) forget to define what the concept is (b) import the wrong collection (c) mis-spell the concept or collection name?");
+		if (recordError) {
+				// Ignore error if this is the first pass ... 
+			if (_isFirstPass) {
+				_haveUnresolvedRefs = true;
 			}
 			else {
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any concept collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+				if (found) {
+					ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any " + itemType + " with name <b>" + itemName + "</b> in the collection named <b>" + collName + "</b>. Did you (a) forget to define what the " + itemType + " is (b) import the wrong collection (c) mis-spell the " + itemType + " or collection name?");
+				}
+				else {
+					ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any " + itemType + " collection with name <b>" + collName + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+				}
 			}
 		}
 		return null;
 	}
 
-	private Category getCategory(String c)
+	private Object getItemFromScope(NR_CollectionType itemType, String collName, String itemName)
 	{
-		if (_log.isDebugEnabled()) DEBUG_OUT("getCategory: Looking for " + c);
-
-		int i = _scopeStack.size() - 1;
-		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(NR_CollectionType.CATEGORY + ":" + c);
-			if (o == NAME_CONFLICT) {
-					// record conflict as a parsing error
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple categories found with name <b>" + c + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{agriculture}.farming\" rather than \"farming\".");
-				return null;
-			}
-			else if (o != null) {
-				return (Category)o;
-			}
-
-			i--;
-		}
-
-			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED CAT ...");
-			_haveUnresolvedRefs = true;
-		}
-		else {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category with name <b>" + c + "</b>.  Did you (a) forget to define what the category is (b) forget to import the collection where it is defined (c) mis-spell the name?");
-		}
-
-		return null;
+		return getItemFromScope(itemType, collName, itemName, true);
 	}
+
+	private Object getItemFromScope(NR_CollectionType itemType, String itemName)
+	{
+		return getItemFromScope(itemType, itemName, true);
+	}
+
+	private Concept getConcept(String cc, String c)
+	{
+		if (_log.isDebugEnabled()) DEBUG_OUT("getConcept: Looking for " + cc + ":" + c);
+
+		Object o = getItemFromScope(NR_CollectionType.CONCEPT, cc, c);
+		if (o == NAME_CONFLICT) {
+				// record conflict as a parsing error
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple concepts found with name <b>" + c + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Use \"{Agriculture Concepts}.farming\" rather than \"farming\" where \"{Agriculture Concepts}\" is a concept set you have defined that contains the \"farming\" concept you want to use.");
+			return null;
+		}
+
+		return (Concept)o;
+	}
+
+	private Concept getConcept(String c) { return getConcept(null, c); }
+
+	private Filter getFilter(String fc, String name, boolean recordParseError)
+	{
+		if (_log.isDebugEnabled()) DEBUG_OUT("getFilter: Looking for " + fc + ":" + name);
+
+		Object o = getItemFromScope(NR_CollectionType.FILTER, fc, name, recordParseError);
+		if (o == NAME_CONFLICT) {
+				// record conflict as a parsing error
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple filters found with name <b>" + name + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{agriculture}.farming\" rather than \"farming\".");
+			return null;
+		}
+
+		return (Filter)o;
+	}
+
+	private Filter getFilter(String name, boolean recordParseError) { return getFilter(null, name, recordParseError); }
 
 	private Category getCategory(String cc, String c)
 	{
 		if (_log.isDebugEnabled()) DEBUG_OUT("getCategory: Looking for " + cc + ":" + c);
 
-		boolean found = false;
-		int     i     = _scopeStack.size() - 1;
-		while (i >= 0) {
-			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.CATEGORY + ":" +_uid + ":" + cc);
-			if (nrc != null) {
-				found = true;
-				Category o = ((NR_CategoryCollection)nrc).getCategory(c);
-				if (o != null) {
-					return (Category)o;
-				}
-			}
-
-			i--;
-		}
-
-			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED CAT ...");
-			_haveUnresolvedRefs = true;
-		}
-		else {
-			if (found) {
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category with name <b>" + c + "</b> in the collection named <b>" + cc + "</b>. Did you (a) forget to define what the category is (b) import the wrong collection (c) mis-spell the category or collection name?");
-			}
-			else {
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
-			}
-		}
-		return null;
-	}
-
-	private List getCategoryCollection(String cc)
-	{
-		int i = _scopeStack.size() - 1;
-		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.CATEGORY + ":" +_uid + ":" + cc);
-			if (o != null) {
-				List<Category> cats = ((NR_CategoryCollection)o).getCategories();
-					// Clone all the categories and clear out the category key
-					// because these categories can potentially be shared between
-					// topics / users.
-				List<Category> clonedCats = new ArrayList<Category>();
-				for (Category c: cats) {
-					Category ccl = c.clone();
-					ccl.setKey(null);
-					clonedCats.add(ccl);
-				}
-
-				return clonedCats;
-			}
-
-			i--;
-		}
-			
-			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED CAT COLL ...");
-			_haveUnresolvedRefs = true;
-			return new ArrayList<Category>();
-		}
-		else {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any category collection with name <b>" + cc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
+		Object o = getItemFromScope(NR_CollectionType.CATEGORY, cc, c);
+		if (o == NAME_CONFLICT) {
+				// record conflict as a parsing error
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple categories found with name <b>" + c + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{agriculture}.farming\" rather than \"farming\".");
 			return null;
 		}
+
+		return (Category)o;
 	}
 
-	private Source getSource(String s)
+	private Category getCategory(String c) { return getCategory(null, c); }
+
+	private Source getSource(String sc, String s)
 	{
-		if (_log.isDebugEnabled()) DEBUG_OUT("getSource: Looking for source " + s);
+		if (_log.isDebugEnabled()) DEBUG_OUT("getSource: Looking for " + sc + ":" + s);
 
-		int i = _scopeStack.size() - 1;
-		while (i >= 0) {
-			Object o = ((Scope)_scopeStack.get(i))._allCollEntries.get(NR_CollectionType.SOURCE + ":" + s);
-			if (o == NAME_CONFLICT) {
-					/* record conflict as a parsing error */
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple sources found with name <b>" + s + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{Business Feeds}.hindu\" rather than \"hindu\".");
-				return null;
-			}
-			else if (o != null) {
-				if (_log.isDebugEnabled()) DEBUG_OUT("getSource: Returning " + o);
-				return (Source)o;
-			}
-
-			i--;
+		Object o = getItemFromScope(NR_CollectionType.SOURCE, sc, s);
+		if (o == NAME_CONFLICT) {
+				// record conflict as a parsing error
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Multiple sources found with name <b>" + s + "</b>.  Please specify the one you want by qualifying the use with the collection id. Example: Say \"{Business Feeds}.hindu\" rather than \"hindu\".");
+			return null;
 		}
 
-			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED: ...");
-			_haveUnresolvedRefs = true;
-		}
-		else {
-			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source with name <b>" + s + "</b>.  Did you (a) forget to define what the source is (b) forget to import the collection where it is defined (c) mis-spell the name?");
-		}
-		return null;
+		return (Source)o;
 	}
 
-	private Source getSource(String sc, String c)
-	{
-		if (_log.isDebugEnabled()) DEBUG_OUT("getSource: Looking for source " + sc + ":" + c);
+	private Source getSource(String s) { return getSource(null, s); }
 
-		boolean found = false;
-		int     i     = _scopeStack.size() - 1;
-		while (i >= 0) {
-			Object nrc = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.SOURCE + ":" +_uid + ":" + sc);
-			if (nrc != null) {
-				found = true;
-				Source s = ((NR_SourceCollection)nrc).getSource(c);
-				if (s != null)
-					return s;
-			}
-
-			i--;
-		}
-
-			// Ignore error if this is the first pass ... 
-		if (_isFirstPass) {
-			_log.info("UNRESOLVED: ...");
-			_haveUnresolvedRefs = true;
-		}
-		else {
-			if (found) {
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source with name <b>" + c + "</b> in the collection named <b> " + sc + "</b> . Did you (a) forget to define what the source is (b) import the wrong collection (c) mis-spell the concept or collection name?");
-			}
-			else {
-				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
-			}
-		}
-		return null;
-	}
-
-	private List<Source> getSourceCollection(String sc)
+	private Collection<Source> getSourceCollection(String sc)
 	{
 		if (_log.isDebugEnabled()) DEBUG_OUT("getSourceCollection: Looking for " + _uid + ":" + sc);
 
@@ -714,6 +663,7 @@
 	{
 		if (sid.indexOf("*") > 0) {
 			/* Process the wild card */
+			// NOT SUPPORTED YET!
 		}
 		else {
 			Source s = (cid == null) ? getSource(sid) : getSource(cid, sid);
@@ -738,7 +688,7 @@
 
 	private void addCollectionToUsedSources(Set<Source> h, String cid)
 	{
-		List<Source> c = getSourceCollection(cid);
+		Collection<Source> c = getSourceCollection(cid);
 			// Can be null due to parsing errors OR because of forward references
 		if (c == null)
 			return;
@@ -753,7 +703,7 @@
 
 	private void removeCollectionFromUsedSources(Set<Source> h, String cid)
 	{
-		List<Source> c = getSourceCollection(cid);
+		Collection<Source> c = getSourceCollection(cid);
 			// Can be null due to parsing errors OR because of forward references
 		if (c == null)
 			return;
@@ -780,6 +730,14 @@
 		}
 		return h;
 	}
+
+/**
+ TODO: Not supported yet
+	private Set<Source> processOpmlSource(String url)
+	{
+		Set<Source> s = new HashSet<Source>();
+	}
+**/
 
       /** STATIC METHODS HERE **/
 	private static void DEBUG(String nt)
@@ -812,239 +770,220 @@
 :}
 ;
 
-%terminals URL_TOK, STRING_TOK, NUM_TOK, IDENT_TOK;
-%terminals OR;					/* "OR" */
-%terminals AND;				/* "AND */
-%terminals IMPORT_SRCS, IMPORT_CONCEPTS, IMPORT_CATS;
-%terminals DEF_SRCS, DEF_CPTS, DEF_CATS, DEF_ISSUE;
-%terminals END, END_SRCS, END_CPTS, END_CATS, END_ISSUE;
-%terminals FROM, MONITOR_SRCS, ORGANIZE_CATS;
+/** tokens **/
+%terminals URL_TOK, IDENT_TOK, STRING_TOK, NUM_TOK;
+%terminals IMPORT_SRCS, IMPORT_CONCEPTS, IMPORT_FILTERS;
+%terminals FROM, WITH, INTO_TAXONOMY, FILTER;
+%terminals DEF_SRCS, DEF_CPTS, DEF_FILTERS, DEF_TOPIC;
+%terminals END;
+%terminals MONITOR_SRCS, ORGANIZE_CATS;
 
+/** non-word operators / modifiers **/
+%terminals OR;
+%terminals AND;
 %terminals LBRACKET, RBRACKET; 
 %terminals LBRACE, RBRACE; 
 %terminals LPAREN, RPAREN; 
 %terminals LANGLE, RANGLE; 
-%terminals DOT, COMMA, COLON, HYPHEN, PIPE, EQUAL;
+%terminals DOT, COMMA, COLON, /* TILDE, */ HYPHEN, PIPE, EQUAL;
 
 %typeof Collection_Id     = "java.lang.String";
-%typeof Source_Def_Id     = "java.lang.String";
-%typeof Concept_Def_Id    = "java.lang.String";
-%typeof Category_Def_Id   = "java.lang.String";
-%typeof Issue_Id          = "java.lang.String";
+%typeof Opt_Collection_Id = "java.lang.String";
+%typeof Topic_Id          = "java.lang.String";
+%typeof Concept_Id        = "java.lang.String";
+%typeof Filter_Id         = "java.lang.String";
 %typeof Cpt_Use_Id        = "newsrack.filter.Concept";
 %typeof Cpt_Macro_Use_Id  = "newsrack.filter.Concept";
-%typeof Cat_Use_Id        = "newsrack.filter.Category";
-%typeof Cat_Macro_Use_Id  = "newsrack.filter.Category";
-/*
- * This behaves different from cats and concepts right now ...
- * because of the presence of wildcards!
- *
-%typeof Src_Use_Id        = "newsrack.archiver.Source";
-*/
-%typeof Src_Use_Id        = "java.lang.String";
+%typeof LeafConcept       = "newsrack.filter.Concept";
+%typeof Filt_Or_Cat_Use_Id= "java.lang.Object";	// Can be either newsrack.filter.Filter or newsrack.filter.Category
+%typeof Filter_Decl       = "newsrack.filter.Filter";
+%typeof IdentPrefix_1     = "java.lang.String";
+%typeof IdentPrefix_2     = "java.lang.String";
+%typeof SimpleIdent       = "java.lang.String";
+%typeof IdentPart         = "java.lang.String";
 %typeof Ident             = "java.lang.String";
-%typeof NonIdent          = "java.lang.String";
+%typeof Reserved_Keywords = "java.lang.String";
+%typeof StringPart        = "java.lang.String";
 %typeof String            = "java.lang.String";
-%typeof Rss_Feed          = "java.lang.String";
 %typeof URL_TOK           = "java.lang.String";
 %typeof STRING_TOK        = "java.lang.String";
 %typeof IDENT_TOK         = "java.lang.String";
 %typeof NUM_TOK           = "java.lang.String";
-%typeof Import_Command    = "newsrack.filter.NR_CollectionType";
+%typeof AND               = "java.lang.String";
+%typeof OR                = "java.lang.String";
+%typeof FILTER            = "java.lang.String";
+%typeof FROM              = "java.lang.String";
+%typeof WITH              = "java.lang.String";
+/**
 %typeof IMPORT_SRCS       = "java.lang.String";
 %typeof IMPORT_CONCEPTS   = "java.lang.String";
-%typeof IMPORT_CATS       = "java.lang.String";
+%typeof IMPORT_FILTERS    = "java.lang.String";
+%typeof INTO_TAXONOMY     = "java.lang.String";
+%typeof DEF_SRCS          = "java.lang.String";
+%typeof DEF_CPTS          = "java.lang.String";
+%typeof DEF_FILTERS       = "java.lang.String";
+%typeof DEF_TOPIC         = "java.lang.String";
+%typeof MONITOR_SRCS      = "java.lang.String";
+%typeof ORGANIZE_CATS     = "java.lang.String";
+**/
+%typeof Import_Command    = "newsrack.filter.NR_CollectionType";
 %typeof Keywords          = "java.util.List";
 %typeof Context           = "java.util.ArrayList";
-%typeof Category_Decls    = "java.util.List";
-%typeof Category_Defs     = "java.util.List";
-%typeof Category_Uses     = "java.util.List";
-%typeof Source_Decls      = "java.util.List";
+%typeof Node              = "newsrack.filter.Category";
+%typeof Tree_Nodes        = "java.util.ArrayList";
+%typeof Source_Defns      = "java.util.Set";
 %typeof Source_Uses       = "java.util.Set";
-%typeof Source_Use_Decl   = "java.util.Set";
-%typeof Category_Use_Decl = "java.util.List";
+%typeof Source_Defn       = "newsrack.archiver.Source";
 %typeof Source_Use        = "newsrack.util.Triple";
-%typeof Import_Directive  = "newsrack.database.NR_Collection";
-%typeof Source_Decl       = "newsrack.archiver.Source";
-%typeof Concept_Decls     = "java.util.List";
+/*
+%typeof Opml_Sources      = "java.util.Set";
+*/
 %typeof Concept_Decl      = "newsrack.filter.Concept";
-%typeof Context_Filter_Rule = "newsrack.filter.Filter.RuleTerm";
 %typeof Filter_Rule       = "newsrack.filter.Filter.RuleTerm";
 %typeof Rule_Term         = "newsrack.filter.Filter.RuleTerm";
-%typeof Category_Def      = "newsrack.filter.Category";
+%typeof Rule_Term_Leaf    = "newsrack.filter.Filter.RuleTerm";
+%typeof Min_Hit           = "java.lang.Integer";
+%typeof Source_Use_Decl   = "java.util.Set";
+%typeof Category_Use_Decl = "java.util.List";
 %typeof IssueEnd_Decl     = "newsrack.filter.Issue";
 %typeof Issue_Decl        = "newsrack.filter.Issue";
-%typeof Issue             = "newsrack.filter.Issue";
+%typeof Legacy_Issue_Decl = "newsrack.filter.Issue";
 
 %goal Profile;
 
-Profile           = Blocks ;
-Blocks            = Block
-                  | Blocks Block
-                  ;
+Profile           = Blocks
+                  | error 
+						;
+Blocks            = Block+ ;
 Block             = Import_Directive
                   | Src_Collection
                   | Cpt_Collection
-                  | Cat_Collection
-                  | Issue
+                  | Filter_Collection
+/**
+  TODO: Not supported yet!
+
+						| Concept
+						| Filter
+                  | Taxonomy
+**/
+						| Topic
+						| Legacy_Issue_Decl
                   ;
-Issue_Id          = Ident.name                   {: if (_log.isDebugEnabled()) DEBUG("Issue_Id"); return _symbol_name; :} ;
-Collection_Id     = LBRACE Ident.name RBRACE     {: if (_log.isDebugEnabled()) DEBUG("Collection_Id"); return _symbol_name; :} ;
-Source_Def_Id     = Ident.name                   {: if (_log.isDebugEnabled()) DEBUG("Source_Def_Id"); return _symbol_name; :} ;
-Concept_Def_Id    = LANGLE Ident.name RANGLE     {: if (_log.isDebugEnabled()) DEBUG("Concept_Def_Id"); return _symbol_name; :} ;
-Category_Def_Id   = LBRACKET Ident.name RBRACKET {: if (_log.isDebugEnabled()) DEBUG("Category_Def_Id"); return _symbol_name; :} ;
-Src_Use_Id        = Ident ;
-Cpt_Use_Id        = Ident.i
-                    {: if (_log.isDebugEnabled()) DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
-                  | Collection_Id.c COLON Ident.i
-						  {: if (_log.isDebugEnabled()) DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
+Url               = URL_TOK ;
+
+/*
+ * This whole business of identifiers is arbitrary ... I could have made everything strings except that:
+ *  (1) concept-ids can appear as bare words in filters
+ *  (2) source names can be written without quotes
+ *  (3) keywords in concept definitions can be written without quotes
+ * All these together cause a lot of parse conflicts if all identifiers were "string"s
+ * So, concept ids are currently restricted, and other ids don't have all reserved words as bare words 
+ */
+IdentPrefix_1     = FILTER | FROM | IDENT_TOK | NUM_TOK ;
+IdentPrefix_2     = FILTER | FROM | IDENT_TOK | NUM_TOK | STRING_TOK ;
+IdentPart         = IdentPrefix_2 | AND | OR ;
+
+SimpleIdent       = IdentPrefix_1 | SimpleIdent.s1 IdentPrefix_2.s2 {: DEBUG("SimpleIdent"); return new Symbol(s1 + " " + s2); :} ;
+Ident             = IdentPart | Ident.s1 IdentPart.s2 {: DEBUG("String"); return new Symbol(s1 + " " + s2); :} ;
+
+Reserved_Keywords = AND | OR | WITH | FILTER | FROM ;
+StringPart        = IDENT_TOK | NUM_TOK | STRING_TOK | Reserved_Keywords ;
+String            = StringPart | String.s1 StringPart.s2 {: DEBUG("String"); return new Symbol(s1 + " " + s2); :} ;
+
+Concept_Id        = LANGLE SimpleIdent.c RANGLE {: DEBUG("Concept_Id"); return _symbol_c; :} ;
+Cpt_Use_Id        = SimpleIdent.i                       {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
+                  | Collection_Id.c COLON SimpleIdent.i {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
 						;
-Cpt_Macro_Use_Id  = Concept_Def_Id.i
-                    {: if (_log.isDebugEnabled()) DEBUG("Cpt_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
-                  | Collection_Id.c COLON Concept_Def_Id.i
-						  {: if (_log.isDebugEnabled()) DEBUG("Cpt_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
+Cpt_Macro_Use_Id  = Concept_Id.i                       {: DEBUG("Cpt_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
+                  | Collection_Id.c COLON Concept_Id.i {: DEBUG("Cpt_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
 						;
-Cat_Use_Id        = Ident.i
-                    {: 
-						  	  if (_log.isDebugEnabled()) DEBUG("Cat_Use_Id"); 
-							  _currSym = _symbol_i; 
-							  	// This category use is potentially a sharing that is taking
-								// place across topics / users.  This cat. use needs to be assigned
-								// its own entry in the db!  To ensure that, clone cat, and clear out its key!
-							  Category cat = getCategory(i).clone(); 
-							  cat.setKey(null); 
-							  return new Symbol(cat);
-						  :}
-                  | Collection_Id.c COLON Ident.i
-						  {: 
-						     if (_log.isDebugEnabled()) DEBUG("Cat_Use_Id");
-							  _currSym = _symbol_i;
-							  	// This category use is potentially a sharing that is taking
-								// place across topics / users.  This cat. use needs to be assigned
-								// its own entry in the db!  To ensure that, clone cat, and clear out its key!
-							  Category cat = getCategory(c, i).clone();
-							  cat.setKey(null);
-							  return new Symbol(cat);
-						  :}
-						;
-Cat_Macro_Use_Id  = Category_Def_Id.i
-                    {: if (_log.isDebugEnabled()) DEBUG("Cat_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getCategory(i)); :}
-                  | Collection_Id.c COLON Category_Def_Id.i
-						  {: if (_log.isDebugEnabled()) DEBUG("Cat_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getCategory(c, i)); :}
-						;
-Ident             = IDENT_TOK.s              {: if (_log.isDebugEnabled()) DEBUG("Ident"); return _symbol_s; :}
-                  | Ident.s1 STRING_TOK.s2   {: if (_log.isDebugEnabled()) DEBUG("Ident"); return new Symbol(new String(s1 + " " + s2)); :}
-                  | Ident.s1 NUM_TOK.s2      {: if (_log.isDebugEnabled()) DEBUG("Ident"); return new Symbol(new String(s1 + " " + s2)); :}
-                  | Ident.s1 IDENT_TOK.s2    {: if (_log.isDebugEnabled()) DEBUG("Ident"); return new Symbol(new String(s1 + " " + s2)); :}
-						;
-NonIdent          = STRING_TOK.s             {: if (_log.isDebugEnabled()) DEBUG("NonIdent"); return _symbol_s; :}
-                  | String.s1 STRING_TOK.s2  {: if (_log.isDebugEnabled()) DEBUG("NonIdent"); return new Symbol(new String(s1 + " " + s2)); :}
-                  | String.s1 NUM_TOK.s2     {: if (_log.isDebugEnabled()) DEBUG("NonIdent"); return new Symbol(new String(s1 + " " + s2)); :}
-                  | String.s1 IDENT_TOK.s2   {: if (_log.isDebugEnabled()) DEBUG("NonIdent"); return new Symbol(new String(s1 + " " + s2)); :}
-						;
-String            = Ident
-                  | NonIdent ;
-Rss_Feed          = URL_TOK ;
-Import_Directive  = Collection_Id.newColl EQUAL Import_Command.icmd Collection_Id.cid
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Import_Directive");
-							  _currSym = _symbol_cid;
-							  return new Symbol(importCollection(newColl, icmd, cid));
-						  :}
-                  | Collection_Id.newColl EQUAL Import_Command.icmd Collection_Id.cid FROM Ident.uid
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Import_Directive");
-							  _currSym = _symbol_cid;
-							  return new Symbol(importCollection(newColl, icmd, uid, cid));
-						  :}
-                  | Import_Command.icmd Collection_Id.cid
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Import_Directive");
-							  _currSym = _symbol_cid;
-							  return new Symbol(importCollection(cid, icmd, cid));
-						  :}
-                  | Import_Command.icmd Collection_Id.cid FROM Ident.uid
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Import_Directive");
-							  _currSym = _symbol_cid;
-							  return new Symbol(importCollection(cid, icmd, uid, cid));
-						  :}
-							/** THE FOLLOWING TWO ARE THERE FOR THE SAKE OF BACKWARD COMPATIBILITY **/
-						| Collection_Id.newColl EQUAL Import_Command.icmd Ident.cid
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Import_Directive");
-							  _currSym = _symbol_cid;
-							  return new Symbol(importCollection(newColl, icmd, cid));
-						  :}
-                  | Collection_Id.newColl EQUAL Import_Command.icmd Ident.cid FROM Ident.uid
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Import_Directive");
-							  _currSym = _symbol_cid;
-							  return new Symbol(importCollection(newColl, icmd, uid, cid));
-						  :}
-                  ;
-Import_Command    = IMPORT_SRCS     {: if (_log.isDebugEnabled()) DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("SRC")); :}
-                  | IMPORT_CONCEPTS {: if (_log.isDebugEnabled()) DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CPT")); :}
-                  | IMPORT_CATS     {: if (_log.isDebugEnabled()) DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CAT")); :}
-                  ;
-Src_Collection    = DEF_SRCS Collection_Id.cid Source_Decls.slist EndSrcs
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Source Collection");
-							  recordSourceCollection(cid, slist);
-							  return DUMMY_SYMBOL;
-						  :}
-						| DEF_SRCS Collection_Id.cid Source_Uses.suh EndSrcs
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Source Collection");
-							  recordSourceCollection(cid, suh);
-							  return DUMMY_SYMBOL;
-						  :}
-                  ;
-EndSrcs           = END | END_SRCS ;
-Source_Decls      = Source_Decl.s 
-						  {: 
-						     List<Source> l = new ArrayList<Source>();
-							  l.add(s);
-							  return new Symbol(l);
-						  :}
-                  | Source_Decls.l Source_Decl.s {: l.add(s); return _symbol_l; :}
-                  ;
-Source_Decl       = Source_Def_Id.id EQUAL String.name COMMA Rss_Feed.feed 
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Source_Decl");
-							  Source s = Source.buildSource(_user, id, name, feed);
-							  recordSource(s);
-							  return new Symbol(s);
-						  :}
-					   | error EQUAL.t String COMMA Rss_Feed
+Filter_Id         = LBRACKET Ident.f RBRACKET ;
+Collection_Id     = LBRACE Ident.name RBRACE ;
+Opt_Collection_Id = Collection_Id? ;
+Topic_Id          = Ident ;
+Import_Directive  = Import_Command.icmd Collection_Refs.coll_ids
 						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "A source has to be defined: <b>(hindu) = Name, RSS_Feed</b>.");
-							  return DUMMY_SYMBOL;
+						     DEBUG("Import_Directive");
+							  _currSym = _symbol_icmd;
+							  for (int i = 0; i < coll_ids.length; i++)
+								  importCollection(coll_ids[i], icmd, coll_ids[i]);
+
+						  	  return DUMMY_SYMBOL;
 						  :}
-                  ;
-Cpt_Collection    = DEF_CPTS Collection_Id.cid Concept_Decls.clist EndCpts
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Concept Collection");
-							  recordConceptCollection(cid, clist);
-							  return DUMMY_SYMBOL;
-						  :}
-						  | error Ident.t Concept_Decls EndCpts
+                  | Import_Command.icmd Collection_Refs.coll_ids FROM IDENT_TOK.uid
 						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(_symbol_t.getStart()), "Concept collections have to written as: <b>{Collection Name} : CONCEPTS { ... }</b>.");
-							  return DUMMY_SYMBOL;
+						     DEBUG("Import_Directive");
+							  _currSym = _symbol_icmd;
+							  for (int i = 0; i < coll_ids.length; i++)
+								  importCollection(coll_ids[i], icmd, uid, coll_ids[i]);
+
+						  	  return DUMMY_SYMBOL;
+						  :}
+                  | Collection_Id.newColl EQUAL Import_Command.icmd Collection_Id.cid
+						  {:
+						     DEBUG("Import_Directive");
+							  _currSym = _symbol_icmd;
+						     importCollection(newColl, icmd, cid);
+
+						  	  return DUMMY_SYMBOL;
+						  :}
+                  | Collection_Id.newColl EQUAL Import_Command.icmd Collection_Id.cid FROM IDENT_TOK.uid
+						  {:
+						     DEBUG("Import_Directive");
+							  _currSym = _symbol_icmd;
+						     importCollection(newColl, icmd, uid, cid);
+
+						  	  return DUMMY_SYMBOL;
 						  :}
                   ;
-EndCpts           = END | END_CPTS ;
-Concept_Decls     = Concept_Decl.a 
-						  {: 
-						     List<Concept> l = new ArrayList<Concept>();
-						     l.add(a); 
-							  return new Symbol(l);
-						   :}
-                  | Concept_Decls.l Concept_Decl.a {: l.add(a); return _symbol_l; :}
+Import_Command    = IMPORT_SRCS     {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("SRC")); :}
+                  | IMPORT_CONCEPTS {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CPT")); :}
+                  | IMPORT_FILTERS  {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("FIL")); :}
                   ;
-Concept_Decl      = Concept_Def_Id.id EQUAL Keywords.kwds
-                    {:
+Collection_Refs   = Collection_Id | Collection_Refs COMMA Collection_Id ;
+Src_Collection    = Source_Use_Decls | Source_Defn_Decls ;
+Source_Use_Decls  = DEF_SRCS Collection_Id.c EQUAL Source_Uses.srcs END? {: recordSourceCollection(c, srcs); return DUMMY_SYMBOL; :}
+                  | DEF_SRCS Collection_Id.c Source_Uses.srcs END        {: recordSourceCollection(c, srcs); return DUMMY_SYMBOL; :}
+                  ;
+Source_Defn_Decls = DEF_SRCS Collection_Id.c Source_Defns.srcs END       {: recordSourceCollection(c, srcs); return DUMMY_SYMBOL; :}
+						;
+Source_Defns      = Source_Defn.s                       {: HashSet<Source> srcs = new HashSet<Source>(); srcs.add(s); return new Symbol(srcs); :}
+                  | Source_Defns.src_defs Source_Defn.s {: src_defs.add(s); return _symbol_src_defs; :}
+/*
+TODO: Not supported yet
+                  | Opml_Sources.srcs	// Nothing to do here .. srcs will get returned 
+                  | Source_Defns.src_defs Opml_Sources.srcs  {: src_defs.addAll(srcs); return _symbol_src_defs; :}
+*/
+                  ;
+Source_Defn       = Url.feed                  {: Source s = Source.buildSource(_user, null, null, feed); recordSource(s); return new Symbol(s); :}
+						| Ident.tag EQUAL Url.feed  {: Source s = Source.buildSource(_user, tag, null, feed);  recordSource(s); return new Symbol(s); :}
+						| Ident.tag EQUAL String.name COMMA Url.feed {: Source s = Source.buildSource(_user, tag, name, feed); recordSource(s); return new Symbol(s); :}
+/*
+ * Leads to several parsing conflicts!
+                  | String.name COMMA Url.feed {: Source s = Source.buildSource(_user, null, name, feed); recordSource(s); return new Symbol(s); :}
+ */
+                  ;
+/*
+ TODO: Not supported yet
+Opml_Sources      = OPML_URL Url.url     {: return new Symbol(processOpmlSource(url)); :}
+						| OPML_FILE Ident.file {: return new Symbol(processOpmlSource(file)); :}
+						;
+**/
+Source_Use        = Ident.s                              {: return new Symbol(new Triple(Boolean.TRUE, null, s)); :}
+						| Collection_Id.c                      {: return new Symbol(new Triple(Boolean.TRUE, c, null)); :}
+                  | Collection_Id.c COLON Ident.s        {: return new Symbol(new Triple(Boolean.TRUE, c, s)); :}
+						| HYPHEN Ident.s                       {: return new Symbol(new Triple(Boolean.FALSE, null, s)); :}
+						| HYPHEN Collection_Id.c               {: return new Symbol(new Triple(Boolean.FALSE, c, null)); :}
+                  | HYPHEN Collection_Id.c COLON Ident.s {: return new Symbol(new Triple(Boolean.FALSE, c, s)); :}
+						;
+Cpt_Collection    = DEF_CPTS Opt_Collection_Id.cid Concept_Decls.cpts END {: recordConceptCollection(cid, cpts); return DUMMY_SYMBOL; :} ;
+Concept_Decls     = Concept_Decl | Concept_Decls Concept_Decl ;
+/**
+TODO: Not supported yet
+Concept           = DEF_CPT Concept_Decl ;
+**/
+Concept_Decl      = Concept_Id.id EQUAL Keywords.kwds 
+						  {:
 						     if (_log.isDebugEnabled()) DEBUG("Concept_Decl");
 							  Concept c = null;
 							  try {
@@ -1061,87 +1000,135 @@ Concept_Decl      = Concept_Def_Id.id EQUAL Keywords.kwds
 						  :}
 					   | error EQUAL.t Keywords
 						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "A concept name has to be written as: <b>&lt;concept&gt; = keyword1, keyword2, .. , keywordn</b>");
-							  return DUMMY_SYMBOL;
-						  :}
-						| error EQUAL Keywords EQUAL.t
-						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "Check if you have an extraneous comma on the previous line!");
+						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "A concept has to be defined as: <b>&lt;concept&gt; = keyword1, keyword2, .. , keywordn</b>");
 							  return DUMMY_SYMBOL;
 						  :}
 						;
-								/** NO NEED TO allocate db-specific lists here, since the keywords will get
-								 ** recreated anyway after normalization **/
-Keywords          = String.s           {: List l = new ArrayList(); l.add(s); return new Symbol(l); :}
-               /* | HYPHEN String.s    {: List l = new ArrayList(); l.add("-"+s); return new Symbol(l); :} */
-                  | Cpt_Macro_Use_Id.c {: List l = new ArrayList(); l.add(c); return new Symbol(l); :}
-                  | Keywords.slist COMMA String.s           {: slist.add(s); return _symbol_slist; :}
-               /* | Keywords.slist COMMA HYPHEN String.s    {: slist.add("-"+s); return _symbol_slist; :} */
-                  | Keywords.slist COMMA Cpt_Macro_Use_Id.c {: slist.add(c); return _symbol_slist; :}
+Keywords          = String.s                                {: DEBUG("Keyword: " + s); List l = new ArrayList(); l.add(s); return new Symbol(l); :}
+                  | Cpt_Macro_Use_Id.c                      {: List l = new ArrayList(); l.add(c); return new Symbol(l); :}
+                  | Keywords.kwds COMMA String.s            {: DEBUG("Keywords"); kwds.add(s); return _symbol_kwds; :}
+                  | Keywords.kwds COMMA Cpt_Macro_Use_Id.c  {: kwds.add(c); return _symbol_kwds; :}
                   ;
-Cat_Collection    = DEF_CATS Collection_Id.cid Category_Decls.clist EndCats
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Concept Collection");
-							  recordCategoryCollection(cid, clist);
-							  return DUMMY_SYMBOL;
-						  :}
+Filter_Collection = DEF_FILTERS Opt_Collection_Id.cid Filter_Decls.filts END {: recordFilterCollection(cid, filts); return DUMMY_SYMBOL; :} ;
+Filter_Decls      = Filter_Decl | Filter_Decls Filter_Decl ;
+/**
+TODO: Not supported yet
+Filter            = DEF_FILTER Filter_Decl ;
+**/
+Filter_Decl       = Filter_Id.fid EQUAL Filter_Rule.r {: Filter f = new Filter(fid, r); recordFilter(f); return new Symbol(f); :}
                   ;
-EndCats           = END | END_CATS ;
-Category_Decls    = Category_Defs
-                  | Category_Uses
+							// Left-associativity implemented below
+Filter_Rule       = Rule_Term
+                  | Filter_Rule.r1 AND Rule_Term.r2 {: DEBUG("AND Filter_Rule"); return new Symbol(new AndOrTerm(FilterOp.AND_TERM, r1, r2)); :}
+                  | Filter_Rule.r1 OR Rule_Term.r2  {: DEBUG("OR Filter_Rule");  return new Symbol(new AndOrTerm(FilterOp.OR_TERM, r1, r2));  :}
+                  ;
+Rule_Term         = Rule_Term_Leaf
+                  | HYPHEN Rule_Term.r {: return new Symbol(new NegTerm(r)); :}
+                  | PIPE Context.cxt PIPE DOT Rule_Term.r {: return new Symbol(new ContextTerm(r, cxt)); :}
+                  | LPAREN Filter_Rule.r RPAREN
 						;
-Category_Defs     = Category_Def.c
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Category_Decl");
-						     List<Category> l = new ArrayList<Category>();
-							  l.add(c);
-							  return new Symbol(l);
+Filt_Or_Cat_Use_Id = Filter_Id.f                       
+                     {:
+									// Don't record an error
+								Object o = getFilter(f, false);
+								if (o == null)
+									o = getCategory(f);
+							   return new Symbol(o); 
+							:}
+                   | Collection_Id.c COLON Filter_Id.f 
+						   {:
+									// Record an error -- since the grammar no longer supports category collections, 
+									// {c}:[f] can only refer to a filter f from a filter collection c
+							   return new Symbol(getFilter(c, f, true));
+							:}
+						 ;
+Rule_Term_Leaf    = LeafConcept.c
+						  {: 
+						  		DEBUG("LeafConcept"); 
+								_currSym = _symbol_c; 
+								return new Symbol(new LeafConcept(c, null));
 						  :}
-                  | Category_Defs.cl Category_Def.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Category_Decls");
-							  cl.add(c);
-							  return _symbol_cl;
+						| LeafConcept.c Min_Hit.h
+						  {: 
+						  		DEBUG("LeafConcept"); 
+								_currSym = _symbol_c; 
+								return new Symbol(new LeafConcept(c, h));
+						  :}
+/**
+ * Not yet supported!  Requires me to change the rule term table because this rule term has 3 args, c1, c2 and n
+
+						| LeafConcept.c1 TILDE NUM_TOK.n LeafConcept.c2
+						  {:  
+						      DEBUG("TILDE Filter_Rule");
+								return new Symbol(new TildeTerm(FilterOp.TILDE_TERM, c1, c2, n));  
+						  :}
+**/
+						| Filt_Or_Cat_Use_Id.f
+						  {: 
+						  		DEBUG("Filt_Or_Cat_Use_Id"); 
+								_currSym = _symbol_f; 
+								if (f instanceof Filter)
+									return new Symbol(new LeafFilter((Filter)f));
+						      else
+									return new Symbol(new LeafCategory((Category)f));
 						  :}
 						;
-Category_Uses     = Cat_Use_Id.c
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Category_Uses");
-						     List<Category> l = new ArrayList<Category>(); 
-							  l.add(c);
-						     return new Symbol(l);
+LeafConcept       = STRING_TOK.s
+						  {: 
+									// Convert the plain string into a concept and record it
+								_cptCounter++;
+						  		String name = "_cpt_" + _cptCounter;
+								List kwds = new ArrayList();
+								kwds.add(s);
+								Concept c = new Concept(name, kwds);
+								recordConcept(c);
+								_globalConcepts.add(c);
+								return new Symbol(c);
 						  :}
-                  | Collection_Id.cc
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Collection Category_Uses");
-							  _currSym = _symbol_cc;
-							  return new Symbol(getCategoryCollection(cc));
-						  :}
-                  | Category_Uses.l COMMA Cat_Use_Id.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Category_Uses");
-							  l.add(c);
-							  return _symbol_l;
-						  :}
-                  | Category_Uses.l COMMA Collection_Id.cc
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Collection Category_Uses");
-							  _currSym = _symbol_cc;
-							  l.addAll(getCategoryCollection(cc));
-							  return _symbol_l;
-						  :}
+                  | Cpt_Use_Id
+						;
+Min_Hit           = COLON NUM_TOK.n {: return new Symbol(Integer.valueOf(n)); :}
+						;
+Context           = Cpt_Use_Id.c                   {: ArrayList l = new ArrayList(); l.add(c); return new Symbol(l); :}
+                  | Context.cxt COMMA Cpt_Use_Id.c {: cxt.add(c); return _symbol_cxt; :}
                   ;
-Category_Def      = Category_Def_Id.id EQUAL.t Filter_Rule.r
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Category_Decl");
-							  Category c = null;
+/*
+Taxonomy          = DEF_TAXONOMY Ident Taxonomy_Tree END ;
+*/
+Taxonomy_Tree     = Tree_Nodes ;
+Tree_Nodes        = Node.c {: List<Category> l = new ArrayList<Category>(); l.add(c); return new Symbol(l); :}
+                  | Tree_Nodes.cl Node.c {: cl.add(c); return _symbol_cl; :}
+						;
+Node              = Filt_Or_Cat_Use_Id.f /* Reference to an existing filter definition */
+						  {:
+						     Category c = null;
 							  try {
-								  c = new Category(id, r);
+								  if (f instanceof Filter)
+									  c = new Category(((Filter)f).getName(), (Filter)f);
+								  else
+									  c = (Category)f;
 							  }
 							  catch (java.lang.Exception e1) {
 								  if (!(_isFirstPass && _haveUnresolvedRefs)) {
 									  _log.error("Parse Error!", e1);
-									  ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), e1.getMessage());
+									  ParseUtils.parseError(_currFile, Symbol.getLine(_symbol_f.getStart()), e1.getMessage());
+								  }
+								     // This won't fail
+								  try { c = new Category("DUMMY", new ArrayList<Category>()); } catch (java.lang.Exception e2) { }
+							  }
+							  if (c != f) recordCategory(c);
+							  return new Symbol(c);
+						  :}
+                  | Filter_Decl.f   /* New filter defn */
+						  {:
+						     Category c = null;
+							  try {
+								  c = new Category(f.getName(), f);
+							  }
+							  catch (java.lang.Exception e1) {
+								  if (!(_isFirstPass && _haveUnresolvedRefs)) {
+									  _log.error("Parse Error!", e1);
+									  ParseUtils.parseError(_currFile, Symbol.getLine(_symbol_f.getStart()), e1.getMessage());
 								  }
 								     // This won't fail
 								  try { c = new Category("DUMMY", new ArrayList<Category>()); } catch (java.lang.Exception e2) { }
@@ -1149,114 +1136,77 @@ Category_Def      = Category_Def_Id.id EQUAL.t Filter_Rule.r
 							  recordCategory(c);
 							  return new Symbol(c);
 						  :}
-                  | Category_Def_Id.id EQUAL.t LBRACE Category_Defs.clist RBRACE
-                    {:
-						     if (_log.isDebugEnabled()) DEBUG("Nested Category_Decl"); 
-							  Category c = null;
+						| Filter_Id.f EQUAL LBRACE Taxonomy_Tree.subcats RBRACE
+						  {:
+						     Category c = null;
 							  try {
-							  	  c = new Category(id, clist);
+								  c = new Category(f, subcats);
 							  }
 							  catch (java.lang.Exception e1) {
-								  _log.error("Parse Error!", e1);
-						        ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), e1.getMessage());
+								  if (!(_isFirstPass && _haveUnresolvedRefs)) {
+									  _log.error("Parse Error!", e1);
+									  ParseUtils.parseError(_currFile, Symbol.getLine(_symbol_f.getStart()), e1.getMessage());
+								  }
 								     // This won't fail
-								  try { c = new Category("DUMMY", clist); } catch (java.lang.Exception e2) { }
+								  try { c = new Category("DUMMY", subcats); } catch (java.lang.Exception e2) { }
 							  }
 							  recordCategory(c);
 							  return new Symbol(c);
 						  :}
-                  | Category_Def_Id.id EQUAL.t Collection_Id.cid
+						;
+Topic             = Topic_Header.t WITH Filter_Rule.r 
                     {:
-						     if (_log.isDebugEnabled()) DEBUG("Nested Category_Decl with collections"); 
-							  Category c = null;
-							  try {
-							  	  c = new Category(id, getCategoryCollection(cid));
-							  }
-							  catch (java.lang.Exception e1) {
-								  _log.error("Parse Error!", e1);
-						        ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), e1.getMessage());
+							  Issue    i = getCurrentIssue();
+							  Filter   f = new Filter(i.getName(), r);	/* Create a new filter with same name as the topic! */
+						     Category c = null;
+							  try { 
+								  c = new Category(f.getName(), f); 
+							  } 
+							  catch (java.lang.Exception e) { 
 								     // This won't fail
-								  try { c = new Category("DUMMY", getCategoryCollection(cid)); } catch (java.lang.Exception e2) { }
+								  try { c = new Category("DUMMY", r); } catch (java.lang.Exception e2) { }
 							  }
-							  recordCategory(c);
-							  return new Symbol(c);
-						  :}
-					   | error EQUAL.t Filter_Rule
-						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "A category has to be written as: <b>[category] = rule</b>.");
+							  ArrayList cats = new ArrayList();
+							  cats.add(c);
+						     i.addCategories(cats);
+							  popScope();
 							  return DUMMY_SYMBOL;
 						  :}
-					   | error EQUAL.t LBRACE Category_Defs RBRACE
+                  | Topic_Header.t INTO_TAXONOMY Taxonomy_Tree.cats END 
 						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "A category has to be written as: <b>[category] = rule</b>.");
+							  Issue i = getCurrentIssue();
+						     i.addCategories(cats);
+							  popScope();
 							  return DUMMY_SYMBOL;
 						  :}
-					   | error EQUAL.t Collection_Id
-						  {:
-						     ParseUtils.parseError(_currFile, Symbol.getLine(t.getStart()), "A category has to be written as: <b>[category] = rule</b>.");
-							  return DUMMY_SYMBOL;
-						  :}
-                  ;
-Rule_Term         = Cpt_Use_Id.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("RULE_TERM");
-							  return new Symbol(new LeafConcept(c));
-						  :}
-                  | HYPHEN Cpt_Use_Id.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("RULE_TERM");
-							  return new Symbol(new NegTerm(new LeafConcept(c)));
-						  :}
-                  | Cat_Macro_Use_Id.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("RULE_TERM");
-							  return new Symbol(new LeafCategory(c));
-						  :}
-                  | HYPHEN Cat_Macro_Use_Id.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("RULE_TERM");
-							  return new Symbol(new NegTerm(new LeafCategory(c)));
-						  :}
-                  | PIPE Context.cxt PIPE DOT Context_Filter_Rule.r
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Context RULE_TERM");
-							  return new Symbol(new ContextTerm(r, cxt));
-						  :}
-                  | LPAREN Filter_Rule.r RPAREN
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Paran RULE_TERM");
-							  return _symbol_r;
-						  :}
+/*
+  not yet supported
+                  | Topic_Header.t INTO_TAXONOMY Ident {: return DEBUG("Topic w/ taxo name") :}
+*/
 						;
-	/* For context rule, only a restricted set of rules can be context-selected */
-Context_Filter_Rule = Cpt_Use_Id.c
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Context_Filter_Rule");
-							  return new Symbol(new LeafConcept(c));
-						  :}
-                  | LPAREN Filter_Rule.r RPAREN
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Paran Context_Filter_Rule");
-							  return _symbol_r;
-						  :}
-						;
-Filter_Rule       = Rule_Term.r {: return _symbol_r; :}
-                  | Filter_Rule.r1 AND Rule_Term.r2
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("AND Filter_Rule"); 
-							  return new Symbol(new NonLeafTerm(FilterOp.AND_TERM, r1, r2));
-						  :}
-                  | Filter_Rule.r1 OR Rule_Term.r2
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("OR Filter_Rule"); 
-							  return new Symbol(new NonLeafTerm(FilterOp.OR_TERM, r1, r2));
+Topic_Header      = DEF_TOPIC Topic_Id.i EQUAL FILTER Source_Uses.srcs
+                    {:
+							  try {
+								  Issue ni = new Issue(i, _user);
+								  ni.addSources(srcs);
+								  pushScope(ni);
+							  }
+							  catch (java.lang.Exception e) {
+									// Parsing error ... No change in status
+								  _log.error("Parse Error!", e);
+								  ParseUtils.parseError(_currFile, e.toString());
+							  }
+							  return DUMMY_SYMBOL;
 						  :}
                   ;
-Context           = Cpt_Use_Id.c                   {: ArrayList l = new ArrayList(); l.add(c); return new Symbol(l); :}
-                  | Context.cxt COMMA Cpt_Use_Id.c {: cxt.add(c); return _symbol_cxt; :}
+
+Source_Uses       = Source_Use.s {: return new Symbol(processSourceUse(new HashSet<Source>(), s)); :}
+						| Source_Uses.srcs COMMA Source_Use.s {: processSourceUse(srcs, s); return _symbol_srcs; :}
                   ;
-Issue             = IssueStart_Decl IssueEnd_Decl.i ;
-IssueStart_Decl   = DEF_ISSUE Issue_Id.i
+
+/** The rules below are to support legacy issue definitions **/
+Legacy_Issue_Decl = IssueStart_Decl IssueEnd_Decl.i ;
+IssueStart_Decl   = DEF_TOPIC Topic_Id.i
 						  {:
 							  	/* Push a scope so that imports within the issue declaration
 								 * are local to the issue */
@@ -1273,14 +1223,13 @@ IssueStart_Decl   = DEF_ISSUE Issue_Id.i
 							  return DUMMY_SYMBOL;
 						  :}
 						  ;
-IssueEnd_Decl     = Issue_Decl.i EndIssue 
+IssueEnd_Decl     = Issue_Decl.i END 
 						  {:
 						     if (_log.isDebugEnabled()) DEBUG("Issue"); 
 							  popScope();
 							  return _symbol_i;
 						  :}
                   ;
-EndIssue          = END | END_ISSUE ;
 Issue_Decl        = Import_Directives Source_Use_Decl.su Import_Directives Category_Use_Decl.cu
 						  {:
 						     if (_log.isDebugEnabled()) DEBUG("Issue_Decl");
@@ -1314,29 +1263,6 @@ Issue_Decl        = Import_Directives Source_Use_Decl.su Import_Directives Categ
 							  return new Symbol(i);
 						  :}
                   ;
-Import_Directives = Import_Directive
-                  | Import_Directives Import_Directive
-						;
-
+Import_Directives = Import_Directive+ ;
 Source_Use_Decl   = MONITOR_SRCS Source_Uses.su ;
-Source_Uses       = Source_Use.s
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Source_Uses");
-							  	// IMPT: Create a new hashset ... because of possibility of multiple passes
-							  return new Symbol(processSourceUse(new HashSet<Source>(), s));
-						  :}
-                  | Source_Uses.h COMMA Source_Use.s
-						  {:
-						     if (_log.isDebugEnabled()) DEBUG("Source_Uses");
-							  return new Symbol(processSourceUse(h, s));
-						  :}
-                  ;
-Source_Use        = Src_Use_Id.s                              {: return new Symbol(new Triple(Boolean.TRUE, null, s)); :}
-                  | Collection_Id.c                           {: return new Symbol(new Triple(Boolean.TRUE, c, null)); :}
-                  | Collection_Id.c COLON Src_Use_Id.s        {: return new Symbol(new Triple(Boolean.TRUE, c, s)); :}
-                  | HYPHEN Src_Use_Id.s                       {: return new Symbol(new Triple(Boolean.FALSE, null, s)); :}
-                  | HYPHEN Collection_Id.c                    {: return new Symbol(new Triple(Boolean.FALSE, c, null)); :}
-                  | HYPHEN Collection_Id.c COLON Src_Use_Id.s {: return new Symbol(new Triple(Boolean.FALSE, c, s)); :}
-                  ;
-Category_Use_Decl = ORGANIZE_CATS LBRACE Category_Decls.cu RBRACE
-                  ;
+Category_Use_Decl = ORGANIZE_CATS LBRACE Taxonomy_Tree.cats RBRACE ;

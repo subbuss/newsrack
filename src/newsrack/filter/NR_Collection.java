@@ -1,6 +1,6 @@
 package newsrack.filter;
 
-import java.util.List;
+import java.util.Collection;
 import newsrack.database.DB_Interface;
 import newsrack.user.User;
 
@@ -31,14 +31,15 @@ public abstract class NR_Collection implements java.io.Serializable
 	final public User   _creator;
 	final public String _name;
 	final public NR_CollectionType _type;
-	      public List   _entries;
+	      public Collection _entries;
 
-	public NR_Collection(NR_CollectionType t, User u, String name, List entries)
+	public NR_Collection(NR_CollectionType t, User u, String name, Collection entries)
 	{
 		_type    = t;
 		_creator = u;
 		_name    = name;
 		_entries = entries;
+      if (_log.isDebugEnabled()) _log.debug("RECORDED collection " + this);
 	}
 
 	public boolean equals(Object o)
@@ -50,10 +51,9 @@ public abstract class NR_Collection implements java.io.Serializable
 		return false;
 	}
 
-	public int hashCode()
-	{
-		return _name.hashCode()*31 + _type.hashCode()*31 + _creator.hashCode()*31;
-	}
+	public int hashCode() { return _name.hashCode()*31 + _type.hashCode()*31 + _creator.hashCode()*31; }
+
+	public String toString() { return "NAME: " + _name + "; type - " + _type + "; creator - " + _creator.getUid(); }
 
 	public void setKey(Long k) { _key = k; } 
 
@@ -65,5 +65,9 @@ public abstract class NR_Collection implements java.io.Serializable
 
 	public User getCreator() { return _creator; }
 
-	public abstract List getEntries();
+	public void mergeCollection(NR_Collection c) { getEntries().addAll(c.getEntries()); }
+
+	public abstract Object getEntryByName(String name);
+
+	public abstract Collection getEntries();
 }

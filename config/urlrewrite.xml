@@ -15,21 +15,52 @@
       <to>null</to>
   </rule>
 
+    <!-- The next browse url-rewriting rules are for redirecting to canonical "clean" browse urls -->
+  <rule>
+    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
+    <from>/Browse\.do\?owner=(.*?)&amp;(amp;)?issue=(.*?)&amp;(amp;)?catID=(.*)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse/$1/$3/$5</to>
+  </rule>
+
+  <rule>
+    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
+    <from>/Browse\.do\?owner=(.*?)&amp;(amp;)?issue=(.*?)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse/$1/$3</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls</note>
+    <from>/browse\?owner=(.*?)&amp;(amp;)?issue=(.*?)&amp;(amp;)?catID=(.*)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse/$1/$3/$5</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls</note>
+    <from>/browse\?issue=(.*?)&amp;(amp;)?catID=(.*?)&amp;(amp;)?owner=(.*?)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse/$5/$1/$3</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls</note>
+    <from>/browse\?owner=(.*?)&amp;(amp;)?issue=(.*?)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse/$1/$3</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls</note>
+    <from>/browse\?issue=(.*?)&amp;(amp;)?owner=(.*?)$</from>
+	 <to type="permanent-redirect">%{context-path}/browse/$3/$1</to>
+  </rule>
+
   <!-- ###################################################################### 
-       The first set of rules match urls from the current installation and
-		 sends a 301 permanent redirect to the new urls.  This should ensure
-		 that all old urls seamless work
+       These next set of rules match legacy urls and sends a 301 permanent
+		 redirect to the new urls.  This should ensure that all old urls continue
+		 to work seamlessly.
        ###################################################################### -->
   <rule>
     <note> Generic rewriting rule!  Issue a 301 redirect </note>
     <from>^/DisplayNewsItem\.do(.*)</from>
 	 <to type="permanent-redirect">%{context-path}/news/display$1</to>
-  </rule>
-
-  <rule>
-    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
-    <from>^/Browse\.do(.*)?$</from>
-	 <to type="permanent-redirect">%{context-path}/browse$1</to>
   </rule>
 
   <rule>
@@ -92,7 +123,37 @@
        ###################################################################### -->
   <rule>
     <from>^/?$</from>
-	 <to>/selected-topics.action</to>
+	 <to>/selected-topics.action</to>	<!-- default start page is selected-topics page going forward -->
+  </rule>
+
+  <rule>
+    <note> Clean browse urls - leaf category, xml request </note>
+    <from>^/browse/([^\.]+)/([^\.]+)/([^\.]+).xml/?$</from>
+	 <to>/browse.action?owner=$1&amp;issue=$2&amp;catID=$3&amp;output=xml</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls - leaf category, json request </note>
+    <from>^/browse/([^\.]+)/([^\.]+)/([^\.]+).json/?$</from>
+	 <to>/browse.action?owner=$1&amp;issue=$2&amp;catID=$3&amp;output=json</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls - leaf category, html request </note>
+    <from>^/browse/([^\.]+)/([^\.]+)/([^\.]+)/?$</from>
+	 <to>/browse.action?owner=$1&amp;issue=$2&amp;catID=$3</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls - user issue browse </note>
+    <from>^/browse/([^\.]+)/([^\.]+)/?$</from>
+	 <to>/browse.action?owner=$1&amp;issue=$2</to>
+  </rule>
+
+  <rule>
+    <note> Clean browse urls - user account browse </note>
+    <from>^/browse/([^\.]+)/?$</from>
+	 <to>/browse.action?owner=$1</to>
   </rule>
 
   <rule>
@@ -141,6 +202,36 @@
     <condition name="user-agent">googlebot</condition>
     <from>^(.*?)(?:\;jsessionid=[^\?#]*)?(\?[^#]*)?(#.*)?$</from>
     <to>$1$2$3</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <note> Clean browse urls</note>
+    <from>/browse\.action\?owner=(.*?)&amp;(amp;)?issue=(.*?)&amp;(amp;)?catID=(.*)$</from>
+	 <to>/browse/$1/$3/$5</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <note> Clean browse urls</note>
+    <from>/browse\.action\?issue=(.*?)&amp;(amp;)?catID=(.*?)&amp;(amp;)?owner=(.*?)$</from>
+	 <to>/browse/$5/$1/$3</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <note> Clean browse urls</note>
+    <from>/browse\.action\?owner=(.*?)&amp;(amp;)?issue=(.*?)$</from>
+	 <to>/browse/$1/$3</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <note> Clean browse urls</note>
+    <from>/browse\.action\?issue=(.*?)&amp;(amp;)?owner=(.*?)$</from>
+	 <to>/browse/$3/$1</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <note> Clean browse urls</note>
+    <from>/browse\.action\?owner=(.*?)$</from>
+	 <to>/browse/$1</to>
   </outbound-rule>
 
   <outbound-rule>

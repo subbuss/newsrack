@@ -34,16 +34,12 @@
   <property name="compiler.debug"    value="false" />
   <property name="parser.dir"        location="${javadir}/filter/parser" />
 
-  <uptodate property="parser.src.uptodate"
-            srcfile="${parser.dir}/grammar.y"
-         targetfile="${parser.dir}/NRLanguageParser.java" />
-
-  <uptodate property="scanner.src.uptodate" targetfile="${parser.dir}/NRLanguageScanner.java">
-      <srcfiles dir="${parser.dir}">
-        <filename name="scanner.l" />
-        <filename name="NRLanguageParser.java" />
-      </srcfiles>
-  </uptodate>
+  <uptodate property="parser.src.uptodate" srcfile="${parser.dir}/grammar.y" targetfile="${parser.dir}/NRLanguageParser.java" />
+  <uptodate property="scanner.src.uptodate" srcfile="${parser.dir}/scanner.l" targetfile="${parser.dir}/NRLanguageScanner.java" />
+<!--
+  <uptodate property="legacy.parser.src.uptodate" srcfile="${parser.dir}/legacy/grammar.y" targetfile="${parser.dir}/legacy/NRLanguageParser.java" />
+  <uptodate property="legacy.scanner.src.uptodate" srcfile="${parser.dir}/legacy/scanner.l" targetfile="${parser.dir}/legacy/NRLanguageScanner.java" />
+-->
 
   <path id="build.classpath">
     <fileset dir="${libdir}">
@@ -61,13 +57,23 @@
     <property name="jflex.available" value="yes"/>
   </target>
 
-  <target name="parser" depends="beavertask" description="generate parser">
+  <target name="parser" unless="parser.src.uptodate" depends="beavertask" description="generate parser">
     <beaver file="${parser.dir}/grammar.y" />
   </target>
 
   <target name="scanner" unless="scanner.src.uptodate" depends="jflextask,beavertask" description="generate scanner">
     <jflex file="${parser.dir}/scanner.l" nobak="yes" />
   </target>
+
+<!--
+  <target name="legacy.parser" unless="legacy.parser.src.uptodate" depends="beavertask" description="generate parser">
+    <beaver file="${parser.dir}/legacy/grammar.y" />
+  </target>
+
+  <target name="legacy.scanner" unless="legacy.scanner.src.uptodate" depends="jflextask,beavertask" description="generate scanner">
+    <jflex file="${parser.dir}/legacy/scanner.l" nobak="yes" />
+  </target>
+-->
 
   <target name="compile" description="Compile all sources.">
     <mkdir dir="${classdir}" />
@@ -81,6 +87,9 @@
   </target>
 
   <!-- "build" is an alias for "compile" -->
+<!--
+  <target name="build" depends="parser,scanner,legacy.parser,legacy.scanner,compile" description="Compile all sources." />
+-->
   <target name="build" depends="parser,scanner,compile" description="Compile all sources." />
 
   <target name="rebuild" depends="clean,build" description="Cleanly compiles all sources." />
@@ -117,10 +126,18 @@
      <copy todir="${container.dir}/${webapp.name}/"> <fileset dir="${viewdir}" /> </copy>
   </target>
 
-  <target name="clean" description="Remove all generated class and build files.">
+  <target name="clean" description="Remove generated class and build files.">
     <delete file="${parser.dir}/NRLanguageParser.java" />
     <delete file="${parser.dir}/NRLanguageScanner.java" />
+<!--
+    <delete file="${parser.dir}/legacy/NRLanguageParser.java" />
+    <delete file="${parser.dir}/legacy/NRLanguageScanner.java" />
+-->
     <delete file="${builddir}/${webapp.name}.war" />
+    <delete dir="${webinf}" />
+  </target>
+
+  <target name="all-clean" depends="clean" description="Remove all generated class and build files.">
     <delete dir="${wardir}" />
   </target>
 

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 
+import newsrack.util.StringUtils;
+
 import org.htmlparser.http.ConnectionManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,15 +78,9 @@ public class URLCanonicalizer
 		}
 	}
 
-	private static String getDomain(String url)
-	{
-		url = url.replace("http://", "");
-		return url.substring(0, url.indexOf("/")).replace("www.", "");
-	}
-
 	private static boolean isFeedProxyUrl(String url)
 	{
-		String d = getDomain(url);
+		String d = StringUtils.getDomainForUrl(url);
 		if (_log.isDebugEnabled()) _log.debug("Domain: " + d);
 		for (Pattern p: proxyREs) {
 			if (p.matcher(d).matches()) {
@@ -157,7 +153,7 @@ public class URLCanonicalizer
 			if (isFeedProxyUrl(url))
 				url = getTargetUrl(url);
 
-			String domain = getDomain(url);
+			String domain = StringUtils.getDomainForUrl(url);
 			if (_log.isDebugEnabled()) _log.debug("Domain for default rule: " + domain);
 
 			Pattern p = urlFixupRules.get(domain);

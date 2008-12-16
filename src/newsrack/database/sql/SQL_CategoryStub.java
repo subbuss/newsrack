@@ -1,5 +1,6 @@
 package newsrack.database.sql;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -86,9 +87,9 @@ class SQL_CategoryStub extends Category
 		}
 	}
 
-	public List<Category> getChildren()
+	public Collection<Category> getChildren()
 	{
-		List<Category> children = super.getChildren();
+		Collection<Category> children = super.getChildren();
 		if (isLeafCategory() || !children.isEmpty())
 			return children;
 
@@ -110,7 +111,7 @@ class SQL_CategoryStub extends Category
 				c.setIssue(this.getIssue());
 				children.add(c);
 			}
-			setChildren(children);
+			setChildren((ArrayList<Category>)children);
 
 			return children;
 		}
@@ -130,7 +131,7 @@ class SQL_CategoryStub extends Category
 	// public String getTaxonomy() { setupAll return super.getTaxonomy(); }
 	//
 	public Category getCategory(final String catName) { getChildren(); return super.getCategory(catName); }
-	public List<Category> getLeafCats() { getChildren(); return super.getLeafCats(); }
+	public Collection<Category> getLeafCats() { getChildren(); return super.getLeafCats(); }
 	public void readInCurrentRSSFeed() { getChildren(); super.readInCurrentRSSFeed(); }
 	public void updateRSSFeed() { getChildren(); super.updateRSSFeed(); }
 	public void freeRSSFeed() { getChildren(); super.freeRSSFeed(); }

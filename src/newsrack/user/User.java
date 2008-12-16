@@ -563,7 +563,6 @@ public class User implements java.io.Serializable
 
 	public Source getSourceByTag(String tag)
 	{
-      _log.info("Requesting source by tag: " + tag);
 		return _db.getSource(this, tag);
 	}
 
@@ -671,6 +670,7 @@ public class User implements java.io.Serializable
 
 	public void addCollection(NR_Collection c)
 	{
+		if (_log.isDebugEnabled()) _log.debug("Adding collection: " + c);
 		_userCollections.add(c);
 	}
 

@@ -52,10 +52,21 @@ public class Source implements java.io.Serializable
 
 	public static Source buildSource(User u, String utag, String name, String feedUrl)
 	{
-		if (_log.isDebugEnabled()) _log.debug("Request to build source: " + name + ", tag - " + utag);
+		Feed f = null;
+		if (utag == null) {
+			f = Feed.getFeed(feedUrl, null, name);
+			utag = f.getTag();
+		}
+
 		Source s = _db.getSource(u, utag);
-		if (s == null)
-			s = new Source(u, utag, name, feedUrl); // Create a new source object and record it
+		if (s == null) {
+			if (name == null) {
+				if (f == null)
+					f = Feed.getFeed(feedUrl, utag, name);
+				name = f.getName();
+			}
+			s = new Source(u, utag, name, feedUrl);
+		}
 
 		return s;
 	}

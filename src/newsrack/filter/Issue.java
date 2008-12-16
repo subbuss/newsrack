@@ -220,15 +220,12 @@ public class Issue implements java.io.Serializable
 
 		re.append("\"");
 		pw.println(re);
-		pw.println("\t\t{");
-		pw.println("\t\t\tString cs[] = {");
+		pw.print("\t\t{ return token(new String[] {");
 		Iterator it = hs.iterator();
 		while (it.hasNext()) {
-			pw.println("\t\t\t\t\"" + ((Concept)it.next()).getLexerToken().getToken() + "\",");
+			pw.print("\"" + ((Concept)it.next()).getLexerToken().getToken() + (it.hasNext() ? "\"," : "\""));
 		}
-		pw.println("\t\t\t};");
-		pw.println("\t\t\treturn token(cs);");
-		pw.println("\t\t}");
+		pw.println("}); }");
 	}
 
 	private static void gen_JFLEX_RegExp(String kword, StringBuffer buf)
@@ -279,22 +276,22 @@ public class Issue implements java.io.Serializable
 		}
 	}
 
-	private static void processMatchedConcept(String token, Hashtable tokTable, PrintWriter pw)
+	private static void processMatchedConcept(String token, int tokenPosn, Hashtable tokTable, PrintWriter pw)
 	{
-			// Increment match count of the matched concept
+			// Increment match count of the matched concept and record information
+			// about where in the article it was found
 		Count cnt = (Count)tokTable.get(token);
 		if (cnt == null)
-			tokTable.put(token, new Count(1));
+			tokTable.put(token, new Count(1, tokenPosn));
 		else
-			cnt.increment();
+			cnt.addMatch(tokenPosn);
 
 			// Output the concept to the token file for debugging purposes
 		if (pw != null)
-			pw.println(token);
+			pw.println(token + ":" + tokenPosn);
 	}
 
 // ############### NON-STATIC FIELDS AND METHODS ############
-/** Note that this class extends Category and inherits many fields and methods **/
 	private   Long    	_key;
 	protected String 		_name;
 	private   User    	_user;
@@ -312,8 +309,9 @@ public class Issue implements java.io.Serializable
 
 	/* These are transient and need not be persisted. */
 				 private Set<Concept> _usedConcepts;		// Concepts used by all filters in this topic
-	transient private Method       _lexerScanMethod;	// Method that will be invoked to scan news articles
-	transient private Method       _lexerResetMethod;	// Method that will be invoked to reset the lexer
+	transient private Method       _lexerScanMethod;	// yylex - Method that will be invoked to scan news articles
+	transient private Method       _lexerCloseMethod;	// yyclose - Method that will be invoked to close stream
+	transient private Method       _lexerResetMethod;	// yyreset - Method that will be invoked to reset the lexer
 	transient private Constructor  _lexerConstr;			// Constructor for the lexer class
 	transient private Object       _lexer;					// The lexer object for this class
 
@@ -675,8 +673,7 @@ public class Issue implements java.io.Serializable
 
 	/**
 	 * Generate regular expressions for a JFLEX based lexical scanner.
-	 * These regular expressions recognize concepts that have been
-	 * used in this issue.
+	 * These regular expressions recognize concepts that have been used in this issue.
 	 */
 	public void gen_JFLEX_RegExps()
 	{
@@ -825,6 +822,7 @@ public class Issue implements java.io.Serializable
 			Class[] methodArgTypes = new Class[1];
 			methodArgTypes[0] = Class.forName("java.io.Reader");
 			_lexerScanMethod  = scannerClass.getMethod("yylex", (java.lang.Class[])null);
+			_lexerCloseMethod = scannerClass.getMethod("yyclose", (java.lang.Class[])null);
 			_lexerResetMethod = scannerClass.getMethod("yyreset", methodArgTypes);
 
 			Class[] constrTypes = new Class[1];
@@ -963,6 +961,8 @@ public class Issue implements java.io.Serializable
 		while (true) {
 			ConceptToken tok = (ConceptToken)_lexerScanMethod.invoke(_lexer, (java.lang.Object [])null);
 			if (tok == null) {
+					// Close the input reader!
+			   _lexerCloseMethod.invoke(_lexer, (java.lang.Object [])null);
 				break;
 			}
 
@@ -972,12 +972,11 @@ public class Issue implements java.io.Serializable
 				if (tok.isMultiToken()) {
 					if (_log.isDebugEnabled()) _log.debug("MULTI token " + tok.getToken());
 					String[] toks = tok.getTokens();
-					for (int i = 0; i < toks.length; i++) {
-						processMatchedConcept(toks[i], tokTable, pw);
-					}
+					for (int i = 0; i < toks.length; i++)
+						processMatchedConcept(toks[i], numTokens, tokTable, pw);
 				}
 				else {
-					processMatchedConcept(tok.getToken(), tokTable, pw);
+					processMatchedConcept(tok.getToken(), numTokens, tokTable, pw);
 				}
 			}
 		}
@@ -1024,9 +1023,9 @@ public class Issue implements java.io.Serializable
 		if (_log.isDebugEnabled()) _log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f._feedName));
 
 		Long maxNewsId = (long)0;
+		PrintWriter pw = null;
 		try {
-			PrintWriter pw = null;
-			String      fn = _user.getWorkDir() + StringUtils.getOSFriendlyName(getName()) + ".tokens";
+			String fn = _user.getWorkDir() + StringUtils.getOSFriendlyName(getName()) + ".tokens";
 			try {
 				if (_log.isDebugEnabled()) _log.debug("Looking for utf8 writer for " + fn);
 				pw = IOUtils.getUTF8Writer(fn);
@@ -1038,7 +1037,8 @@ public class Issue implements java.io.Serializable
 			if (pw != null)
 				pw.println("ISSUE: " + _name);
 
-			User u = _user;
+			User   u       = _user;
+			String workDir = u.getWorkDir();
 			for (NewsItem ni: newsItems) {
 				if (skipProcessed) {
 					if (ni == null) {
@@ -1066,7 +1066,7 @@ public class Issue implements java.io.Serializable
 				try {
 					Hashtable tokTable = new Hashtable();
 					r = ni.getReader();
-					initScanner(r, _user.getWorkDir());
+					initScanner(r, workDir);
 					int numTokens = scanNewsItem(pw, tokTable);
 					classifyArticle(ni, numTokens, tokTable);
 				}
@@ -1083,13 +1083,13 @@ public class Issue implements java.io.Serializable
 				if (pw != null)
 					pw.flush();
 			}
-
-			if (pw != null)
-				pw.close();
 		}
 		catch (Exception e) {
 			_log.error("Exception scanning/classifying .. ", e);
 			return;
+		}
+		finally {
+			if (pw != null) pw.close();
 		}
 
 		if (skipProcessed)
@@ -1101,14 +1101,15 @@ public class Issue implements java.io.Serializable
 		_db.commitNewsToArchive(this);
 	}
 
-   public void unloadScanners()
-   {
-         // Set these fields to null so that the scanners can be gc'ed as necessary!
-      _lexerScanMethod = null;
-      _lexerResetMethod = null;
-      _lexerConstr = null;
-      _lexer = null;
-   }
+	public void unloadScanners()
+	{
+			// Set these fields to null so that the scanners can be gc'ed as necessary!
+		_lexerScanMethod = null;
+		_lexerResetMethod = null;
+		_lexerCloseMethod = null;
+		_lexerConstr = null;
+		_lexer = null;
+	}
 
 	/**
 	 * This method clears all previously categorized news

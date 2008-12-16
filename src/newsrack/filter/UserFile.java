@@ -15,8 +15,8 @@ import java.util.Hashtable;
 
 public class UserFile
 {
-	public final User       _user;		// The user in whose space this file exists
-	public final String 	   _name;		// Name of the file
+	public final User   _user;		// The user in whose space this file exists
+	public final String _name;		// Name of the file
 
 	private boolean _isUrl          = false;
 	private boolean _isNewsrackFile = false;

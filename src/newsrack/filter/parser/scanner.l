@@ -3,10 +3,8 @@ package newsrack.filter.parser;
 import beaver.Symbol;
 import beaver.Scanner;
 import newsrack.filter.parser.NRLanguageParser.Terminals;
-
-// Add this rule! 
-//
-// [^ \t\n\r<>{}()\.\[\],:-=|]+       { return token(Terminals.STRING_TOK); }
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 %%
 
@@ -25,18 +23,13 @@ import newsrack.filter.parser.NRLanguageParser.Terminals;
 	return new Symbol(Terminals.EOF, "end-of-file");
 %eofval}
 
-IDENT  = [:jletter:][:jletterdigit:]*
-WORD   = [:jletterdigit:]+
-WS     = [ \t\n\r]
-SPACE  = {WS}+
-
-%state COMMENT, STRING
-
 %{
+   static private Log _log = LogFactory.getLog(NRLanguageScanner.class);
+
    StringBuffer string = new StringBuffer();
    public Symbol token(short tok, String s)
 	{
-		// System.out.println("token - " +  s + ", " + tok); 
+		if (_log.isDebugEnabled()) _log.debug("token - " + s + ", " + tok);
 		return new Symbol(tok, yyline+1, yycolumn+1, yylength(), s);
 	}
 
@@ -46,11 +39,20 @@ SPACE  = {WS}+
 	}
 %}
 
+NUMBER = [:digit:]+
+WORD   = ([:letter:]|[:digit:])([:letter:]|[:digit:]|\.|\-)*
+WS     = [ \t\n\r]
+SPACE  = {WS}*
+
+%state COMMENT, STRING
+
 %%
 <YYINITIAL> {
 	"(*"                        { yybegin(COMMENT); }
 	\"                          { string.setLength(0); yybegin(STRING); }
 	{SPACE}                     { }
+	"http://"[^ \t\n\r]*        { return token(Terminals.URL_TOK); }
+	"---""-"*                   { /** separator line (3 or more hyphens) ! ignore **/ }
 	"{"							    { return token(Terminals.LBRACE); }
 	"}"                         { return token(Terminals.RBRACE); }
 	"("							    { return token(Terminals.LPAREN); }
@@ -68,26 +70,21 @@ SPACE  = {WS}+
 	"OR"                        { return token(Terminals.OR); }
 	"AND"                       { return token(Terminals.AND); }
    "FROM"                      { return token(Terminals.FROM); }
+	"WITH"                      { return token(Terminals.WITH); }
+	"INTO"{SPACE}"TAXONOMY"     { return token(Terminals.INTO_TAXONOMY); }
    "IMPORT"{SPACE}"SOURCES"    { return token(Terminals.IMPORT_SRCS); }
    "IMPORT"{SPACE}"CONCEPTS"   { return token(Terminals.IMPORT_CONCEPTS); }
-   "IMPORT"{SPACE}"CATEGORIES" { return token(Terminals.IMPORT_CATS); }
-   "DEFINE"{SPACE}"SOURCES"    { return token(Terminals.DEF_SRCS); }
-   "DEFINE"{SPACE}"CONCEPTS"   { return token(Terminals.DEF_CPTS); }
-   "DEFINE"{SPACE}"CATEGORIES" { return token(Terminals.DEF_CATS); }
-   "DEFINE"{SPACE}"ISSUE"      { return token(Terminals.DEF_ISSUE); }
-   "END"{SPACE}"SOURCES"       { return token(Terminals.END_SRCS); }
-   "END"{SPACE}"CONCEPTS"      { return token(Terminals.END_CPTS); }
-   "END"{SPACE}"CATEGORIES"    { return token(Terminals.END_CATS); }
-   "END"{SPACE}"ISSUE"         { return token(Terminals.END_ISSUE); }
-   "END"         					 { return token(Terminals.END); }
+   "IMPORT"{SPACE}"FILTERS"    { return token(Terminals.IMPORT_FILTERS); }
+   ("DEF"|"DEFINE"){SPACE}"SOURCES"          { return token(Terminals.DEF_SRCS); }
+   ("DEF"|"DEFINE"){SPACE}"CONCEPTS"         { return token(Terminals.DEF_CPTS); }
+   ("DEF"|"DEFINE"){SPACE}"FILTERS"          { return token(Terminals.DEF_FILTERS); }
+   ("DEF"|"DEFINE"){SPACE}("TOPIC"|"ISSUE")  { return token(Terminals.DEF_TOPIC); }
+   "END"{SPACE}("CONCEPTS"|"SOURCES"|"ISSUE"|"CATEGORIES") | "END" { return token(Terminals.END); }
+	"FILTER"                    { return token(Terminals.FILTER); }
    "MONITOR"{SPACE}"SOURCES"   { return token(Terminals.MONITOR_SRCS); }
-   "ORGANIZE"{SPACE}"NEWS"{SPACE}"INTO"{SPACE}"CATEGORIES"
-	                            { return token(Terminals.ORGANIZE_CATS); }
-	"http://"[^ \t\n\r]*        { return token(Terminals.URL_TOK); }
-	{IDENT}([\.|-]({WORD}))*    { return token(Terminals.IDENT_TOK); }
-	{WORD}([\.|-]({WORD}))*     { return token(Terminals.STRING_TOK); }
-	/* Ignoring wild cards for now ... 
-	   {WORD}\."*"                        { return token(Terminals.STRING_TOK); } */
+   "ORGANIZE"{SPACE}"NEWS"{SPACE}"INTO"{SPACE}"CATEGORIES" { return token(Terminals.ORGANIZE_CATS); }
+	{NUMBER}                    { return token(Terminals.NUM_TOK); }
+	{WORD}                      { return token(Terminals.IDENT_TOK); }
    "#"[^\n\r]*(\n|\r)          { /* COMMENT ... IGNORE */ }
 }
 

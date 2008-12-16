@@ -1,7 +1,6 @@
 package newsrack.filter;
 
-import java.util.List;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -13,10 +12,9 @@ public final class NR_ConceptCollection extends NR_Collection
 	private transient Map<String, Concept> _map = null;  // Name --> Concept mapping .. optimization!
 	private transient boolean              _allMapped = false;
 
-	public NR_ConceptCollection(User u, String name, List entries)
+	public NR_ConceptCollection(User u, String name, Collection entries)
 	{
 		super(NR_CollectionType.CONCEPT, u, name, entries);
-      if (_log.isDebugEnabled()) _log.debug("RECORDED concept collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Concept getConcept(String c)
@@ -36,7 +34,7 @@ public final class NR_ConceptCollection extends NR_Collection
 			return cpt;
 		}
 		else if (!_allMapped) {
-			for (Concept cpt: (List<Concept>)_entries) {
+			for (Concept cpt: (Collection<Concept>)_entries) {
 				_map.put(cpt.getName(), cpt);
 				if (cpt.getName().equals(c))
 					return cpt;
@@ -52,13 +50,15 @@ public final class NR_ConceptCollection extends NR_Collection
 		}
 	}
 
-	public List getEntries() { return getConcepts(); }
-
-	public List getConcepts()
+	public Collection getConcepts()
 	{
 		if (_entries == null) 
 			_entries = _db.getAllConceptsFromCollection(getKey());
 
 		return _entries;
 	}
+
+	public Object getEntryByName(String name) { return getConcept(name); }
+
+	public Collection getEntries() { return getConcepts(); }
 }

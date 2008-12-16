@@ -189,7 +189,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 		FilterOp op     = Filter.getTermType((Integer)rtVals[1]);
 		switch(op) {
 			case LEAF_CONCEPT:
-				return new Filter.LeafConcept(SQL_Stmt._db.getConcept((Long)rtVals[2]));
+				return new Filter.LeafConcept(SQL_Stmt._db.getConcept((Long)rtVals[2]), ((Long)rtVals[3]).intValue());
 
 			case LEAF_FILTER:
 				return new Filter.LeafFilter(SQL_Stmt._db.getFilter((Long)rtVals[2]));
@@ -205,7 +205,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 
 			case AND_TERM:
 			case OR_TERM:
-				return new Filter.NonLeafTerm(op, buildRuleTree((Long)rtVals[2], rtMap, contextMap), buildRuleTree((Long)rtVals[3], rtMap, contextMap));
+				return new Filter.AndOrTerm(op, buildRuleTree((Long)rtVals[2], rtMap, contextMap), buildRuleTree((Long)rtVals[3], rtMap, contextMap));
 		}
 
 		SQL_Stmt._log.error("Fallen out of Ruleterm switch!  Should not have happened!  Investigate!");
@@ -607,7 +607,15 @@ public enum SQL_Stmt
 		new GetFeedResultProcessor(),
 		true
 	),
-	GET_FEED_BY_TAG(
+   GET_FEED_FROM_URL(
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE url_root = ? AND url_tail = ?",
+      new SQL_ValType[] {STRING, STRING},
+		SQL_StmtType.QUERY,
+		null,
+		new GetFeedResultProcessor(),
+		true
+	),
+	GET_FEED_FROM_TAG(
 		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_tag = ?",
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,

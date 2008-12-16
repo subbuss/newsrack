@@ -66,7 +66,7 @@ public final class StringUtils
 				throw new Exception(name + " encountered as " + type + "name.  White-space character '" + c + "' at position " + i + " is not part of a valid concept name in NewsRack.");
 			}
 				// No special characters allowed!
-			if (   ((i == 0) && !Character.isUnicodeIdentifierStart(c))
+			if (   ((i == 0) && !Character.isUnicodeIdentifierStart(c) && (c != '_'))
 				 || ((i > 0)  && !(   Character.isUnicodeIdentifierPart(c) 
 				 				       || (c == '-') || (c == '_') || (c == '.')
 				 				       || Character.isWhitespace(c))
@@ -332,6 +332,12 @@ public final class StringUtils
 				  .replaceAll("&amp;amp;", "&amp;")
 				  .replaceAll("&amp;apos;", "&apos;")
 				  .replaceAll("&amp;quot;", "&quot;");
+	}
+
+	public static String getDomainForUrl(String url)
+	{
+		url = url.replace("http://", "");
+		return url.substring(0, url.indexOf("/")).replace("www.", "");
 	}
 
 	// FIXME: Shouldn't this be part of a separate token / text / content / stemming analyzer package?

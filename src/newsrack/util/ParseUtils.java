@@ -149,7 +149,7 @@ public final class ParseUtils
 			return ll.iterator();
 		}
 	}
-	
+
 	/** This method reads an XML file and returns a parsed DOM document 
 	  * It exits if there is any error reading/parsing the XML file.
      *

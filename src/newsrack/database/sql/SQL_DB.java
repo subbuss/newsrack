@@ -431,7 +431,7 @@ public class SQL_DB extends DB_Interface
 	public Feed getFeedWithTag(String feedTag)
 	{
 			// FIXME: Caching?
-		return (Feed)GET_FEED_BY_TAG.execute(new Object[]{feedTag});
+		return (Feed)GET_FEED_FROM_TAG.execute(new Object[]{feedTag});
 	}
 
 	/**
@@ -518,6 +518,7 @@ public class SQL_DB extends DB_Interface
 	 * @param sTag     Source tag used by the user (non-unique)
 	 * @param feedName Name for the feed (for use in webpages and rss feeds)
 	 */
+/**
 	public String getUniqueFeedTag(final String feedURL, final String sTag, final String feedName)
 	{
 		Tuple<String,String> t = splitURL(feedURL);
@@ -525,11 +526,36 @@ public class SQL_DB extends DB_Interface
 		if (tag != null) {
 			return (String)tag;
 		}
-		else {
+		else if (sTag != null) {
 			Object intKey = INSERT_FEED.execute(new Object[] {feedName, t._a, t._b});
 			String fTag = intKey + "." + sTag;
 			SET_FEED_TAG.execute(new Object[] {fTag, intKey});
 			return fTag;
+		}
+		else {
+			return null;
+		}
+	}
+**/
+
+	public Feed getFeed(final String feedURL, String sTag, String feedName)
+	{
+		Tuple<String,String> t = splitURL(feedURL);
+		Feed f = (Feed)GET_FEED_FROM_URL.execute(new Object[] {t._a, t._b});
+		if (f != null) {
+			return f;
+		}
+		else {
+				// Parse the feed to fill in feed tag & name 
+			if ((sTag == null) || (feedName == null)) {
+				f = Feed.buildNewFeed(feedURL, sTag, feedName);
+				feedName = f.getName();
+				sTag = f.getTag();
+			}
+			Object intKey = INSERT_FEED.execute(new Object[] {feedName, t._a, t._b});
+			String fTag = intKey + "." + sTag;
+			SET_FEED_TAG.execute(new Object[] {fTag, intKey});
+			return new Feed((Long)intKey, fTag, feedName, feedURL);
 		}
 	}
 
@@ -624,13 +650,23 @@ public class SQL_DB extends DB_Interface
 	{
 		if (_log.isDebugEnabled()) _log.debug("Add of collection " + c.getName() + " of type " + c.getType().toString());
 
-		Long collKey = (Long)INSERT_COLLECTION.execute(new Object[]{c.getName(), c.getType().toString(), c.getCreator().getKey(), c.getCreator().getUid()});
-		c.setKey(collKey);
+			// If there exists a collection with the same name, we simply add entries from this
+			// collection to the existing one!
+		Long collKey;
+		User creator = c.getCreator();
+		NR_Collection existingColl = getCollection(c.getType(), creator.getUid(), c.getName());
+		if (existingColl != null) {
+			collKey = existingColl.getKey();
+		}
+		else {
+			collKey = (Long)INSERT_COLLECTION.execute(new Object[]{c.getName(), c.getType().toString(), creator.getKey(), creator.getUid()});
+			c.setKey(collKey);
+		}
+
+		Long uKey = creator.getKey();
 
 		Object collParams[] = new Object[2];
 		collParams[0] = collKey;
-
-		Long uKey = c.getCreator().getKey();
 
 		Iterator entries = c._entries.iterator();
 
@@ -1449,6 +1485,7 @@ public class SQL_DB extends DB_Interface
 						_log.error("Dummy: " + op1Key.longValue());
 					}
 				}
+				op2Key = new Long(((Filter.LeafConcept)r).getMinOccurences());
 				break;
 
 			case LEAF_CAT:
@@ -1857,7 +1894,7 @@ public class SQL_DB extends DB_Interface
 	public List<NewsItem> getNews(Category cat, Date start, Date end, Source src, int startId, int numArts)
 	{
 		Long   catKey   = cat.getKey();
-		String cacheKey = "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts;
+		String cacheKey = (start == null) ? "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts : null;
 			// FIXME: only caching non-datestamp requests right now 
 		Object keys = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
 		if (keys == null) {

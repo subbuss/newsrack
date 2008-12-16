@@ -124,7 +124,18 @@ public abstract class DB_Interface
 	 * @param sTag     Source tag used by the user (non-unique)
 	 * @param feedName Name for the feed (for use in webpages and rss feeds)
 	 */
-	public abstract String getUniqueFeedTag(final String feedURL, final String sTag, final String feedName);
+	//public abstract String getUniqueFeedTag(final String feedURL, final String sTag, final String feedName);
+	//
+
+	/**
+	 * Returns a feed object for a rss feed, if one exists in the database.
+	 * A new entry is created in the database, if necessary
+	 *
+	 * @param feedURL  URL of the rss feed whose id is requested
+	 * @param sTag     Source tag used by the user (non-unique), can be null
+	 * @param feedName Name for the feed (for use in webpages and rss feeds), can be null
+	 */
+	public abstract Feed getFeed(final String feedURL, final String sTag, final String feedName);
 
 	public abstract Feed getFeed(Long key);
 

@@ -1,7 +1,6 @@
 package newsrack.filter;
 
-import java.util.List;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -13,10 +12,9 @@ public final class NR_SourceCollection extends NR_Collection
 	private transient Map<String, Source> _map = null;  // Name --> Source mapping .. optimization!
 	private transient boolean             _allMapped = false;
 
-	public NR_SourceCollection(User u, String name, List entries)
+	public NR_SourceCollection(User u, String name, Collection entries)
 	{
 		super(NR_CollectionType.SOURCE, u, name, entries);
-      if (_log.isDebugEnabled()) _log.debug("RECORDED source collection with name " + name + " for user " + u.getUid());
 	}
 
 	public Source getSource(String s)
@@ -36,7 +34,7 @@ public final class NR_SourceCollection extends NR_Collection
 			return src;
 		}
 		else if (!_allMapped) {
-			for (Source src: (List<Source>)_entries) {
+			for (Source src: (Collection<Source>)_entries) {
 				_map.put(src.getTag(), src);
 				if (src.getTag().equals(s))
 					return src;
@@ -52,13 +50,15 @@ public final class NR_SourceCollection extends NR_Collection
 		}
 	}
 
-	public List getEntries() { return getSources(); }
-
-	public List getSources()    
+	public Collection getSources()    
 	{ 
 		if (_entries == null) 
 			_entries = _db.getAllSourcesFromCollection(getKey());
 
 		return _entries;
 	}
+
+	public Object getEntryByName(String name) { return getSource(name); }
+
+	public Collection getEntries() { return getSources(); }
 }

@@ -1,5 +1,6 @@
 package newsrack.filter;
 
+import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Iterator;
@@ -17,12 +18,12 @@ public class Filter implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 	        static       short      MIN_REQD_MATCH_COUNT = 2;
-	private static final short      MIN_MATCH            = 3;
+	private static final short      AND_TERM_MIN_MATCH   = 3;
 	private static       String     _indent              = "";
 	private static final FilterOp[] _termTypes;
 	private static final HashMap<FilterOp, Integer> _typeMap = new HashMap<FilterOp, Integer>();
 
-	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER };
+	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER, TILDE_TERM };
 
 	public static FilterOp getTermType(int n) { return _termTypes[n]; }
 	public static int      getValue(FilterOp op) { return _typeMap.get(op); }
@@ -42,17 +43,11 @@ public class Filter implements java.io.Serializable
 	public final RuleTerm _rule;				// Rule - as an expression tree
 
 	public Filter(String name, String ruleString, RuleTerm r) { _name = name; _rule = r; _ruleString = ruleString; } 
-
 	public Filter(String name, RuleTerm r) { _name = name; _rule = r; _ruleString = r.toString(); }
-
-	public void setKey(Long k) { _key = k; }
-
-	public Long getKey() { return _key; }
-
-	public String getName() { return _name; }
-
-	public RuleTerm getRule() { return _rule; }
-
+	public void setKey(Long k)    { _key = k; }
+	public Long getKey()          { return _key; }
+	public String getName()       { return _name; }
+	public RuleTerm getRule()     { return _rule; }
 	public String getRuleString() { return _ruleString; }
 
 	public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
@@ -87,7 +82,7 @@ public class Filter implements java.io.Serializable
 		abstract public Object   getOperand1();
 		abstract public Object   getOperand2();
 		abstract public String   toString();
-		abstract public void     print();
+		abstract public void     print(PrintWriter pw);
 		abstract public void     collectUsedConcepts(Set<Concept> usedConcepts);
 		abstract public int      getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts);
 	}
@@ -96,26 +91,17 @@ public class Filter implements java.io.Serializable
 	public static class LeafConcept extends RuleTerm
 	{
 		private Concept _concept;
+		private int     _minOccurences;	// Default is 1
 
-		public LeafConcept(final Concept c) { _concept = c; }
-
-		public FilterOp getType() { return FilterOp.LEAF_CONCEPT; }
-
-		public Object getOperand1() { return _concept; }
-
-		public Object getOperand2() { return null; }
-
-		public String toString() { return _concept.getName(); }
-
-		public void print()
-		{
-			System.out.println(_indent + _concept.getLexerToken().getToken());
-		}
-
-		public void collectUsedConcepts(final Set<Concept> usedConcepts)
-		{
-			usedConcepts.add(_concept);
-		}
+		public LeafConcept(Concept c) { _concept = c; _minOccurences = 1; }
+		public LeafConcept(Concept c, Integer minOccurences) { _concept = c; _minOccurences = (minOccurences == null) ? 1 : minOccurences; }
+		public FilterOp getType()     { return FilterOp.LEAF_CONCEPT; }
+		public Object getOperand1()   { return _concept; }
+		public Object getOperand2()   { return null; }
+		public int getMinOccurences() { return _minOccurences; }
+		public String toString()      { return _concept.getName() + (_minOccurences == 1 ? "" : ":" + _minOccurences); }
+		public void print(PrintWriter pw) { pw.println(_indent + _concept.getLexerToken().getToken() + (_minOccurences == 1 ? "" : ":" + _minOccurences)); }
+		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_concept); }
 
 		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
@@ -130,7 +116,7 @@ public class Filter implements java.io.Serializable
 			}
 			final Count mc    = (Count)matchCounts.get(_concept.getLexerToken().getToken());
 			final int   count = ((mc == null) ? 0 : mc.value());
-			return count;
+			return count >= _minOccurences ? count : 0;
 		}
 	}
 
@@ -140,19 +126,12 @@ public class Filter implements java.io.Serializable
 		private Filter _filt;
 
 		public LeafFilter(final Filter f) { _filt = f; }
-
-		public FilterOp getType() { return FilterOp.LEAF_FILTER; }
-
+		public FilterOp getType()   { return FilterOp.LEAF_FILTER; }
 		public Object getOperand1() { return _filt; }
-
 		public Object getOperand2() { return null; }
-
-		public String toString() { return "[" + _filt.getName() + "]"; }
-
-		public void print() { System.out.println(_indent + _filt.getName()); }
-
+		public String toString()    { return "[" + _filt.getName() + "]"; }
+		public void print(PrintWriter pw) { pw.println(_indent + _filt.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _filt.collectUsedConcepts(usedConcepts); }
- 
 		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts) { return _filt.getMatchCount(article, numTokens, matchCounts); }
 	}
 
@@ -162,20 +141,11 @@ public class Filter implements java.io.Serializable
 		private Category _cat;
 
 		public LeafCategory(final Category c) { _cat = c; }
-
-		public FilterOp getType() { return FilterOp.LEAF_CAT; }
-
+		public FilterOp getType()   { return FilterOp.LEAF_CAT; }
 		public Object getOperand1() { return _cat; }
-
 		public Object getOperand2() { return null; }
-
-		public String toString() { return "[" + _cat.getName() + "]"; }
-
-		public void print()
-		{
-			System.out.println(_indent + _cat.getName());
-		}
-
+		public String toString()    { return "[" + _cat.getName() + "]"; }
+		public void print(PrintWriter pw) { pw.println(_indent + _cat.getName()); }
 		public void collectUsedConcepts(Set<Concept> usedConcepts) { }
 
 		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
@@ -197,17 +167,9 @@ public class Filter implements java.io.Serializable
 		private List     _context;
 		private RuleTerm _r;
 
-		public ContextTerm(final RuleTerm r, final List context)
-		{ 
-			_r = r;
-			_context = new ArrayList();
-			_context.addAll(context);
-		}
-
-		public FilterOp getType() { return FilterOp.CONTEXT_TERM; }
-
+		public ContextTerm(final RuleTerm r, final List context) { _r = r; _context = new ArrayList(); _context.addAll(context); }
+		public FilterOp getType()   { return FilterOp.CONTEXT_TERM; }
 		public Object getOperand1() { return _r; }
-
 		public Object getOperand2() { return _context; }
 
 		public String toString()
@@ -221,15 +183,15 @@ public class Filter implements java.io.Serializable
 			return b.toString();
 		}
 
-		public void print()
+		public void print(PrintWriter pw)
 		{
-			System.out.println(_indent);
+			pw.println(_indent);
 			final Iterator it = _context.iterator();
-			System.out.print(it.next());
+			pw.print(it.next());
 			while (it.hasNext())
-				System.out.print(", " + it.next());
-			System.out.print(".");
-			_r.print();
+				pw.print(", " + it.next());
+			pw.print(".");
+			_r.print(pw);
 		}
 
 		public void collectUsedConcepts(final Set<Concept> usedConcepts)
@@ -268,24 +230,12 @@ public class Filter implements java.io.Serializable
 		private RuleTerm _t;
 
 		public NegTerm(final RuleTerm t) { _t = t; }
-
-		public FilterOp getType() { return FilterOp.NOT_TERM; }
-
+		public FilterOp getType()   { return FilterOp.NOT_TERM; }
 		public Object getOperand1() { return _t; }
-
 		public Object getOperand2() { return null; }
-
-		public String toString() { return "-" + _t.toString(); }
-
-		public void print()
-		{
-			System.out.println(_indent + "-" + _t);
-		}
-
-		public void collectUsedConcepts(final Set<Concept> usedConcepts)
-		{
-			_t.collectUsedConcepts(usedConcepts);
-		}
+		public String toString()    { return "-" + _t.toString(); }
+		public void print(PrintWriter pw) { pw.println(_indent + "-" + _t); }
+		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _t.collectUsedConcepts(usedConcepts); }
 
 		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
@@ -294,42 +244,30 @@ public class Filter implements java.io.Serializable
 		}
 	}
 
-	/* class NonLeafTerm encodes an AND/OR expression */
-	public static class NonLeafTerm extends RuleTerm
+	/* class AndOrTerm encodes an AND/OR expression */
+	public static class AndOrTerm extends RuleTerm
 	{
 		private FilterOp 	_op;		// AND / OR?
 		private RuleTerm  _lTerm;	// Left term
 		private RuleTerm  _rTerm;	// Right term
 
-		public NonLeafTerm(final FilterOp op, final RuleTerm lt, final RuleTerm rt)
-		{
-			_op    = op;
-			_lTerm = lt;
-			_rTerm = rt;
-		}
-
-		public FilterOp getType() { return _op; }
-
+		public AndOrTerm(final FilterOp op, final RuleTerm lt, final RuleTerm rt) { _op  = op; _lTerm = lt; _rTerm = rt; }
+		public FilterOp getType()   { return _op; }
 		public Object getOperand1() { return _lTerm; }
-
 		public Object getOperand2() { return _rTerm; }
+		public String toString()    { return "(" + _lTerm.toString() + ((_op == FilterOp.AND_TERM) ? " AND " : " OR ") + _rTerm.toString() + ")"; }
 
-		public String toString()
-		{
-			return "(" + _lTerm.toString() + ((_op == FilterOp.AND_TERM) ? " AND " : " OR ") + _rTerm.toString() + ")";
-		}
-
-		public void print()
+		public void print(PrintWriter pw)
 		{
 			final String old = _indent;
 			_indent = old + StringUtils.TAB;
 
 			if (_op == FilterOp.AND_TERM)
-				System.out.println(old + " AND ");
+				pw.println(old + " AND ");
 			else
-				System.out.println(old + " OR ");
-			_lTerm.print();
-			_rTerm.print();
+				pw.println(old + " OR ");
+			_lTerm.print(pw);
+			_rTerm.print(pw);
 
 			_indent = old;
 		}
@@ -347,12 +285,34 @@ public class Filter implements java.io.Serializable
 			if (_op == FilterOp.AND_TERM) {
 				if ((ltCount == 0) || (rtCount == 0))
 					return 0;
-				else if ((ltCount > MIN_MATCH) && (rtCount > MIN_MATCH))
+				else if ((ltCount > AND_TERM_MIN_MATCH) && (rtCount > AND_TERM_MIN_MATCH))
 					return (ltCount + rtCount)/2;
 				else
 					return ((ltCount < rtCount) ? ltCount : rtCount);
-			} else
+			} 
+			else {
 				return ltCount + rtCount;
+			}
 		}
 	}
+
+/*
+ * Not yet supported!  Requires me to change the rule term table because this rule term has 3 args, c1, c2 and proximityVal
+ * The interface for RuleTerm also need changing
+ *
+	public static class TildeTerm extends RuleTerm
+	{
+		private Concept _c1;
+		private Concept _c2;
+		private int     _proximityVal;
+
+		public FilterOp getType()   { return FilterOp.TILDE_TERM; }
+		public Object getOperand1() { return _c1; }
+		public Object getOperand2() { return _c2; }
+		public String toString()    { return _c1.getName() + " ~" + _proximityVal + " " + _c2.getName(); }
+		public void print(PrintWriter pw) { TODO }
+		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_c1); usedConcepts.add(_c2); }
+		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts) { TODO }
+	}
+*/
 }

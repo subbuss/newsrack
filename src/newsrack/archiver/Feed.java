@@ -1,6 +1,7 @@
 package newsrack.archiver;
 
 import newsrack.NewsRack;
+import newsrack.util.Triple;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 import newsrack.database.DB_Interface;
@@ -73,11 +74,37 @@ public class Feed implements java.io.Serializable
 
 	public static Feed getFeed(String feedUrl, String tag, String feedName)
 	{
-		Feed f = new Feed(_db.getUniqueFeedTag(feedUrl, tag, feedName), feedName, feedUrl);
-		f._id = Long.parseLong(f._feedTag.substring(0, f._feedTag.indexOf('.')));
+		Feed f = _db.getFeed(feedUrl, tag, feedName);
 		f.setCachedTextDisplayFlag();
-			// @TODO fix this ... by default, setting cacheable flag to true
-		f._cacheableFlag = true;
+		f._cacheableFlag = true; // @TODO fix this ... by default, setting cacheable flag to true
+
+		return f;
+	}
+
+	public static Feed buildNewFeed(String feedUrl, String tag, String feedName)
+	{
+		Feed f = new Feed();
+		f._feedUrl = feedUrl;
+
+		if (feedName == null) {
+			try {
+				Triple<SyndFeed, String, Date> t = f.fetchFeed();
+				if (t == null) 
+					return null;
+				SyndFeed sf = t._a;
+				feedName = sf.getTitle();
+			}
+			catch (Exception e) {
+				_log.error("Caught error parsing feed for name: ", e);
+				feedName = StringUtils.getDomainForUrl(feedUrl);
+			}
+		}
+
+		if (tag == null)
+			tag = StringUtils.getDomainForUrl(feedUrl);
+
+		f._feedName = feedName.trim();
+		f._feedTag = tag;
 
 		return f;
 	}
@@ -204,15 +231,16 @@ public class Feed implements java.io.Serializable
 		_id       = key;
 		_feedTag  = tag;
 		_feedUrl  = url;
-		_feedName = name.trim();	/* trim white space at the beginning and end */
+		_feedName = name.trim();	// trim white space at the beginning and end
 	}
-
+/**
 	public Feed(String tag, String name, String url)
 	{
 		_feedTag  = tag;
 		_feedUrl  = url;
-		_feedName = name.trim();	/* trim white space at the beginning and end */
+		_feedName = name.trim();	// trim white space at the beginning and end
 	}
+**/
 
 	public boolean equals(Object o) { return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed)o)._feedUrl); }
 
@@ -261,13 +289,8 @@ public class Feed implements java.io.Serializable
 		return _db.getDownloadedNews(this);
 	}
 
-	/**
-	 * Read the feed, store it locally, and download all the news items referenced in the feed.
-	 */
-	public void download() throws Exception
+	public Triple<SyndFeed,String,Date> fetchFeed() throws Exception
 	{
-		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
-
 			// 1. Download the feed and write it to the feed file in the output dir
 			//    or if it has previously been downloaded, get access to the file
 			//    This block is synchronized to prevent multiple threads
@@ -286,7 +309,7 @@ public class Feed implements java.io.Serializable
 					rssFeedFile = _rssFeedCache.get(u);
 					if (rssFeedFile == null) {
 						_log.error("Could not open RSS url, and there is no local cached copy either");
-						return;
+						return null;
 					}
 					downloaded = false;
 				}
@@ -359,6 +382,12 @@ public class Feed implements java.io.Serializable
 				_log.info("RSS lbd - " + lbd);
 			}
 		}
+		else {
+				// For atom feeds, set base url to ""
+				// FIXME: correct?  baseUrl is only used in the case of feeds that don't provide absolute links for feed entries.
+				// This should hopefully be rare!
+			baseUrl = "";
+		}
 
 			// 3. Convert the wire feed to a syndfeed!
 		SyndFeed f = new SyndFeedImpl(wf);
@@ -390,16 +419,35 @@ public class Feed implements java.io.Serializable
 			}
 		}
 
-			// 5. Inform the DB before news downloading  
+		return new Triple<SyndFeed, String, Date>(f, baseUrl, rssPubDate);
+	}
+
+	/**
+	 * Read the feed, store it locally, and download all the news items referenced in the feed.
+	 */
+	public void download() throws Exception
+	{
+		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
+
+			// 1. Read the feed
+		Triple<SyndFeed, String, Date> t = fetchFeed();
+		if (t == null) 
+			return;
+
+		SyndFeed sf         = t._a;
+		String   baseUrl    = t._b;
+		Date     rssPubDate = t._c;
+
+			// 2. Inform the DB before news downloading  
 		_db.initializeNewsDownload(this, rssPubDate);
 
-			// 6. Process the news items in the feed
-		Iterator items = f.getEntries().iterator();
+			// 3. Process the news items in the feed
+		Iterator items = sf.getEntries().iterator();
 		while (items.hasNext()) {
-				// 7. Process a news item
+				// 4. Process a news item
 			SyndEntry se = (SyndEntry)items.next();
 
-				// 7a. Try getting published date of the news item 
+				// 4a. Try getting published date of the news item 
 				// If no item date, default is the pub date of the RSS feed
 			Date itemDate = se.getPublishedDate();
 			Date niDate   = (itemDate != null) ? itemDate: rssPubDate;
@@ -407,7 +455,7 @@ public class Feed implements java.io.Serializable
 			if (_id == 241)
 				niDate = new Date();
 
-				// 7b. Spit out some debug information
+				// 4b. Spit out some debug information
 			if (_log.isInfoEnabled()) {
 				StringBuffer sb = new StringBuffer();
 				sb.append("\ntitle     - " + se.getTitle());
@@ -416,7 +464,7 @@ public class Feed implements java.io.Serializable
 				_log.info(sb);
 			}
 
-				// 7c. Download the news item
+				// 4c. Download the news item
 			if (se.getLink() != null) {
 					// For some bad RSS feeds (Doordarshan), there exist initial
 					// <item> objects that have all their entries set to null!
@@ -437,7 +485,7 @@ public class Feed implements java.io.Serializable
 			}
 		}
 
-			// 8. Inform the DB after news downloading  
+			// 5. Inform the DB after news downloading  
 		_db.finalizeNewsDownload(this);
 	}
 
