@@ -162,6 +162,9 @@
 			_isFirstPass = false;
 			_haveUnresolvedRefs = false;
 
+				// Clear out the parse errors from the first pass!
+			ParseUtils.getParseErrors(u);
+
 				// Pop the scope from the first pass!
 			_scopeStack.pop();
 
