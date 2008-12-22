@@ -587,6 +587,17 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
+	 * This method updates a user attribute in the db (ex: registration date, last login, last edit, etc.)
+	 */
+	public void updateUserAttribute(User u, String attr, Object value)
+	{
+		if (attr.equals(LAST_LOGIN))
+		   UPDATE_LOGIN_DATE.execute(new Object[]{new Timestamp(((Date)value).getTime()), u.getKey()});
+		else
+			_log.error("Ignoring user attribute (" + attr + ") update request for user " + u.getUid());
+	}
+
+	/**
 	 * This method updates the database with changes made to a feed
 	 * @param f Feed whose info. needs to be updated
 	 */
@@ -980,13 +991,18 @@ public class SQL_DB extends DB_Interface
 		List<Long> allFeedKeys = (List<Long>)GET_ALL_FEEDS_FOR_NEWS.get(ni.getKey());
 		Reader r = getReader(pathPrefix, localName, allFeedKeys);
 
-			// 3. Check with old syle naming -- backward compatibility
-		if (r == null)
-			r = getReader(pathPrefix, StringUtils.getBaseFileName(ni.getURL()), allFeedKeys);
-
-			// 4. Check with local name stored in the db -- backward compatibility
+			// 3. Check with local name stored in the db -- backward compatibility
+			// IMPORTANT: Check this *before* checking with old-style naming because
+			// there can be multiple news items with the same base file name!
+			// Ex: http://.../index.html --> map to "index.html", "ni1.index.html", etc.
+			//     Using base file name will return "index.html" for all these urls 
+			//     which would be incorrect!
 		if (r == null)
 			r = getReader(pathPrefix, (String)GET_NEWS_ITEM_LOCALNAME.get(ni.getKey()), allFeedKeys);
+
+			// 4. Check with old syle naming -- backward compatibility
+		if (r == null)
+			r = getReader(pathPrefix, StringUtils.getBaseFileName(ni.getURL()), allFeedKeys);
 
 		if (r != null)
 			return r;

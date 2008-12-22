@@ -39,6 +39,8 @@ public abstract class DB_Interface
 {
 	static protected String TMPDIR = "tmp";
 
+	static public String LAST_LOGIN = "LAST_LOGIN";
+
 /* #### GENERIC functions #### */
 	/** This method initializes the DB interface */
 	public abstract void       init();
@@ -194,6 +196,11 @@ public abstract class DB_Interface
 	 * @param u User whose info. needs to be updated 
 	 */
 	public abstract void updateUser(User u);
+
+	/**
+	 * This method updates a user attribute in the db (ex: registration date, last login, last edit, etc.)
+	 */
+	public abstract void updateUserAttribute(User u, String attr, Object value);
 
 	/**
 	 * The profile of the user is initialized from the database

@@ -1144,6 +1144,11 @@ public enum SQL_Stmt
       new SQL_ValType[] {STRING, STRING, STRING, BOOLEAN, LONG},
 		SQL_StmtType.UPDATE
 	),
+	UPDATE_LOGIN_DATE(
+		"UPDATE users SET last_login = ? WHERE u_key = ?",
+      new SQL_ValType[] {TIMESTAMP, LONG},
+		SQL_StmtType.UPDATE
+	),
 	UPDATE_FEED_CACHEABILITY(
 		"UPDATE feeds SET cacheable = ?, show_cache_links = ? WHERE feed_key = ?",
       new SQL_ValType[] {BOOLEAN, BOOLEAN, LONG}, 

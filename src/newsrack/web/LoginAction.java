@@ -41,6 +41,8 @@ public class LoginAction extends BaseAction
 			User u = User.signInUser(uid, pass);
 			_session.put(NewsRack.UID_KEY, u.getUid());
 			_session.put(NewsRack.USER_KEY, u);
+			newsrack.database.DB_Interface dbi = NewsRack.getDBInterface();
+			dbi.updateUserAttribute(u, dbi.LAST_LOGIN, new java.util.Date());
 			_log.info("Signed in user " + uid);
 			if (u.isAdmin())
 				return "admin.login";

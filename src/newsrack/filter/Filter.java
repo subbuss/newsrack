@@ -105,15 +105,6 @@ public class Filter implements java.io.Serializable
 
 		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 		{
-			if (_concept == null) {
-				_log.error("Null concept in Leafconcept");
-			}
-			if (_concept.getLexerToken() == null) {
-				_log.error("Null lexer token for concept: " + _concept.getName());
-			}
-			if (_concept.getLexerToken().getToken() == null) {
-				_log.error("Null token for lexer token for concept: " + _concept.getName());
-			}
 			final Count mc    = (Count)matchCounts.get(_concept.getLexerToken().getToken());
 			final int   count = ((mc == null) ? 0 : mc.value());
 			return count >= _minOccurences ? count : 0;
