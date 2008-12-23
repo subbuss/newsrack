@@ -1,0 +1,15 @@
+DEFINE SOURCES {My Sources}
+   rediff = Rediff, http://www.rediff.com/rss/newsrss.xml
+END SOURCES
+
+DEFINE CONCEPTS {My Concepts}
+   &lt;jk&gt;     = jammu, kashmir
+END CONCEPTS
+
+DEFINE ISSUE Kashmir News
+   MONITOR SOURCES {My Sources}
+   ORGANIZE NEWS INTO CATEGORIES
+   {
+      [Kashmir] = jk
+   }
+END ISSUE

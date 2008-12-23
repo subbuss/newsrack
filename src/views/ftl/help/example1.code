@@ -1,0 +1,19 @@
+DEFINE SOURCES {My Sources}
+   rediff = Rediff, http://www.rediff.com/rss/newsrss.xml
+   hindu  = Hindu, http://www.hindu.com/rss/02hdline.xml
+END SOURCES
+
+DEFINE CONCEPTS {Cricket Concepts}
+   &lt;india&gt;     = india
+   &lt;australia&gt; = australia, aussies
+   &lt;cricket&gt;   = cricket, test match, 
+                 one day international, one-dayer
+END CONCEPTS
+
+DEFINE ISSUE Indo Aus Series
+   MONITOR SOURCES {My Sources}
+   ORGANIZE NEWS INTO CATEGORIES
+   {
+      [Cricket] = india AND australia AND cricket
+   }
+END ISSUE

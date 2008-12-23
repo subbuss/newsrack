@@ -8,6 +8,9 @@
 <script language="Javascript">
 function confirmDelete() { return confirm("Do you want to delete the file?"); }
 </script>
+<style>
+pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
+</style>
 </head>
 
 <body>
@@ -53,19 +56,15 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
   <@s.set name="hasIssues" value="#user.validated" />
 	<#-- NEXT, DISPLAY THE USER'S PROFILE TABLE -->
 		<div class="ie_center_hack">
-		<p style="margin-bottom: 20px">
-		All your files and defined issues are shown below.  You can add a new file by
-		(a) Create a new file using the "Create New File" link (b) uploading a file from your disk, 
-		(c) or by getting a file from other users and editing it to meet your needs. <br/> <br/>
-	<@s.if test="#hasIssues == false">
-    <span class="underline bold"> NOTE: </span><br />
-		1. The files have to conform to what NewsRack understands (see example below). 
-		<b>Do not upload Word docs, html files, images, etc.</b>. <br/>
-		2. You have to build your issues by clicking on "Build all issues" link below
-		after creating these files.
-		3. News will start getting added to your issues next time news is downloaded (news is downloaded 10 times a day).
-		</p>
-	</@s.if>
+<#--
+		All your files and defined issues are shown below.  You can add a new file by:
+    <ul style="text-align:left;margin:0 0 20px 0">
+    <li> Uploading a file from your disk using the upload form </li>
+    <li> Creating a new file using the "Create new file" link </li>
+    <li> Getting a file from other users and editing it to meet your needs. </li>
+    </ul>
+-->
+
 		<table class="editprofile" cellspacing="0">
 		<tr class="tblhdr">
 			<td class="s18 tblhdr"> ${user.uid}'s files </td>
@@ -73,15 +72,14 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
       </tr>
 		<tr>
 			<td class="files"> <#call displayFiles(user.files)> </td>
-			<td class="center s14">
-			<a class="newfile" href="<@s.url namespace="/forms" action="new-file" />">Create New File</a>
-
+			<td class="center s14" style="width:200px">
+      <br/>
+			<a class="newfile" href="<@s.url namespace="/forms" action="new-file" />">Create new file</a> </br/><br/>
+			<a class="newfile" href="<@s.url namespace="/" action="public-files" />">Get from other users</a>
 			<form class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
 			<input class="file_browse" size="10" name="uploadedFile" type="file" />
 			<div align="center"><input class="submit" value="Upload" type="submit"></div>
 			</form>
-
-			<a class="newfile" href="<@s.url namespace="/" action="public-files" />">Get from other users</a>
 			</td>
 		</tr>
   <@s.if test="#hasIssues == true">
@@ -108,18 +106,21 @@ function confirmDelete() { return confirm("Do you want to delete the file?"); }
       <a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> &nbsp; &nbsp; &nbsp;
   </@s.if>
   <@s.else>
+      <span class="bold s12">
+      The files have to conform to what NewsRack understands (see examples below).  Do not upload Word docs, html files, images, etc.
+      </span>
+      <br/><br/>
       <a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Build issues</a>
+   </td></tr>
+   <tr> 
+     <td colspan="2">
+     <div style="padding:5px 10px;text-align:left">
+       <h1> Examples </h1>
+<#include "/ftl/issue.template">		
+     </div>
   </@s.else>
       </td>
     </tr>
-  <@s.if test="#hasIssues == false">
-		<tr> <td colspan="2">
-      <h1> Example (Copy, paste, and edit) </h1>
-			<pre>
-<#include "/ftl/issue.template">		
-			</pre>
-		</td> </tr>
-	</@s.if>
 		</table>
   <@s.if test="#hasIssues == true">
 		<p>

@@ -141,6 +141,10 @@ textarea.textarea {
 	font-size : 13px;
 }
 
+.s12 {
+	font-size : 12px;
+}
+
 .brownish {
 	background-color : #eebb88;
 }
@@ -285,11 +289,10 @@ h2.register {
 }
 
 form.register, form.upload {
-	width           : auto;
 	height          : auto;
 	font-size       : 14px;
-	background-color: #aaccee;
-	border          : 1px solid #0088ff;
+	background-color: #ace;
+	border          : 1px solid #aaa;
 	padding         : 4px 0px;
 }
 
@@ -299,7 +302,7 @@ form.register {
 }
 
 form.upload {
-	margin : 20px auto 15px auto;
+	margin : 15px auto;
 }
 
 div.public_files {
@@ -479,13 +482,18 @@ table.userhome td.user_news_space {
 /* edit.profile.vm: The following styles are for displaying profiles */ 
 table.editprofile, table.publicfiles {
 	font-size    : 12px;
-	border       : 1px solid #88aacc;
+	border       : 1px solid #aaa;
 	background   : white;
 	margin-bottom : 25px;
 }
 
+table.editprofile {
+  width  : 100%;
+	margin : -15px -40px 25px 0;
+}
+
 table.editprofile td, table.publicfiles td {
-	border       : 1px solid #88aacc;
+	border       : 1px solid #aaa;
 	padding      : 2px 5px;
 }
 
@@ -518,7 +526,7 @@ tr.tblhdr {
 tr.tblhdr td {
 	background-color : #aaccee;
 	padding          : 1px 2px;
-	border           : 1px solid #88aacc;
+	border           : 1px solid #aaa;
 }
 
 td.hdrcol {
@@ -690,13 +698,13 @@ table.issuelisting, table.userissuelisting, table.catlisting {
 table.issuelisting tr.tblhdr td, table.userissuelisting tr.tblhdr td, table.catlisting tr.tblhdr td {
 	background  : #aaccee;
 	padding     : 1px 2px;
-	border      : 1px solid #88aacc;
+	border      : 1px solid #aaa;
 }
 
 table.issuelisting td, table.userissuelisting td, table.catlisting td {
 	padding      : 2px 3px;
-	border-right : 1px solid #88aacc;
-	border-left  : 1px solid #88aacc;
+	border-right : 1px solid #aaa;
+	border-left  : 1px solid #aaa;
 }
 
 /* browse.news.vm and display.news.vm: The following styles are 

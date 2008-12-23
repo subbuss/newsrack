@@ -1,36 +1,48 @@
+The first example is a simple keyword-based filtering.  The topic simply tracks all articles that refer to energy
+
+<pre class="example">
+(* ------------ Example 1 ---------------- *)
 import sources {rss.feeds} from subbu
+define topic Energy = filter {rss.feeds} with "energy"
+</pre>
 
-DEFINE CONCEPTS {energy}
+An improved version of the previous example where you try to capture all keywords that indicate energy, and also
+only track news about conventional energy sources (oil and gas, coal).  In this case, you define two concepts 
+called energy and conventional as shown below and then use that in the filter for the topic
+
+<pre class="example">
+(* ------------ Example 2 ---------------- *)
+import sources {rss.feeds} from subbu
+define concepts
+  &lt;energy&gt; = energy, power, electricity
+  &lt;conventional&gt; = coal, lignite, oil, gas, petroleum
+end
+
+define topic Energy = filter {rss.feeds} with (energy AND conventional)
+</pre>
+
+This is an even more advanced version where you track news in various related categories and organize them into
+a taxonmy as shown below.  You can organize your monitored news categories into any number of nested categories
+in a taxonomy that is meaningful to you!
+
+<pre class="example">
+(* ------------ Example 3 ---------------- *)
+import sources {rss.feeds} from subbu
+define concepts
    &lt;energy&gt; = energy, electricity, power
-   &lt;hydel&gt; = hydel, hydro, hydro-electricity, hydro-power, hydel-power
-   &lt;wind&gt; = wind-power, wind, wind-mill
    &lt;coal&gt; = coal, lignite, coal-fired
-   &lt;oil&gt; = oil, petroleum
-   &lt;gas&gt; = gas, gas-fired, gas-powered
    &lt;nuclear&gt; = nuclear, nuke-power
-   &lt;solar&gt; = solar
-   &lt;biomass&gt; = bio-mass, bio-gas
-   &lt;cogen&gt; = co-generation, cogen
    &lt;ignore&gt; = iran, korea, iranian, korean
-   &lt;renewables&gt; = renewable, &lt;wind&gt;, &lt;solar&gt;, &lt;biomass&gt;
-END CONCEPTS
+   &lt;solar&gt; = solar
+   &lt;wind&gt; = wind-power, wind, wind-mill
+end
 
-DEFINE ISSUE Energy
-   MONITOR SOURCES {rss.feeds}
-   ORGANIZE NEWS INTO CATEGORIES
-   {
-      [Conventional] = {
-         [Coal] = coal AND energy
-         [Hydel] = hydel AND energy
-         [Nuclear] = nuclear AND energy AND -ignore
-         [Oil "and" Gas] = (oil OR gas) AND energy
-      }
-      [Non-Conventional] = {
-         [Biomass] = biomass AND energy
-         [Cogeneration] = cogen AND energy
-         [Solar] = solar AND energy
-         [Wind] = wind AND energy
-      }
-      [Renewables] = renewables AND energy
+define issue Energy = filter {rss.feeds} into taxonomy
+   [Coal] = coal AND energy
+   [Nuclear] = nuclear AND energy AND -ignore
+   [Renewables] = {
+      [Solar] = solar AND energy
+      [Wind] = wind AND energy
    }
-END ISSUE
+end
+</pre>

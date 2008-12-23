@@ -39,12 +39,9 @@ function resetForm()
 <h1>New file</span></h1>
 <div class="center">
 <textarea class="textarea" name="fileContent" rows="40" cols="85">
-(** HERE IS AN EXAMPLE OF A PROFILE ... USE THIS TEMPLATE TO
- ** SUITABLY EDIT IT TO YOUR NEEDS.  FOR MORE HELP, CLICK ON
- ** THE HELP OR USER GUIDE LINKS. YOU CAN GET RID OF THESE 4 
- ** LINES AFTER READING THEM. **)
+(** Here are 3 examples.  Use them to set up your own topics **)
 
-<#include "/ftl/issue.template"></textarea>
+<#include "/ftl/help/examples"></textarea>
 <br />
 <span class="bold">File Name:</span> <input type="text" name="file" class="text">
 <br />

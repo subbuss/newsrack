@@ -122,9 +122,9 @@ div#check_all_button {
 div.newsnavbar form            { border: 1px dotted #ccc; padding:5px; font-size: 10px; }
 div.newsnavbar form select     { width: 150px; border: 1px solid black; height:18px; }
 div.newsnavbar form input.date { width: 150px; height:18px; margin:0; color: black; font-weight: normal; padding:0; }
-div.newsnavbar form div.filter { float: left; margin: 0 15px 0 0; }
+div.newsnavbar form div.filter { float: left; margin: 0 12px 0 0; }
 div.newsnavbar form label      { display: block; font-weight: bold; font-size: 11px; margin-bottom: 5px; }
-div.newsnavbar form input#filter_submit { font-size:13px;font-weight:bold; padding:1px 8px; margin: 15px 0 0 10px; }
+div.newsnavbar form input#filter_submit { font-size:13px;font-weight:bold; padding:1px 5px; margin: 15px 0 0 10px; }
 </style>
 <script type="text/javascript">
 [#if dispDelFlag]
@@ -236,7 +236,7 @@ function show(obj, style) { obj.style.display = style; }
         <div class="filter">
           <input id="filter_submit" type="submit" name="filter" value="Filter">
         </div>
-        <div style="clear:both;height:0"></div>
+        <div style="clear:both;">&nbsp;</div>
       </form>
       </div>
 

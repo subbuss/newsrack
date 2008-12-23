@@ -19,14 +19,14 @@
 	<strong>Copy-Paste example</strong>
 	Suppose you wanted to monitor cricketing news for the India-Australia
 	series from Rediff and Hindu.  You can do so using the following profile.
-   Copy-paste the example below into a file using the Create New File link
-   on the <a href="<@s.url namespace="/user" action="edit-profile" />">Edit Profile page</a>
-   and save it.  Then, click on the validate link there, and you are all set!
+  Copy-paste the example below into a file using the Create New File link
+  on the <a href="<@s.url namespace="/user" action="edit-profile" />">Edit Profile page</a>
+  and save it.  Then, click on the validate link there, and you are all set!
 	</p>
 	<p>
 	<strong> Explanation: </strong>
 	The profile defines the rediff and Hindu news sources and requests news from
-   there.  It defines three concepts (india, australia, and cricket).  Each
+  there.  It defines three concepts (india, australia, and cricket).  Each
 	concept defines the keywords that need to matched.  Finally, the issue
 	of interest (Indo Aus Series) is defined which defines exactly one category.
 	A news item is added to this category if it matches all three concepts
