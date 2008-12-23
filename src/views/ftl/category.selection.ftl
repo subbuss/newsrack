@@ -70,6 +70,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="bhopal" />">&nbsp;Bhopal</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Binayak+Sen" catID="1" />">&nbsp;Binayak Sen</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Environment" catID="1" />">&nbsp;Biodiversity</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" catID="7" />">&nbsp;Biomass</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="15" />">&nbsp;BMIC</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Bangalore" catID="7" />">&nbsp;Bus Rapid Transport (BRT)</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Health" catID="10" />">&nbsp;Cancer</a><br />
@@ -87,9 +88,9 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="fredericknoronha" issue="Documentary" catID="1" />">&nbsp;Documentary</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Human+Rights" catID="3" />">&nbsp;Dowry</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Government" catID="1" />">&nbsp;E-Governance</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" />">&nbsp;Energy</a><br />
 </td>
 <td width="33%">
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" />">&nbsp;Energy</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="3" />">&nbsp;EIAs</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="economy" catID="2" />">&nbsp;Employment Guarantee</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="ESG+in+the+news" catID="1" />">&nbsp;ESG in the news</a><br />
@@ -118,15 +119,15 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Media" catID="4" />">&nbsp;Media Ownership</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="leigh" issue="Micro+Credit" />">&nbsp;Micro Credit</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="17" />">&nbsp;Mining</a><br />
-</td>
-<td>
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Multilingual-Demo" />">&nbsp;Multi Languages Demo</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="iwphindi" issue="Water" catID="2" />">&nbsp;पानी</a><br />
+</td>
+<td>
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="4" />">&nbsp;Nandigram</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="7" />">&nbsp;Narmada Dams</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="14" />">&nbsp;Narmada Rehab</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="6" />">&nbsp;National Envt. Policy</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="ramana" issue="nuclear_energy" catID="1" />">&nbsp;Nuclear Energy</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" catID="5" />">&nbsp;Nuclear Energy</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="12" />">&nbsp;Oil Exploration</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="organic-agriculture" catID="1" />">&nbsp;Organic Agriculture</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="ammujo" issue="Pratibha-BPO" />">&nbsp;Prathibha-BPO Murder</a><br />
@@ -138,7 +139,9 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Health" catID="5" />">&nbsp;Sanitation</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="1" />">&nbsp;SEZ</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="lgbt" issue="Sexual+Minorities" />">&nbsp;Sexual Minorities</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="divya_rrs" issue="Shivaji+Statue+in+Bombay" catID="1" />">&nbsp;Shivaji Statue, Mumbai</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="3" />">&nbsp;Singur</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" catID="6" />">&nbsp;Solar Energy</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Education" catID="2" />">&nbsp;Special Education</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="musafir" issue="Surveillance" catID="1" />">&nbsp;Surveillance</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="norgay" issue="Tibet" />">&nbsp;Tibet</a><br />
@@ -150,6 +153,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="1" />">&nbsp;Water Harvesting</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbutest" issue="water-privatisation" catID="2" />">&nbsp;Water Privatisation</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="arghyam" issue="Water" />">&nbsp;Water</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" catID="2" />">&nbsp;Wind Energy</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="ifinews" issue="IFIs" catID="2" />">&nbsp;World Bank</a><br />
 </td>
 </tr>

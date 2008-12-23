@@ -18,7 +18,7 @@
 	All feedback is welcome and very much appreciated.  I also welcome
 	requests for features, suggestions for improvements, etc.  If you are
 	interested in participating in the development, please let me know.
-	My email id is <strong>subbu AT newsrack DOT in</strong>.
+	My email id is <strong>sss.lists AT gmail</strong>.
 	</p>
 	</td>
 </tr>

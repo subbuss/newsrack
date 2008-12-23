@@ -3,7 +3,7 @@
 <head> 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title> List of all known RSS feeds for Indian newspapers and magazines </title> 
-<link rel="stylesheet" href="<@s.url value="//css/main.css" />" type="text/css">
+<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 <style>
 td.user_space table { background: #f8f8f8; }
 td.user_space td { vertical-align: top; margin: 2px; padding: 3px 4px; }
@@ -124,7 +124,7 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <a href="http://rss.indiainfo.com/news.xml">IndiaInfo.com</a> <br /> 
 </td>
 <td>
-<a href="http://rss.oneindia.in/news.xml">One India News</a> (<a href="http://rss.oneindia.in">More oneindia feeds</a>)<br />
+<a href="http://feedproxy.google.com/oneindia-all-news">One India News</a> (<a href="http://rss.oneindia.in">More oneindia feeds</a>)<br />
 <a href="http://www.livemint.com/SectionRss.aspx">RSS feeds from Mint</a> <br />
 <a href="http://www.timesnow.tv/rssfeedsdefault.cms">Times Now: Home</a> <br /> 
 <a href="http://www.timesnow.tv/Sections/News/rssfeeds/1324315.cms">Times Now: News</a> <br /> 
