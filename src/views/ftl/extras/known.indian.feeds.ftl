@@ -126,10 +126,9 @@ The name of the magazine / newspaper (or newspaper section, as the case might be
 <td>
 <a href="http://feedproxy.google.com/oneindia-all-news">One India News</a> (<a href="http://rss.oneindia.in">More oneindia feeds</a>)<br />
 <a href="http://www.livemint.com/SectionRss.aspx">RSS feeds from Mint</a> <br />
-<a href="http://www.timesnow.tv/rssfeedsdefault.cms">Times Now: Home</a> <br /> 
-<a href="http://www.timesnow.tv/Sections/News/rssfeeds/1324315.cms">Times Now: News</a> <br /> 
-<a href="http://www.timesnow.tv/Sections/Business/rssfeeds/1324314.cms">Times Now: Business</a> <br /> 
-<a href="http://www.timesnow.tv/Sections/Only_On_TIMES_NOW/rssfeeds/1324302.cms">Only on Times Now</a> <br /> 
+<a href="http://www.timesnow.tv/Rssfeeds/India.Xml">Times Now: National News</a> <br /> 
+<a href="http://www.timesnow.tv/Rssfeeds/Business.Xml">Times Now: Business</a> <br /> 
+<a href="http://www.timesnow.tv/Rssfeeds/World.Xml">Times Now: World</a> <br /> 
 <a href="<@s.url value="/crawled.feeds/ie.rss.xml" />">Indian Express (Full Site) </a> <br /> 
 <a href="http://www.expressindia.com/syndications/ie.xml">Indian Express Front Page</a> <br /> 
 <a href="http://www.expressindia.com/syndications/ei.xml">Express India Front Page</a> <br /> 
