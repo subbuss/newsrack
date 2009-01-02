@@ -4,6 +4,7 @@
 use File::Copy;
 
 $gna  = "/home/newsrack/data/news.archive";
+$gna2 = "home/newsrack/data/news.archive";
 $orig = "$gna/orig";
 
 opendir ARCHIVE, "$orig" || die "could not open directory $orig";
@@ -17,29 +18,32 @@ foreach $year (@allYears) {
 	chdir $year;
 	@allMonths = grep !/^\.\.?/, readdir YEARDIR;
 	foreach $month (@allMonths) {
-		next if -f $month;
-		next if !($month =~ 12);
+#		next if -f $month;
+		next if !($month =~ 7);
 
 		opendir MONTHDIR, "$month" || die "could not open directory $month";
 		chdir $month;
 		@allDates = grep !/^\.\.?/, readdir MONTHDIR;
 		foreach $date (@allDates) {
 			next if -f $date;
- 			next if !(($date =~ /^[1-9]$/));
+# 			next if !($date =~ /^2?[0-6]$/);
 
 			print "--- DATE: $date ---\n";
 			chdir $date || die "could not chdir to $date" ;
 
 			opendir DATEDIR, "." || die "could not open directory $date";
 			@allSrcs = grep !/^\.\.?/, readdir DATEDIR;
+         system("tar xzf home.tgz") if -f "home.tgz";
 			foreach $src (@allSrcs) {
-            next if ($src =~ /var/);
+            next if ($src =~ /home/);
             if (-f "$src") {
                $src =~ s/.tgz//g;
-               if (-d "var/lib/tomcat5.5/webapps/ROOT/news.archive/orig/$year/$month/$date/$src") {
+               $x = "$gna2/orig/$year/$month/$date";
+               $y = "$x";
+               if (-d "$y/$gna2/orig/$year/$month/$date/$src") {
                   print "NEW SRC: $src\n";
-                  system("tar xzf $src.tgz");
-                  system("mkdir -p $src; mv var/lib/tomcat5.5/webapps/ROOT/news.archive/orig/$year/$month/$date/$src/* $src; rm -rf var/lib/tomcat5.5/webapps/ROOT/news.archive/orig/$year/$month/$date/$src");
+                  system("mkdir -p $src; mv $y/$gna2/orig/$year/$month/$date/$src/* $src");
+                  system("rm -rf $y/$gna2/orig/$year/$month/$date/$src");
                   print "EXEC: tar czf '$orig/$year/$month/$date/$src.tgz' '$orig/$year/$month/$date/$src'\n";
                   system("tar czf '$orig/$year/$month/$date/$src.tgz' '$orig/$year/$month/$date/$src'");
                   print "EXEC: rm -rf $orig/$year/$month/$date/$src\n" ;
@@ -47,14 +51,14 @@ foreach $year (@allYears) {
                }
             }
             else {
-         #		next if !(($src =~ /fe_frontpage/) || ($src =~ /fe.crawler/));
-         #		next if !($src =~ /at.crawler/);
                print "\tSRC: $src ---\n";
 
                if (-f "$src.tgz") {
-                  system("tar xzf $src.tgz");
-                  system("mv var/lib/tomcat5.5/webapps/ROOT/news.archive/orig/$year/$month/$date/$src/* $src");
-                  system("rm -rf var/lib/tomcat5.5/webapps/ROOT/news.archive/orig/$year/$month/$date/$src");
+                  system("tar xzf $src.tgz; rm -f $src.tgz");
+                  system("mv $gna2/orig/$year/$month/$date/$src/* $src");
+                  system("rm -rf $gna2/orig/$year/$month/$date/$src");
+                  system("mv $y/$gna2/orig/$year/$month/$date/$src/* $src");
+                  system("rm -rf $y/$gna2/orig/$year/$month/$date/$src");
                }
 
                   # Compress the original articles into its new destination
@@ -64,6 +68,7 @@ foreach $year (@allYears) {
                system("rm -rf '$orig/$year/$month/$date/$src'");
             }
 			}
+         system("rm -rf home; rm -f xzf home.tgz") if -d "home";
 			close DATEDIR;
 			chdir "..";
 		}
