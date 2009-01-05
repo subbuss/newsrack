@@ -22,19 +22,22 @@
 	<h1 class="left">Use of NewsRack's output</h1>
 	<p>
 	Besides regular visitors to the website, and besides use of NewsRack's RSS feeds by various
-   individual users, NewsRack's output is also being used by (or linked to) the following
-   websites:
+individual users, NewsRack's output is also being used by (or linked to) the following websites (this
+is not an exhaustive list):
 	<ul>
 	<li> <a target="_blank" href="http://www.narmada.org"> Friends of River Narmada </a> </li>
 	<li> <a target="_blank" href="http://www.esgindia.org"> Environment Support Group </a> </li>
+	<li> <a target="_blank" href="http://bangalore.citizenmatters.in"> Citizen Matters </a> </li>
+	<li> <a target="_blank" href="http://www.indiawaterportal.org"> India Water Portal </a> </li>
+	<li> <a target="_blank" href="http://mediadoctor.ca"> Media Doctor </a> </li>
+	<li> <a target="_blank" href="http://newstrust.net"> NewsTrust </a> </li>
+	<li> <a target="_blank" href="http://www.fortlewis.edu/community_culture/ec/regionalroundup.asp"> Fort Lewis College Environmental Center </a> </li>
 	<li> <a target="_blank" href="http://www.ccs.in"> Center for Civil Society </a> </li>
 	<li> <a target="_blank" href="http://www.cacim.net"> CACIM </a> </li>
 	<li> <a target="_blank" href="http://www.autism-india.org"> Action for Autism </a> </li>
-	<li> <a target="_blank" href="http://www.indiawaterportal.org"> India Water Portal </a> </li>
 	<li> <a target="_blank" href="http://www.asianpeoplesforum.net"> Peoples Forum against the ADB </a> </li>
 	<li> <a target="_blank" href="http://www.action2007.net"> Action 2007 </a> </li>
 	<li> <a target="_blank" href="http://www.praja.in"> Praja.in </a> </li>
-	<li> <a target="_blank" href="http://beta.newstrust.net"> NewsTrust </a> </li>
 	</ul>
 	</p>
 
