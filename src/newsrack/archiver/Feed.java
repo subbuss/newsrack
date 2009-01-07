@@ -339,12 +339,14 @@ public class Feed implements java.io.Serializable
 
 			// 2. Open the feed (stored on file now) for parsing, parse it, and build a wire feed and close it!
 		WireFeed  wf = null;
-		XmlReader r  = new XmlReader(rssFeedFile);
+		XmlReader r = null;
 		try {
+		   r  = new XmlReader(rssFeedFile);
 			wf = (new WireFeedInput()).build(r);
 		}
 		catch (com.sun.syndication.io.ParsingFeedException e) {
-			r.close();
+			if (r != null) r.close();
+
 				// FIXME: Caught trailing character exception!
 				// This can happen for feeds like "The Telegraph"
 			_log.error("For feed " + _feedUrl + ", found trailing content ... getting rid of it and re-parsing!");

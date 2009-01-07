@@ -108,16 +108,13 @@ public class URLCanonicalizer
 
 	private static String getTargetUrl(String url)
 	{
+		java.net.URLConnection conn = null;
 		try {
-			java.net.URLConnection conn = cm.openConnection(new java.net.URL(url));
-			String newUrl = conn.getURL().toString();
-			if (conn instanceof java.net.HttpURLConnection)
-				((java.net.HttpURLConnection)conn).disconnect();
-         else
-            _log.error("Connection is not a HttpURLConnection!");
-			return newUrl;
+			conn = cm.openConnection(new java.net.URL(url));
+			return conn.getURL().toString();
 		}
 		catch (Exception e) {
+			_log.error("Error getting canonicalized url for : " + url + "; Exception: " + e);
 			String msg = e.toString();
 			int    i   = msg.indexOf("no protocol:");
 			if (i > 0 && url != null) {
@@ -130,6 +127,14 @@ public class URLCanonicalizer
 			else {
 				if (_log.isDebugEnabled()) _log.debug("Got exception: " + e);
 				return url;
+			}
+		}
+		finally {
+			if (conn != null) {
+				if (conn instanceof java.net.HttpURLConnection)
+					((java.net.HttpURLConnection)conn).disconnect();
+				else
+					_log.error("Connection is not a HttpURLConnection!");
 			}
 		}
 	}

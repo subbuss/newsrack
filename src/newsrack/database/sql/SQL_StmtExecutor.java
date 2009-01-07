@@ -181,21 +181,13 @@ public class SQL_StmtExecutor
 			if (c == null)
 				_log.error("Got a null DB connection!");
 
-			stmt = c.prepareStatement(stmtString, Statement.RETURN_GENERATED_KEYS);
-         for (int i = 0; i < args.length; i++) {
+				// DBPool caches prepared statements, but not for stmts requiring auto-generated keys.
+				// So, carefully make the right call based on what we want
+			stmt = ((stmtType == SQL_StmtType.INSERT) && (rp != null)) ? c.prepareStatement(stmtString, Statement.RETURN_GENERATED_KEYS)
+			                                                           : c.prepareStatement(stmtString);
+				// Set args!
+         for (int i = 0; i < args.length; i++)
             argTypes[i].setStmtArg(stmt, i+1, args[i]);
-/**
-               // Check for column violation constraint
-            if (   (colSizes != null) 
-                && (argTypes[i] == STRING) 
-                && (colSizes[i] != NONE)
-                && (((String)args[i]).length() > colSizes[i]._size)
-               )
-            {
-               throw new SQL_ColumnSizeException(i, (String)args[i], colSizes[i]._size);
-            }
-**/
-         }
 
 				// Update stats!
 			_stmtExecutionCount++;
@@ -221,10 +213,11 @@ public class SQL_StmtExecutor
 					}
 					return retVal;
 
-            case INSERT : 
+            case INSERT :
                n = stmt.executeUpdate();
 					if (_log.isDebugEnabled()) _log.debug("Insert statement " + stmt + " completed without exceptions!");
-					if (n == 0)
+						// Don't complain if the stmt. is an insert ignore!
+					if ((n == 0) && (stmtString.indexOf(" IGNORE ") == -1) && (stmtString.indexOf(" ignore ") == -1))
 						_log.error("Insert statement " + stmt + " returned 0 rows!");
 
 					if (rp == null) {
