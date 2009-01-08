@@ -127,7 +127,9 @@ $newspaper   = "Dainik Bhaskar";
 $prefix      = "db";
 $defSiteRoot = "http://www.bhaskar.com";
 $date       = `date '+%Y/%m/%d'`;
-$url         = "$defSiteRoot/index.html";
+chop $date;
+$url         = "$defSiteRoot/$date/index.html";
+$rootUrl     = $url;
 
 ##
 ## END CUSTOM CODE 1
@@ -159,7 +161,7 @@ while (@urlList) {
 ## newspapers.
 ##
       ## The next line uses information about Dainik Bhaskar's URL structure
-   if ($url =~ m{$defSiteRoot/(\d+)/(\d+)/(\d+)/.*.html$}) {
+   if (($url !~ $rootUrl) && ($url =~ m{$defSiteRoot/(\d+)/(\d+)/(\d+)/.*.html$})) {
 			# For most sites, the next line suffices!
       $dateStr = &GetRFC822Date($1, $2, $3);
 		$title = $links{$url};
@@ -178,7 +180,7 @@ while (@urlList) {
    elsif (($url =~ m{Gallery}i) || ($url =~ m{CineItems}i)) {
 		# ignore ... 
 	}
-	else {
+	elsif ($url =~ $rootUrl) {
 		&CrawlWebPage($url);
    }
 }

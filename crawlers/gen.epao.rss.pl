@@ -156,7 +156,7 @@ while (@urlList) {
 
       ## The next line uses information about E-Pao's site structure
 		## http://www.e-pao.net/ge.asp?heading=1&src=161206
-   if ($url =~ m{ge.asp\?heading=(\d+)\&src=(\d+08)}i) {
+   if ($url =~ m{ge.asp\?heading=(\d+)\&src=(\d+)}i) {
       $origUrl = $url;
 ##    print "MATCH for $url\n";
 ##    $dateStr = $2;
