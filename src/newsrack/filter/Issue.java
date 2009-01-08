@@ -309,9 +309,9 @@ public class Issue implements java.io.Serializable
 
 	/* These are transient and need not be persisted. */
 				 private Set<Concept> _usedConcepts;		// Concepts used by all filters in this topic
-	transient private Method       _lexerScanMethod;	// yylex - Method that will be invoked to scan news articles
-	transient private Method       _lexerCloseMethod;	// yyclose - Method that will be invoked to close stream
-	transient private Method       _lexerResetMethod;	// yyreset - Method that will be invoked to reset the lexer
+	transient private Method       _lexerScanMethod;	// yylext(); Method that will be invoked to scan news articles
+	transient private Method       _lexerResetMethod;	// yyreset(..); Method that will be invoked to reset the lexer
+	transient private Method       _lexerCloseMethod;	// yyclose(); Method that will be invoked to reset the lexer
 	transient private Constructor  _lexerConstr;			// Constructor for the lexer class
 	transient private Object       _lexer;					// The lexer object for this class
 
@@ -1088,9 +1088,9 @@ public class Issue implements java.io.Serializable
 			_log.error("Exception scanning/classifying .. ", e);
 			return;
 		}
-		finally {
+      finally {
 			if (pw != null) pw.close();
-		}
+      }
 
 		if (skipProcessed)
 			_db.updateMaxNewsIdForIssue(this, f, maxNewsId);

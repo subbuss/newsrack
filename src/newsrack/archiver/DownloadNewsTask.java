@@ -61,7 +61,17 @@ public class DownloadNewsTask extends TimerTask
          else
             _log.error("For feed " + feed.getTag() + " aborting news download after " + MAX_ATTEMPTS + " attempts.");
 
-         synchronized(_completedDownloadsCount) { _completedDownloadsCount++; _log.info("Completed # " + _completedDownloadsCount); }
+			int mycount = 0;
+         synchronized(_completedDownloadsCount) { 
+				_completedDownloadsCount++; 
+				mycount = _completedDownloadsCount; 
+				_log.info("Completed # " + _completedDownloadsCount);
+			}
+
+				// FIXME: Till we figure out why we are ending up with CLOSE_WAIT sockets because of mod_jk/tomcat problem,
+				// periodically gc while downloading, so that this forces tomcat to release sockets
+			if (mycount % 20 == 0)
+				System.gc();
       }
    }
 
@@ -122,7 +132,13 @@ public class DownloadNewsTask extends TimerTask
             return;
          }
          finally {
-            synchronized(_completedIssuesCount) { _completedIssuesCount++; }
+				int mycount = 0;
+            synchronized(_completedIssuesCount) { _completedIssuesCount++; mycount = _completedIssuesCount; }
+
+					// FIXME: Till we figure out why we are ending up with CLOSE_WAIT sockets because of mod_jk/tomcat problem,
+					// periodically gc while downloading, so that this forces tomcat to release sockets
+				if (mycount % 20 == 0)
+					System.gc();
          }
       }
    }

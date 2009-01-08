@@ -21,7 +21,7 @@ The original design of this tool with a view towards large-scale news monitoring
 inspired by the large-scale news monitoring efforts at:
 <a target="_blank" href="http://esgindia.org">Environment Support Group, Bangalore</a>,
 <a target="_blank" href="http://cseindia.org">Center for Science and Environment, Delhi</a>,
-<a target="_blank" href="http://cedindia.org">Center for Environment and Documentation, Bangalore</a>,
+<a target="_blank" href="http://cedindia.org">Center for Environment and Documentation, Bangalore</a>.
 </p>
 
 <h1 class="underline"> Sponsors / Credits </h1>
@@ -31,17 +31,15 @@ from <a target="_blank" href="http://sarai.net">Sarai</a>.
 </p>
 <p>
 Starting January 2009, the hosting for this service is being provided by
-<a target="_blank" href="http://srijan.in">Srijan Technologies</a> and is being
-administered by Gora Mohanty.
+<a target="_blank" href="http://srijan.in">Srijan Technologies</a>.
 </p>
 <p> From March 2007 till December 2008, this service has run on the newsrack.in domain
 on a server provided by <a target="_blank" href="http://nrcfosshelpline.in/web/">NRCFOSS AU-KBC</a>
 and was primarily administered by Raj Mathur of <a target="_blank" href="http://kandalaya.org">Kandalaya</a>.
 </p>
 <p> This service was first hosted on Sarai's servers between September 2005 and March 2007.
-T.Meyarivan and Gora Mohanty at Sarai handled the administration of the server.  Gora Mohanty
-has played a key role in getting sponsorships for this project.
-<br/>
+T.Meyarivan and Gora Mohanty at Sarai handled the administration of the server.</p>
+<p>Gora Mohanty has played a key role in getting sponsorships for this project.</p>
 <p><a target="_blank" href="http://servelots.com">Servlots/Janastu</a>
 provided computing resources in the early stages of development.
 <a target="_blank" href="http://servelots.com">T.B.Dinesh</a> and
