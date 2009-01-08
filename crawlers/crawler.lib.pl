@@ -8,6 +8,27 @@ sub GetRFC822Date
    return $str;
 }
 
+sub AbsoluteUrlsOkay
+{
+	$base = $_[0];
+	$root = $_[1];
+
+	($x) = $1.$2 if ($base =~ m{^(https?://)?([^/]*).*$}i);
+	($y) = $1.$2 if ($root =~ m{^(https?://)?([^/]*).*$}i);
+
+		# Normalize
+	$x =~ s/www\.//g;
+	$y =~ s/www\.//g;
+
+	print "x - $x, y - $y\n";
+
+   $rejectAbsoluteUrls = 1;
+   if ($x eq $y) {
+      $rejectAbsoluteUrls = 0; 
+   }
+	return $rejectAbsoluteUrls;
+}
+
 sub FIX_URL
 {
 	local $_ = shift;

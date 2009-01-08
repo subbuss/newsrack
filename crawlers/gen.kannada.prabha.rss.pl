@@ -47,12 +47,7 @@ sub ProcessPage
 	$baseHref2 =~ s/www.//g;
 
       # Check if absolute URLs are okay with this page 
-   ($x) = ($baseHref    =~ m{^(http://[^/]*)/*$}i);
-   ($y) = ($defSiteRoot =~ m{^(http://[^/]*)/*$}i);
-   $rejectAbsoluteUrls = 1;
-   if ($x eq $y) {
-      $rejectAbsoluteUrls = 0; 
-   }
+	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
 
       # Initialize the list of new urls
    my $urlList = ();

@@ -43,15 +43,7 @@ sub ProcessPage
 	print LOG "SITE ROOT - $siteRoot\n";
 
       # Check if absolute URLs are okay with this page 
-	($x) = $1.$2 if ($baseHref    =~ m{^(http://)?([^/]*).*$}i);
-	($y) = $1.$2 if ($defSiteRoot =~ m{^(http://)?([^/]*).*$}i);
-		# Normalize
-	$x =~ s/www\././g;
-	$y =~ s/www\././g;
-   $rejectAbsoluteUrls = 1;
-   if ($x eq $y) {
-      $rejectAbsoluteUrls = 0; 
-   }
+	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
 
       # Initialize the list of new urls
    my $urlList = ();
