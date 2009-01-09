@@ -78,6 +78,9 @@ sub ProcessPage
       ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
       print LOG "SITE ROOT         - $siteRoot\n";
    }
+	else {
+		$siteRoot = $defSiteRoot;
+	}
 
       # Check if absolute URLs are okay with this page 
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
@@ -107,15 +110,17 @@ sub ProcessPage
          $msg    = "-http-";
          $ignore = 1;
       }
-      elsif ($rejectAbsoluteUrls && ($urlRef =~ /^\//)) {
+      elsif ($urlRef =~ m{^/}) {
          $newUrl = $siteRoot.$urlRef;
-         $msg    = "-ABSOLUTE-";
-         $ignore = 1;
+			if ($rejectAbsoluteUrls) {
+				$msg    = "-ABSOLUTE-";
+				$ignore = 1;
+			}
       }
       elsif ($urlRef =~ /^\.\./) {
+				# Allow this in the case of pioneer!
+			$urlRef =~ s/\.\.//;
          $newUrl = $baseHref.$urlRef;
-         $msg    = "-..-";
-         $ignore = 1;
       }
       elsif ($urlRef =~ /^mailto/i) {
          $newUrl = $urlRef;
@@ -157,7 +162,7 @@ sub ProcessPage
 $newspaper   = "The Pioneer";
 $prefix      = "pioneer";
 $defSiteRoot = "http://www.dailypioneer.com";
-$url         = "$defSiteRoot/index.asp";
+$url         = "$defSiteRoot/";
 
 ##
 ## END CUSTOM CODE 1
@@ -179,41 +184,30 @@ while (@urlList) {
    print LOG "PROCESSING $url ==> $links{$url}\n";
    $urlMap{$url} = $url;
 
-##
 ## BEGIN CUSTOM CODE 2: This section needs to be customized for every
 ## newspaper depending on how their site is structured.  This line
 ## tries to identify URLs that pertain to news stories (as opposed to
 ## index pages).  This check crucially relies on knowledge of the site
 ## structure and organization and needs to be customized for different
 ## newspapers.
-##
-		## I am not interested in all the crap that Pioneer publishes.
+
 		## Add RSS entries only for those sections which I am interested in.
 	$var = "";
-	$var = $1 if ($url =~ m{main_variable=(.*?)(\&|$)});
 
       ## The next line uses information about The Pioneer's site organization
-   if (($url =~ m{file_name.*txt.*}) && ($varMap{$var})) {
+   if ($url =~ m{$defSiteRoot/\d+/.*\.html}) {
 			# For most sites, the next line suffices!
       $title = $links{$url};
 ##
 ## END CUSTOM CODE 2
 ##
 		$title =~ s/<.*?>//g;
-		print "TITLE of $url is $title\n";
+		print "ADDING: TITLE of $url is $title\n";
       $desc  = $title;
 		&PrintRSSItem();
    }
-##
-## BEGIN CUSTOM CODE 3: This is a tweak for Pioneer to minimize
-## processing time ... For most sites, "else {" is sufficient
-##
-   elsif (!$var || $varMap{$var}) {
-		next if ($url =~ /discusit/);   ## No discussions please!
-		next if ($url =~ /pics.asp/);   ## No pictures please!
-##
-## END CUSTOM CODE 3
-##
+	else {
+		print "CRAWLING ... $url\n";
 		&CrawlWebPage($url);
    }
 }

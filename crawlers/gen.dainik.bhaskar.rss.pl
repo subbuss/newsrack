@@ -41,6 +41,9 @@ sub ProcessPage
       ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
       print LOG "SITE ROOT         - $siteRoot\n";
    }
+	else {
+		$siteRoot = $defSiteRoot;
+	}
 
       # Check if absolute URLs are okay with this page 
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);

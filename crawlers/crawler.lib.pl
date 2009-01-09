@@ -20,8 +20,6 @@ sub AbsoluteUrlsOkay
 	$x =~ s/www\.//g;
 	$y =~ s/www\.//g;
 
-	print "x - $x, y - $y\n";
-
    $rejectAbsoluteUrls = 1;
    if ($x eq $y) {
       $rejectAbsoluteUrls = 0; 
