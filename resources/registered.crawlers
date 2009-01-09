@@ -1,73 +1,73 @@
-## DO NOT schedule crawls from earlier in the day!
-skip.older.crawls = true
- 
-# ## Set up crawlers for various sites
-# #tna                      = gen.newanatolian.rss.pl
-# #tna.TIMES                = 6 12 18
-# pioneer                  = gen.pioneer.rss.pl
-# deccan                   = gen.dh.rss.pl
-# statesman                = gen.statesman.rss.pl
-# navbharat.times          = gen.nbt.rss.pl
-# projects.monitor         = gen.projectsmonitor.rss.pl
-# frontline                = gen.fline.rss.pl
-# chandigarh.tribune       = gen.chandigarh.tribune.rss.pl
-# ## Now HT provides its own RSS feeds ...
-# ### Fetch HT at 7 am and 7 pm
-# ##ht                       = gen.ht.rss.pl
-# ##ht.TIMES                 = 7 19
-# # Fetch IE at 8 am and 8 pm
-# ie                       = gen.ie.rss.pl
-# ie.TIMES                 = 8 20
-# #Fetch Navhind Times twice a day
-# navhind.times            = gen.navhindtimes.rss.pl
-# navhind.times.TIMES      = 8 18
-# #Fetch Ind Law News once a day
-# indlawnews               = gen.indlawnews.rss.pl
-# indlawnews.TIMES         = 8
-# #Fetch Dainik Bhaskar at 9 am
-# dainik.bhaskar           = gen.dainik.bhaskar.rss.pl
-# dainik.bhaskar.TIMES     = 9
-# #Fetch Kannada Prabha once a day
-# kannada.prabha           = gen.kannada.prabha.rss.pl
-# kannada.prabha.TIMES     = 10
-# #Fetch Dainik Jagran twice a day
-# dainik.jagran            = gen.dainik.jagran.rss.pl
-# dainik.jagran.TIMES      = 9 17
-# #Fetch Hindustan Dainik at 8 am and 7 pm
-# hindustan.dainik         = gen.hindustan.dainik.rss.pl
-# hindustan.dainik.TIMES   = 8 19
-# #Fetch Kangla Online twice a day
-# ko                       = gen.kanglaonline.rss.pl
-# ko.TIMES                 = 8 18
-# #Fetch E-Pao twice a day
-# epao                     = gen.epao.rss.pl
-# epao.TIMES               = 8 18
-# #Fetch Star of Mysore East twice a day
-# som                      = gen.starofmysore.rss.pl
-# som.TIMES                = 8 18
-# #Fetch Telegraph North East once a day
-# telegraph.ne             = gen.telegraph.ne.rss.pl
-# telegraph.ne.TIMES       = 9 15
-# #Fetch Central Chronicle twice a day 
-# #(in case things dont work once, it will work the second time around!)
-# cc                       = gen.central.chronicle.rss.pl
-# cc.TIMES                 = 6 18
-# #Fetch GOI press release 3 times a day!
-# goi.pib                  = gen.pib.rss.pl
-# goi.pib.TIMES            = 6 12 18
-# #Fetch Orissa Sambad at 10 am
-# #Orissa Sambad is no longer providing english language news!
-# #oseng                    = gen.orissa.sambad.rss.pl
-# #oseng.TIMES              = 10 19  
-# #Fetch Assam Tribune at 10 am, and once again at 5 pm because sometimes the site is not yet updated at 10
-# assam.tribune            = gen.assam.tribune.rss.pl
-# assam.tribune.TIMES      = 10 17
-# #Fetch NIE twice a day -- because it seems to be updated multiple times
-# new.indian.express       = gen.nie.rss.pl
-# new.indian.express.TIMES = 6 18
-# #Fetch Business Standard twice a day
-# business.standard        = gen.business.standard.rss.pl
-# business.standard.TIMES  = 6 18
-# #Fetch Financial Express twice a day
-# financial.express        = gen.fe.rss.pl
-# financial.express.TIMES  = 6 18
+### ## DO NOT schedule crawls from earlier in the day!
+### skip.older.crawls = true
+### 
+### ## Set up crawlers for various sites
+### pioneer                  = gen.pioneer.rss.pl
+### deccan                   = gen.dh.rss.pl
+### statesman                = gen.statesman.rss.pl
+### navbharat.times          = gen.nbt.rss.pl
+### projects.monitor         = gen.projectsmonitor.rss.pl
+### frontline                = gen.fline.rss.pl
+### chandigarh.tribune       = gen.chandigarh.tribune.rss.pl
+### # Fetch outlook at 7 am
+### outlook                  = gen.outlook.rss.pl
+### outlook.TIMES            = 7
+### # Fetch IE at 8 am and 8 pm
+### ie                       = gen.ie.rss.pl
+### ie.TIMES                 = 8 20
+### # Fetch dna.blr at 8 am and 8 pm
+### dnablr                   = gen.dna.bangalore.rss.pl
+### dnablr.TIMES             = 8 20
+### #Fetch Navhind Times twice a day
+### navhind.times            = gen.navhindtimes.rss.pl
+### navhind.times.TIMES      = 8 18
+### # Indlaw now provides their own feeds!
+### #Fetch Ind Law News once a day
+### #indlawnews               = gen.indlawnews.rss.pl
+### #indlawnews.TIMES         = 8
+### #Fetch Hindustan Dainik at 8 am and 7 pm
+### hindustan.dainik         = gen.hindustan.dainik.rss.pl
+### hindustan.dainik.TIMES   = 8 19
+### #Fetch Kangla Online twice a day
+### ko                       = gen.kanglaonline.rss.pl
+### ko.TIMES                 = 8 18
+### #Fetch E-Pao twice a day
+### epao                     = gen.epao.rss.pl
+### epao.TIMES               = 8 18
+### #Fetch Star of Mysore East twice a day
+### som                      = gen.starofmysore.rss.pl
+### som.TIMES                = 8 18
+### #Fetch oherald once a day
+### oh                       = gen.oheraldo.rss.pl
+### oh.TIMES                 = 9
+### #Fetch Telegraph North East once a day
+### telegraph.ne             = gen.telegraph.ne.rss.pl
+### telegraph.ne.TIMES       = 9 15
+### #Fetch Dainik Bhaskar at 9 am
+### dainik.bhaskar           = gen.dainik.bhaskar.rss.pl
+### dainik.bhaskar.TIMES     = 9
+### #Fetch Dainik Jagran twice a day
+### dainik.jagran            = gen.dainik.jagran.rss.pl
+### dainik.jagran.TIMES      = 9 17
+### #Fetch Kannada Prabha once a day
+### kannada.prabha           = gen.kannada.prabha.rss.pl
+### kannada.prabha.TIMES     = 10
+### #Fetch Central Chronicle twice a day 
+### #(in case things dont work once, it will work the second time around!)
+### cc                       = gen.central.chronicle.rss.pl
+### cc.TIMES                 = 6 18
+### #Fetch GOI press release 3 times a day!
+### goi.pib                  = gen.pib.rss.pl
+### goi.pib.TIMES            = 6 12 18
+### #Fetch Assam Tribune at 10 am, and once again at 5 pm because sometimes the site is not yet updated at 10
+### assam.tribune            = gen.assam.tribune.rss.pl
+### assam.tribune.TIMES      = 10 17
+### #Fetch NIE twice a day -- because it seems to be updated multiple times
+### new.indian.express       = gen.nie.rss.pl
+### new.indian.express.TIMES = 6 18
+### #Fetch Business Standard twice a day
+### business.standard        = gen.business.standard.rss.pl
+### business.standard.TIMES  = 6 18
+### #Fetch Financial Express twice a day
+### financial.express        = gen.fe.rss.pl
+### financial.express.TIMES  = 6 18

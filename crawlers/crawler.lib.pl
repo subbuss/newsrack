@@ -204,7 +204,7 @@ sub Initialize
 		## Output the RSS header
 	$currDir = `pwd`;
 	chop $currDir;
-	$home    = "$currDir/../../crawled.feeds";
+	$home    = "$currDir/../ROOT/crawled.feeds";
    $rssFile = "$prefix.rss.xml";
 	$tmpRSS  = "$home/$rssFile.tmp";
 	if (!$date) {

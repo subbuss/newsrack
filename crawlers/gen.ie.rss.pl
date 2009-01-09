@@ -57,11 +57,10 @@ sub ProcessPage
 	($y) = $1.$2 if ($defSiteRoot =~ m{^(http://)?([^/]*).*$}i);
 	($z) = $1.$2 if ($citiesSiteRoot =~ m{^(http://)?([^/]*).*$}i);
 		# Normalize
-	$x =~ s/www\././g;
-	$y =~ s/www\././g;
-	$z =~ s/www\././g;
+	$x =~ s/www\.//g;
+	$y =~ s/www\.//g;
+	$z =~ s/www\.//g;
    $rejectAbsoluteUrls = 1;
-	print "x - $x, y - $y, z - $z\n";
    if (($x eq $y) || ($x eq $z)) {
       $rejectAbsoluteUrls = 0; 
    }
