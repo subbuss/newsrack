@@ -4,6 +4,7 @@ import newsrack.NewsRack;
 
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 import newsrack.util.StringUtils;
@@ -12,8 +13,12 @@ import org.htmlparser.http.ConnectionManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-// This class takes urls of news stories so that we can more easily
-// recognize identical urls.  For now, this class hardcodes rules
+import com.opensymphony.oscache.base.*;
+import com.opensymphony.oscache.extra.*;
+import com.opensymphony.oscache.general.*;
+
+// This class canonicalizes urls of news stories so that we can more
+// easily recognize identical urls.  For now, this class hardcodes rules
 // for a few sites.  In future, this information should come from
 // an external file that specifies match-rewrite rules for urls
 public class URLCanonicalizer
@@ -39,11 +44,13 @@ public class URLCanonicalizer
 		"newscientist.com", "washingtonpost.com", "guardian.co.uk",
 		"boston.com", "publicradio.org", "cnn.com", "chicagotribune.com",
 		"latimes.com", "twincities.com", "mercurynews.com", "wsj.com",
-		"seattletimes.nwsource.com", "reuters.com", "sltrib.com"
+		"seattletimes.nwsource.com", "reuters.com", "sltrib.com",
+		"nation.com", "salon.com", "newsweek.com"
    };
 
 	static Pattern[] proxyREs;
 	static HashMap<String,Pattern> urlFixupRules;
+	static GeneralCacheAdministrator _urlCache;
 
 	static {
 			// Set up some default connection properties!
@@ -52,6 +59,16 @@ public class URLCanonicalizer
 		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
 		headers.put ("User-Agent", ua);
       headers.put ("Accept-Encoding", "gzip, deflate");
+
+			// Build a url cache
+		Properties p = new Properties();
+		p.setProperty("cache.memory", "true");
+		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
+		p.setProperty("cache.capacity", NewsRack.getProperty("urls.cache.size"));
+		// --> Don't use disk cache for now
+		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
+		// p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
+		_urlCache = new GeneralCacheAdministrator(p);
 
 			// Turn off automatic redirect processing
 		java.net.HttpURLConnection.setFollowRedirects(false);
@@ -108,33 +125,53 @@ public class URLCanonicalizer
 
 	private static String getTargetUrl(String url)
 	{
-		java.net.URLConnection conn = null;
+		String targetUrl = null;
 		try {
-			conn = cm.openConnection(new java.net.URL(url));
-			return conn.getURL().toString();
+				// Check if we have resolved this url already, and if so, get it from the cache!
+			targetUrl = (String)_urlCache.getFromCache(url);
+			_log.info("Returning " + targetUrl + " from cache for " + url);
+			return targetUrl;
 		}
-		catch (Exception e) {
-			_log.error("Error getting canonicalized url for : " + url + "; Exception: " + e);
-			String msg = e.toString();
-			int    i   = msg.indexOf("no protocol:");
-			if (i > 0 && url != null) {
-				String domain    = url.substring(0, url.indexOf("/", 7));
-				String urlSuffix = msg.substring(i + 13);
-				String newUrl    = domain + urlSuffix;
-				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + newUrl);
-				return getTargetUrl(newUrl);
+		catch (NeedsRefreshException nre) {
+				// Doesn't exist ... go fetch!
+			java.net.URLConnection conn = null;
+			try {
+				conn = cm.openConnection(new java.net.URL(url));
+				targetUrl = conn.getURL().toString();
 			}
-			else {
-				if (_log.isDebugEnabled()) _log.debug("Got exception: " + e);
-				return url;
+			catch (Exception e) {
+				_log.error("Error getting canonicalized url for : " + url + "; Exception: " + e);
+				String msg = e.toString();
+				int    i   = msg.indexOf("no protocol:");
+				if (i > 0 && url != null) {
+					String domain    = url.substring(0, url.indexOf("/", 7));
+					String urlSuffix = msg.substring(i + 13);
+					String newUrl    = domain + urlSuffix;
+					_log.info("Got malformed url exception " + msg + "; Retrying with url - " + newUrl);
+					targetUrl = getTargetUrl(newUrl);
+				}
+				else {
+					if (_log.isDebugEnabled()) _log.debug("Got exception: " + e);
+					targetUrl = url;
+				}
 			}
-		}
-		finally {
-			if (conn != null) {
-				if (conn instanceof java.net.HttpURLConnection)
-					((java.net.HttpURLConnection)conn).disconnect();
-				else
-					_log.error("Connection is not a HttpURLConnection!");
+			finally {
+				if (conn != null) {
+					if (conn instanceof java.net.HttpURLConnection)
+						((java.net.HttpURLConnection)conn).disconnect();
+					else
+						_log.error("Connection is not a HttpURLConnection!");
+				}
+
+					// Record in cache / cancel the update depending on whether we successfully resolved the proxy url!
+				if (targetUrl != null) {
+					if (targetUrl != url)
+						_urlCache.putInCache(url, targetUrl);
+					else
+						_urlCache.cancelUpdate(url);
+				}
+
+				return targetUrl;
 			}
 		}
 	}
@@ -182,9 +219,13 @@ public class URLCanonicalizer
 				}
 			}
 
-				// Do not use 'else if'
+				// Get rid of redirects
 			if (!url.startsWith("http://uni.medhas.org")) {
-				url = url.substring(url.lastIndexOf("http://"));
+				int i = url.lastIndexOf("http://");
+				if (i == -1)
+				  i = url.lastIndexOf("https://");
+				if (i != -1)
+					url = url.substring(i);
 			}
 		} while(repeat);
 

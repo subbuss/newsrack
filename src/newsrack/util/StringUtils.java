@@ -336,7 +336,7 @@ public final class StringUtils
 
 	public static String getDomainForUrl(String url)
 	{
-		url = url.replace("http://", "");
+		url = url.replace("http://", "").replace("https://", "");
 		return url.substring(0, url.indexOf("/")).replace("www.", "");
 	}
 

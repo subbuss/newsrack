@@ -135,10 +135,14 @@ public class DownloadNewsTask extends TimerTask
 				int mycount = 0;
             synchronized(_completedIssuesCount) { _completedIssuesCount++; mycount = _completedIssuesCount; }
 
+/**
+ * Will only do this for feed downloader for now ...
+ *
 					// FIXME: Till we figure out why we are ending up with CLOSE_WAIT sockets because of mod_jk/tomcat problem,
 					// periodically gc while downloading, so that this forces tomcat to release sockets
 				if (mycount % 20 == 0)
 					System.gc();
+**/
          }
       }
    }

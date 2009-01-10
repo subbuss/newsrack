@@ -1103,12 +1103,14 @@ public class Issue implements java.io.Serializable
 
 	public void unloadScanners()
 	{
+/**
 			// Set these fields to null so that the scanners can be gc'ed as necessary!
 		_lexerScanMethod = null;
 		_lexerResetMethod = null;
 		_lexerCloseMethod = null;
 		_lexerConstr = null;
 		_lexer = null;
+**/
 	}
 
 	/**

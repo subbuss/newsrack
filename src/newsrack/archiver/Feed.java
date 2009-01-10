@@ -191,27 +191,6 @@ public class Feed implements java.io.Serializable
       return url;
    }
 
-   /**
-    * Process the description element to make sure it
-    * is restricted to under 'MAX_DESC_SIZE' ... when doing that
-    * strip the text of HTML tags ...
-    */
-   private static void processDescription(SyndEntry se)
-   {
-      String desc = (se.getDescription() == null) ? "" : se.getDescription().getValue();
-		if (desc.length() > MAX_DESC_SIZE) {
-         SyndContent newDesc = new SyndContentImpl();
-         newDesc.setType("text/plain");
-			try {
-            newDesc.setValue(StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE));
-			}
-         catch (Exception e) {
-            newDesc.setValue(se.getTitle());
-         }
-         se.setDescription(newDesc);
-		}
-   }
-
 // ############### NON-STATIC FIELDS AND METHODS ############
 	/* 256 bytes for most => 4 feeds per KB => 4000 feeds per MB RAM */
 
@@ -467,21 +446,29 @@ public class Feed implements java.io.Serializable
 			}
 
 				// 4c. Download the news item
+				//
+				// For some bad RSS feeds (Doordarshan), there exist initial
+				// <item> objects that have all their entries set to null!
+				// Hence the check below!
 			if (se.getLink() != null) {
-					// For some bad RSS feeds (Doordarshan), there exist initial
-					// <item> objects that have all their entries set to null!
-					// Hence the above check!
 				NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), niDate);
 				if (ni != null) {
-					String title = se.getTitle();
-					String auth  = se.getAuthor();
-					String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
-					try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = title; }
-					ni.setTitle((title != null) ? title.trim() : null);
-					ni.setAuthor((auth != null) ? auth.trim() : null);
-					ni.setDescription((desc != null) ? desc.trim() : null);
+						// Set up the various fields of the news item only if the item is not already in the db!
+					if (ni.getKey() == null) {
+						String title = se.getTitle();
+						String auth  = se.getAuthor();
+						String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
+						try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = title; }
+						ni.setTitle((title != null) ? title.trim() : null);
+						ni.setAuthor((auth != null) ? auth.trim() : null);
+						ni.setDescription((desc != null) ? desc.trim() : null);
+					}
 
-						// 7d. Record The news item with the DB
+						// 7d. Record the news item with the DB
+						//
+						// IMPORTANT: Even though ni might already be the db, we are passing it in because ni might have
+						// been downloaded by another feed.  By making this call, we ensure that ni gets added to all
+						// feeds that it belongs to!
 					_db.recordDownloadedNewsItem(this, ni);
 				}
 			}
