@@ -41,9 +41,9 @@ sub ProcessPage
       ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
       print LOG "SITE ROOT         - $siteRoot\n";
    }
-	else {
-		$siteRoot = $defSiteRoot;
-	}
+   else {
+      $siteRoot = $defSiteRoot;
+   }
 
       # Check if absolute URLs are okay with this page 
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
@@ -74,10 +74,12 @@ sub ProcessPage
          $msg    = "-http-";
          $ignore = 1;
       }
-      elsif ($rejectAbsoluteUrls && ($urlRef =~ /^\//)) {
+      elsif ($urlRef =~ m{^/}) {
          $newUrl = $siteRoot.$urlRef;
-         $msg    = "-ABSOLUTE-";
-         $ignore = 1;
+			if ($rejectAbsoluteUrls) {
+				$msg    = "-ABSOLUTE-";
+				$ignore = 1;
+			}
       }
       elsif ($urlRef =~ /^\.\./) {
          $newUrl = $baseHref.$urlRef;

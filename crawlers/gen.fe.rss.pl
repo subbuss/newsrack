@@ -43,6 +43,9 @@ sub ProcessPage
       ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
       print LOG "SITE ROOT         - $siteRoot\n";
    }
+   else {
+      $siteRoot = $defSiteRoot;
+   }
 
       # Check if absolute URLs are okay with this page 
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
@@ -72,12 +75,9 @@ sub ProcessPage
          $msg    = "-http-";
          $ignore = 1;
       }
-      elsif ($rejectAbsoluteUrls && ($urlRef =~ /^\//)) {
-			if ($urlRef =~ /^\/bsonline\//) {
-				$newUrl = $baseHref2.$urlRef;
-			}
-			else {
-				$newUrl = $siteRoot.$urlRef;
+      elsif ($urlRef =~ m{^/}) {
+         $newUrl = $siteRoot.$urlRef;
+			if ($rejectAbsoluteUrls) {
 				$msg    = "-ABSOLUTE-";
 				$ignore = 1;
 			}
@@ -184,7 +184,7 @@ while (@urlList) {
 		&PrintRSSItem();
    }
       ## Ignore php pages
-   elsif (($url =~ $startPage) || !($url =~ /\.php/)) {
+   elsif (($url =~ $startPage) || (($url !~ /\.php/) && ($url !~ /\/print\//))) {
 		&CrawlWebPage($url);
    }
 }

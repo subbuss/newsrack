@@ -40,6 +40,7 @@ sub ProcessPage
       print "BASE HREF         - $baseHref\n";
    }
 
+   $siteRoot = $defSiteRoot;
    ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
 #   print "SITE ROOT - $siteRoot\n";
 

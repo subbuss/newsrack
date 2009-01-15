@@ -37,10 +37,13 @@ sub ProcessPage
       # Process base href declaration
    if ($content =~ m{base\s+href=(["|']?)([^'"]*/)[^/]*\1}i) {
       ($baseHref) = $2;
-#      print "BASE HREF         - $baseHref\n";
-#      ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
-#      print "SITE ROOT         - $siteRoot\n";
+      print "BASE HREF         - $baseHref\n";
+      ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
+      print "SITE ROOT         - $siteRoot\n";
    }
+	else {
+		$siteRoot = $defSiteRoot;
+	}
 
       # Check if absolute URLs are okay with this page 
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
@@ -71,10 +74,12 @@ sub ProcessPage
          $msg    = "-http-";
          $ignore = 1;
       }
-      elsif ($rejectAbsoluteUrls && ($urlRef =~ /^\//)) {
+      elsif ($urlRef =~ m{^/}) {
          $newUrl = $siteRoot.$urlRef;
-         $msg    = "-ABSOLUTE-";
-         $ignore = 1;
+			if ($rejectAbsoluteUrls) {
+				$msg    = "-ABSOLUTE-";
+				$ignore = 1;
+			}
       }
       elsif ($urlRef =~ /^\.\./) {
          $newUrl = $baseHref.$urlRef;
@@ -121,7 +126,7 @@ sub ProcessPage
 $newspaper   = "Navbharat Times";
 $prefix      = "nbt";
 $defSiteRoot = "http://navbharattimes.indiatimes.com";
-$url         = "$defSiteRoot/default.cms";
+$url         = "$defSiteRoot/headlines.cms";
 
 ##
 ## END CUSTOM CODE 1
@@ -130,10 +135,14 @@ $url         = "$defSiteRoot/default.cms";
 ## Initialize
 &Initialize("utf8", $url);
 
+## Special case -- crawl just the main page and nothing else!
+&CrawlWebPage($url);
+
 ## Process the url list while crawling the site
 while (@urlList) {
    $total++;
    $url = shift @urlList;
+   next if ($url =~ m{/articlelist/article});   # BAD URL!
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
    next if ($url =~ /#/); 		 	# Skip if this URL has javascript or local anchors
@@ -153,7 +162,7 @@ while (@urlList) {
 ## newspapers.
 ##
       # The next line uses information about Navbharat Times' site organization
-   if ($url =~ m{$defSiteRoot/articleshow/\d+\.cms}) {
+   if ($url =~ m{$defSiteRoot/articleshow/(\d+)\.cms}) {
 			# For most sites, the next line suffices!
       $title = $links{$url};
 ##
@@ -177,10 +186,6 @@ while (@urlList) {
          <guid> $url </guid>
       </item>
 RSSITEM
-   }
-   # Temporary hack
-   elsif (!($url =~ /movielist/) && !($url =~ /moviereview/) && !($url =~ /moviearticlelist/) && !($url =~ /specialcoverage/)) {
-		&CrawlWebPage($url);
    }
 }
 
