@@ -154,12 +154,14 @@ public class SQL_NewsItem extends NewsItem
 
    public File    getRelativeFilePath()  { return new File(SQL_DB._sqldb.getArchiveDir(getFeed(), getDate()) + getLocalFileName()); }
 
+      // BUGGY: If the news item is shared, this wouldn't be the correct path!
    public File    getOrigFilePath()
    { 
       return new File(  SQL_DB._sqldb.getGlobalNewsArchive() + File.separator 
                       + SQL_DB._sqldb.getArchiveDirForOrigArticles(getFeed(), getDate()) + getLocalFileName()); 
    }
 
+      // BUGGY: If the news item is shared, this wouldn't be the correct path!
    public File    getFilteredFilePath()
    { 
       return new File(  SQL_DB._sqldb.getGlobalNewsArchive() + File.separator 

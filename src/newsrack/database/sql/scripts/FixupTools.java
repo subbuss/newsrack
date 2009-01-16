@@ -93,20 +93,21 @@ public class FixupTools
 		}
 	}
 
-   public static void refetchNewsForNewsIndex(NewsIndex ni)
+   public static void refetchNewsForNewsIndex(NewsIndex ni, Long minLength)
    {
       Collection<NewsItem> news = _db.getArchivedNews(ni);
       List<NewsItem> downloadedNews = new ArrayList<NewsItem>();
       for (NewsItem n: news) {
          File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
          File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
-         if (!origFilt.exists() || (origFilt.length() < 1500L)) {
+         if (origFilt.exists() && (origFilt.length() < minLength)) {
             System.out.println("Will have to download " + origFilt + " again!");
             origOrig.delete();
             origFilt.delete();
             try {
                n.download(_db);
                downloadedNews.add(n);
+               newsrack.util.StringUtils.sleep(4);
             }
             catch (Exception e) {
                System.err.println("Error downloading news item: " + e);
@@ -114,6 +115,9 @@ public class FixupTools
          }
          else if (origFilt.exists()) {
             System.out.println("No need to download " + origFilt + " again .. it has size " + origFilt.length());
+         }
+         else {
+            System.out.println("Bath path: " + origFilt);
          }
       }
 
@@ -123,6 +127,7 @@ public class FixupTools
                                                             new Object[]{((SQL_NewsIndex)ni).getFeedKey()},
                                                             SQL_StmtExecutor._longProcessor,
                                                             false);
+         // Reclassify!
       for (Long tkey: tkeys) {
          Issue i = _db.getIssue(tkey);
          if (!i.isFrozen()) {
@@ -130,20 +135,23 @@ public class FixupTools
             i.scanAndClassifyNewsItems(null, downloadedNews);
          }
       }
+
+         // GC!
+      System.gc();
    }
 
-   public static void refetchNewsForNewsIndex(Long niKey)
+   public static void refetchNewsForNewsIndex(Long niKey, Long minLength)
    {
-      refetchNewsForNewsIndex(_db.getNewsIndex(niKey));
+      refetchNewsForNewsIndex(_db.getNewsIndex(niKey), minLength);
    }
 
-   public static void refetchFeedInDateRange(Long feedKey, Date startDate, Date endDate)
+   public static void refetchFeedInDateRange(Long feedKey, Long minLength, Date startDate, Date endDate)
    {
       java.util.Iterator<? extends NewsIndex> nis = _db.getIndexesOfAllArchivedNews(feedKey, startDate, endDate);
       while (nis.hasNext()) {
          NewsIndex ni = nis.next();
          System.out.println("Will fetch news for index: " + ni.getKey() + "; date is " + ni.getCreationTime());
-         refetchNewsForNewsIndex(ni);
+         refetchNewsForNewsIndex(ni, minLength);
       }
    }
 
@@ -174,14 +182,15 @@ public class FixupTools
 	      addNewsItemsToCat(Long.parseLong(args[2]), args[3]);
       }
       else if (action.equals("refetch-news")) {
-         refetchNewsForNewsIndex(Long.parseLong(args[2]));
+         refetchNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));
       }
-      else if (action.equals("refetch-feed-in-date-range")) {
+      else if (action.equals("refetch-feeds-in-date-range")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[2]);
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
-         for (int i = 4; i < args.length; i++) {
+         Long minLength = Long.parseLong(args[4]);
+         for (int i = 5; i < args.length; i++) {
             Long fk = Long.parseLong(args[i]);
-            refetchFeedInDateRange(fk,sd,ed);
+            refetchFeedInDateRange(fk, minLength, sd, ed);
          }
       }
       else {
