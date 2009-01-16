@@ -138,8 +138,6 @@ public class OutputFeed implements java.io.Serializable
 
 	public void addNewsItem(final NewsItem ni, final List<Category> cats)
 	{
-		if (_log.isInfoEnabled()) _log.info("RSS: ADDING " + ni.getTitle() + " to " + _name);
-
 		final Category  firstCat = cats.get(0);
 		final String    src = ni.getSourceNameForUser(firstCat.getUser());
 		final SyndEntry si = new SyndEntryImpl();

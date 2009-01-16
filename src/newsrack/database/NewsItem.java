@@ -11,6 +11,12 @@ import java.lang.String;
 import java.util.Date;
 import java.util.List;
 
+import java.io.PrintWriter;
+import newsrack.archiver.HTMLFilter;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * The class <code>NewsItem</code> represents a news item.
  * This could be a newspaper clipping, a magazine or journal article,
@@ -23,6 +29,9 @@ import java.util.List;
 
 abstract public class NewsItem implements java.io.Serializable
 {
+   	// Logging output for this class
+   static Log _log = LogFactory.getLog(NewsItem.class);
+
 	abstract public Long     getKey();
 	abstract public String   getURL();
    /** Returns the feed that this news item belogs to */
@@ -66,4 +75,60 @@ abstract public class NewsItem implements java.io.Serializable
 	{
 		return getDate().compareTo(n.getDate());
 	}
+
+   public void download(DB_Interface dbi) throws Exception
+   {
+      PrintWriter filtPw = dbi.getWriterForFilteredArticle(this);
+		PrintWriter origPw = dbi.getWriterForOrigArticle(this);
+      String url = getURL();
+      try {
+         if ((filtPw != null) && (origPw != null)) {
+            boolean done = false;
+            int numTries = 0;
+            do {
+               numTries++;
+
+               HTMLFilter hf = new HTMLFilter(url, filtPw, true);
+               hf.run();
+               String origText = hf.getOrigHtml();
+                  // Null implies there was an error downloading the url
+               if (origText != null) {
+                  String newUrl = hf.getUrl();	// Record the "final" url after going through redirects!
+                  if (!newUrl.equals(url))
+                     _log.info("TEST: orig - " + url + "; new - " + newUrl);
+                  origPw.println(origText);
+                  done = true;
+               }
+               else {
+                  _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
+                  newsrack.util.StringUtils.sleep(5);
+               }
+            } while (!done && (numTries < 3));
+         }
+         else {
+            _log.info("Ignoring! There already exists a downloaded file for url: " + url);
+         }
+      }
+      catch (Exception e) {
+            // Delete the file for this article -- otherwise, it will
+            // trigger a false hit in the archive later on!
+         if (filtPw != null)
+            dbi.deleteFilteredArticle(this);
+
+         throw e;
+      }
+      finally {
+            // close the files
+         if (origPw != null) origPw.close();
+         if (filtPw != null) filtPw.close();
+      }
+
+         // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
+      newsrack.util.StringUtils.sleep(1);
+
+         // Clear the cookie jar before each download so that you get fresh cookies for each article
+         // Hack! disabling and enabling cookie processing on the connection manager clears the cookie jar!
+      org.htmlparser.Parser.getConnectionManager().setCookieProcessingEnabled(false);
+      org.htmlparser.Parser.getConnectionManager().setCookieProcessingEnabled(true);
+   }
 }

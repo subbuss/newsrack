@@ -499,10 +499,9 @@ public class Category implements Comparable, java.io.Serializable
 
 			// Note that if this article has already been added to the category, matchedCats will be empty
 		if (!matchedCats.isEmpty()) {
+		   if (_log.isInfoEnabled()) _log.info("ADDING " + article.getTitle() + " to " + _name);
          if (_outputFeed != null)
             _outputFeed.addNewsItem(article, matchedCats); 	// Add the news item to the RSS feed 
-         else
-		      if (_log.isInfoEnabled()) _log.info("ADDING " + article.getTitle() + " to " + _name);
 			_db.addNewsItem(article, this, matchCount); 		// Record this in the database
 			_lastUpdateTime = new Date(); 						// Set last update time
 			if (_log.isDebugEnabled()) _log.debug("Added to category " + _name);

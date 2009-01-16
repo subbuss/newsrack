@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Date;
 import java.io.File;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.FileOutputStream;
 
 import com.sun.syndication.io.WireFeedInput;
@@ -485,9 +484,7 @@ public class Feed implements java.io.Serializable
 	 * (2) a filtered version of the same article 
 	 */
 
-		PrintWriter filtPw = null;
-		PrintWriter origPw = null;
-		NewsItem    ni     = null;
+		NewsItem ni = null;
 		try {
 				// 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
 				// 1b. Canonicalize it so that we can catch duplicate urls more easily! 
@@ -504,57 +501,8 @@ public class Feed implements java.io.Serializable
 				// 3. Else, create a new item.  NOTE: This won't be stored to the db yet!
 			ni = _db.createNewsItem(canonicalUrl, this, date);
 
-            // IMPORTANT: For purposes of downloading, use the original unfiltered URL!
-				// 3a. Get appropriate output streams
-				// 3b. Filter the article using the HTML filter (while getting original text)
-				// 3c. Store the original text onto disk
-				// 3d. Close streams
-			filtPw = _db.getWriterForFilteredArticle(ni);
-			origPw = _db.getWriterForOrigArticle(ni);
-			try {
-            if ((filtPw != null) && (origPw != null)) {
-               boolean done = false;
-               int numTries = 0;
-               do {
-                  numTries++;
-						HTMLFilter hf = new HTMLFilter(canonicalUrl, filtPw, true);
-						hf.run();
-						String origText = hf.getOrigHtml();
-                     // Null implies there was an error downloading the url
-                  if (origText != null) {
-							String newUrl = hf.getUrl();	// Record the "final" url after going through redirects!
-							if (!newUrl.equals(canonicalUrl))
-								_log.info("TEST: orig - " + canonicalUrl + "; new - " + newUrl);
-                     origPw.println(origText);
-                     done = true;
-                  }
-                  else {
-                     _log.info("Error downloading from url: " + canonicalUrl + " Retrying (max 3 times) once more after 5 seconds!");
-                     StringUtils.sleep(5);
-                  }
-               } while (!done && (numTries < 3));
-            }
-            else {
-               _log.info("Ignoring! There already exists a downloaded file for url: " + canonicalUrl);
-            }
-			}
-			catch (Exception e) {
-					// Delete the file for this article -- otherwise, it will
-					// trigger a false hit in the archive later on!
-				if (filtPw != null)
-					_db.deleteFilteredArticle(ni);
-
-				throw e;
-			}
-			finally {
-					// close the files
-				if (origPw != null) origPw.close();
-				if (filtPw != null) filtPw.close();
-			}
-
-            // 4e. After a download, sleep for 1 second to prevent bombarding the 
-            //     remote server with downloads
-         StringUtils.sleep(1);
+            // 4. Download it!
+         ni.download(_db); 
 
 				// 5. Create the news item and return it!
 			return ni;

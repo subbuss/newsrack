@@ -104,33 +104,12 @@ public class FixupTools
             System.out.println("Will have to download " + origFilt + " again!");
             origOrig.delete();
             origFilt.delete();
-            PrintWriter filtPw = _db.getWriterForFilteredArticle(n);
-            PrintWriter origPw = _db.getWriterForOrigArticle(n);
             try {
-               String     url = n.getURL();
-               HTMLFilter hf  = new HTMLFilter(url, filtPw, true);
-               hf.run();
-               String origText = hf.getOrigHtml();
-               if (origText != null) {
-                  String newUrl = hf.getUrl();  // Record the "final" url after going through redirects!
-                  if (!newUrl.equals(url))
-                     _log.info("TEST: orig - " + url + "; new - " + newUrl);
-                  origPw.println(origText);
-               }
-               else {
-                  _log.info("Error downloading from url: " + url);
-               }
+               n.download(_db);
                downloadedNews.add(n);
             }
             catch (Exception e) {
-                  // Delete the file for this article -- otherwise, it will
-                  // trigger a false hit in the archive later on!
-               if (filtPw != null)
-                  _db.deleteFilteredArticle(n);
-            }
-            finally {
-               if (filtPw != null) filtPw.close();
-               if (origPw != null) origPw.close();
+               System.err.println("Error downloading news item: " + e);
             }
          }
          else if (origFilt.exists()) {
@@ -146,8 +125,10 @@ public class FixupTools
                                                             false);
       for (Long tkey: tkeys) {
          Issue i = _db.getIssue(tkey);
-         System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
-         i.scanAndClassifyNewsItems(null, downloadedNews);
+         if (!i.isFrozen()) {
+            System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
+            i.scanAndClassifyNewsItems(null, downloadedNews);
+         }
       }
    }
 
@@ -196,10 +177,12 @@ public class FixupTools
          refetchNewsForNewsIndex(Long.parseLong(args[2]));
       }
       else if (action.equals("refetch-feed-in-date-range")) {
-         Long fk = Long.parseLong(args[2]);
-         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
-         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
-         refetchFeedInDateRange(fk,sd,ed);
+         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[2]);
+         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
+         for (int i = 4; i < args.length; i++) {
+            Long fk = Long.parseLong(args[i]);
+            refetchFeedInDateRange(fk,sd,ed);
+         }
       }
       else {
          System.out.println("Unknown action: " + action);
