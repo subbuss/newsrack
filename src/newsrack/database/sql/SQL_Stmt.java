@@ -93,7 +93,7 @@ class GetCollectionResultProcessor extends AbstractResultProcessor
 
 class GetNewsIndexResultProcessor extends AbstractResultProcessor
 {
-	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new SQL_NewsIndex(rs.getLong(1), rs.getDate(2)); }
+	public Object processResultSet(ResultSet rs) throws java.sql.SQLException { return new SQL_NewsIndex(rs.getLong(1), rs.getLong(2), rs.getDate(3)); }
 }
 
 class GetUserResultProcessor extends AbstractResultProcessor
@@ -451,7 +451,7 @@ public enum SQL_Stmt
 		true
    ),
 	GET_NEWS_INDEX(
-		"SELECT ni_key, created_at FROM news_indexes WHERE ni_key = ?",
+		"SELECT ni_key, feed_key, created_at FROM news_indexes WHERE ni_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -467,7 +467,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_NEWS_INDEXES_FROM_FEED_ID(
-		"SELECT ni_key, created_at FROM news_indexes n WHERE n.feed_key = ?",
+		"SELECT ni_key, feed_key, created_at FROM news_indexes n WHERE n.feed_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -475,7 +475,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_NEWS_INDEXES_BETWEEN_DATES_FROM_FEED_ID(
-		"SELECT ni_key, created_at FROM news_indexes n WHERE n.feed_key = ? AND created_at >= ? AND created_at <= ?",
+		"SELECT ni_key, feed_key, created_at FROM news_indexes n WHERE n.feed_key = ? AND created_at >= ? AND created_at <= ?",
 		new SQL_ValType[] {LONG, DATE, DATE},
       SQL_StmtType.QUERY,
 		null,

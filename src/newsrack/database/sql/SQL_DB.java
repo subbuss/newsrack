@@ -2375,6 +2375,11 @@ public class SQL_DB extends DB_Interface
 			_log.info("Start: " + sd);
 			_log.info("End  : " + ed);
 		}
-		return ((List<SQL_NewsIndex>)GET_ALL_NEWS_INDEXES_BETWEEN_DATES_FROM_FEED_ID.execute(new Object[]{s.getFeed().getKey(), new java.sql.Date(sd.getTime()), new java.sql.Date(ed.getTime())})).iterator();
+      return getIndexesOfAllArchivedNews(s.getFeed().getKey(), sd, ed);
+	}
+
+	public Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Long feedKey, Date sd, Date ed)
+	{
+		return ((List<SQL_NewsIndex>)GET_ALL_NEWS_INDEXES_BETWEEN_DATES_FROM_FEED_ID.execute(new Object[]{feedKey, new java.sql.Date(sd.getTime()), new java.sql.Date(ed.getTime())})).iterator();
 	}
 }

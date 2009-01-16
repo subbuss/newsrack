@@ -160,6 +160,19 @@ public abstract class DB_Interface
 	 */
 	public abstract Collection<NewsItem> getDownloadedNews(Feed f);
 
+  /**
+	 * This method goes through the entire news archive and fetches news
+	 * indexes for a desired feed.  Note that for the same feed, 
+    * multiple indexes can be returned.  This can happen, for instance,
+    * when the news archive is organized by date, and so, the iterator will
+    * return one news index for each date.
+	 *
+	 * @param feedKey Key of the feed for which indexes have to be fetched
+	 * @param sd  Start date (inclusive) from which indexes have to be fetched
+	 * @param ed  End date (inclusive) beyond which indexes should not be fetched
+	 */
+	public abstract Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Long feedKey, Date sd, Date ed);
+
 /* #### Support for Source #### */
 
 	public abstract Source getSource(Long key);

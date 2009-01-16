@@ -33,6 +33,10 @@ class GetLongResultProcessor extends AbstractResultProcessor
 
 public class SQL_StmtExecutor
 {
+   public static AbstractResultProcessor _longProcessor   = new GetLongResultProcessor();
+   public static AbstractResultProcessor _intProcessor    = new GetIntResultProcessor();
+   public static AbstractResultProcessor _stringProcessor = new GetStringResultProcessor();
+
            static Log            _log;
            static DB_Interface   _db;
    private static ConnectionPool _dbPool;

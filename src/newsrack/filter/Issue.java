@@ -914,7 +914,8 @@ public class Issue implements java.io.Serializable
 		}
 
 		if (!matchedCats.isEmpty()) {
-			_outputFeed.addNewsItem(ni, matchedCats); 	// Add the news item to the RSS feed 
+         if (_outputFeed != null)
+            _outputFeed.addNewsItem(ni, matchedCats); 	// Add the news item to the RSS feed 
 			_lastUpdateTime = new Date(); 					// Set last update time
 		}
 	}
@@ -1103,13 +1104,13 @@ public class Issue implements java.io.Serializable
 
 	public void unloadScanners()
 	{
-/**
 			// Set these fields to null so that the scanners can be gc'ed as necessary!
 		_lexerScanMethod = null;
 		_lexerResetMethod = null;
 		_lexerCloseMethod = null;
 		_lexerConstr = null;
 		_lexer = null;
+/**
 **/
 	}
 

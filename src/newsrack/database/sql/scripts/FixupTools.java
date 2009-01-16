@@ -2,8 +2,10 @@ package newsrack.database.sql.scripts;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Date;
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.BufferedReader;
 
 import newsrack.NewsRack;
@@ -13,11 +15,11 @@ import newsrack.database.NewsItem;
 import newsrack.database.sql.SQL_NewsItem;
 import newsrack.database.sql.SQL_NewsIndex;
 import newsrack.database.sql.SQL_ValType;
-import newsrack.database.sql.SQL_Stmt;
 import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.user.User;
 import newsrack.filter.Issue;
 import newsrack.filter.Category;
+import newsrack.archiver.HTMLFilter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -91,6 +93,79 @@ public class FixupTools
 		}
 	}
 
+   public static void refetchNewsForNewsIndex(NewsIndex ni)
+   {
+      Collection<NewsItem> news = _db.getArchivedNews(ni);
+      List<NewsItem> downloadedNews = new ArrayList<NewsItem>();
+      for (NewsItem n: news) {
+         File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
+         File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
+         if (!origFilt.exists() || (origFilt.length() < 1500L)) {
+            System.out.println("Will have to download " + origFilt + " again!");
+            origOrig.delete();
+            origFilt.delete();
+            PrintWriter filtPw = _db.getWriterForFilteredArticle(n);
+            PrintWriter origPw = _db.getWriterForOrigArticle(n);
+            try {
+               String     url = n.getURL();
+               HTMLFilter hf  = new HTMLFilter(url, filtPw, true);
+               hf.run();
+               String origText = hf.getOrigHtml();
+               if (origText != null) {
+                  String newUrl = hf.getUrl();  // Record the "final" url after going through redirects!
+                  if (!newUrl.equals(url))
+                     _log.info("TEST: orig - " + url + "; new - " + newUrl);
+                  origPw.println(origText);
+               }
+               else {
+                  _log.info("Error downloading from url: " + url);
+               }
+               downloadedNews.add(n);
+            }
+            catch (Exception e) {
+                  // Delete the file for this article -- otherwise, it will
+                  // trigger a false hit in the archive later on!
+               if (filtPw != null)
+                  _db.deleteFilteredArticle(n);
+            }
+            finally {
+               if (filtPw != null) filtPw.close();
+               if (origPw != null) origPw.close();
+            }
+         }
+         else if (origFilt.exists()) {
+            System.out.println("No need to download " + origFilt + " again .. it has size " + origFilt.length());
+         }
+      }
+
+         /* Now fetch all topics that monitor this feed! */
+      List<Long> tkeys = (List<Long>)SQL_StmtExecutor.query("SELECT DISTINCT(t_key) FROM topic_sources WHERE feed_key = ?",
+                                                            new SQL_ValType[] {SQL_ValType.LONG},
+                                                            new Object[]{((SQL_NewsIndex)ni).getFeedKey()},
+                                                            SQL_StmtExecutor._longProcessor,
+                                                            false);
+      for (Long tkey: tkeys) {
+         Issue i = _db.getIssue(tkey);
+         System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
+         i.scanAndClassifyNewsItems(null, downloadedNews);
+      }
+   }
+
+   public static void refetchNewsForNewsIndex(Long niKey)
+   {
+      refetchNewsForNewsIndex(_db.getNewsIndex(niKey));
+   }
+
+   public static void refetchFeedInDateRange(Long feedKey, Date startDate, Date endDate)
+   {
+      java.util.Iterator<? extends NewsIndex> nis = _db.getIndexesOfAllArchivedNews(feedKey, startDate, endDate);
+      while (nis.hasNext()) {
+         NewsIndex ni = nis.next();
+         System.out.println("Will fetch news for index: " + ni.getKey() + "; date is " + ni.getCreationTime());
+         refetchNewsForNewsIndex(ni);
+      }
+   }
+
 	public static void main(String[] args) throws Exception
 	{
 		if (args.length < 2) {
@@ -116,6 +191,15 @@ public class FixupTools
       }
       else if (action.equals("add-news-to-cat")) {
 	      addNewsItemsToCat(Long.parseLong(args[2]), args[3]);
+      }
+      else if (action.equals("refetch-news")) {
+         refetchNewsForNewsIndex(Long.parseLong(args[2]));
+      }
+      else if (action.equals("refetch-feed-in-date-range")) {
+         Long fk = Long.parseLong(args[2]);
+         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
+         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
+         refetchFeedInDateRange(fk,sd,ed);
       }
       else {
          System.out.println("Unknown action: " + action);
