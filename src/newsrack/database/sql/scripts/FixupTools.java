@@ -2,6 +2,7 @@ package newsrack.database.sql.scripts;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.io.File;
@@ -17,6 +18,7 @@ import newsrack.database.sql.SQL_NewsIndex;
 import newsrack.database.sql.SQL_ValType;
 import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.user.User;
+import newsrack.util.Tuple;
 import newsrack.filter.Issue;
 import newsrack.filter.Category;
 import newsrack.archiver.HTMLFilter;
@@ -155,6 +157,35 @@ public class FixupTools
       }
    }
 
+	public static int getNextNestedSetId(int nsId, Category cat)
+	{
+			// Do a pre-order traversal of the category tree and assign left-right nested-set ids for all categories
+			// Lookup and read about nested sets if you don't know what they are -- quite simple and elegant solution
+			// for storing hierarchical objects in a database while supporting efficient operations on the hierarchy.
+		int next = nsId+1;
+		for (Category cc: cat.getChildren())
+			next = getNextNestedSetId(next, cc) + 1;
+
+			// Save to db!
+		Long cKey = cat.getKey();
+		SQL_StmtExecutor.update("UPDATE categories SET lft = ?, rgt = ? WHERE cat_key = ?",
+										new SQL_ValType[] {SQL_ValType.INT, SQL_ValType.INT, SQL_ValType.LONG},
+										new Object[] {nsId, next, cKey});
+
+		return next;
+	}
+
+	public static void assignNestedSetIds()
+	{
+		List<Issue> issues = _db.getAllValidatedIssues();
+		for (Issue i: issues) {
+				// Assign and save nested-set ids for all cats
+			int next = 1;
+			for (Category c: i.getCategories())
+				next = getNextNestedSetId(next, c) + 1;
+		}
+	}
+
 	public static void main(String[] args) throws Exception
 	{
 		if (args.length < 2) {
@@ -192,6 +223,9 @@ public class FixupTools
             Long fk = Long.parseLong(args[i]);
             refetchFeedInDateRange(fk, minLength, sd, ed);
          }
+      }
+      else if (action.equals("setup-topic-nested-sets")) {
+			assignNestedSetIds();
       }
       else {
          System.out.println("Unknown action: " + action);

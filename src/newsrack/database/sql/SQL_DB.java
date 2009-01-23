@@ -1661,6 +1661,29 @@ public class SQL_DB extends DB_Interface
 			// 3. Add categories
 		for (Category c: i.getCategories())
 			addCategory(uKey, c);
+
+			// 4. Assign and save nested-set ids for all cats
+		int next = 1;
+		for (Category c: i.getCategories())
+			next = 1 + getNextNestedSetId(next, c);
+	}
+
+	private int getNextNestedSetId(int nsId, Category cat)
+	{
+			// Do a pre-order traversal of the category tree and assign left-right nested-set ids for all categories
+			// Lookup and read about nested sets if you don't know what they are -- quite simple and elegant solution
+			// for storing hierarchical objects in a database while supporting efficient operations on the hierarchy.
+		int next = nsId+1;
+		for (Category cc: cat.getChildren())
+			next = getNextNestedSetId(next, cc) + 1;
+
+			// Save to db!
+		Long cKey = cat.getKey();
+		SQL_StmtExecutor.update("UPDATE categories SET lft = ?, rgt = ? WHERE cat_key = ?",
+										new SQL_ValType[] {SQL_ValType.INT, SQL_ValType.INT, SQL_ValType.LONG},
+										new Object[] {nsId, next, cKey});
+
+		return next;
 	}
 
 	/**
@@ -1669,7 +1692,6 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void removeCategory(Category c)
 	{
-
 		if (c.isLeafCategory()) {
 			Filter f = c.getFilter();
 				// Delete filter terms first and delete filter next
@@ -1909,62 +1931,93 @@ public class SQL_DB extends DB_Interface
 	 */
 	public List<NewsItem> getNews(Category cat, Date start, Date end, Source src, int startId, int numArts)
 	{
+			// Caching non-datestamp requests right now 
 		Long   catKey   = cat.getKey();
 		String cacheKey = (start == null) ? "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts : null;
-			// FIXME: only caching non-datestamp requests right now 
-		Object keys = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
+		Object keys     = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
+
+			// Cache miss
 		if (keys == null) {
+				// Initialize ...
+			StringBuffer      queryBuf    = new StringBuffer();
+			List              argList     = new ArrayList();
+			List<SQL_ValType> argTypeList = new ArrayList<SQL_ValType>();
+
+				// Init query
+			queryBuf.append("SELECT");
+			queryBuf.append(cat.isLeafCategory() ? " c.n_key" : " DISTINCT(c.n_key)");
+			queryBuf.append(" FROM cat_news c");
+
+				// Add conditions for feed-specific news
+			if (src != null) {
+				queryBuf.append(" JOIN news_collections nc ON nc.n_key = c.n_key AND nc.feed_key = ?");
+				argList.add(src.getFeed().getKey());
+				argTypeList.add(SQL_ValType.LONG);
+			}
+
+				// Add category-specific conditions
 			if (cat.isLeafCategory()) {
-				String        query;
-				Object[]      args;
-				SQL_ValType[] argTypes;
-				if (src == null) {
-					if (start == null) {
-						query = "SELECT n_key FROM cat_news WHERE c_key = ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
-						args = new Object[] {catKey, startId, numArts};
-						argTypes = new SQL_ValType[] {LONG, INT, INT};
-					}
-					else {
-						query =   "SELECT n_key FROM cat_news WHERE c_key = ? AND date_stamp >= ? AND date_stamp <= ? "
-								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
-						args = new Object[] {catKey, new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts};
-						argTypes = new SQL_ValType[] {LONG, DATE, DATE, INT, INT};
-					}
-				}
-				else {
-					Long feedKey = src.getFeed().getKey();
-					if (start == null) {
-						query =   "SELECT c.n_key FROM cat_news c, news_collections nc "
-						        + "WHERE c_key = ? AND c.n_key = nc.n_key AND nc.feed_key = ? "
-								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
-						args = new Object[] {catKey, feedKey, startId, numArts};
-						argTypes = new SQL_ValType[] {LONG, LONG, INT, INT};
-					}
-					else {
-						query =   "SELECT c.n_key FROM cat_news c, news_collections nc "
-						        + "WHERE c_key = ? AND c.n_key = nc.n_key AND nc.feed_key = ? AND date_stamp >= ? AND date_stamp <= ? "
-								  + "ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?";
-						args = new Object[] {catKey, feedKey, new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts};
-						argTypes = new SQL_ValType[] {LONG, LONG, DATE, DATE, INT, INT};
-					}
-				}
-/*
-				_log.info("QUERY is " + query);
-				for (int i = 0; i < args.length; i++)
-					_log.info("Arg " + i + " is " + args[i]);
-*/
-
-				keys = SQL_StmtExecutor.execute(query, SQL_StmtType.QUERY, args, argTypes, null, new GetLongResultProcessor(), false);
-
-					// FIXME: only caching non-datestamp requests right now 
-				if (start == null)
-					_cache.add("LIST", new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, keys);
+				queryBuf.append(" WHERE c.c_key = ?");
+				argList.add(catKey);
+				argTypeList.add(SQL_ValType.LONG);
 			}
 			else {
-				_log.error("Fetching news from non-leaf categories not supported yet! Recd. request for cat: " + cat.getKey());
+					// Get keys of all leaf categories that are nested within the requested cat
+				String     query = "SELECT c2.cat_key FROM categories c, categories c2 " +
+				                   "WHERE c.cat_key = ? AND c2.t_key = c.t_key AND c2.lft > c.lft AND c2.rgt < c.rgt AND c2.rgt = c2.lft + 1"; 
+				List<Long> cKeys = (List<Long>)SQL_StmtExecutor.execute(query,
+																						  SQL_StmtType.QUERY,
+																						  new Object[] {cat.getKey()},
+																						  new SQL_ValType[] {LONG},
+																						  null,
+																						  new GetLongResultProcessor(),
+																						  false);
+
+					// Add conditions to fetch news from all the nested leaf cats
+				queryBuf.append(" WHERE c.c_key IN (");
+				Iterator<Long> it = cKeys.iterator();
+				while (it.hasNext()) {
+					queryBuf.append(it.next());
+					if (it.hasNext())
+						queryBuf.append(",");
+				}
+				queryBuf.append(")");
 			}
+
+				// Add conditions for date-limited news
+			if (start != null) {
+				queryBuf.append(" AND date_stamp >= ? AND date_stamp <= ?");
+				argList.add(new java.sql.Date(start.getTime()));
+				argList.add(new java.sql.Date(end.getTime()));
+				argTypeList.add(SQL_ValType.DATE);
+				argTypeList.add(SQL_ValType.DATE);
+			}
+
+				// Add sorting and limiting constraints
+			queryBuf.append(" ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?");
+			argList.add(startId);
+			argList.add(numArts);
+			argTypeList.add(SQL_ValType.INT);
+			argTypeList.add(SQL_ValType.INT);
+
+				// Have to do this nonsense because generic type info and type parameter info is lost at runtime ... 
+			Object[] tmp = argTypeList.toArray();
+			SQL_ValType[] argTypes = new SQL_ValType[tmp.length];
+			int i = 0;
+			for (Object v: tmp) {
+				argTypes[i] = (SQL_ValType)v;
+				i++;
+			}
+
+				// Run the query and fetch news!
+			keys = SQL_StmtExecutor.execute(queryBuf.toString(), SQL_StmtType.QUERY, argList.toArray(), argTypes, null, new GetLongResultProcessor(), false);
+
+				// Caching non-datestamp requests right now 
+			if (start == null)
+				_cache.add("LIST", new String[]{cat.getUser().getKey().toString(), "CATNEWS:" + cat.getKey()}, cacheKey, keys);
 		}
 
+			// Set up the list of news items
 		List<NewsItem> news = new ArrayList<NewsItem>();
 		for (Long k: (List<Long>)keys)
 			news.add(getNewsItem(k));
@@ -1987,7 +2040,6 @@ public class SQL_DB extends DB_Interface
 		return getNews(cat, null, null, null, 0, numArts);
 	}
 
-/**
 	public List<NewsItem> getNews(Issue i, Date start, Date end, Source src, int startId, int numArts)
 	{
 		List<NewsItem> news = new ArrayList<NewsItem>();
@@ -2001,7 +2053,6 @@ public class SQL_DB extends DB_Interface
 
 		return news;
 	}
-**/
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
 	{

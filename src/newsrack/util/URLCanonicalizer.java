@@ -64,7 +64,9 @@ public class URLCanonicalizer
 		Properties p = new Properties();
 		p.setProperty("cache.memory", "true");
 		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
-		p.setProperty("cache.capacity", NewsRack.getProperty("urls.cache.size"));
+		String capacity = NewsRack.getProperty("urls.cache.size");
+		if (capacity == null) capacity = "10000";
+		p.setProperty("cache.capacity", capacity);
 		// --> Don't use disk cache for now
 		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
 		// p.setProperty("cache.path", NewsRack.getProperty("cache.path"));

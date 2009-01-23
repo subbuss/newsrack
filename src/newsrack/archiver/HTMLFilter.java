@@ -73,6 +73,13 @@ public class HTMLFilter extends NodeVisitor
 		java.net.HttpURLConnection.setFollowRedirects(false);	// Turn off automatic redirect processing
 	}
 
+	public static void clearCookieJar()
+	{
+         // Hack! disabling and enabling cookie processing on the connection manager clears the cookie jar!
+      Parser.getConnectionManager().setCookieProcessingEnabled(false);
+      Parser.getConnectionManager().setCookieProcessingEnabled(true);
+	}
+
 	private static String  _lineSep;	// Line separator
    private static boolean _debug = false;
 

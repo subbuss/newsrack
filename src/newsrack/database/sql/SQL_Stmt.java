@@ -1003,6 +1003,14 @@ public enum SQL_Stmt
 		new GetFeedResultProcessor(),
 		false
 	),
+	GET_TOPICS_MONITORING_FEED(
+		"SELECT DISTINCT(t_key) FROM topic_sources WHERE feed_key = ?",
+		new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
 		// Prepared Statement Strings for INSERTs 
    INSERT_USER(
 		"INSERT INTO users (uid, password, name, email) VALUES (?,?,?,?)",
@@ -1220,6 +1228,11 @@ public enum SQL_Stmt
    UPDATE_CAT(
       "UPDATE categories SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG, STRING, INT, LONG, STRING, LONG},
+      SQL_StmtType.UPDATE
+	),
+	SET_NESTED_SET_IDS_FOR_CAT(
+      "UPDATE categories SET lft = ?, rgt = ? WHERE cat_key = ?",
+		new SQL_ValType[] {INT, INT, LONG},
       SQL_StmtType.UPDATE
 	),
 	UPDATE_CATS_FOR_TOPIC(

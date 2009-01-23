@@ -126,9 +126,7 @@ abstract public class NewsItem implements java.io.Serializable
          // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
       newsrack.util.StringUtils.sleep(1);
 
-         // Clear the cookie jar before each download so that you get fresh cookies for each article
-         // Hack! disabling and enabling cookie processing on the connection manager clears the cookie jar!
-      org.htmlparser.Parser.getConnectionManager().setCookieProcessingEnabled(false);
-      org.htmlparser.Parser.getConnectionManager().setCookieProcessingEnabled(true);
+         // Clear the cookie jar after each download so that you get fresh cookies for each article
+		HTMLFilter.clearCookieJar();
    }
 }
