@@ -17,10 +17,10 @@
 [/#if]
 
 [#-- Check if we are browsing news filtered by date or source .. in those situations, paging will be implemented differently! --]
-[#if Parameters.start_date?exists || (Parameters.source_tag?exists && Parameters.source_tag != "")]
-  [#assign filteredBySrcDate = true]
+[#if Parameters.start_date?exists || (Parameters.source_tag?exists && Parameters.source_tag != "") || cat.leafCategory == false]
+  [#assign unknownNewsCount = true]
 [#else]
-  [#assign filteredBySrcDate = false]
+  [#assign unknownNewsCount = false]
   [#assign rangeBegin = startId]
   [#assign rangeEnd = startId + numArtsPerPage-1]
   [#if (rangeEnd>numArts)]
@@ -46,15 +46,17 @@
 [#if dispDelFlag]
 	<input type="submit" id="delArts" name="DEL" value="Delete">
 [/#if]
-[#if filteredBySrcDate]
+[#if unknownNewsCount]
 	&nbsp;&nbsp;&nbsp; [#-- filler to ensure this navbar has some vertical space --]
    <div class="navbar">
   [#if Parameters.start_date?exists && Parameters.source_tag?exists]
     [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" source_tag="${Parameters.source_tag}" /]
   [#elseif Parameters.start_date?exists]
     [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" /]
-  [#else]
+  [#elseif Parameters.source_tag?exists]
     [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${Parameters.source_tag}" /]
+  [#elseif cat.leafCategory == false ]
+    [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" show_news="true" /]
   [/#if] 
   [#if start < 1]
    |&lt; First &nbsp; &lt;&lt; Previous
@@ -251,7 +253,7 @@ function show(obj, style) { obj.style.display = style; }
   [/#if]
 [/#if]
 
-[#if numArts == 0]
+[#if cat.leafCategory && numArts == 0]
 		<p class="bold center"> No news yet in this category! </p>
 [#else]
 [#-- DISPLAY the navigation bar --]
@@ -306,7 +308,7 @@ newstrust_story_date = '${ni.date?string("yyyy-MM-dd")}';
       [/#if]
 			[#-- Display the other categories it belongs to ### --]
       [#assign cats = ni.categories]
-      [#if cats.size() > 1]
+      [#if cats.size() > 1 || (cat.leafCategory == false)]
 		<tr class="newscats"> 
 			<td colspan="3">
 			<span class="normal underline">Also found in:</span>

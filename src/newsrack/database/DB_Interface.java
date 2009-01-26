@@ -89,6 +89,12 @@ public abstract class DB_Interface
 	public abstract List<Long> getCollectionImportersForUser(User u);
 
 	/**
+	 * Gets the list of users who export collections for 'u'
+	 * @param u  User whose importers are required
+	 */
+	public abstract List<Long> getCollectionExportersForUser(User u);
+
+	/**
 	 * Remove all of this users's import dependencies on other users
 	 * @param u  User whose dependencies are to be removed
 	 */

@@ -134,8 +134,8 @@ public class FileAction extends BaseAction implements ServletResponseAware
 			pw.print(content);
 			pw.close();
 
-				// Invalidate issues -- they need to be re-validated after content changes!
-			_user.invalidateAllIssues();
+				// Invalidate profile -- they need to be re-validated after content changes!
+			_user.invalidateProfile();
 
 			addActionMessage(getText("msg.file.saved"));
 			return Action.SUCCESS;
@@ -235,8 +235,8 @@ public class FileAction extends BaseAction implements ServletResponseAware
 				IOUtils.copyInputToOutput(_user.getInputStream(owner, _file), _user.getOutputStream(_file), true);
 				_user.addFile(_file);
 
-					// Invalidate issues -- they need to be re-validated with addition of new content
-				_user.invalidateAllIssues();
+					// Invalidate profile -- they need to be re-validated with addition of new content
+				_user.invalidateProfile();
 
 				addActionMessage(getText("msg.file.copied"));
 				return Action.SUCCESS;

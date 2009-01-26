@@ -79,7 +79,7 @@ SPACE  = {WS}*
    ("DEF"|"DEFINE"){SPACE}"CONCEPTS"         { return token(Terminals.DEF_CPTS); }
    ("DEF"|"DEFINE"){SPACE}"FILTERS"          { return token(Terminals.DEF_FILTERS); }
    ("DEF"|"DEFINE"){SPACE}("TOPIC"|"ISSUE")  { return token(Terminals.DEF_TOPIC); }
-   "END"{SPACE}("CONCEPTS"|"SOURCES"|"ISSUE"|"CATEGORIES") | "END" { return token(Terminals.END); }
+   "END"{SPACE}("CONCEPTS"|"SOURCES"|"ISSUE"|"CATEGORIES"|"TOPIC") | "END" { return token(Terminals.END); }
 	"FILTER"                    { return token(Terminals.FILTER); }
    "MONITOR"{SPACE}"SOURCES"   { return token(Terminals.MONITOR_SRCS); }
    "ORGANIZE"{SPACE}"NEWS"{SPACE}"INTO"{SPACE}"CATEGORIES" { return token(Terminals.ORGANIZE_CATS); }

@@ -553,21 +553,21 @@ a.browsecat, a.browseleafcat {
 	text-decoration  : none;
 }
 
-a.browsecat {
-	color            : #880000;
+a.browsecat, span.browsecat {
+	color            : #800;
 }
 
-a.browseleafcat {
-	color            : #008800;
+a.browseleafcat, span.browseleafcat {
+	color            : #080;
 }
 
 a.browsecat:hover {
-	background-color : #880000;
+	background-color : #800;
 	color            : white;
 }
 
 a.browseleafcat:hover {
-	background-color : #008800;
+	background-color : #080;
 	color            : white;
 }
 

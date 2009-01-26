@@ -24,8 +24,11 @@ public class IssueAction extends BaseApiAction
 
 	private boolean setupParams()
 	{
-			// User - mandatory
+			// User - mandatory (either owner= or user= accept both for now)
 		String uid = getApiParamValue("owner", false);
+		if (uid == null)
+			uid = getApiParamValue("user", false);
+
 		User   u   = (uid == null) ? null : User.getUser(uid);
 		if (!validateParam(u, "owner_uid", uid))
 			return false;

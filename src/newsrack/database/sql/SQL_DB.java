@@ -647,6 +647,15 @@ public class SQL_DB extends DB_Interface
 		return (List<Long>)GET_IMPORTING_USERS.execute(new Object[]{u.getKey()});
 	}
 
+	/**
+	 * Gets the list of users who export collections for 'u'
+	 * @param u  User whose importers are required
+	 */
+	public List<Long> getCollectionExportersForUser(User u)
+	{
+		return (List<Long>)GET_EXPORTING_USERS.execute(new Object[]{u.getKey()});
+	}
+
 	public void clearImportDependenciesForUser(User u)
 	{
 			// Remove all of this users's import dependencies on other users
@@ -1619,7 +1628,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void addIssue(Issue i)
 	{
-		Long   iKey = i.getKey();
+		Long iKey = i.getKey();
 
 			// 1. check if the issue already exists
 			//    if it doesn't exist, add it!
@@ -1635,6 +1644,12 @@ public class SQL_DB extends DB_Interface
 				i.setKey(iKey);
 				i.setNumArticles((Integer)info._b);
 				i.setLastUpdateTime((Date)info._c);
+
+					// Update flags of the new object based on what is in the db!
+				Issue existingI = getIssue(iKey);
+				i.setFreezeFlag(existingI.isFrozen());
+				i.setPrivateFlag(existingI.isPrivate());
+
 				updateTopic(i);
 			}
 		}
@@ -1827,90 +1842,133 @@ public class SQL_DB extends DB_Interface
 		}
 	}
 
+	private void purgeCacheNewsEntriesForCat(Category c)
+	{
+		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + c.getKey()});
+		for (Category cc: c.getChildren())
+			purgeCacheNewsEntriesForCat(cc);
+	}
+
+	private void purgeCacheEntriesForCat(Category c, boolean processChildren)
+	{
+			// Remove cache entries for this category and for all its ancestors!
+			// Ancestors have links to their children
+		Category x = c;
+		while (x != null) {
+			_cache.remove("CATEGORY", x.getKey());
+			x = x.getParent();
+		}
+
+			// If c is a non-leaf cat, if requested, purge cache entries for children
+			// This is required, for example, when we delete news items from a non-leaf category
+		if (processChildren) {
+			for (Category cc: c.getChildren())
+				purgeCacheEntriesForCat(cc, processChildren);
+		}
+	}
+
+	private void purgeIssueAndUserEntriesForCat(Category c)
+	{
+			// Remove other pertinent cached entries for this category!
+			// The issue and user objects are being removed because they
+			// might contain references to the cached objects!
+		User  u = c.getUser();
+		Issue i = c.getIssue();
+		_cache.remove("ISSUE", i.getKey());
+		_cache.remove("ISSUE", u.getUid() + ":" + i.getName());
+		_cache.remove("USER", u.getKey());
+		_cache.remove("USER", u.getUid());
+	}
+
 	/**
 	 * Remove a classified news item from a category
 	 * @param catKey   Category key (globally unique)
-	 * @param niKey    NewsItem key (globally unique)
+	 * @param nKey    NewsItem key (globally unique)
 	 */
-	public void deleteNewsItemFromCategory(Long catKey, Long niKey)
+	public void deleteNewsItemFromCategory(Long catKey, Long nKey)
    {
-			// Purge cache of stale news
-		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + catKey});
+		Category cat = getCategory(catKey);
 
-		Integer numDeleted = (Integer)DELETE_NEWS_FROM_CAT.execute(new Object[] {catKey, niKey});
-		if (_log.isDebugEnabled()) _log.debug("Deleted " + numDeleted + " items from category " + catKey);
-      if (numDeleted > 0) {
-			Category cat = getCategory(catKey);
-			cat.setNumArticles(cat.getNumArticles() - numDeleted);
-			commitCatToDB(cat, true);
-         updateArtCounts(cat.getIssue());
+		if (cat.isLeafCategory()) {
+			DELETE_NEWS_FROM_CAT.execute(new Object[] {catKey, nKey});
+			UPDATE_ART_COUNT_FOR_CAT.execute(new Object[]{catKey});
 		}
+		else {
+				// Get keys of all leaf categories that are nested within the requested cat
+			List<Long> cKeys = getKeysForAllNestedLeafCats(cat);
+
+				// Add conditions to fetch news from all the nested leaf cats
+			StringBuffer queryBuf = new StringBuffer("DELETE FROM cat_news WHERE n_key = ? AND c_key IN (");
+			Iterator<Long> it = cKeys.iterator();
+			while (it.hasNext()) {
+				queryBuf.append(it.next());
+				if (it.hasNext())
+					queryBuf.append(",");
+			}
+			queryBuf.append(")");
+			SQL_StmtExecutor.delete(queryBuf.toString(), new SQL_ValType[] {LONG}, new Object[]{nKey});
+
+				// Update counts
+			UPDATE_ART_COUNTS_FOR_ALL_TOPIC_LEAF_CATS.execute(new Object[]{cat.getIssue().getKey()});
+		}
+
+			// Purge cache of stale news, category, issue, and user objects
+		purgeCacheNewsEntriesForCat(cat);
+		purgeCacheEntriesForCat(cat, false);
+		purgeIssueAndUserEntriesForCat(cat);
    }
 
 	/**
 	 * Remove a classified news item from a category
-	 * @param catKey   Category key (globally unique)
-	 * @param niKeys   NewsItem keys (globally unique)
+	 * @param catKey  Category key (globally unique)
+	 * @param nKeys   NewsItem keys (globally unique)
 	 */
-	public void deleteNewsItemsFromCategory(Long catKey, List<Long> niKeys)
+	public void deleteNewsItemsFromCategory(Long catKey, List<Long> nKeys)
    {
-			// Purge cache of stale news
-		_cache.removeEntriesForGroups(new String[]{"CATNEWS:" + catKey});
+		Category cat = getCategory(catKey);
 
-			// FIXME: Fix this bad code from the older codebase!  Just delete everything in one shot for god's sake!
-		Connection        c    = null;
-		PreparedStatement stmt = null;
-		try {
-			c = _dbPool.getConnection();
-			stmt = c.prepareStatement(DELETE_5_NEWS_ITEMS_FROM_CAT._stmtString);
-			stmt.setLong(1, catKey);
+			// Initialize
+		StringBuffer queryBuf = new StringBuffer("DELETE FROM cat_news WHERE");
 
-            // Delete keys 5 at a time
-         int  i = 0;
-         int  numDeleted = 0;
-         Long lastVal = (long)0;
-         for (Long k:niKeys) {
-            stmt.setLong(i+2, k);
-            i++;
-            if (i % 5 == 0) {
-			      int n = stmt.executeUpdate();
-               numDeleted += n;
-               i = 0;
-            }
-            lastVal = k;
-         }
-            // Set the remaining parameters to null
-         if (i % 5 != 0) {
-            while (i % 5 != 0) {
-               stmt.setLong(i+2, lastVal);
-               i++;
-            }
-            int n = stmt.executeUpdate();
-            numDeleted += n;
-         }
-
-         _log.info("Deleted " + numDeleted + " rows!");
-
-			// Update article count
-         if (numDeleted > 0) {
-				Category cat = getCategory(catKey);
-				cat.setNumArticles(cat.getNumArticles() - numDeleted);
-					// NOTE: Order is important!
-					// This first statement updates the category and purges the cache
-					// of all objects that could have stale references to this category.
-					// issues, users ... the works ...
-				commitCatToDB(cat, true);
-            updateArtCounts(cat.getIssue());
-         }
+			// Set up conditions for categories
+		if (cat.isLeafCategory()) {
+			queryBuf.append(" c_key = ").append(catKey);
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-			_log.error("Error deleting news items from category " + catKey);
+		else {
+				// Get keys of all leaf categories that are nested within the requested cat
+			List<Long> cKeys = getKeysForAllNestedLeafCats(cat);
+
+				// Add conditions to fetch news from all the nested leaf cats
+			queryBuf.append(" c_key IN (");
+			Iterator<Long> it = cKeys.iterator();
+			while (it.hasNext()) {
+				queryBuf.append(it.next());
+				if (it.hasNext())
+					queryBuf.append(",");
+			}
+			queryBuf.append(")");
 		}
-		finally {
-			SQL_StmtExecutor.closeStatement(stmt);
-			SQL_StmtExecutor.closeConnection(c);
+
+			// Set up conditions for news items
+		queryBuf.append(" AND n_key IN (");
+		Iterator<Long> it = nKeys.iterator();
+		while (it.hasNext()) {
+			queryBuf.append(it.next());
+			if (it.hasNext())
+				queryBuf.append(",");
 		}
+		queryBuf.append(")");
+
+			// Execute the delete statement
+		SQL_StmtExecutor.delete(queryBuf.toString(), new SQL_ValType[] {}, new Object[]{});
+
+			// Update counts
+		UPDATE_ART_COUNTS_FOR_ALL_TOPIC_LEAF_CATS.execute(new Object[]{cat.getIssue().getKey()});
+
+			// Purge cache of stale news, category, issue, and user objects
+		purgeCacheNewsEntriesForCat(cat);
+		purgeCacheEntriesForCat(cat, true);
+		purgeIssueAndUserEntriesForCat(cat);
    }
 
 	/**
@@ -1924,6 +1982,19 @@ public class SQL_DB extends DB_Interface
 		SQL_NewsItem sni = (SQL_NewsItem)ni;
       Object v = CAT_NEWSITEM_PRESENT.execute(new Object[] {cat.getKey(), sni.getKey(), sni.getNewsIndex().getKey()});
 		return (v != null);
+	}
+
+	private List<Long> getKeysForAllNestedLeafCats(Category cat)
+	{
+		String query = "SELECT c2.cat_key FROM categories c, categories c2 " +
+		               "WHERE c.cat_key = ? AND c2.t_key = c.t_key AND c2.lft > c.lft AND c2.rgt < c.rgt AND c2.rgt = c2.lft + 1"; 
+		return (List<Long>)SQL_StmtExecutor.execute(query,
+																  SQL_StmtType.QUERY,
+																  new Object[] {cat.getKey()},
+																  new SQL_ValType[] {LONG},
+																  null,
+																  new GetLongResultProcessor(),
+																  false);
 	}
 
 	/**
@@ -1963,15 +2034,7 @@ public class SQL_DB extends DB_Interface
 			}
 			else {
 					// Get keys of all leaf categories that are nested within the requested cat
-				String     query = "SELECT c2.cat_key FROM categories c, categories c2 " +
-				                   "WHERE c.cat_key = ? AND c2.t_key = c.t_key AND c2.lft > c.lft AND c2.rgt < c.rgt AND c2.rgt = c2.lft + 1"; 
-				List<Long> cKeys = (List<Long>)SQL_StmtExecutor.execute(query,
-																						  SQL_StmtType.QUERY,
-																						  new Object[] {cat.getKey()},
-																						  new SQL_ValType[] {LONG},
-																						  null,
-																						  new GetLongResultProcessor(),
-																						  false);
+				List<Long> cKeys = getKeysForAllNestedLeafCats(cat);
 
 					// Add conditions to fetch news from all the nested leaf cats
 				queryBuf.append(" WHERE c.c_key IN (");
@@ -2008,6 +2071,8 @@ public class SQL_DB extends DB_Interface
 				argTypes[i] = (SQL_ValType)v;
 				i++;
 			}
+
+			//_log.info("Executing: " + queryBuf.toString() + " with start value " + startId);
 
 				// Run the query and fetch news!
 			keys = SQL_StmtExecutor.execute(queryBuf.toString(), SQL_StmtType.QUERY, argList.toArray(), argTypes, null, new GetLongResultProcessor(), false);
@@ -2273,20 +2338,12 @@ public class SQL_DB extends DB_Interface
 			UPDATE_CAT_NEWS_INFO.execute(new Object[] {cat.getNumArticles(), lut, cat.getNumItemsSinceLastDownload(), cat.getKey()});
 
 		if (purgeAllStaleCacheEntries) {
-				// Remove stale cache entry for this category
-			_cache.remove("CATEGORY", cat.getKey());
+			purgeCacheEntriesForCat(cat, false);
+			purgeIssueAndUserEntriesForCat(cat);
 
-				// Remove other pertinent cached entries for this category!
-				// The issue and user objects are being removed because they
-				// might contain references to the cached objects!
-			User  u = cat.getUser();
-			Issue i = cat.getIssue();
-			_cache.remove("ISSUE", i.getKey());
-			_cache.remove("ISSUE", u.getUid() + ":" + i.getName());
-			_cache.remove("USER", u.getKey());
-			_cache.remove("USER", u.getUid());
 				// Check out a new copy of the issue & update issue references in this category and all sub-categories
-			updateIssueForCat(cat, getIssue(i.getKey()));
+				// This is because the caller might continue to use the 'cat' object that is passed in!
+			updateIssueForCat(cat, getIssue(cat.getIssue().getKey()));
 		}
 		else if (cat.isLeafCategory()) {
 				// Update info in place!  FIXME: This should not be necessary ... but, in case the count has gone off-key ...
@@ -2351,6 +2408,7 @@ public class SQL_DB extends DB_Interface
 		if (leafCats != null) {
 			for (Category c: leafCats)
 				commitCatToDB(c, false);
+
 			leafCats.clear();
 
 				// Update article counts

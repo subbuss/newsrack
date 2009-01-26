@@ -62,7 +62,7 @@ public class EditProfileAction extends BaseAction
             }
 			}
 			else if (action.equals("disableActiveProfile")) {
-            try { _user.invalidateAllIssues(); }
+            try { _user.invalidateProfile(); }
             finally { BrowseAction.setIssueUpdateLists(); }
 			}
 			else if (action.equals("freeze")) {

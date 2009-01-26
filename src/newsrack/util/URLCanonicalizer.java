@@ -45,7 +45,7 @@ public class URLCanonicalizer
 		"boston.com", "publicradio.org", "cnn.com", "chicagotribune.com",
 		"latimes.com", "twincities.com", "mercurynews.com", "wsj.com",
 		"seattletimes.nwsource.com", "reuters.com", "sltrib.com",
-		"nation.com", "salon.com", "newsweek.com"
+		"nation.com", "salon.com", "newsweek.com", "forbes.com"
    };
 
 	static Pattern[] proxyREs;

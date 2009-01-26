@@ -493,10 +493,19 @@ public class User implements java.io.Serializable
 		return (_issues == null) ? _db.getIssue(this, iname) : _issues.get(iname);
 	}
 
+	public void invalidateProfile()
+	{
+		invalidateAllIssues();
+
+			// Clear out all my import dependencies so that when my importers validate their profile,
+			// I won't get validated again!
+		_db.clearImportDependenciesForUser(this);
+	}
+
 	/**
 	 * Disables the active profile
 	 */
-	public void invalidateAllIssues()
+	private void invalidateAllIssues()
 	{
 			// If it is not a validated profile, simply return
 		if (!isValidated())
@@ -665,7 +674,7 @@ public class User implements java.io.Serializable
 			/* Always invalidate the active profile whenever some file 
 			 * is deleted -- I know this is somewhat silly and I can do
 			 * smarter things .. but, this is good enough for now! */
-		invalidateAllIssues();
+		invalidateProfile();
 	}
 
 	public void addCollection(NR_Collection c)
@@ -764,7 +773,8 @@ public class User implements java.io.Serializable
 				// IMPORTANT: First, disable all active issues, if any!
 			invalidateAllIssues();
 
-				// Clear out all my import dependencies
+				// Clear out all my import dependencies so that I can incorporate more up-to-date
+				// import dependencies after parsing the profile files
 			_db.clearImportDependenciesForUser(this);
 
 				// Now, re-initialize all issues
@@ -772,19 +782,38 @@ public class User implements java.io.Serializable
 			initializeIssues(genScanners);
 		   _isInitialized = true;
 
-				// Get the list of keys of users who import my collections
-				// and validate all of them
+				// Update the db before validating dependent users! 
+			_db.updateUser(this);
+
+				// Get the list of keys of users who import my collections and validate all of them.
+				// The code below implicitly implements a topological order of validations.
 			List<Long> dependentUsers = _db.getCollectionImportersForUser(this);
 			if (dependentUsers != null) {
 				for (Long uKey: dependentUsers) {
 					User u = _db.getUser(uKey);
 					if (!u.isValidated()) {
-						_log.info("Validating dependent user: " + u.getUid());
-						try {
-							u.validateIssues(true);
-						} 
-						catch(Exception e) {
-							_log.error("Exception validating user: " + u.getUid(), e);
+						_log.info("Attempting validation of dependent user: " + u.getUid());
+							// Check if all the users who provide me with collections are validated!
+						boolean allDone = true;
+						List<Long> providingUsers = _db.getCollectionExportersForUser(u);
+						for (Long pKey: providingUsers) {
+							User pu = _db.getUser(pKey);
+							if (!pu.isValidated()) {
+								_log.info("... Not yet ready because one of the providers " + pu.getUid() + " is yet to be validated!");
+								allDone = false;
+								break;
+							}
+						}
+
+							// If all my providers have been validated, validate me!
+						if (allDone) {
+							try {
+								_log.info("Validating dependent user: " + u.getUid());
+								u.validateIssues(true);
+							} 
+							catch(Exception e) {
+								_log.error("Exception validating user: " + u.getUid(), e);
+							}
 						}
 					}
 					else {

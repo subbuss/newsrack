@@ -317,14 +317,14 @@ public class Issue implements java.io.Serializable
 
 	public Issue() { }
 
-	private void init(String name, boolean pFlag, boolean vFlag, boolean fFlag)
+	private void init(String name, boolean vFlag, boolean fFlag, boolean pFlag)
 	{
 		_key = null;
 		_name = name;
 		_catMap   = new HashMap();
-		_private = pFlag;
 		_validated = vFlag;
 		_frozen = fFlag;
+		_private = pFlag;
 	}
 
 	public Issue(String name, User u) throws Exception
@@ -340,10 +340,10 @@ public class Issue implements java.io.Serializable
 		}
 	}
 
-	public Issue(String name, boolean pFlag, boolean vFlag, boolean fFlag)
+	public Issue(String name, boolean vFlag, boolean fFlag, boolean pFlag)
 	{
 		super();
-		init(name, pFlag, vFlag, fFlag);
+		init(name, vFlag, fFlag, pFlag);
 	}
 
    public void    setKey(Long k)  { _key = k; }
@@ -354,6 +354,8 @@ public class Issue implements java.io.Serializable
 	public Long    getUserKey()    { return _user.getKey(); }
 	public boolean isPrivate()     { return _private; }
 	public boolean isValidated()   { return _validated; }
+	public void    setFreezeFlag(boolean flag)  { _frozen = flag; }
+	public void    setPrivateFlag(boolean flag) { _private = flag; }
 
 	/**
 	 * Checks if downloading is frozen for this issue 

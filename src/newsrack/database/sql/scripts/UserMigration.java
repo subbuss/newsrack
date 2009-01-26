@@ -87,7 +87,7 @@ public class UserMigration
 		System.out.println("--- Invalidating first ---");
 		for (User u: validatedUsers) {
 			System.out.println("UID: " + u.getUid());
-			try { u.invalidateAllIssues(); } catch (Exception e) { _log.error("ERROR INVALIDATING:", e); }
+			try { u.invalidateProfile(); } catch (Exception e) { _log.error("ERROR INVALIDATING:", e); }
 		}
 
 			// Validating these 3 first in this order ensures that all other users migrate successfully!

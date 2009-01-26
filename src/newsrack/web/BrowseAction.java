@@ -56,13 +56,15 @@ public class BrowseAction extends BaseAction
 
       List<Issue> issues = User.getAllValidatedIssues();
 		for (Issue i: issues) {
-         int n = i.getNumItemsSinceLastDownload();
-         if ((n > 0) && (_lastUpdateTime != null) && (i.getLastUpdateTime() != null) && i.getLastUpdateTime().after(_lastUpdateTime))
-            l1.add(i);
-         else if (i.updatedWithinLastNHours(24))
-            l2.add(i);
-         else
-            l3.add(i);
+			if (!i.isFrozen()) {
+				int n = i.getNumItemsSinceLastDownload();
+				if ((n > 0) && (_lastUpdateTime != null) && (i.getLastUpdateTime() != null) && i.getLastUpdateTime().after(_lastUpdateTime))
+					l1.add(i);
+				else if (i.updatedWithinLastNHours(24))
+					l2.add(i);
+				else
+					l3.add(i);
+			}
       }
 
       _updatesMostRecent    = l1;
@@ -174,11 +176,10 @@ public class BrowseAction extends BaseAction
 			_catAncestors = ancestors;
 
 				// Display news in the current category in the current issue
-			if (!_cat.isLeafCategory()) {
-				return "browse.cat";
-			}
-			else {
+			String showNews = getParam("show_news");
+			if (_cat.isLeafCategory() || ((showNews != null) && showNews.equalsIgnoreCase("true"))) {
 				_numArts = _cat.getNumArticles(); 
+
 					// Start
 				String startVal = getParam("start");
 				if (startVal == null) {
@@ -186,10 +187,12 @@ public class BrowseAction extends BaseAction
 				}
 				else {
 					_start = Integer.parseInt(startVal)-1;
-					if (_start < 0)
-						_start = 0;
-					else if (_start > _numArts)
-						_start = _numArts;
+					if (_cat.isLeafCategory()) {
+						if (_start < 0)
+							_start = 0;
+						else if (_start > _numArts)
+							_start = _numArts;
+					}
 				}
 
 					// Count
@@ -242,6 +245,9 @@ public class BrowseAction extends BaseAction
 				_news  = _cat.getNews(startDate, endDate, src, _start, _count);
 
 				return "browse.news";
+			}
+			else {
+				return "browse.cat";
 			}
 		}
 	}

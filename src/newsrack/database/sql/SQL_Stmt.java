@@ -779,6 +779,14 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		false
 	),
+	GET_EXPORTING_USERS(
+		"SELECT from_user_key FROM import_dependencies WHERE importing_user_key = ?",
+      new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
 	GET_COLLECTION(
 		"SELECT * FROM user_collections WHERE uid = ? AND coll_name = ? AND coll_type = ?",
       new SQL_ValType[] {STRING, STRING, STRING},
@@ -1092,12 +1100,12 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_USER_FILE(
-		"INSERT INTO user_files (u_key, file_name) VALUES (?, ?)",
+		"INSERT INTO user_files(u_key, file_name) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, STRING},
       SQL_StmtType.INSERT
 	),
 	INSERT_IMPORT_DEPENDENCY(
-	   "INSERT IGNORE INTO import_dependencies (from_user_key, importing_user_key) VALUES (?, ?)",
+	   "INSERT IGNORE INTO import_dependencies(from_user_key, importing_user_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
       SQL_StmtType.INSERT
 	),
@@ -1182,11 +1190,21 @@ public enum SQL_Stmt
       new SQL_ValType[] {INT, TIMESTAMP, INT, LONG}, 
 		SQL_StmtType.UPDATE
 	),
+	UPDATE_ART_COUNT_FOR_CAT("UPDATE categories SET categories.num_articles = (SELECT count(*) FROM cat_news WHERE cat_news.c_key = categories.cat_key) WHERE categories.cat_key = ?",
+      new SQL_ValType[] {LONG},
+		SQL_StmtType.UPDATE
+	),
+	UPDATE_ART_COUNTS_FOR_ALL_TOPIC_LEAF_CATS("UPDATE categories SET categories.num_articles = (SELECT count(*) FROM cat_news WHERE cat_news.c_key = categories.cat_key) WHERE categories.t_key = ? AND categories.f_key != -1",
+      new SQL_ValType[] {LONG},
+		SQL_StmtType.UPDATE
+	),
+/**
 	UPDATE_TOPIC_VALID_STATUS(
       "UPDATE topics SET validated = ? WHERE t_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
       SQL_StmtType.UPDATE
 	),
+**/
 	UPDATE_TOPICS_VALID_STATUS_FOR_USER(
       "UPDATE topics SET validated = ? WHERE u_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG},
