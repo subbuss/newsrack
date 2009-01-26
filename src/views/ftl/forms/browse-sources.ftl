@@ -51,7 +51,7 @@
   </#foreach>
 	</select>
 	<select name="y">
-<#foreach num in 2004..2008>
+<#foreach num in 2004..2009>
     <option value="${num?c}">${num?c}</option>
 </#foreach>
 	</select>

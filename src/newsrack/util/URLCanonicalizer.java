@@ -93,7 +93,7 @@ public class URLCanonicalizer
 		urlFixupRules = new HashMap<String, Pattern>();
 		for (String s: urlFixupRuleStrings) {
 			String[] x = s.split(":");
-			urlFixupRules.put(x[0], Pattern.compile(x[1]));
+			urlFixupRules.put(x[0], Pattern.compile(x[1], Pattern.CASE_INSENSITIVE));
 		}
 	}
 

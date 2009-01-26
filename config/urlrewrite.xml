@@ -92,7 +92,7 @@
        ###################################################################### -->
   <rule>
     <from>^/?$</from>
-	 <to>/home.action</to>
+	 <to>/selected-topics.action</to>
   </rule>
 
   <rule>

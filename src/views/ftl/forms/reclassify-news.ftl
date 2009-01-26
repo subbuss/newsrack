@@ -99,7 +99,7 @@
   </#foreach>
 	</select>
 	<select name="sy">
-  <#foreach num in 2008..2008>
+  <#foreach num in 2008..2009>
     <option value="${num?c}">${num?c}</option>
   </#foreach>
   </select>
@@ -114,13 +114,11 @@
   </select>
 	<select name="em">
   <#foreach month in months>
-    <#if (months?seq_index_of(month) > 5)>
     <option value="${1+months?seq_index_of(month)}">${month}</option>
-    </#if>
   </#foreach>
 	</select>
 	<select name="ey">
-  <#foreach num in 2008..2008>
+  <#foreach num in 2008..2009>
     <option value="${num?c}">${num?c}</option>
   </#foreach>
 	</select>
