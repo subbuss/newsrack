@@ -33,7 +33,6 @@
 		<tr class="tblhdr">
 			<td>Issue</td>
 			<td style="width:60px">RSS feed</td>
-			<td style="width:90px">New since <br>${owner.lastDownloadTime_String}</td>
 			<td>Time of <br>last update</td>
 		</tr>
       <#foreach i in issues>
@@ -44,14 +43,7 @@
 				<span class="artcount">[${i.numArticles}]</span>
 			</td>
 			<td>
-				<a class="rssfeed" href="${i.getRSSFeedURL()}">RSS 2.0</a>
-			</td>
-			<td class="center">
-        <#if (i.numItemsSinceLastDownload > 0) && owner.lastDownloadTime?exists && lastUpdateTime?exists && owner.lastDownloadTime.after(lastUpdateTime)>
-				(<span class="newartcount">${i.numItemsSinceLastDownload} new</span>) &nbsp;
-				<#else>
-				(None) &nbsp;
-				</#if>
+			   <a class="rssfeed" href="${i.getRSSFeedURL()}"><img src="/icons/rss-12x12.jpg" alt="RSS 2.0"></a>
 			</td>
 			<td class="center">
         <#assign lut=i.lastUpdateTime_String>

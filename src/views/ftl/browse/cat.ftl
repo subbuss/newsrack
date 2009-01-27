@@ -95,7 +95,9 @@
 <li> Categories <span class="bold browsecat">in this color</span> are non-leaf categories with nested news categories.
 <ul>
 <li> Clicking on the <span class="bold browsecat">[+]</span> sign will let you navigate the taxonomy.</li>
-<li> Clicking on the <span class="bold browseleafcat">News &raquo;</span> will show you combined news from all nested categories. </li>
+<li> Clicking on the <span class="bold browseleafcat">News &raquo;</span> will show you combined news from all nested categories. 
+<strong> In this non-leaf category view, if you delete a news item, it will be deleted from ALL nested categories it is present in.</strong>
+</li>
 </ul>
 </li>
 </ul>

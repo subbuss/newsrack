@@ -51,7 +51,7 @@
 				<span class="artcount">[${i.numArticles}]</span>
 			</td>
 			<td>
-				<a class="rssfeed" href="${i.getRSSFeedURL()}">RSS 2.0</a>
+			   <a class="rssfeed" href="${i.getRSSFeedURL()}"><img src="/icons/rss-12x12.jpg" alt="RSS 2.0"></a>
 			</td>
 			<td class="center">
         <#assign lut=i.lastUpdateTime_String>

@@ -96,8 +96,8 @@
 
   <target name="prepare" description="Copies all necessary resources into the build dir">
 	   <!-- First, copy over files from the current deployed webapp -->
-	 <copy todir="${wardir}/crawled.feeds" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/crawled.feeds" /> </copy>
-	 <copy todir="${wardir}/rss" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/rss" /> </copy>
+	 <copy failonerror="false" todir="${wardir}/crawled.feeds" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/crawled.feeds" /> </copy>
+	 <copy failonerror="false" todir="${wardir}/rss" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/rss" /> </copy>
 	    <!-- Next, copy all other files to the build dir -->
     <copy todir="${webinf}">          <fileset dir="${webapp.config}"/> </copy>
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
