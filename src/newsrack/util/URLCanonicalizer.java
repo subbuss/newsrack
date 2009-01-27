@@ -29,7 +29,7 @@ public class URLCanonicalizer
 
 		/* These are patterns for detecting feed proxies */
 	static String[] proxyREStrs = new String[] { 
-		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$"
+		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$", "^azcentral.com$"
 	};
 
 		/* Domains & corresponding url-split rule */
@@ -45,7 +45,8 @@ public class URLCanonicalizer
 		"boston.com", "publicradio.org", "cnn.com", "chicagotribune.com",
 		"latimes.com", "twincities.com", "mercurynews.com", "wsj.com",
 		"seattletimes.nwsource.com", "reuters.com", "sltrib.com",
-		"nation.com", "salon.com", "newsweek.com", "forbes.com"
+		"nation.com", "salon.com", "newsweek.com", "forbes.com",
+		"seattlepi.nwsource.com", "denverpost.com"
    };
 
 	static Pattern[] proxyREs;
