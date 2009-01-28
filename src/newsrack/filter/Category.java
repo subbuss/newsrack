@@ -428,7 +428,6 @@ public class Category implements Comparable, java.io.Serializable
 	 */
 	public void clearNews()
 	{
-			// clear this category
 		_db.clearNews(this);
 	}
 

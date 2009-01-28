@@ -65,25 +65,14 @@ public class EditProfileAction extends BaseAction
             try { _user.invalidateProfile(); }
             finally { BrowseAction.setIssueUpdateLists(); }
 			}
+			else if (action.equals("reset")) {
+				_user.getIssue(getParam("issue")).clearNews();
+         }
 			else if (action.equals("freeze")) {
-				String iname = getParam("issue");
-				Issue  i     = _user.getIssue(iname);
-				if (i == null) {
-					_log.error("Edit error: Unknown issue name " + iname);
-				}
-				else {
-					i.freeze();
-				}
+				_user.getIssue(getParam("issue")).freeze();
 			}
 			else if (action.equals("unfreeze")) {
-				String iname = getParam("issue");
-				Issue  i     = _user.getIssue(iname);
-				if (i == null) {
-					_log.error("Edit error: Unknown issue name " + iname);
-				}
-				else {
-					i.unfreeze();
-				}
+				_user.getIssue(getParam("issue")).unfreeze();
 			}
 		}
 

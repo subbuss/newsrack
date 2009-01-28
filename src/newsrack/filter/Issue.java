@@ -1123,6 +1123,10 @@ public class Issue implements java.io.Serializable
 	{
 		for (Category c: getCategories())
 			c.clearNews();
+
+         // Update statistics
+      _numArticles = 0;
+		_db.commitNewsToArchive(this);
 	}
 
 	public void reclassifyNews(Source s, boolean allDates, Date sd, Date ed)

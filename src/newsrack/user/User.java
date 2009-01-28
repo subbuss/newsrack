@@ -24,7 +24,7 @@ import java.net.URL;
 import java.lang.String;
 import java.util.Date;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -425,7 +425,7 @@ public class User implements java.io.Serializable
 
 	private void initIssueMap()
 	{
-		_issues = new HashMap<String, Issue>();
+		_issues = new TreeMap<String, Issue>();
 	}
 
 	private void loadIssuesFromDB()
@@ -433,7 +433,7 @@ public class User implements java.io.Serializable
 		initIssueMap();
 		for (Issue i: _db.getIssues(this)) {
 			if (_log.isDebugEnabled()) _log.debug("LOAD: Adding issue " + i.getName() + " to the hash table!");
-			_issues.put(i.getName(), i);
+			_issues.put(i.getName().toLowerCase(), i);
 		}
 	}
 
@@ -451,11 +451,12 @@ public class User implements java.io.Serializable
 		if (_issues == null)
 			initIssueMap();
 
-		if (_issues.get(i.getName()) != null) {
+			// Normalize case
+		if (_issues.get(i.getName().toLowerCase()) != null) {
 			throw new Exception("ERROR! An issue already exists with name " + i.getName());
 		}
 		else {
-			_issues.put(i.getName(), i);
+			_issues.put(i.getName().toLowerCase(), i);
 		}
 	}
 
@@ -490,7 +491,7 @@ public class User implements java.io.Serializable
 
 		return _issues.get(iname);
 		**/
-		return (_issues == null) ? _db.getIssue(this, iname) : _issues.get(iname);
+		return (_issues == null) ? _db.getIssue(this, iname) : _issues.get(iname.toLowerCase());
 	}
 
 	public void invalidateProfile()

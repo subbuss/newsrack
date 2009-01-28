@@ -7,6 +7,7 @@
 <title>Edit Profile</title>
 <script language="Javascript">
 function confirmDelete() { return confirm("Do you want to delete the file?"); }
+function confirmReset()  { return confirm("All filtered news will be removed. Are you sure?"); }
 </script>
 <style>
 pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
@@ -86,9 +87,9 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
 		<tr class="tblhdr"> <td class="s18 tblhdr" colspan="2"> Issues </td> </tr>
     <@s.iterator value="#user.issues">
 		<tr>
-			<td class="right"> ${name} <span class="artcount">[${numArticles}]</span> </td>
+			<td class="right"> <a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${name}" />">${name}</a> <span class="artcount">[${numArticles}]</span> </td>
 			<td class="left">
-				<a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${name}" />">Browse</a>, 
+			<a onclick="return confirmReset()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'reset'" /><@s.param name="issue" value="name" /></@s.url>">Clear News</a>,
       <@s.if test="frozen == false">
 				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="name" /></@s.url>">Freeze</a>,
       </@s.if>
