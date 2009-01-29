@@ -7,7 +7,6 @@
 <title>Edit Profile</title>
 <script language="Javascript">
 function confirmDelete() { return confirm("Do you want to delete the file?"); }
-function confirmReset()  { return confirm("All filtered news will be removed. Are you sure?"); }
 </script>
 <style>
 pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
@@ -27,14 +26,25 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
 <#macro displayFiles(fileList)>
 	<#if fileList?exists && fileList.hasNext()>
 	<#foreach f in fileList>
-		${f} [
-			<a target="_blank" href="<@s.url namespace="/file" action="display" file="${f}" />">View</a>,
-			<a href="<@s.url namespace="/forms" action="rename-file" file="${f}" />">Rename</a>,
+  <tr>
+    <td class="files"> 
+			<a target="_blank" href="<@s.url namespace="/file" action="display" file="${f}" />">${f}</a>
+    </td>
+    <td class="actions">
 			<a href="<@s.url namespace="/file" action="edit" file="${f}" />">Edit</a>,
+			<a href="<@s.url namespace="/forms" action="rename-file" file="${f}" />">Rename</a>,
 			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f}'" /></@s.url>">Delete</a>
-			]
-			<br />
+    </td>
+  </tr>
 	</#foreach>
+  <#else>
+  <tr>
+  <td style="padding:15px; text-align:left; font-weight:bold;" colspan="2">
+  In NewsRack, you define your topics by defining concepts, filters, topics, and sources to monitor.<br/><br/>
+  <a href="#examples">See examples below!</a>
+  Also check the <a class="helplink" target="_blank" href="<@s.url namespace="/help" action="user-guide" />">User Guide</a>.
+  </td>
+  </tr>
 	</#if>
 </#macro>
 
@@ -54,86 +64,63 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
 <#-- FIRST, DISPLAY ANY ERRORS AND MESSAGES -->
 <#include "/ftl/layout/errors.ftl">
 <#include "/ftl/layout/messages.ftl">
+  <h1> Your files </h1>
   <@s.set name="hasIssues" value="#user.validated" />
 	<#-- NEXT, DISPLAY THE USER'S PROFILE TABLE -->
-		<div class="ie_center_hack">
-<#--
-		All your files and defined issues are shown below.  You can add a new file by:
-    <ul style="text-align:left;margin:0 0 20px 0">
-    <li> Uploading a file from your disk using the upload form </li>
-    <li> Creating a new file using the "Create new file" link </li>
-    <li> Getting a file from other users and editing it to meet your needs. </li>
-    </ul>
--->
-
+	<div class="ie_center_hack">
 		<table class="editprofile" cellspacing="0">
-		<tr class="tblhdr">
-			<td class="s18 tblhdr"> ${user.uid}'s files </td>
-			<td class="s18 tblhdr"> Add more ...  </td>
-      </tr>
-		<tr>
-			<td class="files"> <#call displayFiles(user.files)> </td>
-			<td class="center s14" style="width:200px">
-      <br/>
-			<a class="newfile" href="<@s.url namespace="/forms" action="new-file" />">Create new file</a> </br/><br/>
-			<a class="newfile" href="<@s.url namespace="/" action="public-files" />">Get from other users</a>
-			<form class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
-			<input class="file_browse" size="10" name="uploadedFile" type="file" />
-			<div align="center"><input class="submit" value="Upload" type="submit"></div>
-			</form>
+    <#call displayFiles(user.files)> 
+    <tr>
+			<td colspan="2" class="center">
+        <h2 class="center s14"> Add Files </h2>
+        <div style="text-align:left;margin:20px;">
+        <ul style="text-align:left;margin:0 0 20px 0">
+        <li> Create a new file using the "Create new file" link </li>
+        <li> Get a file from other users and edit it to meet your needs </li>
+        <li> Upload a file from your disk using the upload form </li>
+        </ul>
+        <span class="bold">Note that the files have to conform to what NewsRack understands.  Do not upload Word docs, html files, images, etc. </span>
+        </div>
+
+        <div class="more_files">
+          <a href="<@s.url namespace="/forms" action="new-file" />">Create new file</a> </br/>
+          <a href="<@s.url namespace="/" action="public-files" />">Get from another user</a>
+          <form style="width:275px" class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
+            <input class="file_browse" size="15" name="uploadedFile" type="file" />
+            <div align="center"><input class="submit" value="Upload File" type="submit"></div>
+          </form>
+        </div>
 			</td>
 		</tr>
-  <@s.if test="#hasIssues == true">
-		<tr class="tblhdr"> <td class="s18 tblhdr" colspan="2"> Issues </td> </tr>
-    <@s.iterator value="#user.issues">
-		<tr>
-			<td class="right"> <a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${name}" />">${name}</a> <span class="artcount">[${numArticles}]</span> </td>
-			<td class="left">
-			<a onclick="return confirmReset()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'reset'" /><@s.param name="issue" value="name" /></@s.url>">Clear News</a>,
-      <@s.if test="frozen == false">
-				<a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="name" /></@s.url>">Freeze</a>,
-      </@s.if>
-      <@s.else>
-				<a style="color:#070;font-weight:bold;" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="name" /></@s.url>">Unfreeze</a>,
-      </@s.else>
-				<a href="<@s.url namespace="/forms" action="reclassify-news"><@s.param name="issue" value="name" /></@s.url>">Reclassify</a>
-			</td>
-    </tr>
-    </@s.iterator> <#-- for each issue -->
-	</@s.if>
     <tr>
-			<td class="center s14" colspan="2" style="padding:10px 0">
   <@s.if test="#hasIssues == true">
-      <a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> &nbsp; &nbsp; &nbsp;
+    <td colspan="2" style="font-weight:bold; text-align:center">
+    Your files have been validated and <a href="<@s.url namespace="/user" action="home" />">you can find your issues here</a>. <br/><br/>
+    <a class="s16" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> <br/><br/>
   </@s.if>
   <@s.else>
-      <span class="bold s12">
-      The files have to conform to what NewsRack understands (see examples below).  Do not upload Word docs, html files, images, etc.
-      </span>
-      <br/><br/>
-      <a class="newfile" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Build issues</a>
-   </td></tr>
-   <tr> 
-     <td colspan="2">
-     <div style="padding:5px 10px;text-align:left">
-       <h1> Examples </h1>
+    <#if user.files?exists&& user.files.hasNext()>
+    <td colspan="2" style="font-weight:bold; text-align:center">
+    <div style="color:red">
+    Your files have not been validated.
+    Your issues won't be ready for monitoring till you validate them and fix any problems.
+    </div>
+    <br/>
+    <a class="s16" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Validate files</a>
+    </td>
+    </tr><tr> 
+    </#if>
+    <td colspan="2">
+      <a name="examples"></a>
+      <div style="padding:5px 10px;text-align:left">
+        <h1> Examples </h1>
 <#include "/ftl/issue.template">		
-     </div>
+      </div>
   </@s.else>
-      </td>
+    </td>
     </tr>
 		</table>
-  <@s.if test="#hasIssues == true">
-		<p>
-		<b> Freeze </b>: Once an issue is frozen, no new articles are downloaded
-		into it.  But, old news in the issue continues to be available.  This is
-		a good way to set up demo issues. <br/> <br/>
-		<b> Reclassify </b>: Classify from the archives.  This is useful when you have made changes 
-		to your issue and want those changes reflected.  Or, when you have created a new issue and 
-		want to see what kind of news it will capture, use this feature to find out!
-		</p>
-	</@s.if>
-    </div>
+  </div>
 	</td>
 </table>
 </div>

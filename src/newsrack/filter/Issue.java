@@ -1125,7 +1125,6 @@ public class Issue implements java.io.Serializable
 			c.clearNews();
 
          // Update statistics
-      _numArticles = 0;
 		_db.commitNewsToArchive(this);
 	}
 

@@ -9,7 +9,6 @@
 
 <body>
 
-<@s.if test="owner">
 <div class="bodymain">
 <table class="userhome">
 	<#include "/ftl/layout/header.ftl">
@@ -61,7 +60,6 @@
 </tr>
 </table>
 </div>
-</@s.if>
 <#include "/ftl/layout/footer.ftl" parse="n">
 </body>
 </html>

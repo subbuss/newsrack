@@ -156,7 +156,8 @@
     </action>
 
     <action name="edit-profile" class="newsrack.web.EditProfileAction">
-      <result>/ftl/user/edit-profile.ftl</result>
+      <result>/ftl/user/home.ftl</result>
+      <result name="edit">/ftl/user/edit-profile.ftl</result>
     </action>
 
     <action name="home">

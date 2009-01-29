@@ -11,15 +11,17 @@
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="change-password" />">Change Password</a> </div>
 	</@s.if>
 	<@s.else>
+		<#if !user.issues.empty>
 		<div class="menu_link"> <a href="<@s.url namespace="/user" action="home" />">My Issues</a> </div>
-		<div class="menu_link"> <a href="<@s.url namespace="/user" action="edit-profile" />">Create/Edit Issues</a> </div>
+    </#if>
+		<div class="menu_link"> <a href="<@s.url namespace="/user" action="edit-profile" />">Edit Issues</a> </div>
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="change-password" />">Change Password</a> </div>
-		<@s.if test="#user.issues">
+		<#if !user.issues.empty>
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="browse-sources" />">Browse by Source</a> </div>
+    </#if>
 <#--	<div class="menu_link"> <a href="<@s.url namespace="/news" action="download" />">Download News</a> </div> -->
 <#--	<div class="menu_link"> <a href="<@s.url namespace="/news" action="reclassify" />Classify from Archives</a> </div> -->
 <#--	<div class="menu_link"> <a href="<@s.url namespace="/" action="search" />Search</a> </div> -->
-		</@s.if>
 	</@s.else>
 </@s.if>
 <@s.else>

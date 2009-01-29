@@ -484,12 +484,10 @@ table.editprofile, table.publicfiles {
 	font-size    : 12px;
 	border       : 1px solid #aaa;
 	background   : white;
-	margin-bottom : 25px;
 }
 
 table.editprofile {
   width  : 100%;
-	margin : -15px -40px 25px 0;
 }
 
 table.editprofile td, table.publicfiles td {
@@ -498,22 +496,28 @@ table.editprofile td, table.publicfiles td {
 }
 
 table.editprofile td.files {
-	text-align   : right;
+  padding     : 5px;
+	text-align  : right;
+  font-weight : bold;
 }
 
 table.editprofile td.actions {
-	vertical-align : top;
+  width       : 180px;
+	text-align  : center;
 }
 
-table.editprofile a.newfile {
-	text-decoration : none;
-	font-weight     : bold;
-	color           : #dd2222;
+table.editprofile td.actions a {
+  color : #800;
 }
 
-table.editprofile a.newfile:hover {
-	background      : #dd2222;
-	color           : white;
+table.editprofile td.actions a:hover {
+  color      : white;
+  background : #800;
+}
+
+table.editprofile div.more_files a {
+  font-weight : bold;
+  font-size   : 14px;
 }
 
 tr.tblhdr {
