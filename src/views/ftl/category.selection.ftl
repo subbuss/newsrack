@@ -92,12 +92,12 @@ for a complete listing of classified news across all users.
 </td>
 <td width="33%">
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="3" />">&nbsp;EIAs</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="economy" catID="2" />">&nbsp;Employment Guarantee</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="NREGA" catID="1" />">&nbsp;Employment Guarantee</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="ESG+in+the+news" catID="1" />">&nbsp;ESG in the news</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="lawrenceliang" issue="Encounter+Killings" catID="4" />">&nbsp;Fake Encounters</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="rohan" issue="Foreign+Direct+Investment+in+Retail" />">&nbsp;FDI in Retail</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="venniyoor" issue="FM+Radio" catID="1" />">&nbsp;FM Radio</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="agriculture" catID="1" />">&nbsp;GE/GM</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Agriculture" catID="2" />">&nbsp;GE/GM</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="gujarat" catID="2" />">&nbsp;Godhra</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="jai_ism" issue="Harry-Potter" />">&nbsp;Harry Potter</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Health" catID="14" />">&nbsp;HIV/AIDs</a><br />

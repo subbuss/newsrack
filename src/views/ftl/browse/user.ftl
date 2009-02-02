@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
-<title>User space</title>
+<title>${owner.uid}'s topics</title>
 </head>
 
 <body>
@@ -31,7 +31,6 @@
 		<table cellspacing="0" class="userissuelisting">
 		<tr class="tblhdr">
 			<td>Issue</td>
-			<td style="width:60px">RSS feed</td>
 			<td>Time of <br>last update</td>
 		</tr>
       <#foreach i in issues>
@@ -39,9 +38,7 @@
 			<td style="text-align:right">
         <#if i.frozen> (<span style="color:00a;font-weight:bold;"> FROZEN </span>) </#if>
 				<a class="browsecat" href="<@s.url namespace="/" action="browse" owner="${owner.uid}" issue="${i.name}" />">${i.name}</a>
-				<span class="artcount">[${i.numArticles}]</span>
-			</td>
-			<td>
+				[${i.numArticles}] &nbsp;
 			   <a class="rssfeed" href="${i.getRSSFeedURL()}"><img src="/icons/rss-12x12.jpg" alt="RSS 2.0"></a>
 			</td>
 			<td class="center">

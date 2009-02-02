@@ -3,7 +3,7 @@
     "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
     "http://struts.apache.org/dtds/struts-2.0.dtd">
 <struts>
-  <constant name="struts.devMode" value="true" />
+  <constant name="struts.devMode" value="false" />
   <constant name="struts.url.includeParams" value="none" />
   <constant name="struts.enable.DynamicMethodInvocation" value="false"/>
     
@@ -100,7 +100,7 @@
 
     <action name="browse-source" class="newsrack.web.BrowseAction" method="browseSource">
       <interceptor-ref name="simpleLoginStack" />
-      <result>/ftl/browse.source.ftl</result>
+      <result>/ftl/browse/source.ftl</result>
       <result name="input">/ftl/forms/browse-sources.ftl</result>
       <result name="browse.main">/ftl/browse/main.ftl</result>
     </action>
