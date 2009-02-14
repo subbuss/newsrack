@@ -39,7 +39,7 @@ import org.apache.commons.logging.LogFactory;
 	}
 %}
 
-NUMBER = [:digit:]+
+NUMBER = [:digit:]+(,[:digit]*)*(\.[:digit]+)?
 WORD   = ([:letter:]|[:digit:])([:letter:]|[:digit:]|\.|\-)*
 WS     = [ \t\n\r]
 SPACE  = {WS}*
@@ -86,6 +86,7 @@ SPACE  = {WS}*
 	{NUMBER}                    { return token(Terminals.NUM_TOK); }
 	{WORD}                      { return token(Terminals.IDENT_TOK); }
    "#"[^\n\r]*(\n|\r)          { /* COMMENT ... IGNORE */ }
+	[^ \t\n\r\\.,;:?+*&\^%$#@!|~'/`\"\-\{\}()\[\]<>]+ { return token(Terminals.IDENT_TOK); }
 }
 
 <COMMENT>{
