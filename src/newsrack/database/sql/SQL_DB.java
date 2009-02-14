@@ -2436,8 +2436,10 @@ public class SQL_DB extends DB_Interface
 			// Commit all leaf cats in the issue
 		List<Category> leafCats = _leafCatsToCommit.get(i.getKey());
 		if (leafCats != null) {
-			for (Category c: leafCats)
+			for (Category c: leafCats) {
 				commitCatToDB(c, false);
+		      purgeCacheNewsEntriesForCat(c, true, false);
+         }
 
 			leafCats.clear();
 		}

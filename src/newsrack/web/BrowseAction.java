@@ -158,7 +158,7 @@ public class BrowseAction extends BaseAction
 				return "browse.issue";
 			}
 
-			_cat = _issue.getCategory(Integer.parseInt(catId));
+         try { _cat = _issue.getCategory(Integer.parseInt(catId)); } catch (Exception e) { }
 			if (_cat == null) {
 					// Bad category!  Send them to a listing page for the issue! 
 				_log.info("Browse: Category with id " + catId + " not defined in issue " + issueName + " for user: " + uid);
@@ -186,7 +186,7 @@ public class BrowseAction extends BaseAction
 					_start = 0;
 				}
 				else {
-					_start = Integer.parseInt(startVal)-1;
+               try { _start = Integer.parseInt(startVal)-1; } catch (Exception e) { _start=0; }
 					if (_cat.isLeafCategory()) {
 						if (_start < 0)
 							_start = 0;
@@ -201,7 +201,7 @@ public class BrowseAction extends BaseAction
 					_count = DEF_NUM_ARTS_PER_PAGE;
 				}
 				else {
-					_count = Integer.parseInt(countVal);
+               try { _count = Integer.parseInt(countVal); } catch (Exception e) { _start=20; }
 					if (_count < MIN_NUM_ARTS_PER_PAGE)
 						_count = MIN_NUM_ARTS_PER_PAGE;
 					else if (_count > MAX_NUM_ARTS_PER_PAGE)
