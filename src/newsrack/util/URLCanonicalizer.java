@@ -29,13 +29,20 @@ public class URLCanonicalizer
 
 		/* These are patterns for detecting feed proxies */
 	static String[] proxyREStrs = new String[] { 
-		"^feeds\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$", "^azcentral.com$"
+		"^feeds\\..*$", "^rss\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$", "^azcentral.com$"
 	};
 
 		/* Domains & corresponding url-split rule */
 	static String[] urlFixupRuleStrings = new String[] {
-      "sfgate.com:&feed=.*", "marketwatch.com:&dist=.*", "bloomberg.com:&refer=.*", "cbsnews.com:\\?source=[^?&]*",
-		"vaildaily.com:\\/-1\\/rss.*", "news.newamericamedia.org:&from=.*"
+      "^sfgate.com$:&feed=[^&]*:", 
+		"marketwatch.com:&dist=[^&]*:", 
+		"bloomberg.com:&refer=[^&]*:", 
+		"cbsnews.com:\\?source=[^?&]*:",
+		"^vaildaily.com$:\\/-1\\/rss.*:", 
+		"news.newamericamedia.org:&from=[^&]*:", 
+		"^news.bbc.co.uk$:go/rss/-/:",
+		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*)/([^/]*)/(rss)?articleshow/(.*.cms):$1/$3/articleshow/$5",
+		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1"
    };
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
@@ -46,11 +53,13 @@ public class URLCanonicalizer
 		"latimes.com", "twincities.com", "mercurynews.com", "wsj.com",
 		"seattletimes.nwsource.com", "reuters.com", "sltrib.com",
 		"nation.com", "salon.com", "newsweek.com", "forbes.com",
-		"seattlepi.nwsource.com", "denverpost.com"
+		"seattlepi.nwsource.com", "denverpost.com", "grist.org",
+		"topix.com", "cbc.ca", "esquire.com", "ibnlive.com",
+		"ft.com"
    };
 
 	static Pattern[] proxyREs;
-	static HashMap<String,Pattern> urlFixupRules;
+	static Triple[]  urlFixupRules;
 	static GeneralCacheAdministrator _urlCache;
 
 	static {
@@ -91,10 +100,12 @@ public class URLCanonicalizer
 		}
 
 			// Custom url fixup rules
-		urlFixupRules = new HashMap<String, Pattern>();
+		i = 0;
+		urlFixupRules = new Triple[urlFixupRuleStrings.length];
 		for (String s: urlFixupRuleStrings) {
 			String[] x = s.split(":");
-			urlFixupRules.put(x[0], Pattern.compile(x[1], Pattern.CASE_INSENSITIVE));
+			urlFixupRules[i] = new Triple(Pattern.compile(x[0]), Pattern.compile(x[1], Pattern.CASE_INSENSITIVE), x.length > 2 ? x[2]: "");
+			i++;
 		}
 	}
 
@@ -194,23 +205,30 @@ public class URLCanonicalizer
 				}
 			}
 
-				// Follow proxies
+				// Follow proxies and get the target url
 			if (isFeedProxyUrl(url))
 				url = getTargetUrl(url);
 
 			String domain = StringUtils.getDomainForUrl(url);
 			if (_log.isDebugEnabled()) _log.debug("Domain for default rule: " + domain);
 
-			Pattern p = urlFixupRules.get(domain);
-			if (p != null) {
-					// Default fixup rule
-				if (_log.isDebugEnabled()) _log.debug("Found a pattern: " + p.pattern());
-				String newUrl = p.split(url)[0];
-				if (!newUrl.equals(url))
-					url = newUrl;
+				// Domain-specific url fixup rules
+			boolean done = false;
+			for (Triple ufr: urlFixupRules) {
+				Triple<Pattern, Pattern, String> t = (Triple<Pattern,Pattern,String>)ufr;
+				if (t._a.matcher(domain).matches()) {
+					Pattern p      = t._b;
+					String  repl   = t._c;
+					String  newUrl = p.matcher(url).replaceAll(repl);
+					if (!newUrl.equals(url))
+						url = newUrl;
+
+					done = true;
+				}
 			}
-			else {
+
 					// Default fixup rule
+			if (!done) {
 				for (String d: domainsWithDefaultFixupRule) {
 					if (domain.indexOf(d) != -1) {
 						int i = url.indexOf("?");
