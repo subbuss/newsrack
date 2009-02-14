@@ -41,7 +41,7 @@ public class URLCanonicalizer
 		"^vaildaily.com$:\\/-1\\/rss.*:", 
 		"news.newamericamedia.org:&from=[^&]*:", 
 		"^news.bbc.co.uk$:go/rss/-/:",
-		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*)/([^/]*)/(rss)?articleshow/(.*.cms):$1/$3/articleshow/$5",
+		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*/)?([^/]+)/(rss)?articleshow/(.*.cms):$1/$3/articleshow/$5",
 		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1"
    };
 
