@@ -35,13 +35,14 @@ public class URLCanonicalizer
 		/* Domains & corresponding url-split rule */
 	static String[] urlFixupRuleStrings = new String[] {
       "^sfgate.com$:&feed=[^&]*:", 
-		"marketwatch.com:&dist=[^&]*:", 
-		"bloomberg.com:&refer=[^&]*:", 
-		"cbsnews.com:\\?source=[^?&]*:",
+		"^marketwatch.com$:&dist=[^&]*:", 
+		"^bloomberg.com$:&refer=[^&]*:", 
+		"^cbsnews.com$:\\?source=[^?&]*:",
 		"^vaildaily.com$:\\/-1\\/rss.*:", 
-		"news.newamericamedia.org:&from=[^&]*:", 
+		"^news.newamericamedia.org$:&from=[^&]*:", 
+		"^hindustantimes.com$:&sectionName=[^&]*:",
 		"^news.bbc.co.uk$:go/rss/-/:",
-		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*/)?([^/]+)/(rss)?articleshow/(.*.cms):$1/$3/articleshow/$5",
+		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*)articleshow/(.*.cms):$1/articleshow/$3",
 		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1"
    };
 
