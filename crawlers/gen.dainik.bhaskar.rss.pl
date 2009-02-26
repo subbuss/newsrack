@@ -54,7 +54,7 @@ sub ProcessPage
       # Match anchors -- across multiple lines, and match all instances
    while ($content =~ m{<a.*?href=(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
-		$link = Encode::decode_utf8($link);
+		$link = Encode::decode('utf-8', $link);
       print LOG "REF - $urlRef; LINK - $link; "; 
       $msg="";
       $ignore = 0;
@@ -136,7 +136,7 @@ $rootUrl     = $url;
 ##
 
 ## Initialize
-&Initialize("utf8", $url);
+&Initialize("utf-8", $url);
 
 ## Process the url list while crawling the site
 while (@urlList) {
@@ -171,7 +171,7 @@ while (@urlList) {
 		$title =~ s/<.*?>//g;
       if (!$title || ($title =~ m{^\s*$})) {
          $title = &ReadTitle($url);
-		   $title = Encode::decode_utf8($title);
+		   $title = Encode::decode('utf-8', $title);
       }
 		print "ADDING: TITLE of $url is $title\n";
       $desc  = $title;

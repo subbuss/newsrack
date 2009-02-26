@@ -157,6 +157,7 @@ print "ALT ROOT URL - $altRootUrl\n";
 while (@urlList) {
    $total++;
    $url = shift @urlList;
+   $url =~ s/\?.*//g;             # Get rid of marker params
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
 

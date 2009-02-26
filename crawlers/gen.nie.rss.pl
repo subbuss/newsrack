@@ -11,7 +11,13 @@ require "$scriptDir/crawler.lib.pl";
 sub ProcessPage
 {
    my ($fileName, $url) = ($_[0], $_[1]);
-   ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?$}i);
+   ($a,$b,$c) = ($url =~ m{(http://.*?)(\?.*)?(/[^/]*)?$}i);
+   if ($b) {
+      ($baseHref) = ($a =~ m{(http://.*?)(/[^/]*)?$}i);
+   }
+   else {
+      $baseHref = $a;
+   }
    $baseHref .= "/";
    print LOG "URL               - $url\n";
    print LOG "FILE              - $fileName\n";

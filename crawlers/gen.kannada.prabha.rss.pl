@@ -58,7 +58,7 @@ sub ProcessPage
       # Match anchors -- across multiple lines, and match all instances
    while ($content =~ m{<a.*?href.*?=.*?(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
-		$link = Encode::decode_utf8($link);
+		$link = Encode::decode('utf-8', $link);
 		$urlRef = &FIX_URL($urlRef);
 		$urlRef =~ s/www.//g;
       print LOG "REF - $urlRef; LINK - $link; "; 
@@ -145,7 +145,7 @@ $url                = "$defSiteRoot/index.asp";
 
 ## Initialize
 $UNICODE_GATEWAY_PREFIX="http://uni.medhas.org/unicode.php5?file=";
-&Initialize("utf8", $UNICODE_GATEWAY_PREFIX.$url);
+&Initialize("utf-8", $UNICODE_GATEWAY_PREFIX.$url);
 
 ## Process the url list while crawling the site
 while (@urlList) {

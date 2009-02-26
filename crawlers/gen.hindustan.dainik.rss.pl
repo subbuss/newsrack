@@ -96,7 +96,7 @@ sub ProcessPage
    if (!$links{$url} && ($content =~ m{<title>(.*?)</title>}is)) {
       $title = &FixupTitle($1);
       if ($title) {
-         $title = Encode::decode_utf8($title);
+         $title = Encode::decode('utf-8', $title);
          print "PAGE TITLE of $url is $title\n";
          $links{$url} = $title;
       }
@@ -123,7 +123,7 @@ sub ProcessPage
    while ($content =~ m{<a.*?href=(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
       $link = &FixupTitle($link);
-		$link = Encode::decode_utf8($link);
+		$link = Encode::decode('utf-8', $link);
 		$urlRef = &FIX_URL($urlRef);
       print LOG "REF - $urlRef; LINK - $link; "; 
       $msg="";
@@ -213,7 +213,7 @@ $artnum1     = &OpenArtNumFile("180000");
 
 ## Initialize
 $UNICODE_GATEWAY_PREFIX="http://uni.medhas.org/unicode.php5?file=";
-&Initialize("utf8", $UNICODE_GATEWAY_PREFIX.$url);
+&Initialize("utf-8", $UNICODE_GATEWAY_PREFIX.$url);
 
 ## Process the url list while crawling the site
 while (@urlList) {
@@ -256,7 +256,7 @@ while (@urlList) {
 			# But, not for Hindustan Dainik
 		if ($title =~ /^\s*$/) {
          $title = &FixupTitle(&ReadTitle($url, "<td class=\"bkhd1\" colspan=\"2\">", "</td>"));
-			$title = Encode::decode_utf8(title);
+			$title = Encode::decode('utf-8', title);
          print "READTITLE-DECODE: $title\n";
 		}
       else {

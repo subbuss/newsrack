@@ -46,8 +46,8 @@ sub MakeXMLFriendly
 {
 	local $_ = shift;
 
-	s/(\x91|\x92)/'/g;
-	s/(\x93|\x94)/"/g;
+#	s/(\x91|\x92)/'/g;
+#	s/(\x93|\x94)/"/g;
 	s/(\x95)//g;
 	s/(\x96)/-/g;
 	s/&/&amp;/g;
@@ -182,6 +182,9 @@ sub ChangeWorkingDir
 	print "CHANGED Working directory to $scriptDir\n";
 }
 
+# READ: http://jeremy.zawodny.com/blog/archives/010546.html
+# utf-8 encoding is strict;
+# # ut8 is liberal
 sub Initialize
 {
 	local $encoding = $_[0];
@@ -191,11 +194,11 @@ sub Initialize
 	print "Encoding is #$encoding#\n";
 	print "startURL is #$startUrl#\n";
 
-	if ($encoding =~ /utf8/) {
+	if ($encoding =~ /utf-8/) {
 			## Set stdout to be outputting utf-8 data
 		binmode STDOUT, ":utf8";
 			## Open the log file
-		open(LOG, ">:encoding(utf8)", "$prefix.logfile") || warn "cannot open utf8 log file $prefix.logfile";
+		open(LOG, ">:encoding(utf-8)", "$prefix.logfile") || warn "cannot open utf8 log file $prefix.logfile";
 	}
 	else {
 		open(LOG, ">$prefix.logfile") || warn "cannot open log file $prefix.logfile";;
@@ -211,8 +214,8 @@ sub Initialize
 	   $date = `date -R`;
 	   chop $date;
 	}
-	if ($encoding =~ /utf8/) {
-		open (RSS, ">:encoding(utf8)", $tmpRSS) || die "cannot open UTF-8 RSS file - $tmpRSS\n";
+	if ($encoding =~ /utf-8/) {
+		open (RSS, ">:encoding(utf-8)", $tmpRSS) || die "cannot open UTF-8 RSS file - $tmpRSS\n";
 		&PrintRSSHeader("utf-8");
 	}
 	else {
