@@ -90,46 +90,123 @@ more details later on.
 <h2>2. Example</h2>
 
 <p>
-Let us say I am only interested in monitoring news about narmada and athirapally
-dams.  I am not interested in any classification, but, for starters, I want to gather
-all news items that pertain to the narmada issue.  In addition, let us also assume
-that I am only interested in tracking Rediff and the Hindu front page.  The profile
-below enables this.
+Let us say I am only interested in monitoring news about narmada dams.  I am not interested
+in any classification, but, for starters, I want to gather all news items that
+pertain to the narmada issue.  In addition, let us also assume that I am only
+interested in tracking Rediff and the Hindu front page.  The profile below enables this.
 </p>
+
+<h3> Example 1 </h3>
+In this example, we will only monitor news about the narmada issue.  For starters,
+let us say we only look for the narmada keyword.  In that case, you can use this simple 
+format as follows:
 <pre>
-DEFINE SOURCES {my sources}
-   rediff = Rediff On The Net, http://www.rediff.com/rss/newsrss.xml
-   hindu.front.page = "Hindu: Front Page", http://www.hindu.com/rss/01hdline.xml
-END SOURCES
+define sources {my sources}
+   http://www.rediff.com/rss/newsrss.xml
+   http://www.hindu.com/rss/01hdline.xml
+end
 
-DEFINE CONCEPTS {my concepts}
-   &lt;narmada&gt; = narmada, sardar sarovar, maheshwar, omkareshwar 
-   &lt;athirapally&gt; = athirapally, athirapilly, athirapilli, athirappilli
-   &lt;dam&gt; = dam, reservoir
-END CONCEPTS
+define topic Narmada = filter {my sources} with "narmada"
+</pre>
 
-DEFINE ISSUE Dams
-{
-   MONITOR SOURCES {my sources}
-   ORGANIZE NEWS INTO CATEGORIES
-   {
-      [Narmada] = narmada AND dam
-      [Athirapally] = athirapalli AND dam
-   }
-END ISSUE
+As simple as that was, it is limited because the single keyword "narmada" does not capture
+all the different dams (sardar sarovar, maheshwar, omkareshwar, etc.).  So, let us refine
+that further by organizing keywords into concepts.
+
+<h3> Example 2 </h3>
+<pre>
+define sources {my sources}
+   http://www.rediff.com/rss/newsrss.xml
+   http://www.hindu.com/rss/01hdline.xml
+end
+
+define concepts
+   &lt;narmada-dams&gt; = narmada, sardar sarovar, maheshwar, omkareshwar 
+end
+
+define topic Narmada = filter {my sources} with narmada-dams
+</pre>
+
+<p>
+Note how instead of <i>"narmada"</i> (with quotes) in the topic definition we are now 
+using <i>narmada-dams</i> (without quotes).  Non-quoted words refer to concepts you might
+have defined earlier.  So, in this case, newsrack will look for all keywords defined
+in the narmada-dams concept ("narmada", "sardar sarovar", "maheshwar", "omkareshwar").
+</p>
+
+Also note that the concept is defined as:
+<pre>
+   &lt;narmada-dams&gt; = narmada, sardar sarovar, maheshwar, omkareshwar 
 </pre>
 <p>
-The example should be self-explanatory.  The sources collection {my sources}
-defines news feeds for Rediff and Hindu front page.  The concepts collection
-{my concepts} defines the narmada, athirappally, and dam concepts which is then
-used to define the filtering rules in the issue.  Use of the braces { and }
-is to indicate that they contain a collection.
+The word on the left in angle-brackets is the name of the concept.  The list of keywords 
+on the right are separated by commas.  Quotes are not necessary, but you could use them
+if you want to.
+</p>
+<p>
+We can refine our filtering rule further by checking for occurence of dams in the text as
+in the next example.
+</p>
+
+<h3> Example 3 </h3>
+<pre>
+define sources {my sources}
+   http://www.rediff.com/rss/newsrss.xml
+   http://www.hindu.com/rss/01hdline.xml
+end
+
+define concepts
+   &lt;narmada-dams&gt; = narmada, sardar sarovar, maheshwar, omkareshwar 
+   &lt;dams&gt; = dam, reservoir
+end
+
+define topic Narmada = filter {my sources} with narmada-dams AND dams
+</pre>
+The rule <i>narmada-dams AND dams</i> check for presence of both the narmada-dams
+and the dams concepts within the text.  This ensures that references to the narmada river
+without any mention of dams won't get picked up.  Filtering rules are basically boolean
+expressions on concepts.  So, you could have a rule as <i> (narmada-dams OR other-dams) AND dams </i>.
+
+But, if you want to track news from different dams in different categories, you can also
+do that by defining a taxonomy as in the next example below
+
+<h3> Example 4 </h3>
+<pre>
+define sources {my sources}
+   http://www.rediff.com/rss/newsrss.xml
+   http://www.hindu.com/rss/01hdline.xml
+end
+
+define concepts
+   &lt;ssp&gt; = sardar sarovar, ssp
+   &lt;maheshwar&gt; = maheshwar
+   &lt;indira-sagar&gt; = indira-sagar
+   &lt;omkareshwar&gt; = omkareshwar
+   &lt;any-narmada-dam&gt; = &lt;ssp&gt;, &lt;maheshwar&gt;, &lt;indira-sagar&gt;, &lt;omkareshwar&gt;
+   &lt;dams&gt; = dam, reservoir
+end
+
+define issue Dams = filter {my sources} into taxonomy
+   [Sardar Sarovar] = ssp AND dams
+   [Indira Sagar] = indira-sagar AND dams
+   [Maheshwar] = maheshwar AND dams
+   [Omkareshwar] = omkareshwar AND dams
+   [Any Narmada Dam 1] = (ssp OR indira-sagar OR maheshwar OR omkareshwar) AND dams
+   [Any Narmada Dam 2] = any-narmada-dam AND dams
+end
+</pre>
+<p>
+Thus, you can monitor multiple related topics at the same time and organize them. 
+The <i>any-narmada-dam</i> concept shows you how you can define new concepts by
+building on existing ones.  The categories <i>Any Narmada Dam 1</i> and
+<i>Any Narmada Dam 2</i> will be identical in terms of the news they collect.
+This example shows two ways of doing the same thing.
 </p>
 <p>It is easy to see how this can be extended.  If you want to add more
 categories to the "Dams issue", you can do so by adding more category
 definitions.  Accordingly, you might have to define more concepts in the earlier
-"DEFINE CONCEPTS" element.  You could also add additional news sources, say, 
-BBC South Asia's RSS feed by adding a entry in the "DEFINE SOURCES" element.
+"define concepts" element.  You could also add additional news sources, say, 
+BBC South Asia's RSS feed by adding a entry in the "define sources" element.
 </p>
 <p>
 You are not restricted to define only one issue either.  You can define as many
@@ -138,7 +215,7 @@ you want to organize your news, and specify the filtering rules as above.
 </p>
 <hr noshade="noshade">
 <a name="source"></a>
-<h2>3. Issue / topic </h2>
+<h2>3. Issue / Topic </h2>
 
 <p>
 An issue is nothing but a collection of categories within which you organize
@@ -149,13 +226,9 @@ Omkareshwar, Tehri, Tipaimukh, KRS, Mullaperiyar, and so on.
 <p>
 An issue is defined as follows:
 <pre>
-define issue ISSUE-NAME-HERE
-   monitor sources SOURCES-HERE
-   organize news into categories
-   {
-      TAXONOMY-HERE
-   }
-end issue
+define issue ISSUE-NAME-HERE = filter {SOURCES-HERE} into taxonomy 
+   TAXONOMY-HERE
+end
 </pre>
 Further down, you will see how news sources are defined, and how taxonomies are defined.
 </p>
@@ -172,19 +245,14 @@ user subbu has defined the following feed collections: {All Known RSS Feeds},
 {Business Feeds}, {Editorial Feeds}, {Sports Feeds}, {Entertainment Feeds}.  Then you
 can use them as follows:
 <pre>
-import {Indian RSS Feeds} from subbu
+import {All Feeds} from subbu
 import {Sports Feeds} from subbu
-import {Entertainment Feeds} from subbu
 
 ... define concepts here ...
 
-define issue ISSUE-NAME-HERE
-   monitor sources {Indian RSS Feeds}, -{Sports Feeds}, -{Entertainment Feeds}
-   organize news into categories
-   {
-      TAXONOMY-HERE
-   }
-end issue
+define issue My Topic = filter sources {All Feeds}, -{Sports Feeds}, into taxonomy
+   TAXONOMY-HERE
+end
 </pre>
 
 Thus, for your issues, you can take the {Indian RSS Feeds} collection that user
@@ -195,35 +263,27 @@ that you want to monitor.
 
 <p>
 But, for those occasions when you want to define your own feeds, or pick feeds
-yourself, we'll explain how to do that.  A news source is specified as follows:
+yourself, you can do that as follows:
 <pre>
-rediff = "Rediff On The Net", http://www.rediff.com/rss/newsrss.xml
-</pre>
-You are defining the rediff news feed.  When articles from this source is added to
-your issues, the name displayed will be what you picked here "Rediff On The Net".
-The second element is the actual RSS feed URL that you need to specify. 
-</p>
-<p>
-As might be clear from the example earlier on, you can define collections of
-feeds as follows:
-<pre>
-DEFINE SOURCES {Hindu Feeds}
-   hindu.front.page = "Hindu: Front Page", http://www.hindu.com/rss/01hdline.xml
-   hindu.national = "Hindu: National", http://www.hindu.com/rss/02hdline.xml
-   ...
-   ...
-   hindu.sport = "Hindu: Sport", http://www.hindu.com/rss/07hdline.xml
-END SOURCES
+define sources {Hindu Feeds}
+  http://www.hindu.com/rss/01hdline.xml
+  http://www.hindu.com/rss/02hdline.xml
+  ...
+  ...
+  http://www.hindu.com/rss/07hdline.xml
+end
 
-...
+define sources {TOI Feeds}
+  ... rss feed urls here ...
+end
+
+define sources {Hindustan Times Feeds}
+  ... rss feed urls here ...
+end
 
 define sources {Indian RSS Feeds}
-   {Hindu Feeds}, {TOI Feeds}, {Hindustan Times Feeds}, ...
-end sources
-
-define sources {Sports Feeds}
-   hindu.sport, toi.cricket, ht.sports, ht.cricket, ...
-end sources
+  {Hindu Feeds}, {TOI Feeds}, {Hindustan Times Feeds}, ...
+end
 </pre>
 </p>
 
