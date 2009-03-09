@@ -1,27 +1,23 @@
 package newsrack.database.sql.scripts;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Date;
-import java.io.File;
-import java.io.PrintWriter;
 import java.io.BufferedReader;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 import newsrack.NewsRack;
 import newsrack.database.DB_Interface;
 import newsrack.database.NewsIndex;
 import newsrack.database.NewsItem;
-import newsrack.database.sql.SQL_NewsItem;
 import newsrack.database.sql.SQL_NewsIndex;
-import newsrack.database.sql.SQL_ValType;
+import newsrack.database.sql.SQL_NewsItem;
 import newsrack.database.sql.SQL_StmtExecutor;
-import newsrack.user.User;
-import newsrack.util.Tuple;
-import newsrack.filter.Issue;
+import newsrack.database.sql.SQL_ValType;
 import newsrack.filter.Category;
-import newsrack.archiver.HTMLFilter;
+import newsrack.filter.Issue;
+import newsrack.user.User;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

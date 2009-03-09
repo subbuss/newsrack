@@ -1,27 +1,26 @@
 package newsrack.archiver;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.Stack;
+
 import newsrack.NewsRack;
 import newsrack.util.IOUtils;
 
-import org.htmlparser.Parser;
-import org.htmlparser.Tag;
-import org.htmlparser.Text;
-import org.htmlparser.util.ParserException;
-import org.htmlparser.visitors.NodeVisitor;
-import org.htmlparser.PrototypicalNodeFactory;
-import org.htmlparser.tags.MetaTag;
-import java.lang.Object;
-import java.util.Stack;
-import java.util.Hashtable;
-import java.io.File;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.PrintWriter;
-import java.io.OutputStream;
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.Parser;
+import org.htmlparser.PrototypicalNodeFactory;
+import org.htmlparser.Tag;
+import org.htmlparser.Text;
+import org.htmlparser.tags.MetaTag;
+import org.htmlparser.util.ParserException;
+import org.htmlparser.visitors.NodeVisitor;
 
 public class HTMLFilter extends NodeVisitor 
 {
@@ -55,16 +54,16 @@ public class HTMLFilter extends NodeVisitor
 
 	static {
 		IGNORE_ELTS_TBL = new Hashtable();
-		for (int i = 0; i < IGNORE_ELTS.length; i++)
-			IGNORE_ELTS_TBL.put(IGNORE_ELTS[i], "");
+		for (String element : IGNORE_ELTS)
+			IGNORE_ELTS_TBL.put(element, "");
 
 		BLOCK_ELTS_TBL = new Hashtable();
-		for (int i = 0; i < BLOCK_ELTS.length; i++)
-			BLOCK_ELTS_TBL.put(BLOCK_ELTS[i], "");
+		for (String element : BLOCK_ELTS)
+			BLOCK_ELTS_TBL.put(element, "");
 
 		RESET_ELTS_TBL = new Hashtable();
-		for (int i = 0; i < RESET_STACK_ELTS.length; i++)
-			RESET_ELTS_TBL.put(RESET_STACK_ELTS[i], "");
+		for (String element : RESET_STACK_ELTS)
+			RESET_ELTS_TBL.put(element, "");
 
 		_lineSep = System.getProperty("line.separator");
 

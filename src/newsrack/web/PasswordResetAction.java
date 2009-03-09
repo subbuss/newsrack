@@ -1,16 +1,14 @@
 package newsrack.web;
 
-import java.util.Map;
+import newsrack.NewsRack;
+import newsrack.user.User;
+import newsrack.util.MailUtils;
+import newsrack.util.PasswordService;
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.NewsRack;
-import newsrack.user.User;
-import newsrack.util.PasswordService;
-import newsrack.util.MailUtils;
+import com.opensymphony.xwork2.Action;
 
 public class PasswordResetAction extends BaseAction
 {

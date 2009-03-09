@@ -1,41 +1,37 @@
 package newsrack.archiver;
 
-import newsrack.NewsRack;
-import newsrack.util.Triple;
-import newsrack.util.IOUtils;
-import newsrack.util.StringUtils;
-import newsrack.database.DB_Interface;
-import newsrack.database.NewsItem;
-import newsrack.util.URLCanonicalizer;
-
-import java.lang.String;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Date;
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileOutputStream;
 
-import com.sun.syndication.io.WireFeedInput;
-import com.sun.syndication.io.XmlReader;
-import com.sun.syndication.feed.WireFeed;
-import com.sun.syndication.feed.rss.Channel;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.feed.synd.SyndFeedImpl;
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndContent;
-import com.sun.syndication.feed.synd.SyndContentImpl;
+import newsrack.NewsRack;
+import newsrack.database.DB_Interface;
+import newsrack.database.NewsItem;
+import newsrack.util.IOUtils;
+import newsrack.util.StringUtils;
+import newsrack.util.Triple;
+import newsrack.util.URLCanonicalizer;
 
-import org.apache.commons.digester.*;
-import org.apache.commons.digester.xmlrules.*;
+import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.xmlrules.DigesterLoader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.sun.syndication.feed.WireFeed;
+import com.sun.syndication.feed.rss.Channel;
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndFeedImpl;
+import com.sun.syndication.io.WireFeedInput;
+import com.sun.syndication.io.XmlReader;
 
 public class Feed implements java.io.Serializable
 {

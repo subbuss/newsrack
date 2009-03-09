@@ -1,18 +1,16 @@
 package newsrack.database.sql;
 
-import newsrack.database.NewsItem;
-import newsrack.filter.Issue;
-import newsrack.filter.Category;
-import newsrack.user.User;
-import newsrack.archiver.Source;
-import newsrack.archiver.Feed;
-
-import java.util.List;
-import java.util.Hashtable;
-import java.util.Collection;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+import newsrack.database.NewsItem;
+import newsrack.filter.Category;
+import newsrack.filter.Issue;
+import newsrack.user.User;
 
 // @FIXME: record info. about materialized fields and don't hit the db if it is already in memory
 class SQL_IssueStub extends Issue

@@ -1,11 +1,8 @@
 package newsrack.web;
 
-import newsrack.user.User;
-import newsrack.util.ParseUtils;
-import newsrack.filter.Issue;
-
 import java.util.Iterator;
-import java.io.IOException;
+
+import newsrack.util.ParseUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

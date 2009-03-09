@@ -1,17 +1,17 @@
 package newsrack.database.sql;
 
-import newsrack.database.NewsItem;
-import newsrack.archiver.Feed;
-import newsrack.filter.Category;
-import newsrack.util.StringUtils;
-import newsrack.user.User;
-
 import java.io.File;
-import java.io.Reader;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.text.SimpleDateFormat;
+
+import newsrack.archiver.Feed;
+import newsrack.database.NewsItem;
+import newsrack.filter.Category;
+import newsrack.user.User;
+import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

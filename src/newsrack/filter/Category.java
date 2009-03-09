@@ -1,24 +1,21 @@
 package newsrack.filter;
 
-import newsrack.util.IOUtils;
-import newsrack.util.StringUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import newsrack.NewsRack;
-import newsrack.user.User;
 import newsrack.archiver.Source;
 import newsrack.database.DB_Interface;
 import newsrack.database.NewsItem;
 import newsrack.filter.Filter.RuleTerm;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.Set;
-import java.util.Date;
-import java.util.List;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Hashtable;
-import java.util.Map;
+import newsrack.user.User;
+import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,9 +53,6 @@ public class Category implements Comparable, java.io.Serializable
 
    	// Logging output for this class
    protected static final Log _log = LogFactory.getLog(Category.class);
-
-		// Default return value count (0, [])
-	private static final Count DEFAULT_COUNT = new Count(0, new ArrayList<Category>());
 
 	public static void init(DB_Interface db)
 	{

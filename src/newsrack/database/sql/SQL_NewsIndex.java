@@ -1,20 +1,15 @@
 package newsrack.database.sql;
 
-import java.sql.Date;
 import java.io.File;
-
+import java.sql.Date;
 import java.util.Collection;
+
+import newsrack.archiver.Feed;
+import newsrack.database.NewsIndex;
+import newsrack.database.NewsItem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import newsrack.database.NewsItem;
-import newsrack.database.NewsIndex;
-import newsrack.database.sql.SQL_DB;
-import newsrack.database.sql.SQL_ValType;
-import newsrack.database.sql.SQL_StmtExecutor;
-
-import newsrack.archiver.Feed;
 
 public class SQL_NewsIndex extends NewsIndex
 {

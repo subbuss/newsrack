@@ -1,6 +1,5 @@
 package newsrack.filter;
 
-import java.lang.Comparable;
 import java.util.List;
 
 public final class Count implements Comparable, java.io.Serializable

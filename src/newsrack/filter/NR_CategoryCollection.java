@@ -1,10 +1,9 @@
 package newsrack.filter;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
-import newsrack.filter.Category;
 import newsrack.user.User;
 
 public final class NR_CategoryCollection extends NR_Collection

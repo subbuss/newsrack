@@ -1,7 +1,7 @@
 package newsrack.database; 
 
-import java.io.OutputStream;
 import java.sql.Date;
+
 import newsrack.archiver.Feed;
 
 /**

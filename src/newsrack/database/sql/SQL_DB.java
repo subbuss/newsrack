@@ -1,66 +1,51 @@
 package newsrack.database.sql;
 
-import newsrack.database.DB_Interface;
-import newsrack.database.ObjectCache;
-import newsrack.database.NewsIndex;
-import newsrack.database.NewsItem;
+import static newsrack.database.sql.SQL_Stmt.*;
+import static newsrack.database.sql.SQL_ValType.LONG;
+import static newsrack.filter.Filter.FilterOp.CONTEXT_TERM;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import newsrack.NewsRack;
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+import newsrack.database.DB_Interface;
+import newsrack.database.NewsIndex;
+import newsrack.database.NewsItem;
+import newsrack.database.ObjectCache;
+import newsrack.filter.Category;
+import newsrack.filter.Concept;
+import newsrack.filter.Filter;
+import newsrack.filter.Issue;
+import newsrack.filter.NR_Collection;
+import newsrack.filter.NR_CollectionType;
+import newsrack.filter.PublicFile;
+import newsrack.filter.Filter.RuleTerm;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
-import newsrack.util.Tuple;
 import newsrack.util.Triple;
-import newsrack.archiver.Feed;
-import newsrack.archiver.Source;
-import newsrack.filter.Concept;
-import newsrack.filter.Category;
-import newsrack.filter.Filter;
-import newsrack.filter.Filter.FilterOp;
-import newsrack.filter.Filter.RuleTerm;
-import newsrack.filter.Issue;
-import newsrack.filter.PublicFile;
-import newsrack.filter.Privacy;
-import newsrack.filter.NR_Collection;
-import newsrack.filter.NR_CollectionType;
-import newsrack.filter.NR_SourceCollection;
-import newsrack.filter.NR_ConceptCollection;
-import newsrack.filter.NR_CategoryCollection;
-import newsrack.filter.NR_FilterCollection;
+import newsrack.util.Tuple;
 
-import static newsrack.filter.Filter.FilterOp.*;
-import static newsrack.filter.NR_CollectionType.*;
-import static newsrack.database.sql.SQL_Stmt.*;
-import static newsrack.database.sql.SQL_ValType.*;
-
-import java.io.File;
-import java.io.Reader;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.HashMap;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.sql.*;
-import java.sql.Connection;
-
-import snaq.db.ConnectionPool;
-
-import org.apache.commons.digester.*;
-import org.apache.commons.digester.xmlrules.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import snaq.db.ConnectionPool;
 
 /**
  * class <code>SQL_DB</code> implements db backend using
@@ -918,7 +903,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public InputStream getInputStream(User reqUser, String uid, String fname) throws java.io.IOException
 	{
-		User u = (User)getUser(uid);
+		User u = getUser(uid);
 		if (u == null) {
 			throw new java.io.IOException("User " + uid + " unknown!");
 		}
@@ -946,7 +931,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public Reader getFileReader(User reqUser, String uid, String fname) throws java.io.IOException
 	{
-		User u = (User)getUser(uid);
+		User u = getUser(uid);
 		if (u == null) {
 			throw new java.io.IOException("User " + uid + " unknown!");
 		}
@@ -1491,7 +1476,6 @@ public class SQL_DB extends DB_Interface
 	{
 		if (_log.isDebugEnabled()) _log.debug("Add of rule term " + r + " for filter: " + filtKey);
 
-		long   key;
 		Object op1    = r.getOperand1();
 		Object op2    = r.getOperand2();
 		Long   op1Key = null;
@@ -1763,7 +1747,7 @@ public class SQL_DB extends DB_Interface
 				// Do not commit anything to the database yet!
 				// It is done in one pass after the download phase is complete!
 				// Record cat in a table
-			List<Category> l = (List<Category>)_leafCatsToCommit.get(cat.getIssue().getKey());
+			List<Category> l = _leafCatsToCommit.get(cat.getIssue().getKey());
 			if (l == null) {
 				l = new ArrayList<Category>();
 				_leafCatsToCommit.put(cat.getIssue().getKey(), l);

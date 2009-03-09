@@ -1,6 +1,6 @@
 package newsrack.database.sql;
 
-import java.sql.*;
+import java.sql.ResultSet;
 import java.util.List;
 
 public abstract class AbstractResultProcessor implements ResultProcessor

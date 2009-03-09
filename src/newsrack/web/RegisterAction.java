@@ -1,13 +1,11 @@
 package newsrack.web;
 
-import java.util.Map;
+import newsrack.user.User;
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import newsrack.user.User;
+import com.opensymphony.xwork2.Action;
 
 public class RegisterAction extends BaseAction
 {

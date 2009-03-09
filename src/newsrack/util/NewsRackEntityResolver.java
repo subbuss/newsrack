@@ -1,10 +1,10 @@
 package newsrack.util;
 
-import newsrack.NewsRack;
-import newsrack.database.DB_Interface;
 import java.io.File;
-import java.io.InputStream;
 import java.io.FileInputStream;
+import java.io.InputStream;
+
+import newsrack.NewsRack;
 
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;

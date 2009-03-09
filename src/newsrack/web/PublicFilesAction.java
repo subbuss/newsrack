@@ -2,8 +2,8 @@ package newsrack.web;
 
 import java.util.List;
 
-import newsrack.user.User;
 import newsrack.filter.PublicFile;
+import newsrack.user.User;
 
 import com.opensymphony.xwork2.Action;
 

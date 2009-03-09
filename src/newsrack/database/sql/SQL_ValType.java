@@ -1,9 +1,9 @@
 package newsrack.database.sql;
 
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 public enum SQL_ValType
 {

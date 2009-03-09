@@ -1,15 +1,15 @@
 package newsrack.filter;
 
 import java.io.PrintWriter;
-import java.util.Hashtable;
-import java.util.Set;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import newsrack.util.StringUtils;
 import newsrack.database.NewsItem;
+import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

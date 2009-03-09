@@ -1,13 +1,11 @@
 package newsrack.database.sql;
 
-import newsrack.archiver.Source;
-import newsrack.archiver.Feed;
-import newsrack.user.User;
-import newsrack.database.NewsItem;
-
-import java.util.Date;
 import java.util.Collection;
-import java.io.OutputStream;
+
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+import newsrack.database.NewsItem;
+import newsrack.user.User;
 
 // @FIXME: record info. about materialized fields and don't hit the db if it is already in memory
 class SQL_SourceStub extends Source

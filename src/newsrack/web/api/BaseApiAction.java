@@ -2,8 +2,6 @@ package newsrack.web.api;
 
 import newsrack.web.BaseAction;
 
-import com.opensymphony.xwork2.ActionSupport;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

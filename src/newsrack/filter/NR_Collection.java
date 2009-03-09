@@ -1,6 +1,7 @@
 package newsrack.filter;
 
 import java.util.Collection;
+
 import newsrack.database.DB_Interface;
 import newsrack.user.User;
 

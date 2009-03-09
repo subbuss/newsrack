@@ -1,7 +1,7 @@
 package newsrack.database.sql;
 
-import java.util.Iterator;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import newsrack.filter.Concept;
 import newsrack.filter.ConceptToken;

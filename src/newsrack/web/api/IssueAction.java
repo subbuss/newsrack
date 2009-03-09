@@ -2,15 +2,11 @@ package newsrack.web.api;
 
 import newsrack.filter.Issue;
 import newsrack.user.User;
-import newsrack.web.BaseAction;
-
-import java.io.IOException;
-
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * class <code>IssueAction</code> implements the functionality of api access to issue objects

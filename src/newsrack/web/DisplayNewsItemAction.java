@@ -1,18 +1,17 @@
 package newsrack.web;
 
-import newsrack.user.User;
-import newsrack.database.NewsItem;
-import newsrack.archiver.Source;
-
-import java.io.IOException;
 import java.io.Reader;
+
 import javax.servlet.http.HttpServletResponse;
 
-import com.opensymphony.xwork2.Action;
+import newsrack.archiver.Source;
+import newsrack.database.NewsItem;
 
-import org.apache.struts2.interceptor.ServletResponseAware;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.struts2.interceptor.ServletResponseAware;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * class <code>DisplayNewsItemAction</code> implements the functionality

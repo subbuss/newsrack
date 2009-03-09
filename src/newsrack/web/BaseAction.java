@@ -2,13 +2,13 @@ package newsrack.web;
 
 import java.util.Map;
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
-import org.apache.struts2.interceptor.SessionAware;
-import org.apache.struts2.interceptor.ParameterAware;
-
 import newsrack.NewsRack;
 import newsrack.user.User;
+
+import org.apache.struts2.interceptor.ParameterAware;
+import org.apache.struts2.interceptor.SessionAware;
+
+import com.opensymphony.xwork2.ActionSupport;
 
 /**
  * class <code>BaseAction</code> is the base class for all

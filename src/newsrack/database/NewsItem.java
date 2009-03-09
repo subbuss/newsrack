@@ -1,18 +1,14 @@
 package newsrack.database;
 
-import newsrack.archiver.Feed;
-import newsrack.user.User;
-import newsrack.filter.Category;
-
 import java.io.File;
-import java.io.Reader;
 import java.io.PrintWriter;
-import java.lang.String;
+import java.io.Reader;
 import java.util.Date;
 import java.util.List;
 
-import java.io.PrintWriter;
+import newsrack.archiver.Feed;
 import newsrack.archiver.HTMLFilter;
+import newsrack.user.User;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

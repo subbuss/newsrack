@@ -1,11 +1,10 @@
 package newsrack.archiver;
 
-import newsrack.user.User;
-import newsrack.database.NewsItem;
-import newsrack.database.DB_Interface;
-
 import java.util.Collection;
-import java.util.List;
+
+import newsrack.database.DB_Interface;
+import newsrack.database.NewsItem;
+import newsrack.user.User;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -98,15 +97,6 @@ public class Source implements java.io.Serializable
 		_key = key;
 		_utag = tag;
 		_name = name;
-	}
-
-	private Source(User u, Feed f, String name, String utag)
-	{
-		_user = u;
-		_utag = utag;
-		_name = name.trim();
-		_feed = f;
-		_key  = null;
 	}
 
 	private Source(User u, String utag, String name, String rssFeed)

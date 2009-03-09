@@ -1,24 +1,23 @@
 package newsrack.web;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+import newsrack.archiver.DownloadNewsTask;
+import newsrack.archiver.Source;
+import newsrack.database.NewsItem;
 import newsrack.filter.Category;
 import newsrack.filter.Issue;
-import newsrack.archiver.Source;
 import newsrack.user.User;
-import newsrack.archiver.DownloadNewsTask;
-import newsrack.database.NewsItem;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.ArrayList;
-import java.io.IOException;
-
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * class <code>BrowseAction</code> implements the functionality

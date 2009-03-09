@@ -1,40 +1,49 @@
 package newsrack.database.sql;
 
-import java.util.List;
+import static newsrack.database.sql.SQL_ColumnSize.CAT_TBL_NAME;
+import static newsrack.database.sql.SQL_ColumnSize.FEED_TBL_FEEDURLROOT;
+import static newsrack.database.sql.SQL_ColumnSize.FEED_TBL_FEEDURLTAIL;
+import static newsrack.database.sql.SQL_ColumnSize.NEWS_ITEM_TBL_URLROOT;
+import static newsrack.database.sql.SQL_ColumnSize.NEWS_ITEM_TBL_URLTAIL;
+import static newsrack.database.sql.SQL_ColumnSize.NONE;
+import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_EMAIL;
+import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_NAME;
+import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_PASSWORD;
+import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_UID;
+import static newsrack.database.sql.SQL_ValType.BOOLEAN;
+import static newsrack.database.sql.SQL_ValType.DATE;
+import static newsrack.database.sql.SQL_ValType.INT;
+import static newsrack.database.sql.SQL_ValType.LONG;
+import static newsrack.database.sql.SQL_ValType.STRING;
+import static newsrack.database.sql.SQL_ValType.TIMESTAMP;
+
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.sql.*;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import newsrack.util.Tuple;
-import newsrack.util.Triple;
 import newsrack.archiver.Feed;
-import newsrack.archiver.Source;
 import newsrack.database.DB_Interface;
-import newsrack.filter.Concept;
-import newsrack.filter.ConceptToken;
 import newsrack.filter.Category;
+import newsrack.filter.Concept;
 import newsrack.filter.Filter;
-import newsrack.filter.Filter.*;
-import newsrack.filter.Issue;
-import newsrack.filter.PublicFile;
-import newsrack.user.User;
-import newsrack.filter.NR_CollectionType;
+import newsrack.filter.NR_CategoryCollection;
 import newsrack.filter.NR_Collection;
-import newsrack.filter.NR_SourceCollection;
+import newsrack.filter.NR_CollectionType;
 import newsrack.filter.NR_ConceptCollection;
 import newsrack.filter.NR_FilterCollection;
-import newsrack.filter.NR_CategoryCollection;
+import newsrack.filter.NR_SourceCollection;
+import newsrack.filter.PublicFile;
+import newsrack.filter.Filter.FilterOp;
+import newsrack.filter.Filter.RuleTerm;
+import newsrack.user.User;
+import newsrack.util.Triple;
+import newsrack.util.Tuple;
 
-import static newsrack.filter.NR_CollectionType.*;
-import static newsrack.filter.Filter.FilterOp.*;
-import static newsrack.database.sql.SQL_ValType.*;
-import static newsrack.database.sql.SQL_ColumnSize.*;
+import org.apache.commons.logging.Log;
 
 class GetCollectionResultProcessor extends AbstractResultProcessor
 {
@@ -226,7 +235,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 			rtMap.put((Long)rtVals[0], rtVals);
 				// Set up context concept lists for those rule term tuples for which the op-type value is -1
 			if (((Integer)rtVals[1]) == -1) {
-				List context = ctxtMap.get((Long)rtVals[2]);
+				List context = ctxtMap.get(rtVals[2]);
 				if (context == null) {
 					context = new ArrayList<Long>();
 					ctxtMap.put((Long)rtVals[2], context);
@@ -293,7 +302,7 @@ class GetCategoryResultProcessor extends AbstractResultProcessor
 		_userKey = rs.getLong(6);
 		long filtKey = rs.getLong(5);
 		if (filtKey == 0)
-			filtKey = (long)-1;
+			filtKey = -1;
 
 		Category c = (_buildRuleTree) ? new Category(rs.getLong(1), rs.getString(2), null, rs.getInt(3))
 		                              : new SQL_CategoryStub(_userKey, rs.getLong(1), rs.getString(2), rs.getInt(3), rs.getLong(4), filtKey);
@@ -338,7 +347,7 @@ class GetCategoryResultProcessor extends AbstractResultProcessor
 			}
 		}
 		if (_buildTaxonomy) {
-			List<Category> catList = (List<Category>)l;
+			List<Category> catList = l;
 			for (Category c: catList) {
 				Long parentKey = _parentMap.get(c.getKey());
 				if (parentKey != -1) {

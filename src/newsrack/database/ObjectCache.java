@@ -1,24 +1,19 @@
 package newsrack.database;
 
+import java.util.Map;
+import java.util.Properties;
+
 import newsrack.NewsRack;
 import newsrack.user.User;
-import newsrack.archiver.Feed;
-import newsrack.archiver.Source;
-import newsrack.filter.Category;
-import newsrack.filter.Concept;
-import newsrack.filter.Filter;
-import newsrack.filter.Issue;
 import newsrack.util.Tuple;
 
-import java.io.PrintWriter;
-import java.util.Properties;
-import java.util.Map;
-
-import com.opensymphony.oscache.base.*;
-import com.opensymphony.oscache.extra.*;
-import com.opensymphony.oscache.general.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.opensymphony.oscache.base.NeedsRefreshException;
+import com.opensymphony.oscache.extra.CacheEntryEventListenerImpl;
+import com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl;
+import com.opensymphony.oscache.general.GeneralCacheAdministrator;
 
 public class ObjectCache
 {
@@ -75,8 +70,7 @@ public class ObjectCache
 		{
 			sb.append("#### CACHE STATS for " + _name + " ####").append("\n");
 			Object[] elList = _osCacheAdmin.getCache().getCacheEventListenerList().getListenerList();
-			for (int i = 0; i < elList.length; i++) {
-				Object el = elList[i];
+			for (Object el : elList) {
 				if (el instanceof CacheEntryEventListenerImpl) {
 					sb.append("Cache Entry Event Listener Stats: ").append(el.toString()).append("\n");
 				}

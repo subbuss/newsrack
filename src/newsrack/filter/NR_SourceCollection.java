@@ -1,8 +1,8 @@
 package newsrack.filter;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import newsrack.archiver.Source;
 import newsrack.user.User;

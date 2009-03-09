@@ -1,9 +1,10 @@
 package newsrack.util;
 
 import java.io.File;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.security.MessageDigest;
+
 import newsrack.archiver.HTMLFilter;
 
 import org.apache.commons.logging.Log;
@@ -179,9 +180,9 @@ public final class StringUtils
 				md5.update(s.getBytes("UTF-8"));
 				byte raw[] = md5.digest();
 				StringBuffer hexString = new StringBuffer();
-				for (int i = 0; i < raw.length; i++) {
-					if ((0xFF & raw[i]) < 16) hexString.append('0');	// need 2 bytes each, and Integer.toHexString does not provide leading '0's
-					hexString.append(Integer.toHexString(0xFF & raw[i]));
+				for (byte element : raw) {
+					if ((0xFF & element) < 16) hexString.append('0');	// need 2 bytes each, and Integer.toHexString does not provide leading '0's
+					hexString.append(Integer.toHexString(0xFF & element));
 				}
 				return hexString.toString();
 			}
@@ -217,10 +218,10 @@ public final class StringUtils
 		if (d == null)
 			return null;
 
-		for (int i = 0; i < _buggyFormat_dfs.length; i++) {
+		for (SimpleDateFormat element : _buggyFormat_dfs) {
 			try {
-				synchronized (_buggyFormat_dfs[i]) {
-					Date x = _buggyFormat_dfs[i].parse(d);
+				synchronized (element) {
+					Date x = element.parse(d);
 					if (x != null) {
 	//					INFO("Date string " + d + " parsed with date format " + _buggyFormat_dfs[i].toLocalizedPattern());
 						return x;
@@ -258,10 +259,10 @@ public final class StringUtils
 		if (d == null)
 			return null;
 
-		for (int i = 0; i < _dc_dfs.length; i++) {
+		for (SimpleDateFormat element : _dc_dfs) {
 			try {
-				synchronized (_dc_dfs[i]) {
-					Date x = _dc_dfs[i].parse(d);
+				synchronized (element) {
+					Date x = element.parse(d);
 					if (x != null) {
 	//					INFO("Date string " + d + " parsed with date format " + _dc_dfs[i].toLocalizedPattern());
 						return x;

@@ -2,13 +2,14 @@ package newsrack.archiver;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Properties;
+
 import newsrack.NewsRack;
 import newsrack.util.ProcessReader;
 import newsrack.util.ThreadManager;
@@ -110,21 +111,21 @@ public class SiteCrawlerTask extends TimerTask
 								// CATCH any errors before attempting to schedule
 								// the crawler task!
 							String[] times = cTimes.split("[ \t]");
-							for (int i = 0; i < times.length; i++)
-								if (times[i].equals(""))
+							for (String element : times)
+								if (element.equals(""))
 									continue;
 								else
-									Integer.parseInt(times[i]);
+									Integer.parseInt(element);
 
 								// Now that we have gotten here without any exceptions,
 								// go ahead and schedule the crawlers at the specified times!
 							times = cTimes.split("[ \t]");
-							for (int i = 0; i < times.length; i++) {
-								if (times[i].equals(""))
+							for (String element : times) {
+								if (element.equals(""))
 									continue;
 
 									// Get a date object and schedule the task
-								cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(times[i]));
+								cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(element));
 								final Date d = cal.getTime();
 								t.scheduleAtFixedRate(new SiteCrawlerTask(cName, cPath, d), d, ONE_DAY);
 							}

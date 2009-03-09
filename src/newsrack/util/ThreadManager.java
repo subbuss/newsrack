@@ -1,11 +1,13 @@
 package newsrack.util;
 
 import java.io.File;
-import java.util.Timer;
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Timer;
+
 import newsrack.archiver.DownloadNewsTask;
 import newsrack.archiver.SiteCrawlerTask;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

@@ -1,22 +1,21 @@
 package newsrack.archiver;
 
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.List;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import newsrack.NewsRack;
 import newsrack.filter.Issue;
 import newsrack.user.User;
-import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 import newsrack.util.ThreadManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import java.util.concurrent.*;
 
 /**
  * class <code>DownloadNewsTask</code> implements the functionality
@@ -132,8 +131,7 @@ public class DownloadNewsTask extends TimerTask
             return;
          }
          finally {
-				int mycount = 0;
-            synchronized(_completedIssuesCount) { _completedIssuesCount++; mycount = _completedIssuesCount; }
+				synchronized(_completedIssuesCount) { _completedIssuesCount++; }
 
 /**
  * Will only do this for feed downloader for now ...

@@ -1,23 +1,17 @@
 package newsrack.web.api;
 
-import newsrack.filter.Issue;
-import newsrack.filter.Category;
-import newsrack.user.User;
-import newsrack.archiver.Source;
-import newsrack.database.NewsItem;
-import newsrack.web.BaseAction;
-
-import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
-import java.text.SimpleDateFormat;
+
+import newsrack.archiver.Source;
+import newsrack.database.NewsItem;
+import newsrack.filter.Category;
+import newsrack.filter.Issue;
+import newsrack.user.User;
 
 import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * class <code>NewsAction</code> implements the functionality of fetching news

@@ -1,21 +1,15 @@
 package newsrack.util;
 
-import java.io.UnsupportedEncodingException;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.PrintWriter;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import sun.misc.CharacterEncoder;
-import newsrack.util.IOUtils;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import newsrack.NewsRack;
-import newsrack.util.Tuple;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

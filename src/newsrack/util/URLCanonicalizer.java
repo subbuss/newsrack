@@ -1,21 +1,17 @@
 package newsrack.util;
 
-import newsrack.NewsRack;
-
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import newsrack.util.StringUtils;
+import newsrack.NewsRack;
 
-import org.htmlparser.http.ConnectionManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.http.ConnectionManager;
 
-import com.opensymphony.oscache.base.*;
-import com.opensymphony.oscache.extra.*;
-import com.opensymphony.oscache.general.*;
+import com.opensymphony.oscache.base.NeedsRefreshException;
+import com.opensymphony.oscache.general.GeneralCacheAdministrator;
 
 // This class canonicalizes urls of news stories so that we can more
 // easily recognize identical urls.  For now, this class hardcodes rules
@@ -216,7 +212,7 @@ public class URLCanonicalizer
 				// Domain-specific url fixup rules
 			boolean done = false;
 			for (Triple ufr: urlFixupRules) {
-				Triple<Pattern, Pattern, String> t = (Triple<Pattern,Pattern,String>)ufr;
+				Triple<Pattern, Pattern, String> t = ufr;
 				if (t._a.matcher(domain).matches()) {
 					Pattern p      = t._b;
 					String  repl   = t._c;

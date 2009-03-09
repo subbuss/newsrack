@@ -1,24 +1,22 @@
 package newsrack.web;
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+import newsrack.NewsRack;
+import newsrack.archiver.Source;
+import newsrack.database.NewsItem;
+import newsrack.filter.Category;
+import newsrack.filter.Issue;
+import newsrack.user.User;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.List;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Collection;
-import java.io.IOException;
-
-import newsrack.NewsRack;
-import newsrack.user.User;
-import newsrack.filter.Issue;
-import newsrack.filter.Category;
-import newsrack.database.NewsItem;
-import newsrack.archiver.Source;
+import com.opensymphony.xwork2.Action;
 
 /**
  * class <code>DeleteArticlesAction</code> implements the functionality
@@ -65,7 +63,7 @@ public class DeleteArticlesAction extends BaseAction
       int  catID   = -1;
       int  start   = -1;
       int  count   = -1;
-      long gCatKey = (long)-1;
+      long gCatKey = -1;
       String issueName = null;
       List<Long> keys = new ArrayList<Long>();
 		try {

@@ -1,20 +1,18 @@
 package newsrack.database.sql;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
-
-import java.sql.*;
 import java.sql.Connection;
-
-import snaq.db.ConnectionPool;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import newsrack.database.DB_Interface;
+
+import org.apache.commons.logging.Log;
+
+import snaq.db.ConnectionPool;
 
 class GetStringResultProcessor extends AbstractResultProcessor
 {

@@ -1,44 +1,34 @@
 package newsrack.user;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import newsrack.NewsRack;
+import newsrack.archiver.Source;
 import newsrack.database.DB_Interface;
 import newsrack.filter.Issue;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
 import newsrack.filter.PublicFile;
+import newsrack.filter.parser.NRLanguageParser;
 import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
 import newsrack.util.PasswordService;
-import newsrack.archiver.Source;
-import newsrack.web.UnknownUserException;
-import newsrack.web.InvalidPasswordException;
 import newsrack.web.EditProfileException;
-
-import newsrack.filter.parser.NRLanguageParser;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.URL;
-import java.lang.String;
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.Enumeration;
-import java.util.Collection;
-
-import javax.servlet.http.HttpSession;
+import newsrack.web.InvalidPasswordException;
+import newsrack.web.UnknownUserException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.digester.*;
-import org.apache.commons.digester.xmlrules.*;
 
 /**
  * class <code>User</code> encapsulates information about
@@ -974,12 +964,12 @@ public class User implements java.io.Serializable
 				}
 			} 
 			else {
-				for (int i = 0; i < srcs.length; i++) {
+				for (String element : srcs) {
 					if (concurrentProfileModification())
 						break;
 					// I am getting source keys, not tags anymore
 					//issue.reclassifyNews(getSourceById(srcs[i]), allDates, sd, ed);
-					issue.reclassifyNews(_db.getSource(Long.parseLong(srcs[i])), allDates, sd, ed);
+					issue.reclassifyNews(_db.getSource(Long.parseLong(element)), allDates, sd, ed);
 				}
 			}
 

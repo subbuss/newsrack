@@ -1,44 +1,41 @@
 package newsrack.filter;
 
-import newsrack.util.IOUtils;
-import newsrack.util.StringUtils;
-import newsrack.util.ParseUtils;
-import newsrack.util.ProcessReader;
-import newsrack.NewsRack;
-import newsrack.user.User;
-import newsrack.database.DB_Interface;
-import newsrack.database.NewsIndex;
-import newsrack.database.NewsItem;
-import newsrack.archiver.Source;
-import newsrack.archiver.Feed;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.io.File;
-import java.io.Reader;
-import java.io.PrintWriter;
-import java.io.DataInputStream;
-import java.lang.Class;
-import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
+
+import newsrack.NewsRack;
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+import newsrack.database.DB_Interface;
+import newsrack.database.NewsIndex;
+import newsrack.database.NewsItem;
+import newsrack.user.User;
+import newsrack.util.IOUtils;
+import newsrack.util.ParseUtils;
+import newsrack.util.ProcessReader;
+import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * The class <code>Issue</code> encapsulates an issue that some
@@ -975,8 +972,8 @@ public class Issue implements java.io.Serializable
 				if (tok.isMultiToken()) {
 					if (_log.isDebugEnabled()) _log.debug("MULTI token " + tok.getToken());
 					String[] toks = tok.getTokens();
-					for (int i = 0; i < toks.length; i++)
-						processMatchedConcept(toks[i], numTokens, tokTable, pw);
+					for (String element : toks)
+						processMatchedConcept(element, numTokens, tokTable, pw);
 				}
 				else {
 					processMatchedConcept(tok.getToken(), numTokens, tokTable, pw);

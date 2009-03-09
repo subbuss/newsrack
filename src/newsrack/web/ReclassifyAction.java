@@ -1,8 +1,5 @@
 package newsrack.web;
 
-import newsrack.user.User;
-
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -10,7 +7,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionSupport;
 
 /**
  * class <code>ReclassifyAction</code> implements the functionality
