@@ -1,15 +1,9 @@
-DEFINE SOURCES {My Sources}
-   rediff = Rediff, http://www.rediff.com/rss/newsrss.xml
-END SOURCES
+define sources {my sources}
+   http://www.rediff.com/rss/newsrss.xml
+end
 
-DEFINE CONCEPTS {My Concepts}
-   &lt;jk&gt;     = jammu, kashmir
-END CONCEPTS
+define concepts
+   &lt;jk&gt; = jammu, kashmir
+end
 
-DEFINE ISSUE Kashmir News
-   MONITOR SOURCES {My Sources}
-   ORGANIZE NEWS INTO CATEGORIES
-   {
-      [Kashmir] = jk
-   }
-END ISSUE
+define issue Kashmir News = filter {my sources} with jk

@@ -349,6 +349,7 @@ create table if not exists filters (
    name         varchar(256) not null,	/* name of the filter */
    rule_string  text         not null, /* the rule string for this filter */
 	rule_key     bigint,						/* root of the rule tree */
+	min_match_score int default 2,		/* minimum hit score for this filter -- default 2 */
 	primary key(f_key)
 --   constraint fk_filters_3 foreign key(coll_key) references user_collections(coll_key)
 ) charset=utf8 collate=utf8_bin;

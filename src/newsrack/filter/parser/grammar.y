@@ -780,6 +780,7 @@
 %terminals DEF_SRCS, DEF_CPTS, DEF_FILTERS, DEF_TOPIC;
 %terminals END;
 %terminals MONITOR_SRCS, ORGANIZE_CATS;
+%terminals MIN_MATCH_SCORE, MIN_CONCEPT_HITS;
 
 /** non-word operators / modifiers **/
 %terminals OR;
@@ -845,7 +846,7 @@
 %typeof Filter_Rule       = "newsrack.filter.Filter.RuleTerm";
 %typeof Rule_Term         = "newsrack.filter.Filter.RuleTerm";
 %typeof Rule_Term_Leaf    = "newsrack.filter.Filter.RuleTerm";
-%typeof Min_Hit           = "java.lang.Integer";
+%typeof Min_Score         = "java.lang.Integer";
 %typeof Source_Use_Decl   = "java.util.Set";
 %typeof Category_Use_Decl = "java.util.List";
 %typeof IssueEnd_Decl     = "newsrack.filter.Issue";
@@ -1019,6 +1020,8 @@ TODO: Not supported yet
 Filter            = DEF_FILTER Filter_Decl ;
 **/
 Filter_Decl       = Filter_Id.fid EQUAL Filter_Rule.r {: Filter f = new Filter(fid, r); recordFilter(f); return new Symbol(f); :}
+                  | Filter_Id.fid Min_Score.h EQUAL Filter_Rule.r {: Filter f = new Filter(fid, r, h); recordFilter(f); return new Symbol(f); :}
+
                   ;
 							// Left-associativity implemented below
 Filter_Rule       = Rule_Term
@@ -1051,7 +1054,7 @@ Rule_Term_Leaf    = LeafConcept.c
 								_currSym = _symbol_c; 
 								return new Symbol(new LeafConcept(c, null));
 						  :}
-						| LeafConcept.c Min_Hit.h
+						| LeafConcept.c Min_Score.h
 						  {: 
 						  		DEBUG("LeafConcept"); 
 								_currSym = _symbol_c; 
@@ -1090,7 +1093,7 @@ LeafConcept       = STRING_TOK.s
 						  :}
                   | Cpt_Use_Id
 						;
-Min_Hit           = COLON NUM_TOK.n {: return new Symbol(Integer.valueOf(n)); :}
+Min_Score         = COLON NUM_TOK.n {: return new Symbol(Integer.valueOf(n)); :}
 						;
 Context           = Cpt_Use_Id.c                   {: ArrayList l = new ArrayList(); l.add(c); return new Symbol(l); :}
                   | Context.cxt COMMA Cpt_Use_Id.c {: cxt.add(c); return _symbol_cxt; :}
@@ -1175,7 +1178,7 @@ Topic             = Topic_Header.t WITH Filter_Rule.r
 							  popScope();
 							  return DUMMY_SYMBOL;
 						  :}
-                  | Topic_Header.t INTO_TAXONOMY Taxonomy_Tree.cats END 
+                  | Topic_Header.t INTO_TAXONOMY Filter_Parameters? Taxonomy_Tree.cats END 
 						  {:
 							  Issue i = getCurrentIssue();
 						     i.addCategories(cats);
@@ -1191,6 +1194,7 @@ Topic_Header      = DEF_TOPIC Topic_Id.i EQUAL FILTER Source_Uses.srcs
                     {:
 							  try {
 								  Issue ni = new Issue(i, _user);
+								  Filter.resetMinScores();
 								  ni.addSources(srcs);
 								  pushScope(ni);
 							  }
@@ -1202,7 +1206,10 @@ Topic_Header      = DEF_TOPIC Topic_Id.i EQUAL FILTER Source_Uses.srcs
 							  return DUMMY_SYMBOL;
 						  :}
                   ;
-
+Filter_Parameters = Filter_Parameter+ ;
+Filter_Parameter  = MIN_MATCH_SCORE EQUAL NUM_TOK.n {: Filter.setMinMatchScore(Integer.valueOf(n)); return DUMMY_SYMBOL; :}
+                  | MIN_CONCEPT_HITS EQUAL NUM_TOK.n {: Filter.setMinConceptHitScore(Integer.valueOf(n)); return DUMMY_SYMBOL; :}
+						;
 Source_Uses       = Source_Use.s {: return new Symbol(processSourceUse(new HashSet<Source>(), s)); :}
 						| Source_Uses.srcs COMMA Source_Use.s {: processSourceUse(srcs, s); return _symbol_srcs; :}
                   ;

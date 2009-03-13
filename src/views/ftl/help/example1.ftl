@@ -15,14 +15,8 @@
 <#include "/ftl/layout/left.menu.ftl">	<td class="user_space">
 
 	<h1 class="underline center">Example 1: India-Australia cricket news</h1>
-	<p>
-	<strong>Copy-Paste example</strong>
-	Suppose you wanted to monitor cricketing news for the India-Australia
-	series from Rediff and Hindu.  You can do so using the following profile.
-  Copy-paste the example below into a file using the Create New File link
-  on the <a href="<@s.url namespace="/user" action="edit-profile" />">Edit Profile page</a>
-  and save it.  Then, click on the validate link there, and you are all set!
-	</p>
+<pre><#include "/ftl/help/example1.code"></pre>
+	<hr noshade="noshade">
 	<p>
 	<strong> Explanation: </strong>
 	The profile defines the rediff and Hindu news sources and requests news from
@@ -32,11 +26,6 @@
 	A news item is added to this category if it matches all three concepts
 	(india, australia, and cricket).
 	</p>
-
-	<hr noshade="noshade">
-<pre>
-<#include "/ftl/help/example1.code"></pre>
-	<hr noshade="noshade">
 
 	</td>
 </tr>

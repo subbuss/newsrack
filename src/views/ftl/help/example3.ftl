@@ -15,22 +15,11 @@
 <#include "/ftl/layout/left.menu.ftl">	<td class="user_space">
 
 	<h1 class="underline center">Example 3: Cricket as well as Kashmir news from Rediff</h1>
-	<p>
-	Suppose you wanted to monitor india-australia cricketing news as well as 
-	Kashmir news from Rediff.  You can do so using the following profile.
-	Copy-paste the following contents into a file using the Create New File
-   link on the <a href="<@s.url namespace="/user" action="edit-profile" />">Edit Profile page</a>
-   and save it.  Then, click on the validate link there, and you are all set!
-	</p>
-	<p>
+<pre><#include "/ftl/help/example3.code"></pre>
+	<hr noshade="noshade">
 	<strong> Explanation: </strong>  This example shows that multiple
-	issues can be defined as part of the same profile.
+	issues can be defined in a single file.
 	</p>
-
-	<hr noshade="noshade">
-<pre>
-<#include "/ftl/help/example3.code"></pre>
-	<hr noshade="noshade">
 
 	</td>
 </tr>

@@ -29,10 +29,10 @@ p {
 	email filters to pre-sort incoming mail into various folders.
 	</p>
 
-	<p style="font-weight:bold; background:white">
+	<p>
 	Visit <a href="<@s.url namespace="/" action="selected-topics" />">
 	a selection of news categories</a> from profiles of various users or else
-	<a href="<@s.url action="browse" />">browse the entire public 
+	<a href="<@s.url namespace="/" action="browse" />">browse the entire public 
 	archives</a> to see some examples of news classification into categories.
 	</p>
 
@@ -46,9 +46,9 @@ p {
 	filed using hard copies of newspapers and magazines.  The issue here is not
 	so much that this is a manual process, as much as that organizations have
 	a hard time keeping up.  This is very much the case in India.  However,
-   using web versions of newspapers and magazines, news monitoring can be
-	made easier.  In this context, the broad goal of this project is to aid the
-	news monitoring for organizations and researchers.
+  using web versions of newspapers and magazines, news monitoring can be
+	made easier.  In this context, the broad goal of this project is to aid
+  the news monitoring for organizations and researchers.
 	</p>
 	<p>
 	An auxilliary goal is to enable analysis of media coverage, a task that,
@@ -71,7 +71,7 @@ p {
 	</p>
 
 	<div style="text-align: center; ">
-	<img src="<@s.url value="icons/newsrack.conceptual.png" />" alt="NewsRack Conceptual Diagram">
+	<img src="<@s.url value="/icons/newsrack.conceptual.png" />" alt="NewsRack Conceptual Diagram">
 	</div>
 
 	<br /> <br />

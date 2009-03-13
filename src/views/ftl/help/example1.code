@@ -1,19 +1,14 @@
-DEFINE SOURCES {My Sources}
-   rediff = Rediff, http://www.rediff.com/rss/newsrss.xml
-   hindu  = Hindu, http://www.hindu.com/rss/02hdline.xml
-END SOURCES
+define sources {My Sources}
+   http://www.rediff.com/rss/newsrss.xml
+   http://www.hindu.com/rss/02hdline.xml
+end
 
-DEFINE CONCEPTS {Cricket Concepts}
+define concepts
    &lt;india&gt;     = india
    &lt;australia&gt; = australia, aussies
-   &lt;cricket&gt;   = cricket, test match, 
-                 one day international, one-dayer
-END CONCEPTS
+   &lt;cricket&gt;   = cricket, test match, one day international, one-dayer
+end
 
-DEFINE ISSUE Indo Aus Series
-   MONITOR SOURCES {My Sources}
-   ORGANIZE NEWS INTO CATEGORIES
-   {
-      [Cricket] = india AND australia AND cricket
-   }
-END ISSUE
+define issue Indo Aus Series = filter {My Sources} into taxonomy 
+   [Cricket] = india AND australia AND cricket
+end

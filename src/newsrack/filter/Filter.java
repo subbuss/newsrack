@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import newsrack.NewsRack;
+import newsrack.database.DB_Interface;
 import newsrack.database.NewsItem;
 import newsrack.util.StringUtils;
 
@@ -17,9 +19,11 @@ import org.apache.commons.logging.LogFactory;
 public class Filter implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
-	        static       short      MIN_REQD_MATCH_COUNT = 2;
-	private static final short      AND_TERM_MIN_MATCH   = 3;
-	private static       String     _indent              = "";
+			  static       int        GLOBAL_MIN_CONCEPT_HIT_SCORE = 0;	// Minimum # of hits for a concept-rule to be triggered
+	        static       int        GLOBAL_MIN_MATCH_SCORE       = 2;	// Minimum score for a filter to be triggered
+	private static       int        _defaultMinConceptHitScore;	      // Minimum # of hits for a concept-rule to be triggered
+	private static       int        _defaultMinMatchScore;	         // Minimum score for a filter to be triggered
+	private static       String     _indent               = "";
 	private static final FilterOp[] _termTypes;
 	private static final HashMap<FilterOp, Integer> _typeMap = new HashMap<FilterOp, Integer>();
 
@@ -36,24 +40,54 @@ public class Filter implements java.io.Serializable
 			_typeMap.put(_termTypes[i], i);
 	}
 
+	public static void init(DB_Interface db)
+	{
+		try {
+		   String p = NewsRack.getProperty("concept.match.minhits");
+			if (p != null) 
+				GLOBAL_MIN_CONCEPT_HIT_SCORE = Integer.parseInt(p);
+
+		   p = NewsRack.getProperty("filter.match.minscore");
+			if (p != null) 
+				GLOBAL_MIN_MATCH_SCORE = Integer.parseInt(p);
+		}
+		catch (final Exception e) {
+			_log.error("Exception initializing filter defaults ... reverting to hardwired defaults!", e);
+			GLOBAL_MIN_CONCEPT_HIT_SCORE = 1;
+			GLOBAL_MIN_MATCH_SCORE = 2;
+		}
+	}
+
+		// Set global minimum hit score for all filters
+	public final static void setMinMatchScore(int n)      { _defaultMinMatchScore = n; }
+	public final static void setMinConceptHitScore(int n) { _defaultMinConceptHitScore = n; }
+	public final static void resetMinScores() 
+	{
+		setMinMatchScore(GLOBAL_MIN_MATCH_SCORE);
+		setMinConceptHitScore(GLOBAL_MIN_CONCEPT_HIT_SCORE);
+	}
+
 // ############### NON-STATIC FIELDS AND METHODS ############
 					 Long     _key;				// unique db key
 	public final String   _name;				// Filter name
 	public final String 	 _ruleString;		// Rule - as a string
 	public final RuleTerm _rule;				// Rule - as an expression tree
+	public final int      _minMatchScore;	// Minimum score for this filter to pass-through a news article
 
-	public Filter(String name, String ruleString, RuleTerm r) { _name = name; _rule = r; _ruleString = ruleString; } 
-	public Filter(String name, RuleTerm r) { _name = name; _rule = r; _ruleString = r.toString(); }
+	public Filter(String name, String ruleString, RuleTerm r, int h) { _name = name; _rule = r; _ruleString = ruleString; _minMatchScore = h; }
+	public Filter(String name, RuleTerm r)        { _name = name; _rule = r; _ruleString = r.toString(); _minMatchScore = _defaultMinMatchScore; }
+	public Filter(String name, RuleTerm r, int h) { _name = name; _rule = r; _ruleString = r.toString(); _minMatchScore = h; }
 	public void setKey(Long k)    { _key = k; }
 	public Long getKey()          { return _key; }
 	public String getName()       { return _name; }
 	public RuleTerm getRule()     { return _rule; }
 	public String getRuleString() { return _ruleString; }
+	public int getMinMatchScore() { return _minMatchScore; }
 
 	public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
 	{
 		try {
-			return _rule.getMatchCount(article, numTokens, matchCounts); 
+			return _rule.getMatchCount(this, article, numTokens, matchCounts); 
 		}
 		catch (Exception e) {
 			_log.error("Caught exception in match count for filter: " + _key + ": " + _ruleString, e);
@@ -84,30 +118,57 @@ public class Filter implements java.io.Serializable
 		abstract public String   toString();
 		abstract public void     print(PrintWriter pw);
 		abstract public void     collectUsedConcepts(Set<Concept> usedConcepts);
-		abstract public int      getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts);
+		abstract public int      getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts);
 	}
 
 	/* class LeafConcept encodes a leaf concept */
 	public static class LeafConcept extends RuleTerm
 	{
 		private Concept _concept;
-		private int     _minOccurences;	// Default is 1
+		private int     _minConceptHitScore;
 
-		public LeafConcept(Concept c) { _concept = c; _minOccurences = 1; }
-		public LeafConcept(Concept c, Integer minOccurences) { _concept = c; _minOccurences = (minOccurences == null) ? 1 : minOccurences; }
+		public LeafConcept(Concept c) { _concept = c; _minConceptHitScore = Filter._defaultMinConceptHitScore; }
+		public LeafConcept(Concept c, Integer minOccurences) { _concept = c; _minConceptHitScore = (minOccurences == null) ? 1 : minOccurences; }
 		public FilterOp getType()     { return FilterOp.LEAF_CONCEPT; }
 		public Object getOperand1()   { return _concept; }
 		public Object getOperand2()   { return null; }
-		public int getMinOccurences() { return _minOccurences; }
-		public String toString()      { return _concept.getName() + (_minOccurences == 1 ? "" : ":" + _minOccurences); }
-		public void print(PrintWriter pw) { pw.println(_indent + _concept.getLexerToken().getToken() + (_minOccurences == 1 ? "" : ":" + _minOccurences)); }
+		public int getMinOccurences() { return _minConceptHitScore; }
+		public String toString()      { return _concept.getName() + (_minConceptHitScore == 1 ? "" : ":" + _minConceptHitScore); }
+		public void print(PrintWriter pw) { pw.println(_indent + _concept.getLexerToken().getToken() + (_minConceptHitScore == 1 ? "" : ":" + _minConceptHitScore)); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_concept); }
 
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts)
 		{
 			final Count mc    = (Count)matchCounts.get(_concept.getLexerToken().getToken());
 			final int   count = ((mc == null) ? 0 : mc.value());
-			return count >= _minOccurences ? count : 0;
+
+				// A. Without any explicit cut-off, we treat the match count as partially contributing
+				//    to the success of the enclosing filter
+				//
+				//    Ex 3: --> f._minMatchScore = 4; count = 2; RULE: [Narmada] = ssp OR sardar-sarovar
+				//
+				//    If the article has 2 instances of 'ssp' and 2 of 'sardar-sarovar', both end up counting
+				//    towards the hit of the rule if we return 2 for each.
+				//
+				// B. If we have an explicit request for a minimum # of hits for the concept,
+				//    we handle it specially .. consider these two examples to understand why:
+				//
+				//    Ex 1: --> f._minMatchScore = 4; count = 2; RULE: [Narmada] = ssp:2
+				//
+				//    In this case, without the max setting, we'll return a value of 2 for match-count
+				//    but, the enclosing rule itself will fail because 2 < 4.
+				//
+				//    Ex 2: --> f._minMatchScore = 2; count = 3; RULE: [Narmada] = ssp:4
+				//
+				//    In this case, if we return 3, we'll false assume that the rule matched
+				//    That is why we return half of the min-match-score.  This ensures that the
+				//    rule won't match, but, we also get the soft match behavior as in A and let
+				//    it count partially towards the enclosing filter's success
+
+			if (_minConceptHitScore == 0)
+				return count;
+			else
+				return count >= _minConceptHitScore ? Math.max(count, f._minMatchScore) : f._minMatchScore / 2;
 		}
 	}
 
@@ -123,7 +184,7 @@ public class Filter implements java.io.Serializable
 		public String toString()    { return "[" + _filt.getName() + "]"; }
 		public void print(PrintWriter pw) { pw.println(_indent + _filt.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _filt.collectUsedConcepts(usedConcepts); }
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts) { return _filt.getMatchCount(article, numTokens, matchCounts); }
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts) { return _filt.getMatchCount(article, numTokens, matchCounts); }
 	}
 
 	/* class LeafCategory encodes a leaf category */
@@ -139,7 +200,7 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + _cat.getName()); }
 		public void collectUsedConcepts(Set<Concept> usedConcepts) { }
 
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts)
 		{
 				// FIXME: Use hashcode instead!
 			Count mc = (Count)matchCounts.get("[" + _cat.getName() + "]");
@@ -195,7 +256,7 @@ public class Filter implements java.io.Serializable
 			_r.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts)
 		{
 				// First, check if the context matches
 			boolean contextMatched = false;
@@ -211,7 +272,7 @@ public class Filter implements java.io.Serializable
 			if (!contextMatched)
 				return 0;
 
-			return _r.getMatchCount(article, numTokens, matchCounts);
+			return _r.getMatchCount(f, article, numTokens, matchCounts);
 		}
 	}
 
@@ -228,16 +289,18 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + "-" + _t); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _t.collectUsedConcepts(usedConcepts); }
 
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts)
 		{
-			final int count = (MIN_REQD_MATCH_COUNT - _t.getMatchCount(article, numTokens, matchCounts));
-			return (count > 0) ? count : 0;
+				// FIXME: This is very strict!
+			final int count = (1 - _t.getMatchCount(f, article, numTokens, matchCounts));
+			return (count > 0) ? f._minMatchScore : 0;
 		}
 	}
 
 	/* class AndOrTerm encodes an AND/OR expression */
 	public static class AndOrTerm extends RuleTerm
 	{
+		private static final short  AND_TERM_MIN_MATCH = 3;
 		private FilterOp 	_op;		// AND / OR?
 		private RuleTerm  _lTerm;	// Left term
 		private RuleTerm  _rTerm;	// Right term
@@ -269,10 +332,10 @@ public class Filter implements java.io.Serializable
 			_rTerm.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts)
 		{
-			final int ltCount = _lTerm.getMatchCount(article, numTokens, matchCounts);
-			final int rtCount = _rTerm.getMatchCount(article, numTokens, matchCounts);
+			final int ltCount = _lTerm.getMatchCount(f, article, numTokens, matchCounts);
+			final int rtCount = _rTerm.getMatchCount(f, article, numTokens, matchCounts);
 			if (_op == FilterOp.AND_TERM) {
 				if ((ltCount == 0) || (rtCount == 0))
 					return 0;
@@ -303,7 +366,7 @@ public class Filter implements java.io.Serializable
 		public String toString()    { return _c1.getName() + " ~" + _proximityVal + " " + _c2.getName(); }
 		public void print(PrintWriter pw) { TODO }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_c1); usedConcepts.add(_c2); }
-		public int getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts) { TODO }
+		public int getMatchCount(Filter f, NewsItem article, int numTokens, Hashtable matchCounts) { TODO }
 	}
 */
 }

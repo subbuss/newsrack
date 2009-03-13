@@ -33,7 +33,7 @@ public class SQL_ConceptStub extends Concept
 		return super.hashCode();
 	}
 
-	public Iterator getKeywords() {
+	public Iterator<String> getKeywords() {
 		try {
 			return super.getKeywords();
 		}
@@ -46,7 +46,7 @@ public class SQL_ConceptStub extends Concept
 										null,
 										new GetStringResultProcessor(),
 										true);
-			super.setKeywords(Arrays.asList(keywords.split("\n")));
+			super.setKeywords((java.util.List<String>)Arrays.asList(keywords.split("\n")));
 			return super.getKeywords();
 		}
 	}

@@ -103,36 +103,35 @@ public class Issue implements java.io.Serializable
 		return i;
 	}
 
-	private static HashSet processKeywordSubstringList(Hashtable keywords, String rootKw, String newKw, HashSet kwsh)
+	private static HashSet processKeywordSubstringList(Hashtable<String,HashSet> kwToCptMap, String rootKw, String newWord, HashSet kwsh)
 	{
-		Iterator it      = kwsh.iterator();
-		HashSet  kwshNew = new HashSet();
-			// Append "newKw" to the end of every keyword substring
+		HashSet kwshNew = new HashSet();
+
+			// Append "newWord" to the end of every keyword substring
 			// present in the keyword substring list.
 			// ["a b c", "b c", "c"] ==> ["a b c d", "b c d", "c d", "d"] 
-		it = kwsh.iterator();
+		Iterator it = kwsh.iterator();
 		while (it.hasNext()) {
-			kwshNew.add((String)it.next() + ' ' + newKw);
+			kwshNew.add((String)it.next() + ' ' + newWord);
 		}
-		kwshNew.add(newKw);
+		kwshNew.add(newWord);
 
 			// Now, for every element in the set of keyword substrings, check
-			// if that keyword substring has been defined by some other concept -- 
-			// if so, add it to the set of concepts that define 'rootKw'.
+			// if that keyword substring has been defined by some other concept --
+			// if so, add it to the set of concepts that are triggered by 'rootKw'.
 			//
 			// As a result, whenever rootKw is seen in the text (ex: "a b c d") all
 			// concepts which define keywords that are substrings of rootKw ("a b c d")
 			// (ex: "b c", "a b c", "d") will get triggered.
-		HashSet rootKwCptSet = (HashSet)keywords.get(rootKw);
+		HashSet rootKwCptSet = kwToCptMap.get(rootKw);
 		it = kwshNew.iterator();
 		while (it.hasNext()) {
 			String kw = (String)it.next();
 			if (_log.isDebugEnabled()) _log.debug("Processing keyword substring: " + kw);
 			if (!kw.equals(rootKw)) {
-				HashSet kwCptSet = (HashSet)keywords.get(kw); 
-				if (kwCptSet != null) {
+				HashSet kwCptSet = kwToCptMap.get(kw); 
+				if (kwCptSet != null)
 					rootKwCptSet.addAll(kwCptSet);
-				}
 			}
 		}
 
@@ -142,38 +141,42 @@ public class Issue implements java.io.Serializable
 
 	/**
 	 * Check if a keyword will be matched by an existing set of keywords
-	 * @param keywords  Existing set of keywords
-	 * @param k         New keyword -- which has to be checked for equivalence
-	 *                  among the existing keyword set
+	 * @param kwToCptMap Keyword <--> Concept map for all keywords
+	 * @param kw         New keyword -- which has to be checked for equivalence
+	 *                   among the existing keyword set.  This keyword has been
+	 *                   canonicalized to lower-case!
 	 */
-	private static void identifyMultiTokens(Hashtable keywords, String k)
+	private static void identifyMultiTokens(Hashtable kwToCptMap, String kw)
 	{
-		if (_log.isDebugEnabled()) _log.debug("IdentifyMultiTokens for " + k);
+		if (_log.isDebugEnabled()) _log.debug("IdentifyMultiTokens for " + kw);
 
 		// If "water privatisation" is present in one concept and "water" is
 		// present in another concept, when "water privatisation" is seen
 		// in the text, both the concepts should be triggered.
 
 		StringBuffer buf  = new StringBuffer();
-		int          n    = k.length();
-		char[]       cs   = k.toCharArray();
+		int          n    = kw.length();
+		char[]       cs   = kw.toCharArray();
 		HashSet      kwsh = new HashSet();					// List of keyword substrings
 
-		if (_log.isDebugEnabled()) _log.debug("### Identifying multi-tokens for " + k + " ###");
+		if (_log.isDebugEnabled()) _log.debug("### Identifying multi-tokens for " + kw + " ###");
 		for (int i = 0; i < n; i++) {
 			char c = cs[i];
 			if (c == '[') {
 				i = copyPredefinedKeyword(buf, i, cs);
 			}
 			else if (c == ' ') {
-				kwsh = processKeywordSubstringList(keywords, k, buf.toString(), kwsh);
-				buf  = new StringBuffer();
+					// We now have a full keyword (buf.toString() -- process it
+				kwsh = processKeywordSubstringList(kwToCptMap, kw, buf.toString(), kwsh);
+
+					// Reset buf so that we build a new keyword starting at this point
+				buf = new StringBuffer();
 			}
 			else {
 				buf.append(c);
 			}
 		}
-		processKeywordSubstringList(keywords, k, buf.toString(), kwsh);
+		processKeywordSubstringList(kwToCptMap, kw, buf.toString(), kwsh);
 	}
 
 	private static int emitPredefinedKeywords(StringBuffer s, int i, char[] cs)
@@ -245,7 +248,7 @@ public class Issue implements java.io.Serializable
 		buf.append("\"");
 	}
 
-	private static void gen_JFLEX_RegExps(Concept c, PrintWriter pw, Hashtable keywords)
+	private static void gen_JFLEX_RegExps(Concept c, PrintWriter pw, Hashtable kwToCptMap)
 	{
 		if (_log.isDebugEnabled()) _log.debug("GJRE: Generating regexp for " + c.getName());
 
@@ -255,7 +258,7 @@ public class Issue implements java.io.Serializable
 		boolean      empty = true;
 		while (it.hasNext()) {
 			String  kw   = (String)it.next();
-			HashSet cSet = (HashSet)keywords.get(kw);
+			HashSet cSet = (HashSet)kwToCptMap.get(kw);
 				// If this keyword is part of just one concept,
 				// emit it right away
 			if (cSet.size() == 1) {
@@ -717,8 +720,8 @@ public class Issue implements java.io.Serializable
 
 			// Set up concept tokens!
 		HashMap<String, Concept> tokenMap = new HashMap<String, Concept>();
-		for (Iterator e = getUsedConcepts(); e.hasNext(); ) {
-			Concept c = (Concept)e.next();
+		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); ) {
+			Concept c = e.next();
 			Concept x = tokenMap.get(c.getName());
 				// No conflict!
 			if (x == null) {
@@ -746,19 +749,16 @@ public class Issue implements java.io.Serializable
 		}
 
 			// Identify all keywords
-		Hashtable keywords = new Hashtable();
-		for (Iterator e = getUsedConcepts(); e.hasNext(); ) {
-			Concept  c  = (Concept)e.next();
-			if (_log.isDebugEnabled()) _log.debug("GJRE: Generating keywords for " + c.getName());
-			Iterator it = c.getKeywords();
+		Hashtable<String,HashSet> kwToCptMap = new Hashtable<String,HashSet>();
+		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); ) {
+			Concept c = e.next();
+			Iterator<String> it = c.getKeywords();
 			while (it.hasNext()) {
-				Object k = it.next();
-				if (_log.isDebugEnabled()) _log.debug(" .... added " + k);
-					// Add to the multitoken keywords table
-				HashSet hs = (HashSet)keywords.get(k);
+				String  k  = it.next().toLowerCase(); // IMPORTANT: Canonicalize to lower-case since keyword matching is case-insensitive
+				HashSet hs = kwToCptMap.get(k);
 				if (hs == null) {
 					hs = new HashSet();
-					keywords.put(k, hs);
+					kwToCptMap.put(k, hs);
 				}
 				hs.add(c);
 			}
@@ -771,17 +771,17 @@ public class Issue implements java.io.Serializable
 			// "water privatisation" is present in one concept and "water" is
 			// present in another concept, when "water privatisation" is seen
 			// in the text, both the concepts should be triggered.
-		for (Enumeration e = keywords.keys(); e.hasMoreElements(); )
-			identifyMultiTokens(keywords, (String)e.nextElement());
+		for (Enumeration<String> e = kwToCptMap.keys(); e.hasMoreElements(); )
+			identifyMultiTokens(kwToCptMap, e.nextElement());
 
 			// Spit out regular tokens for concepts
-		for (Iterator e = getUsedConcepts(); e.hasNext(); )
-			gen_JFLEX_RegExps(((Concept)e.next()), pw, keywords);
+		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); )
+			gen_JFLEX_RegExps(e.next(), pw, kwToCptMap);
 
 			// Spit out multi-tokens
-		for (Enumeration e = keywords.keys(); e.hasMoreElements(); ) {
-			String  kw = (String)e.nextElement();
-			HashSet hs = (HashSet)keywords.get(kw);
+		for (Enumeration<String> e = kwToCptMap.keys(); e.hasMoreElements(); ) {
+			String  kw = e.nextElement();
+			HashSet hs = kwToCptMap.get(kw);
 			if (hs.size() > 1)
 				genMultiToken_JFLEX_RegExp(pw, kw, hs);
 		}

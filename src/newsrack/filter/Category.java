@@ -56,15 +56,8 @@ public class Category implements Comparable, java.io.Serializable
 
 	public static void init(DB_Interface db)
 	{
-		final String mhs = NewsRack.getProperty("concept.match.minhits");
-		try {
-			_db = db;
-			if (mhs != null) 
-				Filter.MIN_REQD_MATCH_COUNT = Short.parseShort(mhs);
-		}
-		catch (final Exception e) {
-			_log.error("concept.match.minhits: Error parsing " + mhs, e);
-		}
+		_db = db;
+		Filter.init(db);
 	}
 
 	/*
@@ -465,8 +458,8 @@ public class Category implements Comparable, java.io.Serializable
 				// Basically, concepts that match at the beginning of the article
 				// are more valuable than those than match later on.
 			matchCount = _filter.getMatchCount(article, numTokens, matchCounts);
-			if (    (matchCount >= Filter.MIN_REQD_MATCH_COUNT) 
-				 || ((numTokens < 250) && (matchCount > 0) && (matchCount < Filter.MIN_REQD_MATCH_COUNT)))
+			if (    (matchCount >= _filter.getMinMatchScore())
+				 || ((numTokens < 250) && (matchCount > 0) && (matchCount < _filter.getMinMatchScore())))
 			{
 					// NOTE: we are checking this here rather than before trying to match to minimize
 					// the # of db queries ... if there is no match with the filter, then, we won't bother

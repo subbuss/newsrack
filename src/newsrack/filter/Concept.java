@@ -49,7 +49,7 @@ public class Concept implements java.io.Serializable
 	private Long    _key;			// Database key
 	private String	 _name;			// Name of the concept
 	private String  _defnString;	// Definition string for the concept
-	private List    _keywords;		// Keywords that specify the concept
+	private List<String>         _keywords;	 // Keywords that specify the concept
 	private NR_ConceptCollection _collection;// Collection that this concept belongs to
 	private ConceptToken _lexerToken;	// Concept token for the lexer
 
@@ -215,7 +215,7 @@ public class Concept implements java.io.Serializable
 		_key      = null;
 		_name     = name;
 		_lexerToken = null;
-		_keywords = new ArrayList();
+		_keywords = new ArrayList<String>();
 
 		StringBuffer defn = new StringBuffer();
 		for (final Iterator it = kws.iterator(); it.hasNext(); ) {
@@ -286,9 +286,9 @@ public class Concept implements java.io.Serializable
 
 	public NR_ConceptCollection getCollection() { return _collection; }
 
-	public Iterator getKeywords() { return _keywords.iterator(); }
+	public Iterator<String> getKeywords() { return _keywords.iterator(); }
 
-	public void setKeywords(List l) { _keywords = l; }
+	public void setKeywords(List<String> l) { _keywords = l; }
 
    public void setKey(Long k) { _key = k; }
 

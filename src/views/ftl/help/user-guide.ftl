@@ -241,9 +241,8 @@ Further down, you will see how news sources are defined, and how taxonomies are 
 Most of the time, you will not have to define news sources yourself because there will
 already exist a collection of various news feeds that have accumulated over time.
 You can then simply use an existing news collection from another user.  So, let us say
-user subbu has defined the following feed collections: {All Known RSS Feeds},
-{Business Feeds}, {Editorial Feeds}, {Sports Feeds}, {Entertainment Feeds}.  Then you
-can use them as follows:
+user subbu has defined the following feed collections: {All Feeds} and {Sports Feeds}.
+Then you can use them as follows:
 <pre>
 import {All Feeds} from subbu
 import {Sports Feeds} from subbu
@@ -255,10 +254,9 @@ define issue My Topic = filter sources {All Feeds}, -{Sports Feeds}, into taxono
 end
 </pre>
 
-Thus, for your issues, you can take the {Indian RSS Feeds} collection that user
-subbu has defined and ignore feeds defined in the {Sports Feeds} and
-{Entertainment Feeds}.  This is an example of how you can pick the news feeds
-that you want to monitor.
+Thus, for your issues, you can take the {All Feeds} collection that user
+subbu has defined and ignore feeds defined in the {Sports Feeds} collection.
+This is an example of how you can pick the news feeds that you want to monitor.
 </p>
 
 <p>

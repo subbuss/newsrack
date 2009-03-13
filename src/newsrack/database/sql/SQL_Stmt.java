@@ -182,9 +182,9 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 	{
 			// IMPORTANT: processResultSet methods *should complete* WITHOUT attempting 
 			// to acquire additional db resources!  Otherwise, we could deadlock.
-		_interimResults.add(new Object[] {rs.getLong(1), rs.getString(2), rs.getString(3), rs.getLong(4)});
+		_interimResults.add(new Object[] {rs.getLong(1), rs.getString(2), rs.getString(3), rs.getLong(4), rs.getInt(5)});
 		if (_getUserKey)
-			_userKey = rs.getLong(5);
+			_userKey = rs.getLong(6);
 		return null;
 	}
 
@@ -244,8 +244,8 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 			}
 		}
 
-			// sqlRowVals[1] -- name; sqlRowVals[2] -- rule_string; sqlRowVals[3] -- rule_key
-		return new Filter((String)sqlRowVals[1], (String)sqlRowVals[2], buildRuleTree((Long)sqlRowVals[3], rtMap, ctxtMap));
+			// sqlRowVals[1] -- name; sqlRowVals[2] -- rule_string; sqlRowVals[3] -- rule_key; sqlRowVals[4] -- min_match_score
+		return new Filter((String)sqlRowVals[1], (String)sqlRowVals[2], buildRuleTree((Long)sqlRowVals[3], rtMap, ctxtMap), (Integer)sqlRowVals[4]);
 	}
 
 	public Object processOutput(Object o)
@@ -925,7 +925,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_FILTERS_FROM_USER_COLLECTION(
-		"SELECT f.f_key, f.name, f.rule_string, f.rule_key FROM filters f, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key",
+		"SELECT f.f_key, f.name, f.rule_string, f.rule_key, f.min_match_score FROM filters f, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -933,7 +933,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_FILTER_FROM_USER_COLLECTION(
-		"SELECT f.f_key, f.name, f.rule_string, f.rule_key, f.u_key FROM filters f, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key AND f.name = ?",
+		"SELECT f.f_key, f.name, f.rule_string, f.rule_key, f.min_match_score, f.u_key FROM filters f, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = f.f_key AND f.name = ?",
 		new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -941,7 +941,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_FILTER_FOR_CAT(
-		"SELECT f_key, name, rule_string, rule_key FROM filters WHERE f_key = ? ",
+		"SELECT f_key, name, rule_string, rule_key, min_match_score FROM filters WHERE f_key = ? ",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -949,7 +949,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_FILTER(
-		"SELECT f_key, name, rule_string, rule_key, u_key FROM filters WHERE f_key = ?",
+		"SELECT f_key, name, rule_string, rule_key, min_match_score, u_key FROM filters WHERE f_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -1143,8 +1143,8 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_FILTER(
-		"INSERT INTO filters (u_key, name, rule_string) VALUES (?,?,?)",
-		new SQL_ValType[] {LONG, STRING, STRING},
+		"INSERT INTO filters (u_key, name, rule_string, min_match_score) VALUES (?,?,?,?)",
+		new SQL_ValType[] {LONG, STRING, STRING, INT},
       SQL_StmtType.INSERT,
 		null,
 		new GetLongResultProcessor(),

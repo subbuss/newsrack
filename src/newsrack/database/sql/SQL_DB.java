@@ -1560,7 +1560,7 @@ public class SQL_DB extends DB_Interface
 		Long   fKey = (f == null) ? Long.valueOf(-1) : f.getKey();
 		if ((f != null) && ((fKey == null) || (fKey == -1))) {
 			if (_log.isDebugEnabled()) _log.debug("Add of filter " + f.getName() + " with rule" + f.getRuleString());
-			fKey = (Long)INSERT_FILTER.execute(new Object[] {uKey, f.getName(), f.getRuleString() });
+			fKey = (Long)INSERT_FILTER.execute(new Object[] {uKey, f.getName(), f.getRuleString(), f.getMinMatchScore() });
 			f.setKey(fKey);
 			Long rKey = persistRuleTerm(uKey, fKey, f.getRule());
 			UPDATE_FILTER.execute(new Object[] {rKey, fKey});
