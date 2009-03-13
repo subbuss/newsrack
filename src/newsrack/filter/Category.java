@@ -405,27 +405,18 @@ public class Category implements Comparable, java.io.Serializable
 	 * @param startId  The starting index
 	 * @param n        Number of news items that need to be returned
 	 */
-	public List<NewsItem> getNews(final int startId, final int n)
-	{
-		return _db.getNews(this, startId, n);
-	}
+	public List<NewsItem> getNews(final int startId, final int n) { return _db.getNews(this, startId, n); }
 
 	/**
 	 * This method clears all previously categorized news
 	 */
-	public void clearNews()
-	{
-		_db.clearNews(this);
-	}
+	public void clearNews() { _db.clearNews(this); }
 
 	/**
 	 * Check if a news item is present in this category.
 	 * @param a  News Item to check for
 	 */
-	public boolean containsArticle(final NewsItem a)
-	{
-		return _db.newsItemPresentInCategory(this, a);
-	}
+	public boolean containsArticle(final NewsItem a) { return _db.newsItemPresentInCategory(this, a); }
 
 	/**
 	 * This method attempts to file an article into this category, if
@@ -434,33 +425,27 @@ public class Category implements Comparable, java.io.Serializable
 	 *
 	 * @param article      The article to be filed
 	 * @param numTokens    Number of tokens encountered in the article
-	 * @param matchCounts  A table of all concepts that matched along with
-	 *                     their corresponding match counts
-	 * @return             The hit count for this category
-	 *                     If a leaf category, the match count is determined
+	 * @param matchScores  A table of all concepts that matched along with
+	 *                     their corresponding match scores
+	 * @return             The hit score for this category
+	 *                     If a leaf category, the match score is determined
 	 *                       by the filtering rule -- algorithm is not yet
 	 *                       publicly documented.
-	 *                     If a non-leaf category, the match count is the
-	 *                       maximum of match count of its sub-categories
+	 *                     If a non-leaf category, the match score is the
+	 *                       maximum of match score of its sub-categories
 	 */
-	public synchronized Count getMatchCount(NewsItem article, int numTokens, Hashtable matchCounts)
+	public synchronized Score getMatchScore(NewsItem article, int numTokens, Hashtable matchScores)
 	{
-		if (_log.isDebugEnabled()) _log.debug(" --> get match count for " + _name);
+		if (_log.isDebugEnabled()) _log.debug(" --> get match score for " + _name);
 
 		ArrayList<Category> matchedCats = new ArrayList<Category>();
-		int matchCount  = 0;
+		int matchScore  = 0;
 		if (isLeafCategory()) {
 			if (_log.isDebugEnabled()) _log.debug("---- trying to match <" + _name + "> with rule <" + _filter._ruleString + "> ----");
 
 				// Match the rule for this category
-				// FIXME: Somehow, incorporate logic in here that tracks
-				// the position of the concept relative to the article size ...
-				// Basically, concepts that match at the beginning of the article
-				// are more valuable than those than match later on.
-			matchCount = _filter.getMatchCount(article, numTokens, matchCounts);
-			if (    (matchCount >= _filter.getMinMatchScore())
-				 || ((numTokens < 250) && (matchCount > 0) && (matchCount < _filter.getMinMatchScore())))
-			{
+			matchScore = _filter.getMatchScore(article, numTokens, matchScores);
+			if (matchScore >= _filter.getMinMatchScore()) {
 					// NOTE: we are checking this here rather than before trying to match to minimize
 					// the # of db queries ... if there is no match with the filter, then, we won't bother
 					// querying the db ... so, all is well!
@@ -472,13 +457,13 @@ public class Category implements Comparable, java.io.Serializable
 			// Go through all nested categories and match rules
 			if (_log.isDebugEnabled()) _log.debug("CAT:"+ _name + ": Processing subcats ...");
 			for (Category subCat: _children) {
-				Count subCatCount = subCat.getMatchCount(article, numTokens, matchCounts);
-					// Match count for this cat = max(match counts of sub-cats)
-				if (subCatCount.value() > matchCount)
-					matchCount = subCatCount.value();
+				Score subCatScore = subCat.getMatchScore(article, numTokens, matchScores);
+					// Match score for this cat = max(match scores of sub-cats)
+				if (subCatScore.value() > matchScore)
+					matchScore = subCatScore.value();
 
 					// Accumulate matched leaf cats
-				matchedCats.addAll(subCatCount.getMatchedCats());
+				matchedCats.addAll(subCatScore.getMatchedCats());
 			}
 			if (_log.isDebugEnabled()) _log.debug("CAT:"+ _name + ": DONE processing subcats ...");
       }
@@ -488,7 +473,7 @@ public class Category implements Comparable, java.io.Serializable
 		   if (_log.isInfoEnabled()) _log.info("ADDING " + article.getTitle() + " to " + getUser().getUid() + ":" + getIssue().getName() + ":" + _name);
          if (_outputFeed != null)
             _outputFeed.addNewsItem(article, matchedCats); 	// Add the news item to the RSS feed 
-			_db.addNewsItem(article, this, matchCount); 		// Record this in the database
+			_db.addNewsItem(article, this, matchScore); 		// Record this in the database
 			_lastUpdateTime = new Date(); 						// Set last update time
 			if (_log.isDebugEnabled()) _log.debug("Added to category " + _name);
 		}
@@ -499,13 +484,13 @@ public class Category implements Comparable, java.io.Serializable
 		// is undefined.  If the latter, clarify in the documentation
 		// so that users know this clearly.  Otherwise, I have to implement
 		// scoping of category references.
-		final Count retVal = new Count(matchCount, matchedCats);
-		matchCounts.put("[" + _name + "]", retVal);
+		final Score retVal = new Score(matchScore, matchedCats);
+		matchScores.put("[" + _name + "]", retVal);
 
-			// Get rid of match counts for all nested cats since they
+			// Get rid of match scores for all nested cats since they
 			// won't be accessible in the taxonomy outside the current cat!
 		for (Category subCat: _children)
-			matchCounts.remove("[" + subCat._name + "]");
+			matchScores.remove("[" + subCat._name + "]");
 
 		return retVal;
 	}

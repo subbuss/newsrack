@@ -40,10 +40,12 @@ process easier.  Familiarity with writing filters using AND, OR, NOT will be hel
 <br/><br/>
 <strong><a href="<@s.url namespace="/help" action="example1" />">A simple example of writing filters</a></strong>
 <br/><br/>
+<#--
 <strong><a href="<@s.url namespace="/forms" action="updates-form" />">Sign up here</a> if you would much rather
 leave your email and be contacted when the user interface improves.</strong>
 If you are comfortable with the skill required and would like to experiment with this service,
 go ahead and register.  Welcome!
+-->
 </p>
 
 <div class="ie_center_hack">
@@ -53,7 +55,7 @@ go ahead and register.  Welcome!
 <div class="formelt mandatory"> Password <input class="text" name="password" type="password"> </div>
 <div class="formelt mandatory"> Password (confirm) <input class="text" name="passwordConfirm" type="password"> </div>
 <div class="formelt mandatory"> Email id <input class="text" name="emailid" type="text"<#if emailid?exists> value="${emailid}"</#if>> </div>
-<div style="padding:10px 5px; text-align: center; color:red"> The next line is to prevent automated registration by spambots! </div>
+<div style="padding:10px 5px; font-size:12px; text-align: center; color:red"> <strong style="font-size:14px"> Are you a human? </strong> (This prevents automated registration by spambots!) </div>
 <input name="humanSumValue" id="n1_plus_n2" value="19" type="hidden">
 <div class="formelt mandatory"> What is <span id="n1">7</span> + <span id="n2">12</span>? <input class="text" name="humanSumResponse" type="humanSumResponse"> </div>
 <div align="center"> <input class="submit" name="submit" value="Register" type="submit"> </div>

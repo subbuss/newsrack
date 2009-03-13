@@ -278,11 +278,11 @@ public class Issue implements java.io.Serializable
 
 	private static void processMatchedConcept(String token, int tokenPosn, Hashtable tokTable, PrintWriter pw)
 	{
-			// Increment match count of the matched concept and record information
+			// Increment match score of the matched concept and record information
 			// about where in the article it was found
-		Count cnt = (Count)tokTable.get(token);
+		Score cnt = (Score)tokTable.get(token);
 		if (cnt == null)
-			tokTable.put(token, new Count(1, tokenPosn));
+			tokTable.put(token, new Score(tokenPosn));
 		else
 			cnt.addMatch(tokenPosn);
 
@@ -894,21 +894,21 @@ public class Issue implements java.io.Serializable
 	 */
 	public void classifyArticle(NewsItem ni, int numTokens, Hashtable tokTable)
 	{
-		int matchCount = 0;
+		int matchScore = 0;
 		ArrayList<Category> matchedCats = new ArrayList<Category>();
 		for (Category c: getCategories()) {
-			Count mv = (Count)tokTable.get("[" + c.getName() + "]");
+			Score mv = (Score)tokTable.get("[" + c.getName() + "]");
 				// The category might have been processed while processing another category
 				// Ex: because of a rule like this: [Slums and Courts] = [Slums] and Courts
 				// [Slums and Courts] references the [Slums] category and so, while processing
 				// this cat, the [Slums] cat might have been processed.
 				// If so, avoid duplicate processing.
 			if (mv == null)
-				mv = c.getMatchCount(ni, numTokens, tokTable);
+				mv = c.getMatchScore(ni, numTokens, tokTable);
 			else
 				if (_log.isDebugEnabled()) _log.debug("CAT " + c.getName() + " in issue " + getName() + " has already been processed!");
-			if (mv.value() > matchCount)
-				matchCount = mv.value();
+			if (mv.value() > matchScore)
+				matchScore = mv.value();
 			matchedCats.addAll(mv.getMatchedCats());
 		}
 

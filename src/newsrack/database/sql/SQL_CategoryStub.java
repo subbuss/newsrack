@@ -9,7 +9,7 @@ import java.util.Set;
 import newsrack.database.NewsItem;
 import newsrack.filter.Category;
 import newsrack.filter.Concept;
-import newsrack.filter.Count;
+import newsrack.filter.Score;
 import newsrack.filter.Filter;
 import newsrack.filter.Issue;
 import newsrack.user.User;
@@ -120,14 +120,14 @@ class SQL_CategoryStub extends Category
 	public boolean isLeafCategory() { return (getFilter() != null); }
 	protected void setIssueKey(Long k) { _issueKey = k; }
 
-	private void setupAll() { getFilter(); getParent(); getChildren(); }
+	private void setupAllFields() { getFilter(); getParent(); getChildren(); }
 
 	// STUB METHODS BELOW!
-	public Category clone() { setupAll(); return super.clone(); }
-	protected void setupForDownloading(Issue issue) { setupAll(); super.setupForDownloading(issue); }
-	protected void collectUsedConcepts(Set<Concept> usedConcepts) { setupAll(); super.collectUsedConcepts(usedConcepts); }
-	public synchronized Count getMatchCount(final NewsItem article, final int numTokens, final Hashtable matchCounts) { setupAll(); return super.getMatchCount(article, numTokens, matchCounts); } 
-	// public String getTaxonomy() { setupAll return super.getTaxonomy(); }
+	public Category clone() { setupAllFields(); return super.clone(); }
+	protected void setupForDownloading(Issue issue) { setupAllFields(); super.setupForDownloading(issue); }
+	protected void collectUsedConcepts(Set<Concept> usedConcepts) { setupAllFields(); super.collectUsedConcepts(usedConcepts); }
+	public synchronized Score getMatchScore(final NewsItem article, final int numTokens, final Hashtable matchScores) { setupAllFields(); return super.getMatchScore(article, numTokens, matchScores); } 
+	// public String getTaxonomy() { setupAllFields; return super.getTaxonomy(); }
 	//
 	public Category getCategory(final String catName) { getChildren(); return super.getCategory(catName); }
 	public Collection<Category> getLeafCats() { getChildren(); return super.getLeafCats(); }
