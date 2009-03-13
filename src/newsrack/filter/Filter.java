@@ -19,7 +19,7 @@ import org.apache.commons.logging.LogFactory;
 public class Filter implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
-			  static       int        GLOBAL_MIN_CONCEPT_HIT_SCORE = 0;	// Minimum # of hits for a concept-rule to be triggered
+			  static       int        GLOBAL_MIN_CONCEPT_HIT_SCORE = 1;	// Minimum # of hits for a concept-rule to be triggered
 	        static       int        GLOBAL_MIN_MATCH_SCORE       = 2;	// Minimum score for a filter to be triggered
 	private static       int        _defaultMinConceptHitScore;	      // Minimum # of hits for a concept-rule to be triggered
 	private static       int        _defaultMinMatchScore;	         // Minimum score for a filter to be triggered
@@ -59,8 +59,8 @@ public class Filter implements java.io.Serializable
 	}
 
 		// Set global minimum hit score for all filters
-	public final static void setMinMatchScore(int n)      { _defaultMinMatchScore = n; }
-	public final static void setMinConceptHitScore(int n) { _defaultMinConceptHitScore = n; }
+	public final static void setMinMatchScore(int n)      { _defaultMinMatchScore = (n < 1) ? 1 : n; }
+	public final static void setMinConceptHitScore(int n) { _defaultMinConceptHitScore = (n < 1) ? 1 : n; }
 	public final static void resetMinScores() 
 	{
 		setMinMatchScore(GLOBAL_MIN_MATCH_SCORE);
@@ -74,9 +74,9 @@ public class Filter implements java.io.Serializable
 	public final RuleTerm _rule;				// Rule - as an expression tree
 	public final int      _minMatchScore;	// Minimum score for this filter to pass-through a news article
 
-	public Filter(String name, String ruleString, RuleTerm r, int h) { _name = name; _rule = r; _ruleString = ruleString; _minMatchScore = h; }
+	public Filter(String name, String ruleString, RuleTerm r, int h) { _name = name; _rule = r; _ruleString = ruleString; _minMatchScore = (h < 1) ? 1 : h; }
 	public Filter(String name, RuleTerm r)        { _name = name; _rule = r; _ruleString = r.toString(); _minMatchScore = _defaultMinMatchScore; }
-	public Filter(String name, RuleTerm r, int h) { _name = name; _rule = r; _ruleString = r.toString(); _minMatchScore = h; }
+	public Filter(String name, RuleTerm r, int h) { _name = name; _rule = r; _ruleString = r.toString(); _minMatchScore = (h < 1) ? 1 : h; }
 	public void setKey(Long k)    { _key = k; }
 	public Long getKey()          { return _key; }
 	public String getName()       { return _name; }
@@ -128,7 +128,7 @@ public class Filter implements java.io.Serializable
 		private int     _minConceptHitScore;
 
 		public LeafConcept(Concept c) { _concept = c; _minConceptHitScore = Filter._defaultMinConceptHitScore; }
-		public LeafConcept(Concept c, Integer minOccurences) { _concept = c; _minConceptHitScore = (minOccurences == null) ? 1 : minOccurences; }
+		public LeafConcept(Concept c, Integer n) { _concept = c; _minConceptHitScore = ((n == null) || (n < 1)) ? 1 : n; }
 		public FilterOp getType()     { return FilterOp.LEAF_CONCEPT; }
 		public Object getOperand1()   { return _concept; }
 		public Object getOperand2()   { return null; }
@@ -141,34 +141,7 @@ public class Filter implements java.io.Serializable
 		{
 			final Count mc    = (Count)matchCounts.get(_concept.getLexerToken().getToken());
 			final int   count = ((mc == null) ? 0 : mc.value());
-
-				// A. Without any explicit cut-off, we treat the match count as partially contributing
-				//    to the success of the enclosing filter
-				//
-				//    Ex 3: --> f._minMatchScore = 4; count = 2; RULE: [Narmada] = ssp OR sardar-sarovar
-				//
-				//    If the article has 2 instances of 'ssp' and 2 of 'sardar-sarovar', both end up counting
-				//    towards the hit of the rule if we return 2 for each.
-				//
-				// B. If we have an explicit request for a minimum # of hits for the concept,
-				//    we handle it specially .. consider these two examples to understand why:
-				//
-				//    Ex 1: --> f._minMatchScore = 4; count = 2; RULE: [Narmada] = ssp:2
-				//
-				//    In this case, without the max setting, we'll return a value of 2 for match-count
-				//    but, the enclosing rule itself will fail because 2 < 4.
-				//
-				//    Ex 2: --> f._minMatchScore = 2; count = 3; RULE: [Narmada] = ssp:4
-				//
-				//    In this case, if we return 3, we'll false assume that the rule matched
-				//    That is why we return half of the min-match-score.  This ensures that the
-				//    rule won't match, but, we also get the soft match behavior as in A and let
-				//    it count partially towards the enclosing filter's success
-
-			if (_minConceptHitScore == 0)
-				return count;
-			else
-				return count >= _minConceptHitScore ? Math.max(count, f._minMatchScore) : f._minMatchScore / 2;
+			return (f._minMatchScore * count) / _minConceptHitScore;
 		}
 	}
 
