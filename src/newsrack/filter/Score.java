@@ -21,7 +21,7 @@ public final class Score implements Comparable, java.io.Serializable
 			// Incorporating logic here that tracks the position of the concept.
 			// Basically, concepts that match at the beginning of the article
 			// get their value boosted!
-		if (posn < 10)
+		if (posn <= 10)
 			n += 5;
 		else if (posn < 50)
 			n += 2;

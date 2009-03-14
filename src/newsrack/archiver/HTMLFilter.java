@@ -8,9 +8,11 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import newsrack.NewsRack;
 import newsrack.util.IOUtils;
+import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -378,9 +380,67 @@ public class HTMLFilter extends NodeVisitor
 
 	public void finishedParsing()
 	{
-      if (_outputToFile) {
-		   printFile(_content);
-      }
+		if (_url != null) {
+			String t1 = _title;
+
+				// Normalize white space
+			t1 = _title.replaceAll("(\n|\\s+)", " ").trim();
+
+				// Strip domain from title!
+			String domain = StringUtils.getDomainForUrl(_url);
+			t1 = (Pattern.compile("^\\s*" + domain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
+			t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + domain + "\\s*$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
+
+				// If the title hasn't changed, check if we are actually in a subdomain -- retry with the main domain
+				// Ex: dealbook.blogs.nytimes.com --> retry with nytimes.com!
+			if (t1.equals(_title)) {
+				String[] domainParts = domain.split("\\.");
+				int      n           = domainParts.length;
+				if (n > 2) {
+				   domain = domainParts[n-2] + "." + domainParts[n-1];
+					t1 = (Pattern.compile("^" + domain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
+					t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + domain + "\\s*[|\\-:]?$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
+				}
+			}
+
+				// New title!
+			_title = t1;
+			if (_log.isDebugEnabled()) _log.debug("ORIG TITLE: " + _title + "\nNEW TITLE: " + _title);
+		}
+
+			// Split the content around matches of the title, if any ... But, check this out!
+			// 1. Replace colon(:), hyphen(-) with a regexp or (|) so that there is a greater chance of
+			//    finding a match of the title despite trailers / leaders in the title!  Since we are looking
+			//    for the smallest match, we are guaranteed that we'll hit the jackpot around the actual title!
+			// 2. Replace all space characters with the "\s+" regexp so that variations in number of white space won't trip up the match!
+			//    NOTE: replaceAll("\\$", "\\\\$") ... causes an exception ... so, we are simply replacing $ with a \. (matchall)
+		String   titleRE = _title.replaceAll("[\\-:]+","|").replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\(|\\)|\\[|\\])", ".");
+		String[] xs = Pattern.compile(titleRE, Pattern.CASE_INSENSITIVE).split(_content, 2);
+		if ((xs.length > 1) && (xs[0].length() < xs[1].length())) {
+				// We are discarding xs[0] -- but, let us preserve any information about publishing date!
+			String[] linesBeingDiscarded = Pattern.compile("\n").split(xs[0]);
+			Pattern  datePattern         = Pattern.compile("^.*(posted|published|updated).*(\\d+).*$");
+			String   dateLine            = "";
+			for (String line: linesBeingDiscarded) {
+				if (datePattern.matcher(line).matches()) {
+					dateLine = line.trim();
+					break;
+				}
+			}
+
+				// New content!
+			_content = (new StringBuffer(dateLine)).append("\n\n").append(xs[1]);
+			if (_log.isDebugEnabled()) _log.debug("Stripping away " + xs[0].length() + " chars; Leaving " + xs[1].length() + " chars;\n Stripping away: " + xs[0]);
+		}
+		else if (_log.isDebugEnabled()) {
+			_log.debug("Got " + xs.length + " items from splitting around " + titleRE);
+			if (xs.length > 1)
+				_log.debug("xs[0] size: " + xs[0].length() + " chars; xs[1] size: " + xs[1].length() + " chars;\n xs[0]: " + xs[0]);
+		}
+
+			// Finally, output new content!
+      if (_outputToFile)
+		   outputToFile(_content);
 	}
 
 	private static String collapseWhiteSpace(String s)
@@ -449,6 +509,7 @@ public class HTMLFilter extends NodeVisitor
 		// Before the string is output to a file, in the "prettyPrint"
 		// method, "\n"s are being replaced with _lineSep strings.
 
+		int          LINE_WIDTH = 75;
 		int          n          = s.length();
 		char[]       cs         = new char[n];
 		StringBuffer lb         = new StringBuffer();
@@ -495,10 +556,10 @@ public class HTMLFilter extends NodeVisitor
 
 				lb.append(c);
 				numChars++;
-				if (numChars > 75) {
+				if (numChars > LINE_WIDTH) {
 						// If cannot properly break the line, arbitrarily break it!
 					if (lastWsPosn == 0)
-						lastWsPosn = 75;
+						lastWsPosn = LINE_WIDTH;
 
 						// Get the max full words in this line
 					String line = lb.substring(0, lastWsPosn - 1);
@@ -524,11 +585,11 @@ public class HTMLFilter extends NodeVisitor
 
    /**
     * Returns the HTML tag that signals the beginning of the body text and
-    * end of the preamble / header in the body text (see code for printFile)
+    * end of the preamble / header in the body text (see code for outputToFile)
     */
    public static String getHTMLTagSignallingEndOfPreamble() { return "h1"; }
 
-	public void printFile(StringBuffer data)
+	private void outputToFile(StringBuffer data)
 	{
 		StringBuffer outBuf = new StringBuffer();
 		outBuf.append("<html>" + "\n" + "<head>\n");
@@ -539,7 +600,7 @@ public class HTMLFilter extends NodeVisitor
 		outBuf.append("<body>\n");
 		if (_url != null) {
 			outBuf.append("<h2 style=\"width:600px; font-size:20px; background:#ffeedd; color: red\">\n");
-			outBuf.append("The article was downloaded from:<br/>\n");
+			outBuf.append("The article was downloaded at " + (new java.util.Date()) + " from:<br/>\n");
 			outBuf.append("<a href=\"" + _url + "\">" + _url + "</a></h2>\n");
 		}
 
@@ -548,7 +609,7 @@ public class HTMLFilter extends NodeVisitor
          // can work even if the tag is changed to something else
       String preambleEndTag = getHTMLTagSignallingEndOfPreamble();
 		outBuf.append("<" + preambleEndTag + ">" + _title + "</" + preambleEndTag + ">\n");
-		outBuf.append("<pre>\n" + prettyPrint(_content) + "</pre>\n");
+		outBuf.append("<pre>\n" + prettyPrint(data) + "</pre>\n");
 		outBuf.append("</body>\n</html>\n");
 
 		if (_pw != null) {
