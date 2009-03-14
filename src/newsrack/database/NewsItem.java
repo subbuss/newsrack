@@ -89,9 +89,6 @@ abstract public class NewsItem implements java.io.Serializable
                String origText = hf.getOrigHtml();
                   // Null implies there was an error downloading the url
                if (origText != null) {
-                  String newUrl = hf.getUrl();	// Record the "final" url after going through redirects!
-                  if (!newUrl.equals(url))
-                     _log.info("TEST: orig - " + url + "; new - " + newUrl);
                   origPw.println(origText);
                   done = true;
                }

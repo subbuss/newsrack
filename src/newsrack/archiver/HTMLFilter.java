@@ -28,7 +28,7 @@ public class HTMLFilter extends NodeVisitor
    private static Log _log = LogFactory.getLog(HTMLFilter.class);
 
 	public static final String[] IGNORE_ELTS = {
-		"SELECT", "A", "SCRIPT", "STYLE", "MARQUEE",
+		"SELECT", "A", "SCRIPT", "NOSCRIPT", "STYLE", "MARQUEE",
 		"APPLET", "MAP",
 // Note: Even though the following tags below are included here,
 // they NEED NOT BE included because these are standalone tags.

@@ -27,6 +27,8 @@ public final class Score implements Comparable, java.io.Serializable
 			n += 2;
 		else if (posn < 200)
 			n += 1;
+
+		return n;
 	}
 
 	public Score(int posn)
