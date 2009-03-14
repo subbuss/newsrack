@@ -260,11 +260,18 @@ public class HTMLFilter extends NodeVisitor
 		String tagName = tag.getTagName();
 
       if (_log.isDebugEnabled()) _log.debug("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
-		if (_debug) System.err.println("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
+		if (_debug) System.out.println("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
 		if (IGNORE_ELTS_TBL.get(tagName) != null) {
-			if (_log.isDebugEnabled()) _log.debug("--> PUSHED");
-         if (_debug) System.err.println("--> PUSHED");
+			if (tagName.equals("A")) {
+				// SPECIAL CASE: Don't ignore non-href anchor tags 
+				// Required so that Hindustan Times article titles don't get stripped out!
+				String href = tag.getAttribute("HREF");
+				if (href == null || href.equals(""))
+					return;
+			}
 			_ignoreFlagStack.push(tagName);
+			if (_log.isDebugEnabled()) _log.debug("--> PUSHED");
+			if (_debug) System.out.println("--> PUSHED");
 		}
 		else if (BLOCK_ELTS_TBL.get(tagName) != null)
 			_content.append("\n" + "\n");
@@ -295,11 +302,11 @@ public class HTMLFilter extends NodeVisitor
 		String tagName = tag.getTagName();
 
 		if (_log.isDebugEnabled()) _log.debug("END : " + tagName);
-		if (_debug) System.err.println("END : " + tagName);
+		if (_debug) System.out.println("END : " + tagName);
 
 		if (!_ignoreFlagStack.isEmpty() && _ignoreFlagStack.peek().equals(tagName)) {
 			if (_log.isDebugEnabled()) _log.debug("--> POPPED");
-         if (_debug) System.err.println("--> POPPED");
+         if (_debug) System.out.println("--> POPPED");
 			_ignoreFlagStack.pop();
 		}
 
@@ -348,18 +355,18 @@ public class HTMLFilter extends NodeVisitor
 	{
 		String eltContent = string.getText();
 		if (_log.isDebugEnabled()) _log.debug("TAG txt - " + eltContent);
-		if (_debug) System.err.println("TAG txt - " + eltContent);
+		if (_debug) System.out.println("TAG txt - " + eltContent);
 
 			// If this text is coming in the context of a ignoreable tag, discard
 		if (!_ignoreFlagStack.isEmpty()) {
 			if (_log.isDebugEnabled()) _log.debug(" -- IGNORED");
-		   if (_debug) System.err.println(" -- IGNORED");
+		   if (_debug) System.out.println(" -- IGNORED");
 			return;
 		}
 			// Newkerala.com hack -- May 18, 2006
 		else if (_ignoreEverything) {
 			if (_log.isDebugEnabled()) _log.debug(" -- IGNORED");
-		   if (_debug) System.err.println(" -- IGNORED");
+		   if (_debug) System.out.println(" -- IGNORED");
 			return;
 		}
 
@@ -413,8 +420,8 @@ public class HTMLFilter extends NodeVisitor
 			//    finding a match of the title despite trailers / leaders in the title!  Since we are looking
 			//    for the smallest match, we are guaranteed that we'll hit the jackpot around the actual title!
 			// 2. Replace all space characters with the "\s+" regexp so that variations in number of white space won't trip up the match!
-			//    NOTE: replaceAll("\\$", "\\\\$") ... causes an exception ... so, we are simply replacing $ with a \. (matchall)
-		String   titleRE = _title.replaceAll("[\\-:]+","|").replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\(|\\)|\\[|\\])", ".");
+			// 3. Replace all special characters with "." allowing for the matching to be more lenient 
+		String   titleRE = _title.replaceAll("[\\-:]+","|").replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\?|\\(|\\)|\\[|\\])", ".");
 		String[] xs = Pattern.compile(titleRE, Pattern.CASE_INSENSITIVE).split(_content, 2);
 		if ((xs.length > 1) && (xs[0].length() < xs[1].length())) {
 				// We are discarding xs[0] -- but, let us preserve any information about publishing date!

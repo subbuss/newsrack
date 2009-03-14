@@ -446,15 +446,13 @@ public class Feed implements java.io.Serializable
 				// <item> objects that have all their entries set to null!
 				// Hence the check below!
 			if (se.getLink() != null) {
-				NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), niDate);
+				NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), se.getTitle(), niDate);
 				if (ni != null) {
 						// Set up the various fields of the news item only if the item is not already in the db!
 					if (ni.getKey() == null) {
-						String title = se.getTitle();
 						String auth  = se.getAuthor();
 						String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
-						try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = title; }
-						ni.setTitle((title != null) ? title.trim() : null);
+						try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = se.getTitle(); }
 						ni.setAuthor((auth != null) ? auth.trim() : null);
 						ni.setDescription((desc != null) ? desc.trim() : null);
 					}
@@ -473,7 +471,7 @@ public class Feed implements java.io.Serializable
 		_db.finalizeNewsDownload(this);
 	}
 
-	private NewsItem downloadNewsItem(String baseUrl, String storyUrl,  Date date)
+	private NewsItem downloadNewsItem(String baseUrl, String storyUrl, String title, Date date)
 	{
 	/* Download the news item identified by the URL 'u' and create
 	 * (1) local copy of the article, and 
@@ -497,7 +495,9 @@ public class Feed implements java.io.Serializable
 				// 3. Else, create a new item.  NOTE: This won't be stored to the db yet!
 			ni = _db.createNewsItem(canonicalUrl, this, date);
 
-            // 4. Download it!
+            // 4. Download it
+				// Set title prior to downloading because the title is used for some smart content extraction
+			ni.setTitle((title != null) ? title.trim() : null);
          ni.download(_db); 
 
 				// 5. Create the news item and return it!
