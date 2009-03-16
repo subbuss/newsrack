@@ -416,12 +416,17 @@ public class HTMLFilter extends NodeVisitor
 		}
 
 			// Split the content around matches of the title, if any ... But, check this out!
-			// 1. Replace colon(:), hyphen(-) with a regexp or (|) so that there is a greater chance of
+			// 1. Replace all space characters with the "\s+" regexp so that variations in number of white space won't trip up the match!
+			// 2. Replace all special characters with "." allowing for the matching to be more lenient 
+			// 3. Replace colon(:), hyphen(-) with a regexp or (|) so that there is a greater chance of
 			//    finding a match of the title despite trailers / leaders in the title!  Since we are looking
 			//    for the smallest match, we are guaranteed that we'll hit the jackpot around the actual title!
-			// 2. Replace all space characters with the "\s+" regexp so that variations in number of white space won't trip up the match!
-			// 3. Replace all special characters with "." allowing for the matching to be more lenient 
-		String   titleRE = _title.replaceAll("[\\-:]+","|").replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\?|\\(|\\)|\\[|\\])", ".");
+			// 4. Do two REs one where the '-' matches with anything, and another where '-' is converted to an "|"
+			//    Without this fix to the above strategy (3. above), we will have partial replacements
+			//    Ex: With title "Attack-hit women of Bangalore vent ire on the Web", only "Attack" will be
+			//        removed leaving a partial title in the article which is not as good as we can do.
+		String  titleRE = _title.replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\?|\\(|\\)|\\[|\\])", ".");
+		titleRE = titleRE.replaceAll("[:\\-]", ".") + "|" + titleRE.replaceAll("[:\\-]+", "|");
 		String[] xs = Pattern.compile(titleRE, Pattern.CASE_INSENSITIVE).split(_content, 2);
 		if ((xs.length > 1) && (xs[0].length() < xs[1].length())) {
 				// We are discarding xs[0] -- but, let us preserve any information about publishing date!
