@@ -946,17 +946,6 @@ public class SQL_DB extends DB_Interface
 		}
 	}
 
-	private Reader getReader(String pathPrefix, String pathSuffix, List<Long> feedKeys) throws java.io.IOException
-	{
-		for (Long f: feedKeys) {
-			String fullPath = pathPrefix + File.separator + getFeed(f).getTag() + File.separator + pathSuffix;
-			if ((new File(fullPath)).isFile())
-				return IOUtils.getUTF8Reader(fullPath);
-		}
-
-		return null;
-	}
-
 	/**
 	 * This method returns a character reader for displaying a news item
 	 * that has been archived in the local installation of News Rack.
@@ -966,42 +955,7 @@ public class SQL_DB extends DB_Interface
 	 */
 	public Reader getNewsItemReader(NewsItem ni) throws java.io.IOException
 	{
-		if (ni.getKey() == null) {
-			_log.error("NewsItem with url " + ni.getURL() + " is not in the db!");
-			return null;
-		}
-
-			// Convert 12.11.2005 --> 2005/11/12/
-		String[] dateStr = ni.getDateString().split("\\.");
-		String pathPrefix = GLOBAL_NEWS_ARCHIVE_DIR + "filtered" + File.separator + dateStr[2] + File.separator + dateStr[1] + File.separator + dateStr[0];
-
-			// 1. FAST common case -- try with md5-hashed local name + feed passed in with the news item
-		String localName = ((SQL_NewsItem)ni).getLocalFileName();
-		String fullPath = pathPrefix + File.separator + ni.getFeed().getTag() + File.separator + localName;
-		if ((new File(fullPath)).isFile())
-			return IOUtils.getUTF8Reader(fullPath);
-
-			// 2. Didn't work .. check if this news item has been associated with other feeds
-		List<Long> allFeedKeys = (List<Long>)GET_ALL_FEEDS_FOR_NEWS.get(ni.getKey());
-		Reader r = getReader(pathPrefix, localName, allFeedKeys);
-
-			// 3. Check with local name stored in the db -- backward compatibility
-			// IMPORTANT: Check this *before* checking with old-style naming because
-			// there can be multiple news items with the same base file name!
-			// Ex: http://.../index.html --> map to "index.html", "ni1.index.html", etc.
-			//     Using base file name will return "index.html" for all these urls 
-			//     which would be incorrect!
-		if (r == null)
-			r = getReader(pathPrefix, (String)GET_NEWS_ITEM_LOCALNAME.get(ni.getKey()), allFeedKeys);
-
-			// 4. Check with old syle naming -- backward compatibility
-		if (r == null)
-			r = getReader(pathPrefix, StringUtils.getBaseFileName(ni.getURL()), allFeedKeys);
-
-		if (r != null)
-			return r;
-		else
-			throw new java.io.FileNotFoundException();
+		return ni.getReader();
 	}
 
 	/**

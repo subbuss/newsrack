@@ -85,6 +85,9 @@ SPACE  = {WS}*
    "ORGANIZE"{SPACE}"NEWS"{SPACE}"INTO"{SPACE}"CATEGORIES" { return token(Terminals.ORGANIZE_CATS); }
 	"MIN_MATCH_SCORE"|"MIN-MATCH-SCORE"   { return token(Terminals.MIN_MATCH_SCORE); }
 	"MIN_CONCEPT_HITS"|"MIN-CONCEPT-HITS" { return token(Terminals.MIN_CONCEPT_HITS); }
+/*
+	"FROM"{SPACE}"OPML" { return token(Terminals.FROM_OPML); }
+*/
 	{NUMBER}                    { return token(Terminals.NUM_TOK); }
 	{WORD}                      { return token(Terminals.IDENT_TOK); }
    "#"[^\n\r]*(\n|\r)          { /* COMMENT ... IGNORE */ }

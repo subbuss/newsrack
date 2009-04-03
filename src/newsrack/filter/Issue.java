@@ -257,7 +257,7 @@ public class Issue implements java.io.Serializable
 		boolean      first = true;
 		boolean      empty = true;
 		while (it.hasNext()) {
-			String  kw   = (String)it.next();
+			String  kw   = ((String)it.next()).toLowerCase();
 			HashSet cSet = (HashSet)kwToCptMap.get(kw);
 				// If this keyword is part of just one concept,
 				// emit it right away

@@ -11,6 +11,7 @@ import newsrack.archiver.Feed;
 import newsrack.database.NewsItem;
 import newsrack.filter.Category;
 import newsrack.user.User;
+import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
@@ -39,6 +40,19 @@ public class SQL_NewsItem extends NewsItem
    {
      	return DATE_PARSER.get().format(d);
    }
+
+	private static String getValidFilePath(String pathPrefix, String pathSuffix, List<Long> feedKeys)
+	{
+		for (Long f: feedKeys) {
+			String fullPath = pathPrefix + File.separator + SQL_DB._sqldb.getFeed(f).getTag() + File.separator + pathSuffix;
+			if ((new File(fullPath)).isFile())
+				return fullPath;
+		}
+
+		return null;
+	}
+
+	private static String getGlobalNewsArchive() { return SQL_DB._sqldb.getGlobalNewsArchive(); }
 
 	Long    _nKey;				// Unique ID of this news item in the database
 		// Split the URL into 2 parts: the root and the base
@@ -152,22 +166,6 @@ public class SQL_NewsItem extends NewsItem
 	public Feed    getFeed()              { return SQL_DB._sqldb.getFeed(_feedKey); }
 	public String  getLinkForCachedItem() { return _localCopyName + ":" + _nKey; }
 
-   public File    getRelativeFilePath()  { return new File(SQL_DB._sqldb.getArchiveDir(getFeed(), getDate()) + getLocalFileName()); }
-
-      // BUGGY: If the news item is shared, this wouldn't be the correct path!
-   public File    getOrigFilePath()
-   { 
-      return new File(  SQL_DB._sqldb.getGlobalNewsArchive() + File.separator 
-                      + SQL_DB._sqldb.getArchiveDirForOrigArticles(getFeed(), getDate()) + getLocalFileName()); 
-   }
-
-      // BUGGY: If the news item is shared, this wouldn't be the correct path!
-   public File    getFilteredFilePath()
-   { 
-      return new File(  SQL_DB._sqldb.getGlobalNewsArchive() + File.separator 
-                      + SQL_DB._sqldb.getArchiveDirForFilteredArticles(getFeed(), getDate()) + getLocalFileName());
-   }
-
 	public SQL_NewsIndex getNewsIndex() 
 	{ 
 		if (_newsIndex == null)
@@ -175,7 +173,69 @@ public class SQL_NewsItem extends NewsItem
 			
 		return _newsIndex;
 	}
-	public Reader  getReader() throws Exception { return SQL_DB._sqldb.getNewsItemReader(this); }
+
+	private String getNewsItemPath(boolean wantOrig)
+	{
+		if (getKey() == null) {
+			_log.error("NewsItem with url " + getURL() + " is not in the db!");
+			return null;
+		}
+
+			// Convert 12.11.2005 --> 2005/11/12/
+		String[] dateStr = getDateString().split("\\.");
+		String pathPrefix = getGlobalNewsArchive() + (wantOrig ? "orig" : "filtered") + File.separator + dateStr[2] + File.separator + dateStr[1] + File.separator + dateStr[0];
+
+			// 1. FAST common case -- try with md5-hashed local name + feed passed in with the news item
+		String localName = getLocalFileName();
+		String fullPath = pathPrefix + File.separator + getFeed().getTag() + File.separator + localName;
+
+			// 2. Didn't work .. check if this news item has been associated with other feeds
+		if (!((new File(fullPath)).isFile())) {
+				List<Long> allFeedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS.get(getKey());
+				fullPath = getValidFilePath(pathPrefix, localName, allFeedKeys);
+
+				// 3. Check with local name stored in the db -- backward compatibility
+				// IMPORTANT: Check this *before* checking with old-style naming because
+				// there can be multiple news items with the same base file name!
+				// Ex: http://.../index.html --> map to "index.html", "ni1.index.html", etc.
+				//     Using base file name will return "index.html" for all these urls 
+				//     which would be incorrect!
+			if (fullPath == null)
+				fullPath = getValidFilePath(pathPrefix, (String)SQL_Stmt.GET_NEWS_ITEM_LOCALNAME.get(getKey()), allFeedKeys);
+
+				// 4. Check with old syle naming -- backward compatibility
+			if (fullPath == null)
+				fullPath = getValidFilePath(pathPrefix, StringUtils.getBaseFileName(getURL()), allFeedKeys);
+		}
+
+		return fullPath;
+	}
+
+		// BUGGY! This is no longer correct -- this is just a hangover from really old code.
+		// Only getOrigFilePath() and getFilteredFilePath() are correct going forward!
+   public File    getRelativeFilePath()  { return new File(SQL_DB._sqldb.getArchiveDir(getFeed(), getDate()) + getLocalFileName()); }
+
+   public File    getOrigFilePath()
+   {
+		String p = getNewsItemPath(true);
+		return (p == null) ? null : new File(p);
+   }
+
+   public File    getFilteredFilePath()
+   { 
+		String p = getNewsItemPath(false);
+		return (p == null) ? null : new File(p);
+   }
+
+	public Reader  getReader() throws java.io.IOException 
+	{ 
+		String fullPath = getNewsItemPath(false);
+		if (fullPath != null)
+			return IOUtils.getUTF8Reader(fullPath);
+		else
+			throw new java.io.FileNotFoundException();
+	}
+
 	public Date    getDate()           	
 	{ 
 		try { 

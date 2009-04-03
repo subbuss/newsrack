@@ -46,7 +46,7 @@ abstract public class NewsItem implements java.io.Serializable
    abstract public File     getOrigFilePath();
    abstract public File     getFilteredFilePath();
 	/** Returns a reader object to read the contents of the news item */
-	abstract public Reader   getReader() throws Exception;
+	abstract public Reader   getReader() throws java.io.IOException;
 	abstract public int      getNumCats();
 	abstract public List     getCategories();
    /** Can the cached text of this news item be displayed?  */

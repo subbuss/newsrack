@@ -182,6 +182,21 @@ public class FixupTools
 		}
 	}
 
+	public static void outputLocalFilePathsForCategorizedNews(Long catKey)
+	{
+		Category c = _db.getCategory(catKey);
+		List<NewsItem> news;
+		int start = 0;
+		do {
+		  news = _db.getNews(c, start, 1000);
+		  start += 1000;
+		  for (NewsItem ni: news) {
+			  File f =  ni.getFilteredFilePath();
+			  System.out.println((f == null) ? ("NULL PATH for " + ni.getKey()) : f.getPath());
+		  }
+		} while ((news != null) && !news.isEmpty());
+	}
+
 	public static void main(String[] args) throws Exception
 	{
 		if (args.length < 2) {
@@ -223,6 +238,9 @@ public class FixupTools
       else if (action.equals("setup-topic-nested-sets")) {
 			assignNestedSetIds();
       }
+		else if (action.equals("get-cat-files")) {
+	      outputLocalFilePathsForCategorizedNews(Long.parseLong(args[2]));
+		}
       else {
          System.out.println("Unknown action: " + action);
       }

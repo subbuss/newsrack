@@ -431,7 +431,7 @@ public class HTMLFilter extends NodeVisitor
 		if ((xs.length > 1) && (xs[0].length() < xs[1].length())) {
 				// We are discarding xs[0] -- but, let us preserve any information about publishing date!
 			String[] linesBeingDiscarded = Pattern.compile("\n").split(xs[0]);
-			Pattern  datePattern         = Pattern.compile("^.*(posted|published|updated).*(\\d+).*$");
+			Pattern  datePattern         = Pattern.compile("^.*(volume|posted|published|updated).*(\\d+).*$");
 			String   dateLine            = "";
 			for (String line: linesBeingDiscarded) {
 				if (datePattern.matcher(line).matches()) {
@@ -612,7 +612,7 @@ public class HTMLFilter extends NodeVisitor
 		outBuf.append("<body>\n");
 		if (_url != null) {
 			outBuf.append("<h2 style=\"width:600px; font-size:20px; background:#ffeedd; color: red\">\n");
-			outBuf.append("The article was downloaded at " + (new java.util.Date()) + " from:<br/>\n");
+			outBuf.append("The article was downloaded (and processed) at " + (new java.util.Date()) + " from:<br/>\n");
 			outBuf.append("<a href=\"" + _url + "\">" + _url + "</a></h2>\n");
 		}
 

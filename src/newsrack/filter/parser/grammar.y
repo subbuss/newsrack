@@ -37,6 +37,9 @@
 %import "newsrack.util.ParseUtils";
 %import "org.apache.commons.logging.Log";
 %import "org.apache.commons.logging.LogFactory";
+%import "com.sun.syndication.feed.opml.*";
+%import "com.sun.syndication.io.*";
+%import "com.sun.syndication.io.WireFeedInput";
 
 %embed {:
    	// Logging output for this plug in instance.
@@ -735,10 +738,47 @@
 	}
 
 /**
- TODO: Not supported yet
+	public static Set<Source> processOPMLOutlines(List<Outline> outlines)
+   {
+      if (outlines == null)
+         return null;
+
+		Set<Source> srcs = new HashSet<Source>();
+      for (Outline o: outlines) {
+         List<Outline> children = o.getChildren();
+         if ((children != null) && !children.isEmpty()) {
+            Set cs = processOPMLOutlines((List<Outline>)(o.getChildren()));
+				if (cs != null)
+					srcs.addAll(cs);
+         }
+         else {
+            String url = o.getXmlUrl();
+            if (url == null)
+               url = o.getUrl();
+				Source s = Source.buildSource(_user, o.getText(), null, url); 
+				recordSource(s); 
+				srcs.add(s);
+         }
+      }
+
+		return srcs;
+   }
+*/
+
+/**
 	private Set<Source> processOpmlSource(String url)
 	{
-		Set<Source> s = new HashSet<Source>();
+		Reader r    = (new UserFile(_user, f)).getFileReader();
+		Opml   feed = (Opml)(new WireFeedInput()).build(r);
+		return feed.processOPMLOutlines(feed.getOutlines());
+	}
+**/
+
+/**
+	private Set<Source> processOpmlSource(java.net.URL url)
+	{
+		Opml feed = (Opml)(new WireFeedInput()).build(url);
+		return feed.processOPMLOutlines(feed.getOutlines());
 	}
 **/
 
@@ -819,6 +859,8 @@
 %typeof FROM              = "java.lang.String";
 %typeof WITH              = "java.lang.String";
 /**
+%typeof OPML_URL          = "java.lang.String";
+%typeof OPML_FILE         = "java.lang.String";
 %typeof IMPORT_SRCS       = "java.lang.String";
 %typeof IMPORT_CONCEPTS   = "java.lang.String";
 %typeof IMPORT_FILTERS    = "java.lang.String";
@@ -939,7 +981,7 @@ Import_Directive  = Import_Command.icmd Collection_Refs.coll_ids
 
 						  	  return DUMMY_SYMBOL;
 						  :}
-                  ;
+						;
 Import_Command    = IMPORT_SRCS     {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("SRC")); :}
                   | IMPORT_CONCEPTS {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CPT")); :}
                   | IMPORT_FILTERS  {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("FIL")); :}
@@ -953,11 +995,6 @@ Source_Defn_Decls = DEF_SRCS Collection_Id.c Source_Defns.srcs END       {: reco
 						;
 Source_Defns      = Source_Defn.s                       {: HashSet<Source> srcs = new HashSet<Source>(); srcs.add(s); return new Symbol(srcs); :}
                   | Source_Defns.src_defs Source_Defn.s {: src_defs.add(s); return _symbol_src_defs; :}
-/*
-TODO: Not supported yet
-                  | Opml_Sources.srcs	// Nothing to do here .. srcs will get returned 
-                  | Source_Defns.src_defs Opml_Sources.srcs  {: src_defs.addAll(srcs); return _symbol_src_defs; :}
-*/
                   ;
 Source_Defn       = Url.feed                  {: Source s = Source.buildSource(_user, null, null, feed); recordSource(s); return new Symbol(s); :}
 						| Ident.tag EQUAL Url.feed  {: Source s = Source.buildSource(_user, tag, null, feed);  recordSource(s); return new Symbol(s); :}
@@ -968,11 +1005,9 @@ Source_Defn       = Url.feed                  {: Source s = Source.buildSource(_
  */
                   ;
 /*
- TODO: Not supported yet
-Opml_Sources      = OPML_URL Url.url     {: return new Symbol(processOpmlSource(url)); :}
-						| OPML_FILE Ident.file {: return new Symbol(processOpmlSource(file)); :}
+Opml_Sources      = FROM_OPML Ident.file {: return new Symbol(processOpmlSource(file)); :}
 						;
-**/
+*/
 Source_Use        = Ident.s                              {: return new Symbol(new Triple(Boolean.TRUE, null, s)); :}
 						| Collection_Id.c                      {: return new Symbol(new Triple(Boolean.TRUE, c, null)); :}
                   | Collection_Id.c COLON Ident.s        {: return new Symbol(new Triple(Boolean.TRUE, c, s)); :}
