@@ -1,6 +1,7 @@
 %package "newsrack.filter.parser";
 %class "NRLanguageParser";
 
+%import "java.io.Reader";
 %import "java.util.Hashtable";
 %import "java.util.HashMap";
 %import "java.util.Enumeration";
@@ -89,12 +90,19 @@
 			_currFile = new UserFile(_user, f);
 		   _globalConcepts = new ArrayList();
 		   _cptCounter     = 0;
-			parse(new NRLanguageScanner(_currFile.getFileReader()));
 
-			_log.debug("Found " + _cptCounter + " global concepts!");
-			if (_cptCounter > 0) {
-				_log.debug("Recording another concept collection ...");
-				recordConceptCollection(null, _globalConcepts);
+			// FIXME: Need to ignore opml files here!
+			if (f.endsWith(".xml") || f.endsWith(".opml")) {
+				_log.debug("Ignoring file: " + f);
+			}
+			else {
+				parse(new NRLanguageScanner(_currFile.getFileReader()));
+
+				_log.debug("Found " + _cptCounter + " global concepts!");
+				if (_cptCounter > 0) {
+					_log.debug("Recording another concept collection ...");
+					recordConceptCollection(null, _globalConcepts);
+				}
 			}
 		}
 		catch (java.lang.Exception e) {
@@ -421,6 +429,26 @@
 		_collToFileMap.put(NR_CollectionType.FILTER + ":" + _uid + ":" + c, _currFile._name);
 	}
 
+	private void addCollectionEntries(Iterator it, NR_CollectionType cType)
+	{
+		Hashtable h = getCurrentScope()._allCollEntries;
+		while (it.hasNext()) {
+			Object entry = it.next();
+			String key   = null;
+			switch (cType) {
+				case CONCEPT : key = NR_CollectionType.CONCEPT + ":" + ((Concept)entry).getName(); break;
+				case CATEGORY: key = NR_CollectionType.CATEGORY + ":" + ((Category)entry).getName(); break;
+				case SOURCE  : key = NR_CollectionType.SOURCE + ":" + ((Source)entry).getTag(); break;
+				default: break;
+			}
+
+				// Check if we have a name conflict ... if two source objects with the same tags are identical, we ignore the conflict!
+			Object old = h.put(key, entry);
+			if ((old != null) && !(cType == NR_CollectionType.SOURCE && entry.equals(old)))
+				h.put(key, NAME_CONFLICT);
+		}
+	}
+
 	private NR_Collection importCollection(String newColl, NR_CollectionType cType, String fromUid, String cid)
 	{
 		Scope         s = getCurrentScope();
@@ -474,31 +502,12 @@
 
 		if (c == null) {
 			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any " + cType + " collection with name <b>" + cid + "</b> for user <b>" + fromUid + "</b>.  Did you mis-spell the collection name or user name?");
-
-			return c;
 		}
 		else {
 				// Add all the entries from the imported collection to the current scope
-			Hashtable h  = s._allCollEntries;
-			Iterator  it = c.getEntries().iterator();
-			while (it.hasNext()) {
-				Object entry = it.next();
-				String key   = null;
-				switch (cType) {
-					case CONCEPT : key = NR_CollectionType.CONCEPT + ":" + ((Concept)entry).getName(); break;
-					case CATEGORY: key = NR_CollectionType.CATEGORY + ":" + ((Category)entry).getName(); break;
-					case SOURCE  : key = NR_CollectionType.SOURCE + ":" + ((Source)entry).getTag(); break;
-					default: break;
-				}
-
-					// Check if we have a name conflict ... if two source objects with the same tags are identical, we ignore the conflict!
-				Object old = h.put(key, entry);
-				if ((old != null) && !(cType == NR_CollectionType.SOURCE && entry.equals(old)))
-					h.put(key, NAME_CONFLICT);
-			}
-
-			return c;
+			addCollectionEntries(c.getEntries().iterator(), cType);
 		}
+		return c;
 	}
 
 	private NR_Collection importCollection(String newColl, NR_CollectionType cType, String cid)
@@ -737,8 +746,7 @@
 		return h;
 	}
 
-/**
-	public static Set<Source> processOPMLOutlines(List<Outline> outlines)
+	public Set<Source> processOPMLOutlines(List<Outline> outlines)
    {
       if (outlines == null)
          return null;
@@ -763,24 +771,23 @@
 
 		return srcs;
    }
-*/
 
-/**
-	private Set<Source> processOpmlSource(String url)
+	private Set<Source> processOpmlSource(String f)
 	{
-		Reader r    = (new UserFile(_user, f)).getFileReader();
-		Opml   feed = (Opml)(new WireFeedInput()).build(r);
-		return feed.processOPMLOutlines(feed.getOutlines());
+		try {
+			Reader r    = (new UserFile(_user, f)).getFileReader();
+			Opml   feed = (Opml)(new WireFeedInput()).build(r);
+			return processOPMLOutlines(feed.getOutlines());
+		}
+		catch (java.io.IOException e) {
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "OPML file not found.  Have you uploaded the opml file <b>" + f + "</b>?");
+			return null;
+		}
+		catch (java.lang.Exception e) {
+			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Error processing the opml file <b>" + f + "</b>.  Verify that it is an opml file");
+			return null;
+		}
 	}
-**/
-
-/**
-	private Set<Source> processOpmlSource(java.net.URL url)
-	{
-		Opml feed = (Opml)(new WireFeedInput()).build(url);
-		return feed.processOPMLOutlines(feed.getOutlines());
-	}
-**/
 
       /** STATIC METHODS HERE **/
 	private static void DEBUG(String nt)
@@ -815,7 +822,7 @@
 
 /** tokens **/
 %terminals URL_TOK, IDENT_TOK, STRING_TOK, NUM_TOK;
-%terminals IMPORT_SRCS, IMPORT_CONCEPTS, IMPORT_FILTERS;
+%terminals IMPORT_SRCS, IMPORT_CONCEPTS, IMPORT_FILTERS, FROM_OPML;
 %terminals FROM, WITH, INTO_TAXONOMY, FILTER;
 %terminals DEF_SRCS, DEF_CPTS, DEF_FILTERS, DEF_TOPIC;
 %terminals END;
@@ -859,8 +866,6 @@
 %typeof FROM              = "java.lang.String";
 %typeof WITH              = "java.lang.String";
 /**
-%typeof OPML_URL          = "java.lang.String";
-%typeof OPML_FILE         = "java.lang.String";
 %typeof IMPORT_SRCS       = "java.lang.String";
 %typeof IMPORT_CONCEPTS   = "java.lang.String";
 %typeof IMPORT_FILTERS    = "java.lang.String";
@@ -881,9 +886,6 @@
 %typeof Source_Uses       = "java.util.Set";
 %typeof Source_Defn       = "newsrack.archiver.Source";
 %typeof Source_Use        = "newsrack.util.Triple";
-/*
-%typeof Opml_Sources      = "java.util.Set";
-*/
 %typeof Concept_Decl      = "newsrack.filter.Concept";
 %typeof Filter_Rule       = "newsrack.filter.Filter.RuleTerm";
 %typeof Rule_Term         = "newsrack.filter.Filter.RuleTerm";
@@ -981,6 +983,16 @@ Import_Directive  = Import_Command.icmd Collection_Refs.coll_ids
 
 						  	  return DUMMY_SYMBOL;
 						  :}
+						| Collection_Id.srcColl EQUAL IMPORT_SRCS FROM_OPML Ident.file {: 
+							  DEBUG("OPML");
+							  Set<Source> srcs = processOpmlSource(file);
+							  if (srcs != null) {
+								  addCollectionEntries(srcs.iterator(), NR_CollectionType.SOURCE);
+								  recordSourceCollection(srcColl, srcs);
+							  }
+
+						  	  return DUMMY_SYMBOL;
+						  :}
 						;
 Import_Command    = IMPORT_SRCS     {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("SRC")); :}
                   | IMPORT_CONCEPTS {: DEBUG("Import_Command"); return new Symbol(NR_CollectionType.getType("CPT")); :}
@@ -1004,10 +1016,6 @@ Source_Defn       = Url.feed                  {: Source s = Source.buildSource(_
                   | String.name COMMA Url.feed {: Source s = Source.buildSource(_user, null, name, feed); recordSource(s); return new Symbol(s); :}
  */
                   ;
-/*
-Opml_Sources      = FROM_OPML Ident.file {: return new Symbol(processOpmlSource(file)); :}
-						;
-*/
 Source_Use        = Ident.s                              {: return new Symbol(new Triple(Boolean.TRUE, null, s)); :}
 						| Collection_Id.c                      {: return new Symbol(new Triple(Boolean.TRUE, c, null)); :}
                   | Collection_Id.c COLON Ident.s        {: return new Symbol(new Triple(Boolean.TRUE, c, s)); :}
