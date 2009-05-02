@@ -53,6 +53,7 @@ SPACE  = {WS}*
 	{SPACE}                     { }
 	"http://"[^ \t\n\r]*        { return token(Terminals.URL_TOK); }
 	"---""-"*                   { /** separator line (3 or more hyphens) ! ignore **/ }
+	"~"								 { return token(Terminals.TILDE); }
 	"{"							    { return token(Terminals.LBRACE); }
 	"}"                         { return token(Terminals.RBRACE); }
 	"("							    { return token(Terminals.LPAREN); }

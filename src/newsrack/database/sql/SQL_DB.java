@@ -36,6 +36,7 @@ import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
 import newsrack.filter.PublicFile;
 import newsrack.filter.Filter.RuleTerm;
+import newsrack.filter.Filter.ProximityTerm;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
@@ -69,6 +70,10 @@ public class SQL_DB extends DB_Interface
 	private static final String CPT_COLLECTION = "CPT";
 	private static final String CAT_COLLECTION = "CAT";
 	private static final Object[] EMPTY_ARGS = new Object[] {};
+
+		// Constants used for persisting filtering rules with more than 2 operands
+	public static int CONTEXT_TERM_OPERAND_TYPE   = -1;
+	public static int PROXIMITY_TERM_OPERAND_TYPE = -2;
 
 	// date format used for directory names for archiving news
 		// Solution courtesy: http://publicobject.com/2006/05/simpledateformat-considered-harmful.html
@@ -1434,6 +1439,7 @@ public class SQL_DB extends DB_Interface
 		Object op2    = r.getOperand2();
 		Long   op1Key = null;
 		Long   op2Key = null;
+		Long   rtKey  = null;
 		switch (r.getType()) {
 			case LEAF_CONCEPT:
 				Concept c = (Concept)op1;
@@ -1449,6 +1455,7 @@ public class SQL_DB extends DB_Interface
 					}
 				}
 				op2Key = new Long(((Filter.LeafConcept)r).getMinOccurences());
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 				break;
 
 			case LEAF_CAT:
@@ -1459,6 +1466,7 @@ public class SQL_DB extends DB_Interface
 						// if I use a throw here...  I know ... BAD SUBBU
 					_log.error("Dummy: " + op1Key.longValue());
 				}
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 				break;
 
 			case LEAF_FILTER:
@@ -1470,33 +1478,42 @@ public class SQL_DB extends DB_Interface
 					op1Key = null;
 					_log.error("Dummy: " + op1Key.longValue());
 				}
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 				break;
 
 			case NOT_TERM:
 				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
-				break;
-
-			case CONTEXT_TERM:
-				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 				break;
 
 			case AND_TERM:
 			case OR_TERM:
 				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
 				op2Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op2);
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
+				break;
+
+			case CONTEXT_TERM:
+				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
+					// For context terms, the list of concepts are treated specially
+					// They are stored with a term type value CONTEXT_TERM_OPERAND_TYPE
+				List<Concept> cpts = (List<Concept>)op2;
+				for (Concept cpt: cpts) {
+					INSERT_RULE_TERM.execute(new Object[] {filtKey, CONTEXT_TERM_OPERAND_TYPE, rtKey, cpt.getKey()});
+				}
+				break;
+
+			case PROXIMITY_TERM:
+				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
+				op2Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op2);
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
+					// Insert the proximity val operand separately with term type value PROXIMITY_TERM_OPERAND_TYPE
+				INSERT_RULE_TERM.execute(new Object[] {filtKey, PROXIMITY_TERM_OPERAND_TYPE, rtKey, ((ProximityTerm)r).getProximityVal()});
 				break;
 		}
 
-		Long retVal = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
-			// For context terms, the list of concepts are treated specially
-			// They are stored with a term type value -1 and with a key <category-key, rule-term-key>
-		if (r.getType() == CONTEXT_TERM) {
-			List<Concept> cpts = (List<Concept>)op2;
-			for (Concept cpt: cpts) {
-				INSERT_RULE_TERM.execute(new Object[] {filtKey, -1, retVal, cpt.getKey()});
-			}
-		}
-		return retVal;
+		return rtKey;
 	}
 
 	/**

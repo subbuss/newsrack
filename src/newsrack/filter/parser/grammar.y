@@ -23,8 +23,9 @@
 %import "newsrack.filter.Filter.LeafFilter";
 %import "newsrack.filter.Filter.LeafCategory";
 %import "newsrack.filter.Filter.NegTerm";
-%import "newsrack.filter.Filter.ContextTerm";
 %import "newsrack.filter.Filter.AndOrTerm";
+%import "newsrack.filter.Filter.ContextTerm";
+%import "newsrack.filter.Filter.ProximityTerm";
 %import "newsrack.filter.parser.NRLanguageScanner";
 %import "newsrack.archiver.Source";
 %import "newsrack.user.User";
@@ -836,7 +837,7 @@
 %terminals LBRACE, RBRACE; 
 %terminals LPAREN, RPAREN; 
 %terminals LANGLE, RANGLE; 
-%terminals DOT, COMMA, COLON, /* TILDE, */ HYPHEN, PIPE, EQUAL;
+%terminals DOT, COMMA, COLON, TILDE, HYPHEN, PIPE, EQUAL;
 
 %typeof Collection_Id     = "java.lang.String";
 %typeof Opt_Collection_Id = "java.lang.String";
@@ -1103,15 +1104,11 @@ Rule_Term_Leaf    = LeafConcept.c
 								_currSym = _symbol_c; 
 								return new Symbol(new LeafConcept(c, h));
 						  :}
-/**
- * Not yet supported!  Requires me to change the rule term table because this rule term has 3 args, c1, c2 and n
-
 						| LeafConcept.c1 TILDE NUM_TOK.n LeafConcept.c2
 						  {:  
 						      DEBUG("TILDE Filter_Rule");
-								return new Symbol(new TildeTerm(FilterOp.TILDE_TERM, c1, c2, n));  
+								return new Symbol(new ProximityTerm(c1, c2, Integer.valueOf(n)));
 						  :}
-**/
 						| Filt_Or_Cat_Use_Id.f
 						  {: 
 						  		DEBUG("Filt_Or_Cat_Use_Id"); 

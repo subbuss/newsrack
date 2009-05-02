@@ -27,7 +27,10 @@ public class Filter implements java.io.Serializable
 	private static final FilterOp[] _termTypes;
 	private static final HashMap<FilterOp, Integer> _typeMap = new HashMap<FilterOp, Integer>();
 
-	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER, TILDE_TERM };
+	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER, PROXIMITY_TERM };
+
+	public static int CONTEXT_TERM_OPERAND   = -1;
+	public static int PROXIMITY_TERM_OPERAND = -2;
 
 	public static FilterOp getTermType(int n) { return _termTypes[n]; }
 	public static int      getValue(FilterOp op) { return _typeMap.get(op); }
@@ -320,23 +323,53 @@ public class Filter implements java.io.Serializable
 		}
 	}
 
-/*
- * Not yet supported!  Requires me to change the rule term table because this rule term has 3 args, c1, c2 and proximityVal
- * The interface for RuleTerm also need changing
- *
-	public static class TildeTerm extends RuleTerm
+	public static class ProximityTerm extends RuleTerm
 	{
 		private Concept _c1;
 		private Concept _c2;
 		private int     _proximityVal;
 
-		public FilterOp getType()   { return FilterOp.TILDE_TERM; }
+		public ProximityTerm(final Concept c1, final Concept c2, Integer pval) { _c1 = c1; _c2 = c2; _proximityVal = pval.intValue(); }
+		public FilterOp getType() { return FilterOp.PROXIMITY_TERM; }
 		public Object getOperand1() { return _c1; }
 		public Object getOperand2() { return _c2; }
-		public String toString()    { return _c1.getName() + " ~" + _proximityVal + " " + _c2.getName(); }
-		public void print(PrintWriter pw) { TODO }
+		public int    getProximityVal() { return _proximityVal; }
+		public String toString() { return _c1.getName() + " ~" + _proximityVal + " " + _c2.getName(); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_c1); usedConcepts.add(_c2); }
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) { TODO }
+
+		public void print(PrintWriter pw) 
+		{ 
+			pw.println(_indent + _c1.getLexerToken().getToken() + " ~" + _proximityVal + " " + _c2.getLexerToken().getToken()); 
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) 
+		{ 
+			Iterator<Integer> mp1 = ((Score)matchScores.get(_c1.getLexerToken().getToken())).getMatchPosns().iterator();
+			Iterator<Integer> mp2 = ((Score)matchScores.get(_c2.getLexerToken().getToken())).getMatchPosns().iterator();
+
+				// Now process the match positions mp1 and mp2 
+			int     score = 0;
+			Integer p1 = mp1.hasNext() ? mp1.next() : null;
+			Integer p2 = mp2.hasNext() ? mp2.next() : null;
+			while ((p1 != null) && (p2 != null)) {
+				int diff = p1 < p2 ? p2 - p1 : p1 - p2;
+				if (diff <= _proximityVal) {
+						// Match -- move on to next pair
+					score++;
+					p1 = mp1.next();
+					p2 = mp2.next();
+				}
+				else if (p1 < p2) {
+						// No match .. too far .. move to next c1 position, leave c2 as is.
+					p1 = mp1.hasNext() ? mp1.next() : null;
+				}
+				else {
+						// No match .. too far .. move to next c2 position, leave c1 as is.
+					p2 = mp2.hasNext() ? mp2.next() : null;
+				}
+			}
+
+			return score;
+		}
 	}
-*/
 }

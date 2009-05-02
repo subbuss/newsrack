@@ -39,6 +39,7 @@ import newsrack.filter.NR_SourceCollection;
 import newsrack.filter.PublicFile;
 import newsrack.filter.Filter.FilterOp;
 import newsrack.filter.Filter.RuleTerm;
+import newsrack.filter.Filter.ProximityTerm;
 import newsrack.user.User;
 import newsrack.util.Triple;
 import newsrack.util.Tuple;
@@ -188,7 +189,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 		return null;
 	}
 
-	private RuleTerm buildRuleTree(Long termKey, Map<Long, Object[]> rtMap, Map<Long, List> contextMap)
+	private RuleTerm buildRuleTree(Long termKey, Map<Long, Object[]> rtMap, Map<Long, Object> operandMap)
 	{
 			// rtVals[0] -- rule term key
 			// rtVals[1] -- rule term type
@@ -207,14 +208,17 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 				return new Filter.LeafCategory(SQL_Stmt._db.getCategory((Long)rtVals[2]));
 
 			case NOT_TERM:
-				return new Filter.NegTerm(buildRuleTree((Long)rtVals[2], rtMap, contextMap));
+				return new Filter.NegTerm(buildRuleTree((Long)rtVals[2], rtMap, operandMap));
 
 			case CONTEXT_TERM:
-				return new Filter.ContextTerm(buildRuleTree((Long)rtVals[2], rtMap, contextMap), contextMap.get(termKey));
+				return new Filter.ContextTerm(buildRuleTree((Long)rtVals[2], rtMap, operandMap), (List)operandMap.get(termKey));
 
 			case AND_TERM:
 			case OR_TERM:
-				return new Filter.AndOrTerm(op, buildRuleTree((Long)rtVals[2], rtMap, contextMap), buildRuleTree((Long)rtVals[3], rtMap, contextMap));
+				return new Filter.AndOrTerm(op, buildRuleTree((Long)rtVals[2], rtMap, operandMap), buildRuleTree((Long)rtVals[3], rtMap, operandMap));
+
+			case PROXIMITY_TERM:
+				return new Filter.ProximityTerm(SQL_Stmt._db.getConcept((Long)rtVals[2]), SQL_Stmt._db.getConcept((Long)rtVals[3]), (Integer)operandMap.get(termKey));
 		}
 
 		SQL_Stmt._log.error("Fallen out of Ruleterm switch!  Should not have happened!  Investigate!");
@@ -224,28 +228,34 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 	private Filter buildFilter(Object[] sqlRowVals)
 	{
 			// sqlRowVals[0] is the filter key
-		List<Object[]>      ruleTerms = (List<Object[]>)SQL_Stmt.GET_FILTER_TERMS.execute(new Object[] {(Long)sqlRowVals[0]});
-		Map<Long, List>     ctxtMap   = new HashMap<Long, List>();
-		Map<Long, Object[]> rtMap     = new HashMap<Long, Object[]>();
+		List<Object[]>      ruleTerms  = (List<Object[]>)SQL_Stmt.GET_FILTER_TERMS.execute(new Object[] {(Long)sqlRowVals[0]});
+		Map<Long, Object>   operandMap = new HashMap<Long, Object>();
+		Map<Long, Object[]> rtMap      = new HashMap<Long, Object[]>();
 			// rtVals[0] -- rule term key
 			// rtVals[1] -- rule term type
 			// rtVals[2] -- arg 1 key
 			// rtVals[3] -- arg 2 key
 		for (Object[] rtVals: ruleTerms) {
 			rtMap.put((Long)rtVals[0], rtVals);
-				// Set up context concept lists for those rule term tuples for which the op-type value is -1
-			if (((Integer)rtVals[1]) == -1) {
-				List context = ctxtMap.get(rtVals[2]);
+				// Set up context concept lists for those rule term tuples for which the op-type value is CONTEXT_TERM_OPERAND_TYPE
+				// rtVals[2] is the key for the context-rule term
+			if (((Integer)rtVals[1]) == SQL_DB.CONTEXT_TERM_OPERAND_TYPE) {
+				List context = (List)operandMap.get(rtVals[2]);
 				if (context == null) {
-					context = new ArrayList<Long>();
-					ctxtMap.put((Long)rtVals[2], context);
+					context = new ArrayList<Concept>();
+					operandMap.put((Long)rtVals[2], context);
 				}
 				context.add(SQL_Stmt._db.getConcept((Long)rtVals[3]));
+			}
+				// Set up the proximity value for rule terms for which the op-type value is CONTEXT_TERM_OPERAND_TYPE
+				// rtVals[2] is the key for the context-rule term
+			if (((Integer)rtVals[1]) == SQL_DB.PROXIMITY_TERM_OPERAND_TYPE) {
+				operandMap.put((Long)rtVals[2], rtVals[3]);
 			}
 		}
 
 			// sqlRowVals[1] -- name; sqlRowVals[2] -- rule_string; sqlRowVals[3] -- rule_key; sqlRowVals[4] -- min_match_score
-		return new Filter((String)sqlRowVals[1], (String)sqlRowVals[2], buildRuleTree((Long)sqlRowVals[3], rtMap, ctxtMap), (Integer)sqlRowVals[4]);
+		return new Filter((String)sqlRowVals[1], (String)sqlRowVals[2], buildRuleTree((Long)sqlRowVals[3], rtMap, operandMap), (Integer)sqlRowVals[4]);
 	}
 
 	public Object processOutput(Object o)
