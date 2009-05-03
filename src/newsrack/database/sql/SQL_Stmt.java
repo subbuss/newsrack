@@ -218,7 +218,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 				return new Filter.AndOrTerm(op, buildRuleTree((Long)rtVals[2], rtMap, operandMap), buildRuleTree((Long)rtVals[3], rtMap, operandMap));
 
 			case PROXIMITY_TERM:
-				return new Filter.ProximityTerm(SQL_Stmt._db.getConcept((Long)rtVals[2]), SQL_Stmt._db.getConcept((Long)rtVals[3]), (Integer)operandMap.get(termKey));
+				return new Filter.ProximityTerm(SQL_Stmt._db.getConcept((Long)rtVals[2]), SQL_Stmt._db.getConcept((Long)rtVals[3]), ((Long)operandMap.get(termKey)).intValue());
 		}
 
 		SQL_Stmt._log.error("Fallen out of Ruleterm switch!  Should not have happened!  Investigate!");

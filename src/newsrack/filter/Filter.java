@@ -344,8 +344,13 @@ public class Filter implements java.io.Serializable
 
 		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) 
 		{ 
-			Iterator<Integer> mp1 = ((Score)matchScores.get(_c1.getLexerToken().getToken())).getMatchPosns().iterator();
-			Iterator<Integer> mp2 = ((Score)matchScores.get(_c2.getLexerToken().getToken())).getMatchPosns().iterator();
+			Score s1 = (Score)matchScores.get(_c1.getLexerToken().getToken());
+			Score s2 = (Score)matchScores.get(_c2.getLexerToken().getToken());
+			if ((s1 == null) || (s2 == null))
+				return 0;
+
+			Iterator<Integer> mp1 = s1.getMatchPosns().iterator();
+			Iterator<Integer> mp2 = s2.getMatchPosns().iterator();
 
 				// Now process the match positions mp1 and mp2 
 			int     score = 0;
@@ -356,8 +361,8 @@ public class Filter implements java.io.Serializable
 				if (diff <= _proximityVal) {
 						// Match -- move on to next pair
 					score++;
-					p1 = mp1.next();
-					p2 = mp2.next();
+					p1 = mp1.hasNext() ? mp1.next() : null;
+					p2 = mp2.hasNext() ? mp2.next() : null;
 				}
 				else if (p1 < p2) {
 						// No match .. too far .. move to next c1 position, leave c2 as is.

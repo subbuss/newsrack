@@ -791,8 +791,8 @@ public class Issue implements java.io.Serializable
 // the HYPHENWORD rule in the jflex specification.
 //		pw.println("{HYPHENWORD} | {DOTWORD} | {WORD} | \\n | .");
 
-		pw.println("{WORD} | \\n | .");
-		pw.println("\t\t{ return " + JFLEX_SCANNER_TOKEN_CLASS + ".CATCHALL_TOKEN; }");
+		pw.println("{WORD}\n\t\t{ return " + JFLEX_SCANNER_TOKEN_CLASS + ".CATCHALL_TOKEN; }");
+		pw.println("{SPACE} | .\n\t\t{ /* IGNORE */ }");
 		pw.println("}");
 		pw.close();
 

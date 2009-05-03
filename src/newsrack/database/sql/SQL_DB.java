@@ -1431,6 +1431,23 @@ public class SQL_DB extends DB_Interface
 			printStats();
 	}
 
+	private Long persistConcept(Long uKey, Concept c)
+	{
+		Long cKey = c.getKey();
+		if (cKey == null) {
+				// Why is this happening??
+			Long collKey = (Long)GET_COLLECTION_KEY.execute(new Object[]{uKey, c.getCollection().getName(), NR_CollectionType.CONCEPT.toString()});
+			cKey  = (Long)GET_CONCEPT_KEY_FROM_USER_COLLECTION.execute(new Object[]{collKey, c.getName()});
+			if (cKey == null) {
+				_log.error("ERROR! Unpersisted concept: " + c);
+					// Trigger a null pointer exception!
+					// Workaround to avoid declaring a throws clause everywhere if I use a throw here...  I know ... BAD SUBBU
+				_log.error("Dummy: " + cKey.longValue());
+			}
+		}
+		return cKey;
+	}
+
 	private Long persistRuleTerm(Long uKey, Long filtKey, RuleTerm r)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Add of rule term " + r + " for filter: " + filtKey);
@@ -1442,18 +1459,7 @@ public class SQL_DB extends DB_Interface
 		Long   rtKey  = null;
 		switch (r.getType()) {
 			case LEAF_CONCEPT:
-				Concept c = (Concept)op1;
-				op1Key = c.getKey();
-				if (op1Key == null) {
-					Long collKey = (Long)GET_COLLECTION_KEY.execute(new Object[]{uKey, c.getCollection().getName(), NR_CollectionType.CONCEPT.toString()});
-					op1Key  = (Long)GET_CONCEPT_KEY_FROM_USER_COLLECTION.execute(new Object[]{collKey, c.getName()});
-					if (op1Key == null) {
-						_log.error("ERROR! Unpersisted concept: " + op1);
-							// Trigger a null pointer exception!  Workaround to avoid declaring a throws clause everywhere
-							// if I use a throw here...  I know ... BAD SUBBU
-						_log.error("Dummy: " + op1Key.longValue());
-					}
-				}
+				op1Key = persistConcept(uKey, (Concept)op1);
 				op2Key = new Long(((Filter.LeafConcept)r).getMinOccurences());
 				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 				break;
@@ -1505,11 +1511,11 @@ public class SQL_DB extends DB_Interface
 				break;
 
 			case PROXIMITY_TERM:
-				op1Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op1);
-				op2Key = persistRuleTerm(uKey, filtKey, (RuleTerm)op2);
+				op1Key = persistConcept(uKey, (Concept)op1);
+				op2Key = persistConcept(uKey, (Concept)op2);
 				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 					// Insert the proximity val operand separately with term type value PROXIMITY_TERM_OPERAND_TYPE
-				INSERT_RULE_TERM.execute(new Object[] {filtKey, PROXIMITY_TERM_OPERAND_TYPE, rtKey, ((ProximityTerm)r).getProximityVal()});
+				INSERT_RULE_TERM.execute(new Object[] {filtKey, PROXIMITY_TERM_OPERAND_TYPE, rtKey, (long)((ProximityTerm)r).getProximityVal()});
 				break;
 		}
 
