@@ -357,7 +357,10 @@ public class Filter implements java.io.Serializable
 			Integer p1 = mp1.hasNext() ? mp1.next() : null;
 			Integer p2 = mp2.hasNext() ? mp2.next() : null;
 			while ((p1 != null) && (p2 != null)) {
-				int diff = p1 < p2 ? p2 - p1 : p1 - p2;
+					// -1 because we are looking for count of intervening concepts
+					// So, in the string "tribal leader", tribal and leader have 0 intervening concepts
+					// even though the difference in position is 1
+				int diff = p1 < p2 ? p2 - p1 - 1: p1 - p2 - 1;	
 				if (diff <= _proximityVal) {
 						// Match -- move on to next pair
 					score++;

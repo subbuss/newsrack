@@ -792,7 +792,7 @@ public class Issue implements java.io.Serializable
 //		pw.println("{HYPHENWORD} | {DOTWORD} | {WORD} | \\n | .");
 
 		pw.println("{WORD}\n\t\t{ return " + JFLEX_SCANNER_TOKEN_CLASS + ".CATCHALL_TOKEN; }");
-		pw.println("{SPACE} | .\n\t\t{ /* IGNORE */ }");
+		pw.println("{SPACE} | \"&#\"[:digit:]+\";\" | .\n\t\t{ /* IGNORE */ }");
 		pw.println("}");
 		pw.close();
 
@@ -972,6 +972,13 @@ public class Issue implements java.io.Serializable
 				if (tok.isMultiToken()) {
 					if (_log.isDebugEnabled()) _log.debug("MULTI token " + tok.getToken());
 					String[] toks = tok.getTokens();
+						// FIXME: The token positions for all the matched concepts will be identical!
+						// This leads to more liberal matching behavior than expected.
+						//
+						// Ex: <c1> = tribal, <c2> = leader, <c3> = tribal student leader
+						// The string "tribal student leaders" leads to match of concepts c1, c2, c3
+						// and all of c1, c2, and c3 will get the same token position!
+						// So, the rule (c1 ~0 c2) will fire even though it shouldn't.
 					for (String element : toks)
 						processMatchedConcept(element, numTokens, tokTable, pw);
 				}
