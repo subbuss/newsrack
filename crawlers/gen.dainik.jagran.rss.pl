@@ -35,7 +35,7 @@ sub ProcessPage
    }
 
       # Process base href declaration
-   if ($content =~ m{base\s+href=(["|']?)([^'"]*/)[^/]*\1}i) {
+   if ($content =~ m{base\s+href\s*=\s*(["|']?)([^'"]*/)[^/]*\1}i) {
       ($baseHref) = $2;
       print "BASE HREF         - $baseHref\n";
    }
@@ -51,7 +51,7 @@ sub ProcessPage
    my $urlList = ();
 
       # Match anchors -- across multiple lines, and match all instances
-   while ($content =~ m{<a.*?href=(['|"]?)([^ "'<>]+)\1.*?>(.+?)</a>}isg) {
+   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)([^ "'<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
 		$link = Encode::decode('utf-8', $link);
       print LOG "REF - $urlRef; LINK - $link; "; 
