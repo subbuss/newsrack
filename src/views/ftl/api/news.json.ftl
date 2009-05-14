@@ -5,7 +5,7 @@ var _nr_metadata = {
   listing_url   : "/browse?owner=${Parameters.owner}&issue=${Parameters.issue}&catID=${Parameters.catID}"
 }
 var _nr_stories = [
-<#foreach n in news>
+<#foreach n in newsList>
   <#escape x as x?js_string>
   {
     title  : "${n.title}",

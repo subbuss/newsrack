@@ -1111,6 +1111,11 @@ public class SQL_DB extends DB_Interface
 
 			// Clear the cache of u's entries
 		_cache.purgeCacheEntriesForUser(u);
+
+			// Clear all cached category lists for all news items because after the invalidate,
+			// the category lists for some of the news items might have changed.
+			// Drastic, but simpler (and potentially cheaper)
+		_cache.clearCache("NEWS_CATS");
 	}
 
 	/**
@@ -1860,6 +1865,10 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void deleteNewsItemFromCategory(Long catKey, Long nKey)
    {
+			// FIXME: Better to create cache groups for the news item?
+			// Remove cached entries for the news item 
+		_cache.remove("NEWS_CATS", nKey);
+
 		Category cat = getCategory(catKey);
 
 		if (cat.isLeafCategory()) {
@@ -1901,6 +1910,11 @@ public class SQL_DB extends DB_Interface
 	 */
 	public void deleteNewsItemsFromCategory(Long catKey, List<Long> nKeys)
    {
+			// FIXME: Better to create cache groups for the news item?
+			// Remove cached entries for the news items
+		for (Long nk: nKeys)
+			_cache.remove("NEWS_CATS", nk);
+
 		Category cat = getCategory(catKey);
 
 			// Initialize
@@ -2107,21 +2121,24 @@ public class SQL_DB extends DB_Interface
 
 	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
 	{
-	/**
-      List<Category> cats = (List<Category>)GET_CATS_FOR_NEWSITEM.get(ni.getKey());
-		if (cats == null)
-			cats = new ArrayList<Category>();
-		if (_log.isDebugEnabled()) _log.debug("For news item: " + ni.getKey() + ", found " + cats.size() + " categories!");
-	**/
+		Long cacheKey = ni.getKey();
+
+		List<Long> catKeys = (List<Long>)_cache.get("NEWS_CATS", cacheKey);
+		if (catKeys == null) {
+				// Fetch cat-keys and add to cache
+			catKeys = (List<Long>)GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+
+			// FIXME: Better to create cache groups for the news item?
+			_cache.add("NEWS_CATS", cacheKey, catKeys);
+		}
 
 			// To take advantage of caching (and avoid zillions of identical objects in the cache), fetch category keys and fetch categories by key
-		List<Category>cats = new ArrayList<Category>();
-		List<Long> catKeys = (List<Long>)GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+			// This also gets around the problem of having to flush category lists whenever category objects change
+			// If we cached cats rather than catKeys as above, we'll have lots of headaches trying to flush this cache
+		List<Category> cats = new ArrayList<Category>();
 		for (Long k: catKeys)
 			cats.add(getCategory(k));
 
-			// Don't cache -- far too many news items are fetched, and they are not necessarily frequently accessed
-			// If we want to optimize, we need to profile for ni.getKey(), and start caching after a threshold
 		return cats;
 	}
 
@@ -2147,6 +2164,11 @@ public class SQL_DB extends DB_Interface
 
 			// Purge cache of stale news
 		purgeCacheNewsEntriesForCat(cat, false, false);
+
+			// Clear all cached category lists for all news items!!
+			// Drastic, but simpler (and potentially cheaper) than fetching 
+			// all news item keys for this category and removing each item individually!
+		_cache.clearCache("NEWS_CATS");
 
 			// Reset news for all nested categories
 		for (Category c: cat.getChildren())
@@ -2404,6 +2426,11 @@ public class SQL_DB extends DB_Interface
 
 			leafCats.clear();
 		}
+
+			// Clear all cached category lists for all news items because after the commit,
+			// the category lists for some of the news items might have changed.
+			// Drastic, but simpler (and potentially cheaper)
+		_cache.clearCache("NEWS_CATS");
 
 			// Update article counts
 		updateArtCounts(i);

@@ -12,9 +12,7 @@
 <#-- Macro for displaying a category -->
 <#macro displayCat(cat)>
 <#escape x as x?xml>
-<category>
-  <name>${cat.name}</name>
-  <id>${cat.catId}</id>
+<category uid="${cat.user.uid}" topic="${cat.issue.name}" catId="${cat.catId}" name="${cat.name}">
   <#if cat.isLeafCategory()>
   <rule>${cat.filter.ruleString}</rule>
   <#else>

@@ -89,10 +89,28 @@ public class ObjectCache
 
 	private OCache buildCache(String name, Properties p)
 	{
-		p.setProperty("cache.capacity", NewsRack.getProperty(name + ".cache.size"));
+		String cacheSize = NewsRack.getProperty(name.toLowerCase() + ".cache.size");
+		if (cacheSize == null)
+			cacheSize = "1000";	// DEFAULT
+
+		p.setProperty("cache.capacity", cacheSize);
 		OCache c = new OCache(name.toUpperCase(), p);
 		_caches.put(name.toUpperCase(), c);
 		return c;
+	}
+
+	private OCache buildCache(String name)
+	{
+		Properties p = new Properties();
+
+		// No disk persistence!
+		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
+		// p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
+
+		p.setProperty("cache.memory", "true");
+		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
+
+		return buildCache(name, p);
 	}
 
 	private void buildAllCaches()
@@ -115,9 +133,10 @@ public class ObjectCache
 		buildCache("category", p);
 		buildCache("filter", p);
 		buildCache("newsitem", p);
+		buildCache("news_cats", p);	// Categories for news items
 
 			// Lastly, a generic object cache
-		_objectCache  = buildCache("object", p); 	// 10000
+		_objectCache = buildCache("object", p); 	// 10000
 	}
 
 	private Tuple<OCache, String> getCacheAndKey(String cacheName, Object key)
@@ -188,6 +207,21 @@ public class ObjectCache
 	public void purgeCacheEntriesForUser(User u)
 	{
 		removeEntriesForGroups(new String[]{u.getUid(), u.getKey().toString()});
+	}
+
+	public void clearCache(String cacheName)
+	{
+		OCache cache = _caches.get(cacheName);
+
+			// Destroy the old cache and build a new one!
+		if (cache == null) {
+			_objectCache.destroy();
+			_objectCache = buildCache("object");
+		}
+		else {
+			cache.destroy();
+			buildCache(cacheName);
+		}
 	}
 
 	public void clearCaches()

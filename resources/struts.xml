@@ -263,13 +263,13 @@
 		</result>
 	 </action>
 
-	 <action name="news" class="newsrack.web.api.NewsAction">
+	 <action name="news*" class="newsrack.web.api.NewsAction" method="getNews{1}">
 	   <result name="xml">
-		  <param name="location">/ftl/api/news.xml.ftl</param>
+		  <param name="location">/ftl/api/news{1}.xml.ftl</param>
 		  <param name="contentType">text/xml</param>
 		</result>
 	   <result name="json">
-		  <param name="location">/ftl/api/news.json.ftl</param>
+		  <param name="location">/ftl/api/news{1}.json.ftl</param>
 		  <param name="contentType">text/json</param>
 		</result>
 	 </action>

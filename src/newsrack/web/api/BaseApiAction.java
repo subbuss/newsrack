@@ -35,4 +35,11 @@ public class BaseApiAction extends BaseAction
 			return true;
 		}
 	}
+
+	protected String apiSuccess()
+	{
+			// Done -- XML or JSON!
+		String outType = getParam("output");
+		return (outType == null) ? "xml" : outType;
+	}
 }

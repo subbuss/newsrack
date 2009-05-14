@@ -14,17 +14,7 @@ import newsrack.user.User;
 import com.opensymphony.xwork2.Action;
 
 /**
- * class <code>NewsAction</code> implements the functionality of fetching news
- *
- * Ex: GET /api/news?<PARAMS>
- * . owner=UID
- * . issue=ISSUE
- * . catID=ID
- * . source_tag=SOURCE
- * . start_date=START
- * . end_date=END
- * . start=N
- * . count=N (max = 100)
+ * class <code>NewsAction</code> implements the functionality of fetching news and other news-related info
  */
 public class NewsAction extends BaseApiAction
 {
@@ -33,14 +23,26 @@ public class NewsAction extends BaseApiAction
 	};
 
 	private List<NewsItem> _news;
-	public List<NewsItem> getNews() { return _news;}
+	public List<NewsItem> getNewsList() { return _news; }
 
 	private Category _cat;
 	public Category getCategory() { return _cat; }
 
 	public String getSiteUrl() { return newsrack.NewsRack.getServerURL(); }
 
-   public String execute()
+	/**
+	 * GET /api/news?<PARAMS>
+	 *
+	 * . owner=UID
+	 * . issue=ISSUE
+	 * . catID=ID
+	 * . source_tag=SOURCE   (optional)
+	 * . start_date=START    (optional)
+	 * . end_date=END        (optional)
+	 * . start=N             (optional)
+	 * . count=N (max = 100) (optional)
+	 **/
+   public String getNews()
 	{
 		try {
 				// User - mandatory
@@ -124,14 +126,54 @@ public class NewsAction extends BaseApiAction
 
 			_cat = c;
 
-				// Done -- XML or JSON!
-			String outType = getParam("output");
-			return (outType == null) ? "xml" : outType;
+			return apiSuccess();
 		}
 		catch (Exception e) {
 			_log.error("API: News: Error fetching news!", e);
 			_errMsg = getText("internal.app.error");
 			return Action.ERROR;
 		}
+	}
+
+	/**
+	 * GET /api/newsInfo?<PARAMS>
+	 *
+	 * . url=URL (url-encoded, of course)
+	 **/
+	private NewsItem _newsItem;
+	public NewsItem getNewsItem() { return _newsItem; }
+
+	private List<Category> _cats;
+	public List<Category> getCategories() { return _cats; }
+
+	public String getNewsInfo()
+	{
+		String url   = getApiParamValue("url", false); 	// URL - mandatory
+		String uid   = getApiParamValue("uid", true); 	// User - optional
+		String tname = getApiParamValue("topic", true); // Topic Name - optional (only works in conjunction with uid)
+		if (tname == null)
+			tname = getApiParamValue("issue", true); // Accept issue too - optional (only works in conjunction with uid)
+
+		_newsItem = NewsItem.getNewsItemFromURL(url);
+		if (_newsItem == null) {
+			_errMsg = getText("url.not.found");
+			return Action.ERROR;
+		}
+
+			// Build a list of categories for this news item
+		List<Category> allCats = _newsItem.getCategories();
+		_cats = new ArrayList<Category>();
+		if (uid == null) {
+			_cats = allCats;
+		}
+		else {
+				// Filter by user/issue
+			for (Category c: allCats) {
+				if (uid.equals(c.getUser().getUid()) && ((tname == null) || tname.equals(c.getIssue().getName())))
+					_cats.add(c);
+			}
+		}
+
+		return apiSuccess();
 	}
 }

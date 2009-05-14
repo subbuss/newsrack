@@ -6,8 +6,10 @@ import java.io.Reader;
 import java.util.Date;
 import java.util.List;
 
+import newsrack.NewsRack;
 import newsrack.archiver.Feed;
 import newsrack.archiver.HTMLFilter;
+import newsrack.filter.Category;
 import newsrack.user.User;
 
 import org.apache.commons.logging.Log;
@@ -25,6 +27,11 @@ import org.apache.commons.logging.LogFactory;
 
 abstract public class NewsItem implements java.io.Serializable
 {
+	public static NewsItem getNewsItemFromURL(String url)
+	{
+		return NewsRack.getDBInterface().getNewsItemFromURL(url);
+	}
+
    	// Logging output for this class
    static Log _log = LogFactory.getLog(NewsItem.class);
 
@@ -48,7 +55,7 @@ abstract public class NewsItem implements java.io.Serializable
 	/** Returns a reader object to read the contents of the news item */
 	abstract public Reader   getReader() throws java.io.IOException;
 	abstract public int      getNumCats();
-	abstract public List     getCategories();
+	abstract public List<Category> getCategories();
    /** Can the cached text of this news item be displayed?  */
    abstract public boolean  getDisplayCachedTextFlag();
 	abstract public String   getSourceNameForUser(User u);
