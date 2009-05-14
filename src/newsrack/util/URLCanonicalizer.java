@@ -39,7 +39,9 @@ public class URLCanonicalizer
 		"^hindustantimes.com$:&sectionName=[^&]*:",
 		"^news.bbc.co.uk$:go/rss/-/:",
 		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*)articleshow/(.*.cms):$1/articleshow/$3",
-		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1"
+		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1",
+		"^.*philly.com$:.*philly.com/r.*&40=(.*):$1",
+		"^.*nytimes.com$:(http...).*?(nytimes.com/.*)\\?.*:$1www.$2"
    };
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
@@ -217,8 +219,14 @@ public class URLCanonicalizer
 					Pattern p      = t._b;
 					String  repl   = t._c;
 					String  newUrl = p.matcher(url).replaceAll(repl);
-					if (!newUrl.equals(url))
-						url = newUrl;
+					if (!newUrl.equals(url)) {
+						try {
+							url = java.net.URLDecoder.decode(newUrl, "UTF-8");
+						} catch (Exception e) {
+							_log.error("Exception " + e + " decoding url: " + newUrl);
+							url = newUrl;
+						}
+					}
 
 					done = true;
 				}

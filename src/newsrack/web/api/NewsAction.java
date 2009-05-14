@@ -154,6 +154,8 @@ public class NewsAction extends BaseApiAction
 		if (tname == null)
 			tname = getApiParamValue("issue", true); // Accept issue too - optional (only works in conjunction with uid)
 
+			// Reduce url to canonical form before querying!
+		url = newsrack.util.URLCanonicalizer.canonicalize(url);
 		_newsItem = NewsItem.getNewsItemFromURL(url);
 		if (_newsItem == null) {
 			_errMsg = getText("url.not.found");
