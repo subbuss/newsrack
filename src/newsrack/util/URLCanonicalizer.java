@@ -41,7 +41,7 @@ public class URLCanonicalizer
 		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*)articleshow/(.*.cms):$1/articleshow/$3",
 		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1",
 		"^.*philly.com$:.*philly.com/r.*&40=(.*):$1",
-		"^.*nytimes.com$:(http...).*?(nytimes.com/.*)\\?.*:$1www.$2"
+		"^(www.*)?nytimes.com$:(http...).*?(nytimes.com/.*)(\\?.*)?:$1www.$2"
    };
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
