@@ -4,7 +4,7 @@
 <newsitem>
   <title val="${n.title}" />
   <url val="${n.getURL()}" />
-  <date val="${n.dateString}" />
+  <date val="${n.date.toString()}" />
   <source val="${n.feed.name}" url="${n.feed.url}" />
   <desc val="${n.description}" />
   <categories>

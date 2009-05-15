@@ -4,7 +4,7 @@ var _nr_newsitem = {
   title  : "${n.title}",
   url    : "${n.getURL()}",
   source : { name: "${n.feed.name}", url: "${n.feed.url}" },
-  date   : "${n.dateString}",
+  date   : "${n.date.toString()}",
   desc   : "${n.description}"
   categories : [
   <#foreach c in categories>
