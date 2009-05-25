@@ -207,6 +207,19 @@ public class FixupTools
 		}
 	}
 
+	public static void canonicalizeURLs(String domain, Date startDate, Date endDate)
+   {
+      List<Long> fkeys = (List<Long>)SQL_StmtExecutor.query("SELECT feed_key FROM feeds WHERE url_root like ?",
+                                                            new SQL_ValType[] {SQL_ValType.STRING},
+                                                            new Object[]{"%" + domain + "%"},
+                                                            SQL_StmtExecutor._longProcessor,
+                                                            false);
+		for (Long k: fkeys) {
+			System.out.println("------ Canonicalizing for feed: " + k + " ------");
+			canonicalizeURLs(k, startDate, endDate);
+		}
+	}
+
 	public static void main(String[] args) throws Exception
 	{
 		if (args.length < 2) {
@@ -236,10 +249,15 @@ public class FixupTools
       else if (action.equals("refetch-news")) {
          refetchNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));
       }
-      else if (action.equals("canonicalize-urls")) {
+      else if (action.equals("canonicalize-urls-for-feed")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
          canonicalizeURLs(Long.parseLong(args[2]), sd, ed);
+      }
+      else if (action.equals("canonicalize-urls-for-domain")) {
+         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
+         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
+         canonicalizeURLs(args[2], sd, ed);
       }
       else if (action.equals("refetch-feeds-in-date-range")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[2]);
