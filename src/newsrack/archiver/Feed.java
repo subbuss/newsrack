@@ -230,6 +230,8 @@ public class Feed implements java.io.Serializable
 	public void setCacheableFlag(boolean flag) { _cacheableFlag = flag; }
 	public void setShowCachedTextDisplayFlag(boolean flag) { _cachedTextDisplayFlag = flag; }
 
+	public boolean isNewsRackFilter() { return _feedUrl.startsWith("newsrack://"); }
+
    /** 
     * For this news source, decide whether the cached news text has to be displayed or not 
     */
@@ -402,6 +404,12 @@ public class Feed implements java.io.Serializable
 	 * Read the feed, store it locally, and download all the news items referenced in the feed.
 	 */
 	public void download() throws Exception
+	{
+		if (!isNewsRackFilter())
+			downloadRssFeed();
+	}
+
+	private void downloadRssFeed() throws Exception
 	{
 		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 

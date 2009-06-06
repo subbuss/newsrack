@@ -161,7 +161,10 @@ public abstract class DB_Interface
 	public abstract void updateFeedCacheability(Feed f);
 
 	/**
-	 * Gets the list of downloaded news items for a feed in the most recent download phase
+	 * Gets the list of downloaded news items for a feed in the most recent download phase.
+	 *
+	 * NOTE: In case 'f' points to a newsrack topic/category and is not
+	 * actually an rss/atom feed, this will return the filtered news from "today".
 	 */
 	public abstract Collection<NewsItem> getDownloadedNews(Feed f);
 
@@ -175,6 +178,9 @@ public abstract class DB_Interface
 	 * @param feedKey Key of the feed for which indexes have to be fetched
 	 * @param sd  Start date (inclusive) from which indexes have to be fetched
 	 * @param ed  End date (inclusive) beyond which indexes should not be fetched
+	 *
+	 * NOTE: In case the feed key actually points to a newsrack topic/category,
+	 * and is not an rss/atom feed, this should return an empty list!
 	 */
 	public abstract Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Long feedKey, Date sd, Date ed);
 
@@ -656,8 +662,22 @@ public abstract class DB_Interface
 	 * @param y  Year for which news has to be fetched
 	 * @param m  Month for which news has to be fetched
 	 * @param d  Date for which news has to be fetched
+	 *
+	 * NOTE: In case 's' points points to a newsrack topic/category and is not
+	 * actually an rss/atom feed, this will return the filtered news for the
+	 * topic/category for the requested date.
 	 */
 	public abstract Collection<NewsItem> getArchivedNews(Source s, String y, String m, String d);
+
+	/**
+	 * This method goes through the news archive and fetches news
+	 * for a desired news source for a range of dates
+	 *
+	 * @param s     Source for which news has to be fetched
+	 * @param start Start date
+	 * @param end   End date
+	 */
+	public abstract Collection<NewsItem> getArchivedNews(Source s, Date start, Date end);
 
 	/**
 	 * This method goes through the entire news archive and fetches news
@@ -667,6 +687,9 @@ public abstract class DB_Interface
 	 * the iterator will return one news index for each date.
 	 *
 	 * @param s   Source for which news indexes have to be fetched
+	 *
+	 * NOTE: In case the feed key actually points to a newsrack topic/category,
+	 * and is not an rss/atom feed, this should return an empty list!
 	 */
 	public abstract Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Source s);
 
@@ -680,6 +703,9 @@ public abstract class DB_Interface
 	 * @param s   Source for which news indexes have to be fetched
 	 * @param sd  Start date (inclusive) from which indexes have to be fetched
 	 * @param ed  End date (inclusive) beyond which indexes should not be fetched
+	 *
+	 * NOTE: In case the feed key actually points to a newsrack topic/category,
+	 * and is not an rss/atom feed, this should return an empty list!
 	 */
 	public abstract Iterator<? extends NewsIndex> getIndexesOfAllArchivedNews(Source s, Date sd, Date ed);
 }

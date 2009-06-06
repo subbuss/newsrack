@@ -1403,24 +1403,106 @@ public class SQL_DB extends DB_Interface
 		recordDownloadedNewsItem(f.getKey(), ni);
 	}
 
+	private Collection<NewsItem> getNewsForNewsRackFilterFeed(Feed f, Date startDate, Date endDate, int startId, int numArts)
+	{
+		_log.info("Request for news for " + f._feedUrl + " between " + startDate + " and " + endDate);
+
+		// Request for filtered news from a newsrack topic / category
+		// The feed url can be in one of these forms:
+		// - newsrack://newsrack.in/subbu/bhopal     <-- topic bhopal by user subbu
+		// - newsrack://newsrack.in/subbu/narmada:8  <-- category 8 from topic narmada by user subbu
+		// - newsrack://newsrack.in/subbu/narmada/narmada-dams/maheshwar <-- category narmada-dams/maheshwar from topic narmada by user subbu
+		String url, server, uid, rest;
+
+		int i = "newsrack://".length();
+		url    = f._feedUrl;
+		server = url.substring(i, url.indexOf("/", i));
+
+			// FIXME: Record error! Non-local servers not supported yet!
+		Collection<NewsItem> noItems = new ArrayList<NewsItem>();
+		if (!NewsRack.getServerURL().equals("http://" + server)) {
+			_log.error("Mismatched server url: Got " + server + ". Will only respect " + NewsRack.getServerURL());
+			return noItems;
+		}
+
+		i     += server.length() + 1;
+		uid    = url.substring(i, url.indexOf("/", i));
+		User u = User.getUser(uid);
+		if (u == null) {
+			_log.error("Did not find user for uid " + uid);
+			return noItems;
+		}
+
+		i    += uid.length() + 1;
+		rest  = url.substring(i);
+
+		if (rest.indexOf("/") == -1) {
+			i = rest.indexOf(":");
+			if (i > 0) {
+				String topic = rest.substring(0, i);
+				int    catID = Integer.valueOf(rest.substring(i+1));
+				Issue  t     = u.getIssue(topic);
+				if (t == null) {
+					_log.error("Did not find topic " + topic);
+					return noItems;
+				}
+
+				Category cat = t.getCategory(catID);
+				if (cat == null) {
+					_log.error("Did not find cat " + catID + " in topic " + topic);
+					return noItems;
+				}
+				return getNews(cat, startDate, endDate, null, startId, numArts);
+			}
+			else {
+				Issue t = u.getIssue(rest);
+				if (t == null) {
+					_log.error("Did not find topic " + rest);
+					return noItems;
+				}
+				return getNews(t, startDate, endDate, null, startId, numArts);
+			}
+		}
+		else {
+			Category cat = (Category)GET_CATEGORY_FROM_TAXONOMY_PATH.execute(new Object[] {uid + "/" + rest, true});
+			if (cat == null) {
+				_log.error("Did not find cat for taxonomy " + uid + "/" + rest);
+				return noItems;
+			}
+			return getNews(cat, startDate, endDate, null, startId, numArts);
+		}
+	}
+
 	/**
 	 * Gets the list of downloaded news items for a feed in the most recent download phase
+	 * In case 'f' is not an rss feed, but actualy points to a newsrack topic/category,
+	 * the news returned will be the set of filtered news from "today"
 	 */
 	public Collection<NewsItem> getDownloadedNews(Feed f)
 	{
-		String     cacheKey = "DN" + ":" + f.getKey();
-		List<Long> keys     = (List<Long>)_cache.get("FEED", cacheKey);
-		if (keys == null) {
-			_log.info("CACHE MISS for " + cacheKey);
-			keys = (List<Long>)GET_DOWNLOADED_NEWS_KEYS_FOR_FEED.get(f.getKey());
-			_cache.add("FEED", new String[] {"DN_NEWS"}, cacheKey, keys);
+		if (!f.isNewsRackFilter()) {
+			String     cacheKey = "DN" + ":" + f.getKey();
+			List<Long> keys     = (List<Long>)_cache.get("FEED", cacheKey);
+			if (keys == null) {
+				_log.info("CACHE MISS for " + cacheKey);
+				keys = (List<Long>)GET_DOWNLOADED_NEWS_KEYS_FOR_FEED.get(f.getKey());
+				_cache.add("FEED", new String[] {"DN_NEWS"}, cacheKey, keys);
+			}
+
+			List<NewsItem> news = new ArrayList<NewsItem>();
+			for (Long k: keys)
+				news.add(getNewsItem(k));
+
+			return news;
 		}
-
-		List<NewsItem> news = new ArrayList<NewsItem>();
-		for (Long k: keys)
-			news.add(getNewsItem(k));
-
-		return news;
+		else {
+				// Return all filtered news from "today" (set start & end date apart by 4 hours)
+				// So, if the time now is between 12 am and 4 am, this will return all filtered
+				// news from y'day and today.
+			Date end   = new Date();
+			Date start = new Date(end.getTime() - 4*60*60*1000);
+			return getNewsForNewsRackFilterFeed(f, start, end, 0, 5000);
+		}
 	}
 
 	/**
@@ -2002,6 +2084,8 @@ public class SQL_DB extends DB_Interface
 	 */
 	public List<NewsItem> getNews(Category cat, Date start, Date end, Source src, int startId, int numArts)
 	{
+		if (_log.isDebugEnabled()) _log.debug("Request for news for " + cat.getKey());
+
 			// Caching non-datestamp requests right now 
 		Long   catKey   = cat.getKey();
 		String cacheKey = (start == null) ? "CATNEWS:" + catKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts : null;
@@ -2072,7 +2156,7 @@ public class SQL_DB extends DB_Interface
 				i++;
 			}
 
-			//_log.info("Executing: " + queryBuf.toString() + " with start value " + startId);
+			if (_log.isDebugEnabled()) _log.debug("Executing: " + queryBuf.toString() + " with start value " + startId);
 
 				// Run the query and fetch news!
 			keys = SQL_StmtExecutor.execute(queryBuf.toString(), SQL_StmtType.QUERY, argList.toArray(), argTypes, null, new GetLongResultProcessor(), false);
@@ -2462,14 +2546,41 @@ public class SQL_DB extends DB_Interface
 	{
 		if (m.startsWith("0")) m = m.substring(1);
 		if (d.startsWith("0")) d = d.substring(1);
-		//String dateStr = d + "." + m + "." + y;
 		String dateStr = y + "-" + m + "-" + d;
-		long   feedId  = s.getFeed().getKey();
+		Feed f = s.getFeed();
+		if (!f.isNewsRackFilter()) {
+			_log.info("REQUESTED NEWS for " + s._name + ":" + dateStr);
+			Long niKey = getNewsIndexKey(f.getKey(), dateStr);
+			return ((niKey == null) || (niKey == -1)) ? null : getNewsForIndex(niKey);
+		}
+		else {
+			Date date = StringUtils.getDate(y, m, d);
+			return getNewsForNewsRackFilterFeed(f, date, date, 0, 5000);
+		}
+	}
 
-		_log.info("REQUESTED NEWS for " + s._name + ":" + dateStr);
+	/**
+	 * This method goes through the news archive and fetches news
+	 * for a desired news source for a range of dates
+	 *
+	 * @param s     Source for which news has to be fetched
+	 * @param start Start date
+	 * @param end   End date
+	 */
+	public Collection<NewsItem> getArchivedNews(Source s, Date start, Date end)
+	{
+		Feed f = s.getFeed();
+		if (!f.isNewsRackFilter()) {
+			List<NewsItem> l = new ArrayList<NewsItem>();
+			Iterator newsIndexes = _db.getIndexesOfAllArchivedNews(s, start, end);
+			while (newsIndexes.hasNext())
+				 l.addAll(_db.getArchivedNews((NewsIndex)newsIndexes.next()));
 
-		Long niKey = getNewsIndexKey(feedId, dateStr);
-		return ((niKey == null) || (niKey == -1)) ? null : getNewsForIndex(niKey);
+			return l;
+		}
+		else {
+			return getNewsForNewsRackFilterFeed(f, start, end, 0, 5000);
+		}
 	}
 
 	/**

@@ -4,6 +4,8 @@ import java.io.File;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import newsrack.archiver.HTMLFilter;
 
@@ -362,6 +364,23 @@ public final class StringUtils
 				return null;
 		}
 	}
+
+   public static Date getDate(int y, int m, int d)
+   {
+		GregorianCalendar cal = new GregorianCalendar();	
+      cal.set(y, m, d);
+		return cal.getTime();
+   }
+
+   public static Date getDate(String y, String m, String d)
+   {
+      return getDate(Integer.valueOf(y), Integer.valueOf(m), Integer.valueOf(d));
+   }
+
+   public static Date getDateOffsetByDays(Date start, int numDays)
+   {
+      return new Date(start.getTime() + numDays*24*60*60*1000);
+   }
 
    /**
     * The current thread is put to sleep for n seconds

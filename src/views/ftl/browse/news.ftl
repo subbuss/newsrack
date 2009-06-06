@@ -221,7 +221,9 @@ function show(obj, style) { obj.style.display = style; }
           <select id="source_select" name="source_tag" size="1">
           <option value="">All Sources</option>
 [#foreach s in issue.monitoredSources]
+  [#if !s.feed.isNewsRackFilter()]
           <option [#if Parameters.source_tag?exists && (s.tag == Parameters.source_tag)]selected[/#if] value="${s.tag}">${s.name}</option>
+  [/#if]
 [/#foreach]
           </select>
         </div>

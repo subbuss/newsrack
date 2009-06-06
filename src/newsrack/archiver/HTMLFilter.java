@@ -340,6 +340,9 @@ public class HTMLFilter extends NodeVisitor
 			catch (Exception e) {
             if (_log.isErrorEnabled()) _log.error("popped out all span tags already! .. empty stack!");
 			}
+/**
+ * Commented out Jun 5, 2009; extra crud in the text
+ *
 			if (_url != null) {
 				if (_url.indexOf("newkerala.com") != -1)
 					_content.append("\nCopyright 2001-2005 newkerala.com");
@@ -348,6 +351,7 @@ public class HTMLFilter extends NodeVisitor
 				else if (_url.indexOf("financialexpress.com") != -1)
 					_content.append("\n\n&copy; 2006: Indian Express Newspapers (Mumbai) Ltd. All rights reserved throughout the world");
 			}
+**/
 		}
 	}
 
@@ -449,6 +453,16 @@ public class HTMLFilter extends NodeVisitor
 			if (xs.length > 1)
 				_log.debug("xs[0] size: " + xs[0].length() + " chars; xs[1] size: " + xs[1].length() + " chars;\n xs[0]: " + xs[0]);
 		}
+
+/**
+ * Not foolproof yet!
+
+			// Remove copyright notices
+		String[] strs = Pattern.compile("((Copyright|\\d+|&copy;)[\\s,;-]*){2,}((\\w+[\\s,;-]+){0,5}?\\s*((rights|reserved)\\s*)+)?").split(_content.toString());
+		_content = new StringBuffer();
+		for (String s: strs)
+			_content.append(s);
+**/
 
 			// Finally, output new content!
       if (_outputToFile)

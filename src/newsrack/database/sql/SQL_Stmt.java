@@ -990,6 +990,14 @@ public enum SQL_Stmt
 		new GetCategoryResultProcessor(true, false, false),
 		true
 	),
+	GET_CATEGORY_FROM_TAXONOMY_PATH(
+		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE taxonomy_path = ? AND valid = ?",
+		new SQL_ValType[] {STRING, BOOLEAN},
+		SQL_StmtType.QUERY,
+		null,
+		new GetCategoryResultProcessor(true, false, false),
+		true
+	),
 	GET_NESTED_CAT_KEYS(
 		"SELECT cat_key FROM categories WHERE parent_cat = ? AND valid = true",
 		new SQL_ValType[] {LONG},

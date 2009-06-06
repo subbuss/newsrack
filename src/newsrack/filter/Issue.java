@@ -1135,13 +1135,18 @@ public class Issue implements java.io.Serializable
 	public void reclassifyNews(Source s, boolean allDates, Date sd, Date ed)
 	{
 		if (_log.isInfoEnabled()) _log.info("### Getting index files for " + s.getFeed().getTag() + " ###");
-		Iterator newsIndexes = (allDates) ? _db.getIndexesOfAllArchivedNews(s)
-													 : _db.getIndexesOfAllArchivedNews(s, sd, ed);
-		while (newsIndexes.hasNext()) {
-			NewsIndex newsIndex = (NewsIndex)newsIndexes.next();
-			if (_log.isInfoEnabled()) _log.info("--> Classifying news for date: " + newsIndex.getCreationTime() + " for feed: " + s.getFeed().getTag());
-				// Ignore the already processed flag for news items
-			scanAndClassifyNewsItems(s.getFeed(), _db.getArchivedNews(newsIndex), false);
+		if (!s.getFeed().isNewsRackFilter()) {
+			Iterator newsIndexes = (allDates) ? _db.getIndexesOfAllArchivedNews(s)
+														 : _db.getIndexesOfAllArchivedNews(s, sd, ed);
+			while (newsIndexes.hasNext()) {
+				NewsIndex newsIndex = (NewsIndex)newsIndexes.next();
+				if (_log.isInfoEnabled()) _log.info("--> Classifying news for date: " + newsIndex.getCreationTime() + " for feed: " + s.getFeed().getTag());
+					// Ignore the already processed flag for news items
+				scanAndClassifyNewsItems(s.getFeed(), _db.getArchivedNews(newsIndex), false);
+			}
+		}
+		else {
+			scanAndClassifyNewsItems(s.getFeed(), _db.getArchivedNews(s, sd, ed), false);
 		}
 		if (_log.isInfoEnabled()) _log.info("--> Sorting and storing news for " + s.getFeed().getTag());
 		updateRSSFeed();
