@@ -83,11 +83,16 @@ public class Feed implements java.io.Serializable
 
 		if (feedName == null) {
 			try {
-				Triple<SyndFeed, String, Date> t = f.fetchFeed();
-				if (t == null) 
-					return null;
-				SyndFeed sf = t._a;
-				feedName = sf.getTitle();
+				if (f.isNewsRackFilter()) {
+					feedName = "NewsRack Filter";	// Dummy name!
+				}
+				else {
+					Triple<SyndFeed, String, Date> t = f.fetchFeed();
+					if (t == null) 
+						return null;
+					SyndFeed sf = t._a;
+					feedName = sf.getTitle();
+				}
 			}
 			catch (Exception e) {
 				_log.error("Caught error parsing feed for name: ", e);
