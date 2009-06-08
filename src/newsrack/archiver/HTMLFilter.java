@@ -103,8 +103,8 @@ public class HTMLFilter extends NodeVisitor
 		// Next 2 fields for Newkerala.com hack -- May 18, 2006
 	private boolean	   _foundKonaBody;
 	private Stack        _spanTagStack;
-		// Next field is for Bangalore Mirror hack -- June 7, 2009
-	private boolean      _isbmirror;
+		// Next field is for Mumbai/Bangalore Mirror hack -- June 7, 2009
+	private boolean      _isBMmirror;
 
 	private void initFilter()
 	{
@@ -119,7 +119,7 @@ public class HTMLFilter extends NodeVisitor
       _outputToFile     = true;     // By default, content is written to file!
 		_ignoreEverything = false;
 		_foundKonaBody    = false;
-		_isbmirror        = false;
+		_isBMmirror        = false;
 
 			// Set up some default connection properties!
 		Hashtable headers = new Hashtable();
@@ -143,8 +143,8 @@ public class HTMLFilter extends NodeVisitor
 		_url = url;
 		_urlDomain = StringUtils.getDomainForUrl(_url);
 
-			// Bangalore Mirror specific hack -- June 7, 2009
-		_isbmirror = _urlDomain.equals("bangaloremirror.com");
+			// Mumbai/Bangalore Mirror specific hack -- June 7, 2009
+		_isBMmirror = _urlDomain.equals("bangaloremirror.com") || _urlDomain.equals("mumbaimirror.com");
 	}
 	
 	/**
@@ -287,9 +287,9 @@ public class HTMLFilter extends NodeVisitor
 			if (_debug) System.out.println("--> PUSHED");
 		}
 		else if (BLOCK_ELTS_TBL.get(tagName) != null) {
-			// Bangalore Mirror hack -- June 7, 2009
+			// Mumbai/Bangalore Mirror hack -- June 7, 2009
 			// Everything after id="tags" is not required.
-			if (tagName.equals("DIV") && _isbmirror) {
+			if (tagName.equals("DIV") && _isBMmirror) {
 				String divId = tag.getAttribute("id");
 				if ((divId != null) && divId.equals("tags"))
 					_ignoreEverything = true;
