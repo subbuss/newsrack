@@ -89,6 +89,7 @@ public class HTMLFilter extends NodeVisitor
 	private StringBuffer _content;
 	private String       _origHtml;
 	private String       _url;
+	private String       _urlDomain;
 	private String       _file;
 	private PrintWriter  _pw;
 	private OutputStream _os;
@@ -96,11 +97,14 @@ public class HTMLFilter extends NodeVisitor
 	private boolean      _done;
 	private boolean	   _PREtagContent;
 	private boolean	   _isTitleTag;
-		// Next 3 fields for Newkerala.com hack -- May 18, 2006
-	private boolean	   _foundKonaBody;
-	private boolean	   _ignoreEverything;
-	private Stack        _spanTagStack;
    private boolean      _outputToFile; // Should the content be output to a file?
+		// Next field is for domain-specific hacks
+	private boolean	   _ignoreEverything;
+		// Next 2 fields for Newkerala.com hack -- May 18, 2006
+	private boolean	   _foundKonaBody;
+	private Stack        _spanTagStack;
+		// Next field is for Bangalore Mirror hack -- June 7, 2009
+	private boolean      _isbmirror;
 
 	private void initFilter()
 	{
@@ -111,10 +115,11 @@ public class HTMLFilter extends NodeVisitor
 		_isTitleTag       = false;
 		_ignoreFlagStack  = new Stack();
 		_closeStream      = false;
-		_ignoreEverything = false;
-		_foundKonaBody    = false;
 		_spanTagStack     = new Stack();
       _outputToFile     = true;     // By default, content is written to file!
+		_ignoreEverything = false;
+		_foundKonaBody    = false;
+		_isbmirror        = false;
 
 			// Set up some default connection properties!
 		Hashtable headers = new Hashtable();
@@ -131,6 +136,15 @@ public class HTMLFilter extends NodeVisitor
 	private HTMLFilter()
 	{
 		initFilter();
+	}
+
+	private void setUrl(String url)
+	{
+		_url = url;
+		_urlDomain = StringUtils.getDomainForUrl(_url);
+
+			// Bangalore Mirror specific hack -- June 7, 2009
+		_isbmirror = _urlDomain.equals("bangaloremirror.com");
 	}
 	
 	/**
@@ -152,8 +166,8 @@ public class HTMLFilter extends NodeVisitor
 	{
 		initFilter();
 		_pw = pw;
-		if (isURL) 
-			_url = fileOrUrl;
+		if (isURL)
+			setUrl(fileOrUrl);
 		else
 			_file = fileOrUrl;
 	}
@@ -167,8 +181,8 @@ public class HTMLFilter extends NodeVisitor
 	{
 		initFilter();
 		_os  = os;
-		if (isURL) 
-			_url = fileOrUrl;
+		if (isURL)
+			setUrl(fileOrUrl);
 		else
 			_file = fileOrUrl;
 	}
@@ -186,8 +200,8 @@ public class HTMLFilter extends NodeVisitor
 
 		char sep;
 		if (isURL) {
-			_url = fileOrUrl;
 			sep = '/';
+			setUrl(fileOrUrl);
 		}
 		else {
 			_file = fileOrUrl;
@@ -208,7 +222,7 @@ public class HTMLFilter extends NodeVisitor
 	public HTMLFilter(String url, String file, String outputDir) throws java.io.IOException
 	{ 
 		initFilter();
-		_url = url;
+		setUrl(url);
 		_pw = IOUtils.getUTF8Writer(outputDir + File.separator + file.substring(1 + file.lastIndexOf(File.separatorChar)));
 			// Since I have opened these streams, I should close them after I am done!
 		_closeStream = true;
@@ -228,10 +242,9 @@ public class HTMLFilter extends NodeVisitor
 			String msg = e.toString();
 			int    i   = msg.indexOf("no protocol:");
 			if (i > 0 && _url != null) {
-				String domain    = _url.substring(0, _url.indexOf("/", 7));
 				String urlSuffix = msg.substring(i + 13);
-				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + domain + urlSuffix);
-				parser = new Parser(domain + urlSuffix);
+				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + _urlDomain + urlSuffix);
+				parser = new Parser(_urlDomain + urlSuffix);
 			}
 			else {
 				throw e;
@@ -273,8 +286,17 @@ public class HTMLFilter extends NodeVisitor
 			if (_log.isDebugEnabled()) _log.debug("--> PUSHED");
 			if (_debug) System.out.println("--> PUSHED");
 		}
-		else if (BLOCK_ELTS_TBL.get(tagName) != null)
-			_content.append("\n" + "\n");
+		else if (BLOCK_ELTS_TBL.get(tagName) != null) {
+			// Bangalore Mirror hack -- June 7, 2009
+			// Everything after id="tags" is not required.
+			if (tagName.equals("DIV") && _isbmirror) {
+				String divId = tag.getAttribute("id");
+				if ((divId != null) && divId.equals("tags"))
+					_ignoreEverything = true;
+			}
+			if (!_ignoreEverything)
+				_content.append("\n" + "\n");
+		}
 		else if (tagName.equals("BR"))
 			_content.append("\n");
 		else if (tagName.equals("PRE"))
@@ -338,7 +360,7 @@ public class HTMLFilter extends NodeVisitor
 					_ignoreEverything = true;
 			}
 			catch (Exception e) {
-            if (_log.isErrorEnabled()) _log.error("popped out all span tags already! .. empty stack!");
+				if (_log.isErrorEnabled()) _log.error("popped out all span tags already! .. empty stack!");
 			}
 /**
  * Commented out Jun 5, 2009; extra crud in the text
@@ -351,7 +373,7 @@ public class HTMLFilter extends NodeVisitor
 				else if (_url.indexOf("financialexpress.com") != -1)
 					_content.append("\n\n&copy; 2006: Indian Express Newspapers (Mumbai) Ltd. All rights reserved throughout the world");
 			}
-**/
+	**/
 		}
 	}
 
@@ -398,17 +420,16 @@ public class HTMLFilter extends NodeVisitor
 			t1 = _title.replaceAll("(\n|\\s+)", " ").trim();
 
 				// Strip domain from title!
-			String domain = StringUtils.getDomainForUrl(_url);
-			t1 = (Pattern.compile("^\\s*" + domain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
-			t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + domain + "\\s*$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
+			t1 = (Pattern.compile("^\\s*" + _urlDomain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
+			t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + _urlDomain + "\\s*$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
 
 				// If the title hasn't changed, check if we are actually in a subdomain -- retry with the main domain
 				// Ex: dealbook.blogs.nytimes.com --> retry with nytimes.com!
 			if (t1.equals(_title)) {
-				String[] domainParts = domain.split("\\.");
+				String[] domainParts = _urlDomain.split("\\.");
 				int      n           = domainParts.length;
 				if (n > 2) {
-				   domain = domainParts[n-2] + "." + domainParts[n-1];
+					String domain = domainParts[n-2] + "." + domainParts[n-1];
 					t1 = (Pattern.compile("^" + domain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
 					t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + domain + "\\s*[|\\-:]?$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
 				}
@@ -714,7 +735,7 @@ public class HTMLFilter extends NodeVisitor
       return hf._content;
    }
 
-	public static void main(String[]args) throws ParserException 
+	public static void main(String[] args) throws ParserException 
 	{
 		if (args.length == 0) {
 			System.out.println("USAGE: java HTMLFilter [-debug] [-o <output-dir>] [(-urllist <file>) OR (-filelist <file>) OR ((-u <url>) OR ([-url <url>] <file>))*]");
