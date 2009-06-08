@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-require Encode;
 $scriptPath = $0;
 $scriptDir  = $1 if ($scriptPath =~ m{(.*)/(.*)});
 if (!$scriptDir) {
@@ -14,9 +13,9 @@ sub ProcessPage
    my ($fileName, $url) = ($_[0], $_[1]);
    ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?$}i);
    $baseHref .= "/";
-#   print "URL               - $url\n";
-#   print "FILE              - $fileName\n";
-#   print "DEFAULT BASE HREF - $baseHref\n";
+   print LOG "URL               - $url\n";
+   print LOG "FILE              - $fileName\n";
+   print LOG "DEFAULT BASE HREF - $baseHref\n";
 
       # Suck in the entire file into 1 line
    $x=$/;
@@ -35,14 +34,15 @@ sub ProcessPage
    }
 
       # Process base href declaration
-   if ($content =~ m{base\s+href\s*=\s*(["|']?)([^'"]*/)[^/]*\1}i) {
+   if ($content =~ m{base\s+href=(["|']?)([^'"]*/)[^/]*\1}i) {
       ($baseHref) = $2;
-      print "BASE HREF         - $baseHref\n";
+      print LOG "BASE HREF         - $baseHref\n";
+      ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
+      print LOG "SITE ROOT         - $siteRoot\n";
    }
-
-   $siteRoot = $defSiteRoot;
-   ($siteRoot) = $1.$2 if ($baseHref =~ m{(http://)?([^/]*)}i);
-#   print "SITE ROOT - $siteRoot\n";
+   else {
+      $siteRoot = $defSiteRoot;
+   }
 
       # Check if absolute URLs are okay with this page 
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
@@ -51,9 +51,11 @@ sub ProcessPage
    my $urlList = ();
 
       # Match anchors -- across multiple lines, and match all instances
-   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)([^ "'<>]+)\1.*?>(.+?)</a>}isg) {
+   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)\s*([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
 		$link = Encode::decode('utf-8', $link);
+      $link =~ s/<!.*?-->//g;
+      $link =~ s/<.*?>//g;
       print LOG "REF - $urlRef; LINK - $link; "; 
       $msg="";
       $ignore = 0;
@@ -73,7 +75,7 @@ sub ProcessPage
          $msg    = "-http-";
          $ignore = 1;
       }
-      elsif ($urlRef =~ /^\//) {
+      elsif ($urlRef =~ m{^/}) {
          $newUrl = $siteRoot.$urlRef;
 			if ($rejectAbsoluteUrls) {
 				$msg    = "-ABSOLUTE-";
@@ -122,20 +124,24 @@ sub ProcessPage
 ## newspaper depending on how their site is structured.
 ##
 
-$newspaper   = "Dainik Jagaran";
-$prefix      = "dj";
-##$defSiteRoot = "http://ind.jagran.com/news";
-$defSiteRoot = "http://in.jagran.yahoo.com/news";
-$url         = "$defSiteRoot/";
-$startUrl    = $url;
-$artnum1     = &OpenArtNumFile("100000");
+$newspaper   = "Lebanon Files";
+$prefix      = "lebanonfiles";
+$defSiteRoot = "http://www.lebanonfiles.com";
+$url         = "$defSiteRoot/index.php";
 
 ##
 ## END CUSTOM CODE 1
 ##
 
-## Initialize
 &Initialize("utf-8", $url);
+
+## Get the index page	
+my $fileName=&GetPage($url);
+@newUrls = &ProcessPage($fileName, $url);
+#system("rm -f '$fileName'");
+@fAttrs = stat $fileName;
+$totalBytes += $fAttrs[7];
+unlink $fileName;
 
 ## Process the url list while crawling the site
 while (@urlList) {
@@ -143,10 +149,6 @@ while (@urlList) {
    $url = shift @urlList;
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
    next if (! ($url =~ /http/i)); # Skip if this URL is not valid
-   next if ($url =~ /#/); 		 	 # Skip if this URL has javascript or local anchors
-
-      ## For now, only tracking national, opinion, and editorial news!
-   next if (!($url eq $startUrl) && !($url =~ m{/(national|editorial|opinion)[/\.]}));
 
       # Get the new page and process it
    $processed++;
@@ -162,41 +164,20 @@ while (@urlList) {
 ## structure and organization and needs to be customized for different
 ## newspapers.
 ##
-      # The next line uses information about Dainik Jagran's site organization
-		# OLD DJ: http://ind.jagran.com/news/citynews.aspx?id=2928246&stateid=1&cityid=23
-		# NEW DJ: http://in.jagran.yahoo.com/news/national/general/5_1_3775825.html
-      #         http://in.jagran.yahoo.com/news/entertainment/news/210_230_203531.html
-   if ($url =~ m{$defSiteRoot/.*/(\d*)_(\d*)_(\d+).*$}) {
-      $secNum = $1;
-      if (($1 != 210) && ($1 != 15) && ($1 != 16) && ($1 != 7)) {  # 210 is entertainment .. we'll let that be ...
-         $artNum = $3;
-         print "Article number = $artNum\n";
-         next if ($artNum < $startingArtNum);
-
-         if ($artNum > $maxArtNum) {
-            $maxArtNum = $artNum;
-         }
-      }
-
-			# For most sites, the next line suffices!
-      $title = $links{$url};
-		$title =~ s/<.*?>//g;
-      if (!$title || ($title =~ m{^\s*$})) {
-         $title = Encode::decode('utf-8', &ReadTitle($url, "<h1[^<>]*>", "</h1>"));
-      }
+      # The next line uses information about Lebanon Files' site organization
+   if ($url =~ m{/(report|news)_desc.php\?id=\d+$}) {
 ##
 ## END CUSTOM CODE 2
 ##
-		print     "TITLE of $url is $title\n";
-		print LOG "TITLE of $url is $title\n";
+      $title = $links{$url};
+		print "TITLE of $url is $title\n";
       $desc  = $title;
 		&PrintRSSItem();
    }
-   else {
-		&CrawlWebPage($url);
+   elsif ($url =~ m{news.php}) {
+      &CrawlWebPage($url);
    }
 }
 
 &FinalizeRSSFeed();
-&SaveArtNumFile();
 &PrintStatsAndCleanup();
