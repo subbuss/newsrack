@@ -340,7 +340,8 @@ public final class StringUtils
 	public static String getDomainForUrl(String url)
 	{
 		url = url.replace("http://", "").replace("https://", "");
-		return url.substring(0, url.indexOf("/")).replace("www.", "");
+		int i = url.indexOf("/");
+		return ((i == -1) ? url : url.substring(0, i)).replace("www.", "");
 	}
 
 	// FIXME: Shouldn't this be part of a separate token / text / content / stemming analyzer package?

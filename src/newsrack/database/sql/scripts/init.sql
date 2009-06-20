@@ -200,6 +200,8 @@ create table if not exists categories (
    cat_id       int      not null,			/* cat id -- unique within a topic */
    parent_cat   bigint   not null default -1,	/* This is the db key for the parent category, -1 for top-level categories */
 	f_key        bigint, 						/* can be null for non-leaf categories, and -1 when it is invalidated */
+	lft          int,
+	rgt          int,
    last_update  timestamp default current_timestamp,
    num_articles int      default 0,
 	taxonomy_path text    default null, 	/* taxonomy path for display on news listing pages */

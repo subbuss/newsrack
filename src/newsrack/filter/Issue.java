@@ -1097,10 +1097,9 @@ public class Issue implements java.io.Serializable
 		}
       finally {
 			if (pw != null) pw.close();
+			if (skipProcessed)
+				_db.updateMaxNewsIdForIssue(this, f, maxNewsId);
       }
-
-		if (skipProcessed)
-			_db.updateMaxNewsIdForIssue(this, f, maxNewsId);
 	}
 
 	public void storeNewsToArchive()
@@ -1116,8 +1115,6 @@ public class Issue implements java.io.Serializable
 		_lexerCloseMethod = null;
 		_lexerConstr = null;
 		_lexer = null;
-/**
-**/
 	}
 
 	/**
