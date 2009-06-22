@@ -125,7 +125,7 @@ public class OutputFeed implements java.io.Serializable
 	public void readInCurrentRSSFeed()
 	{
 		final File feedFile = new File(_feedFileName);
-		if (!feedFile.exists()) {
+		if (!feedFile.exists() || (feedFile.exists() && (feedFile.length() == 0))) {
 			IOUtils.createDir(_rssDir);
 			createNewRSSFeed();
 			publish();
