@@ -14,7 +14,7 @@
 <#include "/ftl/layout/left.menu.ftl">   <td class="user_space">
 	<h1 class="left"> Awards </h1>
 	<p>
-	NewsRack was one of the receipients of the <a href="http://www.manthanaward.org/NewsRack.asp">
+	NewsRack was one of the receipients of the <a href="http://manthanaward.org/section_full_story.asp?id=515">
 	Manthan Award in the e-News category</a> in August 2006.
 	</p>
 	<br />
