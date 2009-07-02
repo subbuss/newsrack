@@ -148,9 +148,10 @@ public class NewsAction extends BaseApiAction
 
 	public String getNewsInfo()
 	{
-		String url   = getApiParamValue("url", false); 	// URL - mandatory
-		String uid   = getApiParamValue("uid", true); 	// User - optional
-		String tname = getApiParamValue("topic", true); // Topic Name - optional (only works in conjunction with uid)
+		String url     = getApiParamValue("url", false); 	// URL - mandatory
+		String uidList = getApiParamValue("uids", true); 	// User id list, comma-separated - optional
+		String uid     = getApiParamValue("uid", true); 	// User - optional
+		String tname   = getApiParamValue("topic", true);  // Topic Name - optional (only works in conjunction with uid)
 		if (tname == null)
 			tname = getApiParamValue("issue", true); // Accept issue too - optional (only works in conjunction with uid)
 
@@ -165,11 +166,30 @@ public class NewsAction extends BaseApiAction
 			// Build a list of categories for this news item
 		List<Category> allCats = _newsItem.getCategories();
 		_cats = new ArrayList<Category>();
-		if (uid == null) {
+			// No filtering by uids
+		if ((uid == null) && (uidList == null)) {
 			_cats = allCats;
 		}
+			// Filtering by a set of uids
+		else if (uidList != null) {
+				// split at ',' and remove white space
+			String[] uids = uidList.split(",");
+			for (int i = 0; i < uids.length; i++)
+				uids[i] = uids[i].trim();
+
+			for (Category c: allCats) {
+				String catUid = c.getUser().getUid();
+				for (String u: uids) {
+					if (u.equals(catUid)) {
+						_cats.add(c);
+						break;
+					}
+				}
+			}
+		}
+			
+			// Filter by uid/issue
 		else {
-				// Filter by user/issue
 			for (Category c: allCats) {
 				if (uid.equals(c.getUser().getUid()) && ((tname == null) || tname.equals(c.getIssue().getName())))
 					_cats.add(c);
