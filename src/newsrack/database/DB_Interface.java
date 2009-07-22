@@ -20,6 +20,7 @@ import newsrack.filter.Issue;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
 import newsrack.filter.PublicFile;
+import newsrack.filter.UserFile;
 import newsrack.user.User;
 
 /**
@@ -251,6 +252,8 @@ public abstract class DB_Interface
 
 /* #### Support for user files #### */
 
+	public abstract UserFile getUserFile(Long fileKey);
+
 	/**
 	 * This method returns the path of a work directory for the user
 	 * @param u  User who requires the work directory
@@ -335,16 +338,20 @@ public abstract class DB_Interface
 	 * @param fname The name of the local file into which the file should be uploaded.
 	 * @param is    The input stream from which the file should be uploaded. 
 	 * @param u     The user who is uploaded the file .
+	 *
+	 * returns the database key for the file
 	 */
-	public abstract void uploadFile(String fname, InputStream is, User u) throws java.io.IOException;
+	public abstract Long uploadFile(String fname, InputStream is, User u) throws java.io.IOException;
 
 	/**
 	 * This method adds a file to the user's info space
 	 *
 	 * @param is The input stream from which the file should be uploaded. 
 	 * @param u  The user who is uploaded the file .
+	 *
+	 * returns the database key for the file
 	 */
-	public abstract void addFile(String fname, User u) throws java.io.IOException;
+	public abstract Long addFile(String fname, User u) throws java.io.IOException;
 
 	/**
 	 * This method provides a path in the local file system for a file
@@ -354,7 +361,7 @@ public abstract class DB_Interface
 	public abstract String getRelativeFilePath(User u, String fname);
 
 	/** Get a list of all user files for a given user */
-   public abstract List<String> getFiles(User u);
+   public abstract List<UserFile> getFiles(User u);
 
 	/** Get a list of all public user file names */
    public abstract List<PublicFile> getAllPublicUserFiles();

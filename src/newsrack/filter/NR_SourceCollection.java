@@ -12,9 +12,9 @@ public final class NR_SourceCollection extends NR_Collection
 	private transient Map<String, Source> _map = null;  // Name --> Source mapping .. optimization!
 	private transient boolean             _allMapped = false;
 
-	public NR_SourceCollection(User u, String name, Collection entries)
+	public NR_SourceCollection(UserFile uf, String name, Collection entries)
 	{
-		super(NR_CollectionType.SOURCE, u, name, entries);
+		super(NR_CollectionType.SOURCE, uf, name, entries);
 	}
 
 	public Source getSource(String s)

@@ -255,10 +255,13 @@ public class HTMLFilter extends NodeVisitor
 		_origHtml = parser.getLexer().getPage().getText();
 	}
 
+   @Override
 	public boolean shouldRecurseSelf() { return true; } 
 
+   @Override
 	public boolean shouldRecurseChildren() { return true; }
 
+   @Override
 	public void beginParsing() { startDocument(); }
 
 	private void startDocument() 
@@ -268,6 +271,7 @@ public class HTMLFilter extends NodeVisitor
 		}
 	}
 
+   @Override
 	public void visitTag(Tag tag) 
 	{
 		String tagName = tag.getTagName();
@@ -319,6 +323,7 @@ public class HTMLFilter extends NodeVisitor
 		}
 	}
 
+   @Override
 	public void visitEndTag(Tag tag) 
 	{
 		String tagName = tag.getTagName();

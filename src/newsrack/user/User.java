@@ -19,6 +19,7 @@ import newsrack.filter.Issue;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
 import newsrack.filter.PublicFile;
+import newsrack.filter.UserFile;
 import newsrack.filter.parser.NRLanguageParser;
 import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
@@ -152,7 +153,7 @@ public class User implements java.io.Serializable
 	private boolean _isParsed;    // Has the profile been parsed
 
 	private Map<String, Issue> _issues;	// Map of issues defined by the user
-	private List<String>    	_files;	// List of files defining the issues
+	private List<UserFile>    	_files;	// List of files defining the issues
 
 		// These transient fields are not stored in the db
 	private String  _workDir;		//	Work directory
@@ -290,7 +291,11 @@ public class User implements java.io.Serializable
 		if (_files == null)
 			loadUserFilesFromDB();
 
-		return _files.contains(f);
+		for (UserFile uf: _files)
+			if (uf._name.equals(f))
+				return true;
+
+		return false;
 	}
 
 	private void removeFile(final String f)
@@ -298,11 +303,15 @@ public class User implements java.io.Serializable
 		if (_files == null)
 			loadUserFilesFromDB();
 
-		_files.remove(f);
-		_db.deleteFile(this, f);
+		for (UserFile uf: _files) {
+			if (uf._name.equals(f)) {
+				_files.remove(f);
+				_db.deleteFile(this, f);
+			}
+		}
 	}
 
-	public List<String> getFileList()
+	public List<UserFile> getFileList()
 	{
 		if (_files == null)
 			loadUserFilesFromDB();
@@ -496,7 +505,7 @@ public class User implements java.io.Serializable
 	/**
 	 * Disables the active profile
 	 */
-	private void invalidateAllIssues()
+	public void invalidateAllIssues()
 	{
 			// If it is not a validated profile, simply return
 		if (!isValidated())
@@ -552,8 +561,10 @@ public class User implements java.io.Serializable
 		else {
 			try {
 					// IMPT: do the db call before adding to _files in case the upload fails
-				_db.uploadFile(f, fis, this);
-				_files.add(f);
+				UserFile uf = new UserFile(this, f);
+				Long fileKey = _db.uploadFile(f, fis, this);
+				uf.setKey(fileKey);
+				_files.add(uf);
 			}
 			catch (Exception e) {
 				throw new EditProfileException(e.toString());
@@ -614,8 +625,10 @@ public class User implements java.io.Serializable
 		else {
 			try {
 					// IMPT: do the db call before adding to _files in case the add fails
-				_db.addFile(f, this);
-				_files.add(f);
+				UserFile uf = new UserFile(this, f);
+				Long fileKey = _db.addFile(f, this);
+				uf.setKey(fileKey);
+				_files.add(uf);
 			}
 			catch (Exception e) {
 				throw new EditProfileException(e.toString());
@@ -750,7 +763,7 @@ public class User implements java.io.Serializable
 	 * defined in the user's files.  Any errors in the user's profile
 	 * are reported.  News cannot be downloaded until issues are validated!
 	 */
-	public void validateIssues(final boolean genScanners) throws Exception
+	public void validateAllIssues(final boolean genScanners) throws Exception
 	{
 			/* This happens when the server is overloaded ... reading of news index files
 			 * and building of news objects might be taking a long time ... browser/user
@@ -800,7 +813,7 @@ public class User implements java.io.Serializable
 						if (allDone) {
 							try {
 								_log.info("Validating dependent user: " + u.getUid());
-								u.validateIssues(true);
+								u.validateAllIssues(true);
 							} 
 							catch(Exception e) {
 								_log.error("Exception validating user: " + u.getUid(), e);

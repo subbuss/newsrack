@@ -37,6 +37,7 @@ import newsrack.filter.NR_CollectionType;
 import newsrack.filter.PublicFile;
 import newsrack.filter.Filter.RuleTerm;
 import newsrack.filter.Filter.ProximityTerm;
+import newsrack.filter.UserFile;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
@@ -253,7 +254,7 @@ public class SQL_DB extends DB_Interface
    public void initProfile(User u) throws Exception
 	{
 		_log.info("Request to init profile for user " + u.getUid());
-		u.validateIssues(false);
+		u.validateAllIssues(false);
 	}
 
 	/**
@@ -263,6 +264,23 @@ public class SQL_DB extends DB_Interface
 	public String getFileUploadArea(User u)
 	{
 		return getUserHome(u) + USER_INFO_DIR;
+	}
+
+	public UserFile getUserFile(Long key)
+	{
+		if (_log.isDebugEnabled()) _log.debug("Looking for user file with key: " + key);
+
+		if (key == null)
+			return null;
+
+		UserFile f = (UserFile)_cache.get("USER_FILE", key);
+		if (f == null) {
+			f = (UserFile)GET_USER_FILE.get(key);
+			if (f != null)
+				_cache.add("USER_FILE", key, f);
+		}
+
+		return f;
 	}
 
 	/**
@@ -669,7 +687,7 @@ public class SQL_DB extends DB_Interface
 			collKey = existingColl.getKey();
 		}
 		else {
-			collKey = (Long)INSERT_COLLECTION.execute(new Object[]{c.getName(), c.getType().toString(), creator.getKey(), creator.getUid()});
+			collKey = (Long)INSERT_COLLECTION.execute(new Object[]{c.getName(), c.getType().toString(), c.getFile().getKey(), creator.getKey(), creator.getUid()});
 			c.setKey(collKey);
 		}
 
@@ -814,8 +832,10 @@ public class SQL_DB extends DB_Interface
 	 * @param fname  The name of the file being uploaded.
 	 * @param is     The input stream from which contents of the uploaded file can be read.
 	 * @param u      The user who is uploading the file.
+	 *
+	 * returns the database key for the file
 	 */
-	public void uploadFile(String fname, InputStream is, User u) throws java.io.IOException
+	public Long uploadFile(String fname, InputStream is, User u) throws java.io.IOException
 	{
 		if (fname.indexOf(File.separator) != -1)
 			throw new java.io.IOException("Cannot have / in file name.  Access denied");
@@ -824,7 +844,7 @@ public class SQL_DB extends DB_Interface
 		_log.info("Upload of file " + fname + " into " + localFileName);
 		IOUtils.copyStreamToLocalFile(is, localFileName);
 
-      INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
+      return (Long)INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
 	}
 
 	/**
@@ -833,14 +853,14 @@ public class SQL_DB extends DB_Interface
 	 * @param is     The input stream from which the file should be uploaded. 
 	 * @param u      The user who is uploaded the file .
 	 */
-	public void       addFile(String fname, User u) throws java.io.IOException
+	public Long addFile(String fname, User u) throws java.io.IOException
 	{
 		if (fname.indexOf(File.separator) != -1)
 			throw new java.io.IOException("Cannot have / in file name.  Access denied");
 
 		String localFileName = getFileUploadArea(u) + fname;
 		_log.info("Add of file " + fname + " into " + localFileName);
-      INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
+      return (Long)INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
 	}
 
 	/**
@@ -1074,9 +1094,9 @@ public class SQL_DB extends DB_Interface
 		return issues;
    }
 
-   public List<String> getFiles(User u)
+   public List<UserFile> getFiles(User u)
    {
-      return (List<String>)GET_ALL_FILES_BY_USER_KEY.execute(new Object[]{u.getKey()});
+      return (List<UserFile>)GET_ALL_FILES_BY_USER_KEY.execute(new Object[]{u.getKey()});
    }
 
    public List<PublicFile> getAllPublicUserFiles()
@@ -1742,7 +1762,7 @@ public class SQL_DB extends DB_Interface
 
 			// Save to db!
 		Long cKey = cat.getKey();
-		SQL_StmtExecutor.update("UPDATE categories SET lft = ?, rgt = ? WHERE cat_key = ?",
+		SQL_StmtExecutor.update("UPDATE categories SET lft = ?, rgt = ? WHERE c_key = ?",
 										new SQL_ValType[] {SQL_ValType.INT, SQL_ValType.INT, SQL_ValType.LONG},
 										new Object[] {nsId, next, cKey});
 
@@ -2068,8 +2088,8 @@ public class SQL_DB extends DB_Interface
 
 	private List<Long> getKeysForAllNestedLeafCats(Category cat)
 	{
-		String query = "SELECT c2.cat_key FROM categories c, categories c2 " +
-		               "WHERE c.cat_key = ? AND c2.t_key = c.t_key AND c2.lft > c.lft AND c2.rgt < c.rgt AND c2.rgt = c2.lft + 1"; 
+		String query = "SELECT c2.c_key FROM categories c, categories c2 " +
+		               "WHERE c.c_key = ? AND c2.t_key = c.t_key AND c2.lft > c.lft AND c2.rgt < c.rgt AND c2.rgt = c2.lft + 1"; 
 		return (List<Long>)SQL_StmtExecutor.execute(query,
 																  SQL_StmtType.QUERY,
 																  new Object[] {cat.getKey()},

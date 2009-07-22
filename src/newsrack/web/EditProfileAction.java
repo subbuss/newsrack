@@ -47,7 +47,7 @@ public class EditProfileAction extends BaseAction
 				// Attempt to validate all defined issues 
 			try {
 					// Validate issues and generate scanners
-				_user.validateIssues(true);
+				_user.validateAllIssues(true);
 			}
 			catch (Exception e) {
 				_log.error("Exception: ", e);

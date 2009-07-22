@@ -11,9 +11,9 @@ public final class NR_CategoryCollection extends NR_Collection
 	private transient Map<String, Category> _map = null;  // Name --> Category mapping .. optimization!
 	private transient boolean               _allMapped = false;
 
-	public NR_CategoryCollection(User u, String name, Collection entries)
+	public NR_CategoryCollection(UserFile uf, String name, Collection entries)
 	{
-		super(NR_CollectionType.CATEGORY, u, name, entries);
+		super(NR_CollectionType.CATEGORY, uf, name, entries);
 	}
 
 	public Category getCategory(String c)

@@ -11,9 +11,9 @@ public final class NR_ConceptCollection extends NR_Collection
 	private transient Map<String, Concept> _map = null;  // Name --> Concept mapping .. optimization!
 	private transient boolean              _allMapped = false;
 
-	public NR_ConceptCollection(User u, String name, Collection entries)
+	public NR_ConceptCollection(UserFile uf, String name, Collection entries)
 	{
-		super(NR_CollectionType.CONCEPT, u, name, entries);
+		super(NR_CollectionType.CONCEPT, uf, name, entries);
 	}
 
 	public Concept getConcept(String c)

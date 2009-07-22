@@ -11,9 +11,9 @@ public final class NR_FilterCollection extends NR_Collection
 	private transient Map<String, Filter> _map = null;  // Name --> Filter mapping .. optimization!
 	private transient boolean             _allMapped = false;
 
-	public NR_FilterCollection(User u, String name, Collection entries)
+	public NR_FilterCollection(UserFile uf, String name, Collection entries)
 	{
-		super(NR_CollectionType.FILTER, u, name, entries);
+		super(NR_CollectionType.FILTER, uf, name, entries);
 	}
 
 	public Filter getFilter(String f)

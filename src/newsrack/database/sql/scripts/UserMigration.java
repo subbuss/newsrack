@@ -31,7 +31,7 @@ public class UserMigration
 		System.out.println("--- Migrating user .. " + uid);
 		try {
 			User u = User.getUser(uid);
-			u.validateIssues(true);
+			u.validateAllIssues(true);
 			for (Source s: u.getSources()) {
 				Feed f = s.getFeed();
 				try {
@@ -100,7 +100,7 @@ public class UserMigration
 			String uid = u.getUid();
 			if (!uid.equals("subbu") && !uid.equals("demo") && !uid.equals("quesoboy")) {
 				System.out.println("UID: " + u.getUid());
-				try { u.validateIssues(true); } catch (Exception e) { _log.error("ERROR VALIDATING:", e); }
+				try { u.validateAllIssues(true); } catch (Exception e) { _log.error("ERROR VALIDATING:", e); }
 			}
 		}
 

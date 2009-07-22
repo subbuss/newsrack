@@ -18,6 +18,8 @@ public class UserFile
 	public final User   _user;		// The user in whose space this file exists
 	public final String _name;		// Name of the file
 
+	private Long _key;
+
 	private boolean _isUrl          = false;
 	private boolean _isNewsrackFile = false;
 	private boolean _isUsersFile    = false;
@@ -30,7 +32,7 @@ public class UserFile
      * @param name     Name of the file
      */
 	public UserFile(User u, String name) 
-	{ 
+	{
 		_user = u;
 		_name = name;
 		if (_name.length() == 0)
@@ -52,6 +54,10 @@ public class UserFile
 		else
 			parseName();
 	}
+
+	public Long getKey() { return _key; }
+
+	public void setKey(Long k) { _key = k; }
 
 	private void parseName()
 	{

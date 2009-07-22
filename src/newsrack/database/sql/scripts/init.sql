@@ -192,7 +192,7 @@ create table if not exists topics (
  *          Hence the indexes on (a) category key (b) (uid, issue) pair
  */
 create table if not exists categories (
-   cat_key      bigint   not null auto_increment,
+   c_key        bigint   not null auto_increment,
    valid        boolean  default true,		/* can be invalid when its containing topic is invalidated */
    name         varchar(256) not null,
    u_key        bigint   not null,   		/* duplicate info from issue table to eliminate joins in some queries */
@@ -206,7 +206,7 @@ create table if not exists categories (
    num_articles int      default 0,
 	taxonomy_path text    default null, 	/* taxonomy path for display on news listing pages */
 	num_new_articles int  default 0,
-   primary key(cat_key),
+   primary key(c_key),
    index uid_issue_index(u_key, t_key),
    constraint fk_categories_1 foreign key(f_key) references cat_filters(f_key),
    constraint fk_categories_2 foreign key(u_key) references users(u_key)
@@ -227,7 +227,7 @@ create table if not exists cat_news (
    n_key      bigint not null,
    ni_key     bigint not null,
 	date_stamp date   not null,
-   constraint fk_cat_news_1 foreign key(c_key) references categories(cat_key),
+   constraint fk_cat_news_1 foreign key(c_key) references categories(c_key),
    constraint fk_cat_news_2 foreign key(n_key) references news_items(n_key),
    constraint fk_cat_news_3 foreign key(ni_key) references news_indexes(ni_key),
    unique unique_index(c_key, ni_key, n_key),
@@ -245,9 +245,11 @@ create table if not exists cat_news (
  * This table tracks all profile files that a user has defined
  */
 create table if not exists user_files (
+	file_key   int          not null auto_increment,
    u_key      bigint       not null,
    file_name  varchar(256) not null,
-   add_time   timestamp   default current_timestamp,
+   created_at timestamp   default current_timestamp,
+	primary key(file_key),
    constraint fk_user_files_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_bin;
 
@@ -256,12 +258,14 @@ create table if not exists user_files (
  */
 create table if not exists user_collections (
    coll_key  bigint      not null auto_increment,
+	file_key  int         not null, /* file this is defined in */
    coll_name varchar(64) not null, /* name of the collection */
    coll_type char(3)     not null, /* type of the collection - SRC, CPT, FIL */
    u_key     bigint      not null, /* User who has defined the collection */
    uid       char(32)    not null, /* copied from user table in cases where uid is used to fetch collections */
 	primary key(coll_key),
-   constraint fk_user_collections_1 foreign key(u_key) references users(u_key)
+   constraint fk_user_collections_1 foreign key(u_key) references users(u_key),
+   constraint fk_user_collections_2 foreign key(file_key) references user_files(file_key)
 ) charset=utf8 collate=utf8_bin;
 
 /** --- collection_entries ---
@@ -271,7 +275,7 @@ create table if not exists user_collections (
  */
 create table if not exists collection_entries (
    coll_key  bigint not null,  /* collection key */
-   entry_key bigint not null,  /* key for the entry; sKey / cat_key / cpt_key */ 
+   entry_key bigint not null,  /* key for the entry; sKey / c_key / cpt_key */ 
    constraint fk_collection_entries_1 foreign key(coll_key) references collections(coll_key)
 );
 

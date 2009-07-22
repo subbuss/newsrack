@@ -30,7 +30,7 @@ public class ObjectCache
 			_osCacheAdmin = new GeneralCacheAdministrator(p);
 		}
 
-		void synchronized add(String[] groups, String key, Object o)
+		synchronized void add(String[] groups, String key, Object o)
 		{
 			if (_log.isDebugEnabled()) _log.debug(_name + " CACHE: adding key " + key);
 			if (groups == null)

@@ -81,17 +81,18 @@
 	private int       _cptCounter;			// Counter that tracks generated concepts
 	private ArrayList _globalConcepts;		// Concepts defined outside of collections, system-generated concepts 
 
-	private void parseFile(String f)
+	private void parseFile(UserFile uf)
 	{
-		if (_log.isInfoEnabled()) _log.info("***** Beginning parse of file " + f + " ******");
-
 		pushNewScope();
 
-		try {
-			_currFile = new UserFile(_user, f);
-		   _globalConcepts = new ArrayList();
-		   _cptCounter     = 0;
+		String f = uf._name;
+		_currFile       = uf;
+		_globalConcepts = new ArrayList();
+		_cptCounter     = 0;
 
+		if (_log.isInfoEnabled()) _log.info("***** Beginning parse of file " + f + " ******");
+
+		try {
 			// FIXME: Need to ignore opml files here!
 			if (f.endsWith(".xml") || f.endsWith(".opml")) {
 				_log.debug("Ignoring file: " + f);
@@ -133,7 +134,7 @@
 
 			// Parse
 		while (files.hasNext())
-			parseFile((String)files.next());
+			parseFile((UserFile)files.next());
 
 		return _haveUnresolvedRefs;
 	}
@@ -373,7 +374,7 @@
 			cName = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_sources";
 
 			// Add the new collection to the current scope!
-		getCurrentScope().addCollection(new NR_SourceCollection(_user, cName, srcs));
+		getCurrentScope().addCollection(new NR_SourceCollection(_currFile, cName, srcs));
 
 			// Associate this collection with the current file
 		_collToFileMap.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, _currFile._name);
@@ -395,7 +396,7 @@
 			cName = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_concepts";
 
 			// Add the new collection to the current scope!
-		NR_ConceptCollection nc = new NR_ConceptCollection(_user, cName, cpts);
+		NR_ConceptCollection nc = new NR_ConceptCollection(_currFile, cName, cpts);
 		getCurrentScope().addCollection(nc);
 
 			// Associate this collection with the current file
@@ -424,7 +425,7 @@
 			c = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_filters";
 
 			// Add the new collection to the current scope!
-		getCurrentScope().addCollection(new NR_FilterCollection(_user, c, filters));
+		getCurrentScope().addCollection(new NR_FilterCollection(_currFile, c, filters));
 
 			// Associate this collection with the current file
 		_collToFileMap.put(NR_CollectionType.FILTER + ":" + _uid + ":" + c, _currFile._name);

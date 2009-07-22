@@ -164,7 +164,7 @@ public class FixupTools
 
 			// Save to db!
 		Long cKey = cat.getKey();
-		SQL_StmtExecutor.update("UPDATE categories SET lft = ?, rgt = ? WHERE cat_key = ?",
+		SQL_StmtExecutor.update("UPDATE categories SET lft = ?, rgt = ? WHERE c_key = ?",
 										new SQL_ValType[] {SQL_ValType.INT, SQL_ValType.INT, SQL_ValType.LONG},
 										new Object[] {nsId, next, cKey});
 
@@ -217,6 +217,32 @@ public class FixupTools
 		for (Long k: fkeys) {
 			System.out.println("------ Canonicalizing for feed: " + k + " ------");
 			canonicalizeURLs(k, startDate, endDate);
+		}
+	}
+
+	public static void revalidateAllUsers()
+	{
+		/* Users that dont import from anyone else! */
+		List<Long> ukeys_1 = (List<Long>)SQL_StmtExecutor.query(
+										"SELECT u_key FROM users WHERE NOT EXISTS (SELECT * FROM import_dependencies WHERE importing_user_key = u_key)",
+										new SQL_ValType[] {},
+										new Object[]{},
+										SQL_StmtExecutor._longProcessor,
+										false);
+
+		/* Invalidate */
+		for (Long k: ukeys_1)
+			_db.getUser(k).invalidateAllIssues();
+
+		/* Validate */
+		for (Long k: ukeys_1) {
+			User u = _db.getUser(k);
+			try {
+				u.validateAllIssues(false);
+			}
+			catch (Exception e) {
+				System.out.println("Exception " + e + " validating user: " + u.getName());
+			}
 		}
 	}
 
@@ -273,6 +299,9 @@ public class FixupTools
       }
 		else if (action.equals("get-cat-files")) {
 	      outputLocalFilePathsForCategorizedNews(Long.parseLong(args[2]));
+		}
+		else if (action.equals("revalidate-all-users")) {
+			revalidateAllUsers();
 		}
       else {
          System.out.println("Unknown action: " + action);

@@ -28,16 +28,18 @@ public abstract class NR_Collection implements java.io.Serializable
 	}
 
 // ############### NON-STATIC FIELDS AND METHODS ############
-	      public Long   _key;
-	final public User   _creator;
-	final public String _name;
+	      public Long     _key;
+	final public User     _creator;
+	final public UserFile _file;
+	final public String   _name;
 	final public NR_CollectionType _type;
 	      public Collection _entries;
 
-	public NR_Collection(NR_CollectionType t, User u, String name, Collection entries)
+	public NR_Collection(NR_CollectionType t, UserFile uf, String name, Collection entries)
 	{
 		_type    = t;
-		_creator = u;
+		_file    = uf;
+		_creator = uf._user;
 		_name    = name;
 		_entries = entries;
       if (_log.isDebugEnabled()) _log.debug("RECORDED collection " + this);
@@ -63,6 +65,8 @@ public abstract class NR_Collection implements java.io.Serializable
 	public String getName() { return _name; } 
 
 	public NR_CollectionType getType() { return _type; }
+
+	public UserFile getFile() { return _file; }
 
 	public User getCreator() { return _creator; }
 

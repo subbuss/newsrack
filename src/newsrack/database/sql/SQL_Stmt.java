@@ -40,6 +40,7 @@ import newsrack.filter.PublicFile;
 import newsrack.filter.Filter.FilterOp;
 import newsrack.filter.Filter.RuleTerm;
 import newsrack.filter.Filter.ProximityTerm;
+import newsrack.filter.UserFile;
 import newsrack.user.User;
 import newsrack.util.Triple;
 import newsrack.util.Tuple;
@@ -48,53 +49,49 @@ import org.apache.commons.logging.Log;
 
 class GetCollectionResultProcessor extends AbstractResultProcessor
 {
-	// @FIXME: Assumes that this won't be called for multiple values!
-	Long   _cKey;
-	Long   _uKey;
-	String _name;
-	NR_CollectionType _cType;
-
 	public ResultProcessor getNewInstance() { return new GetCollectionResultProcessor(); }
 
 	public Object processResultSet(ResultSet rs) throws java.sql.SQLException
 	{
-		_cKey  = rs.getLong(1);
-		_name  = rs.getString(2);
-		_cType = NR_CollectionType.getType(rs.getString(3));
-		_uKey  = rs.getLong(4);
-		return null;
+		return new Object[] { rs.getLong(1), rs.getLong(2), rs.getString(3), NR_CollectionType.getType(rs.getString(4)) };
 	}
 
 	public Object processOutput(Object o)
 	{
-			// Check the query returned zero results.
-		if (_cKey == null)
+			// Check that the query returned some result.
+		if (o == null)
 			return null;
 
+		Object[] rset    = (Object[])o;
+		Long     cKey    = (Long)rset[0];
+		Long     fileKey = (Long)rset[1];
+		String   name    = (String)rset[2];
+		NR_CollectionType cType = (NR_CollectionType)rset[3];
+
 		NR_Collection c = null;
-		switch (_cType) {
+		switch (cType) {
 			case SOURCE :
-				c = new NR_SourceCollection(SQL_Stmt._db.getUser(_uKey), _name, null);
-				c.setKey(_cKey);
+				c = new NR_SourceCollection(SQL_Stmt._db.getUserFile(fileKey), name, null);
+				c.setKey(cKey);
 				break;
 
 			case CONCEPT :
-				c = new NR_ConceptCollection(SQL_Stmt._db.getUser(_uKey), _name, null);
-				c.setKey(_cKey);
+				c = new NR_ConceptCollection(SQL_Stmt._db.getUserFile(fileKey), name, null);
+				c.setKey(cKey);
 				break;
 
 			case CATEGORY :
-				c = new NR_CategoryCollection(SQL_Stmt._db.getUser(_uKey), _name, null);
-				c.setKey(_cKey);
+				c = new NR_CategoryCollection(SQL_Stmt._db.getUserFile(fileKey), name, null);
+				c.setKey(cKey);
 				break;
 
 			case FILTER :
-				c = new NR_FilterCollection(SQL_Stmt._db.getUser(_uKey), _name, null);
-				c.setKey(_cKey);
+				c = new NR_FilterCollection(SQL_Stmt._db.getUserFile(fileKey), name, null);
+				c.setKey(cKey);
 				break;
 
 			default:
-				SQL_Stmt._log.error("Unsupported collection type: " + _cType);
+				SQL_Stmt._log.error("Unsupported collection type: " + cType);
 				break;
 		}
 		return c;
@@ -115,6 +112,35 @@ class GetUserResultProcessor extends AbstractResultProcessor
 		u.setName(rs.getString(4));
 		u.setEmail(rs.getString(5));
 		return u;
+	}
+}
+
+class GetUserFileResultProcessor extends AbstractResultProcessor
+{
+	public Object processResultSet(ResultSet rs) throws SQLException
+	{
+		return new Object[] { rs.getLong(1), rs.getLong(2), rs.getString(3) };
+	}
+
+	private UserFile buildUserFile(Object[] rset)
+	{
+		UserFile f = new UserFile(SQL_Stmt._db.getUser((Long)rset[1]), (String)rset[2]);
+		f.setKey((Long)rset[0]);
+		return f;
+	}
+
+	public Object processOutput(Object o)
+	{
+		return buildUserFile((Object[])o);
+	}
+
+	public List processOutputList(List l)
+	{
+		List ol = new ArrayList();
+		for (Object o: l)
+			ol.add(buildUserFile((Object[])o));
+
+		return ol;
 	}
 }
 
@@ -525,7 +551,7 @@ public enum SQL_Stmt
 	),
 **/
 	GET_NEWS_KEYS_FROM_ISSUE(
-		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.cat_key ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
+		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.c_key ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, INT, INT},
       SQL_StmtType.QUERY,
 		null,
@@ -533,7 +559,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES(
-		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.cat_key AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
+		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.c_key AND date_stamp >= ? AND date_stamp <= ? ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, DATE, DATE, INT, INT},
       SQL_StmtType.QUERY,
 		null,
@@ -541,7 +567,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CAT_KEYS_FOR_NEWSITEM(
-		"SELECT cn.c_key FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
+		"SELECT cn.c_key FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.c_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -549,7 +575,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATS_FOR_NEWSITEM(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.num_new_articles, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.cat_key AND c.valid = true",
+		"SELECT c.c_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key, c.t_key, c.num_articles, c.last_update, c.num_new_articles, c.taxonomy_path FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.c_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -691,7 +717,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_USER_FROM_UID(
-      "SELECT * FROM users WHERE uid = ?",	// simpler to select all fields rather than ignoring a single field
+      "SELECT u_key,uid,password,name,email,validated FROM users WHERE uid = ?",	// simpler to select all fields rather than ignoring a single field
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -699,7 +725,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_USER(
-      "SELECT * FROM users WHERE u_key = ?",	// simpler to select all fields rather than ignoring a single field
+      "SELECT u_key,uid,password,name,email,validated FROM users WHERE u_key = ?",	// simpler to select all fields rather than ignoring a single field
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -707,7 +733,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ALL_USERS(
-      "SELECT * FROM users ORDER BY uid",
+      "SELECT u_key,uid,password,name,email,validated FROM users ORDER BY uid",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -725,7 +751,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CAT_INFO(
-		"SELECT cat_key, num_articles, last_update FROM categories WHERE t_key = ? AND cat_id = ?",
+		"SELECT c_key, num_articles, last_update FROM categories WHERE t_key = ? AND cat_id = ?",
       new SQL_ValType[] {LONG, INT},
 		SQL_StmtType.QUERY,
 		null,
@@ -735,7 +761,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_ISSUE(
-      "SELECT * FROM topics WHERE t_key = ?",
+      "SELECT t_key,u_key,name,num_articles,last_update,validated,frozen,private,taxonomy_path,num_new_articles FROM topics WHERE t_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -743,7 +769,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ISSUE_BY_USER_KEY(
-      "SELECT * FROM topics WHERE u_key = ? AND name = ?",
+      "SELECT t_key,u_key,name,num_articles,last_update,validated,frozen,private,taxonomy_path,num_new_articles FROM topics WHERE u_key = ? AND name = ?",
       new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -751,7 +777,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ALL_ISSUES_BY_USER_KEY(
-      "SELECT * FROM topics WHERE u_key = ? ORDER BY lower(name)",
+      "SELECT t_key,u_key,name,num_articles,last_update,validated,frozen,private,taxonomy_path,num_new_articles FROM topics WHERE u_key = ? ORDER BY lower(name)",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -759,7 +785,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_CAT_KEYS_FOR_ISSUE(
-		"SELECT cat_key FROM categories WHERE t_key = ? AND valid = true",
+		"SELECT c_key FROM categories WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -767,7 +793,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATS_FOR_ISSUE(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE t_key = ? AND valid = true",
+		"SELECT c_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,
@@ -807,7 +833,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_COLLECTION(
-		"SELECT * FROM user_collections WHERE uid = ? AND coll_name = ? AND coll_type = ?",
+		"SELECT coll_key,file_key,coll_name,coll_type FROM user_collections WHERE uid = ? AND coll_name = ? AND coll_type = ?",
       new SQL_ValType[] {STRING, STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -823,7 +849,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_COLLECTIONS_OF_TYPE(
-		"SELECT * FROM user_collections WHERE coll_type = ?",
+		"SELECT coll_key,file_key,coll_name,coll_type FROM user_collections WHERE coll_type = ?",
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -831,7 +857,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_COLLECTIONS_OF_TYPE_FOR_USER(
-		"SELECT * FROM user_collections WHERE coll_type = ? AND uid = ?",
+		"SELECT coll_key,file_key,coll_name,coll_type FROM user_collections WHERE coll_type = ? AND uid = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -839,19 +865,27 @@ public enum SQL_Stmt
 		false
 	),
 	GET_COLLECTION_FOR_CONCEPT(
-	   "SELECT c.* from user_collections c, collection_entries ce WHERE c.coll_key = ce.coll_key AND ce.entry_key = ?",
+	   "SELECT c.coll_key,c.file_key,c.coll_name,c.coll_type from user_collections c, collection_entries ce WHERE c.coll_key = ce.coll_key AND ce.entry_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
 		new GetCollectionResultProcessor(),
 		false
 	),
-   GET_ALL_FILES_BY_USER_KEY(
-      "SELECT file_name FROM user_files WHERE u_key = ? ORDER BY add_time",
+   GET_USER_FILE(
+      "SELECT file_key, u_key, file_name FROM user_files WHERE file_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
-		new GetStringResultProcessor(),
+		new GetUserFileResultProcessor(),
+		true
+   ),
+   GET_ALL_FILES_BY_USER_KEY(
+      "SELECT file_name, u_key, file_name FROM user_files WHERE u_key = ? ORDER BY file_name",
+      new SQL_ValType[] {LONG},
+		SQL_StmtType.QUERY,
+		null,
+		new GetUserFileResultProcessor(),
 		false
    ),
 	GET_ALL_SOURCES_FROM_USER_COLLECTION(
@@ -967,7 +1001,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_CATEGORIES_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key",
+		"SELECT c.c_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.c_key",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -975,7 +1009,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_CATEGORY_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.name = ? AND c.parent_cat = ?",
+		"SELECT c.c_key, c.name, c.cat_id, c.parent_cat, c.f_key, c.u_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.c_key AND c.name = ? AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, STRING, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -983,7 +1017,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CATEGORY(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE cat_key = ?",
+		"SELECT c_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE c_key = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -991,7 +1025,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_CATEGORY_FROM_TAXONOMY_PATH(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE taxonomy_path = ? AND valid = ?",
+		"SELECT c_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE taxonomy_path = ? AND valid = ?",
 		new SQL_ValType[] {STRING, BOOLEAN},
 		SQL_StmtType.QUERY,
 		null,
@@ -999,7 +1033,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_NESTED_CAT_KEYS(
-		"SELECT cat_key FROM categories WHERE parent_cat = ? AND valid = true",
+		"SELECT c_key FROM categories WHERE parent_cat = ? AND valid = true",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -1007,7 +1041,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_NESTED_CATS(
-		"SELECT cat_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE parent_cat = ?",
+		"SELECT c_key, name, cat_id, parent_cat, f_key, u_key, t_key, num_articles, last_update, num_new_articles, taxonomy_path FROM categories WHERE parent_cat = ?",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -1015,7 +1049,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_NESTED_CATS_FROM_USER_COLLECTION(
-		"SELECT c.cat_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.cat_key AND c.parent_cat = ?",
+		"SELECT c.c_key, c.name, c.cat_id, c.parent_cat, c.f_key FROM categories c, collection_entries ce WHERE ce.coll_key = ? AND ce.entry_key = c.c_key AND c.parent_cat = ?",
 		new SQL_ValType[] {LONG, LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -1129,7 +1163,10 @@ public enum SQL_Stmt
 	INSERT_USER_FILE(
 		"INSERT INTO user_files(u_key, file_name) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, STRING},
-      SQL_StmtType.INSERT
+      SQL_StmtType.INSERT,
+		null,
+		new GetLongResultProcessor(),
+		true
 	),
 	INSERT_IMPORT_DEPENDENCY(
 	   "INSERT IGNORE INTO import_dependencies(from_user_key, importing_user_key) VALUES (?, ?)",
@@ -1137,7 +1174,7 @@ public enum SQL_Stmt
       SQL_StmtType.INSERT
 	),
 	INSERT_COLLECTION(
-		"INSERT INTO user_collections (coll_name, coll_type, u_key, uid) VALUES (?, ?, ?, ?)",
+		"INSERT INTO user_collections (coll_name, coll_type, file_key, u_key, uid) VALUES (?, ?, ?, ?, ?)",
 		new SQL_ValType[] {STRING, STRING, LONG, STRING},
       SQL_StmtType.INSERT,
 		null,
@@ -1217,11 +1254,11 @@ public enum SQL_Stmt
       new SQL_ValType[] {INT, TIMESTAMP, INT, LONG}, 
 		SQL_StmtType.UPDATE
 	),
-	UPDATE_ART_COUNT_FOR_CAT("UPDATE categories SET categories.num_articles = (SELECT count(*) FROM cat_news WHERE cat_news.c_key = categories.cat_key) WHERE categories.cat_key = ?",
+	UPDATE_ART_COUNT_FOR_CAT("UPDATE categories SET categories.num_articles = (SELECT count(*) FROM cat_news WHERE cat_news.c_key = categories.c_key) WHERE categories.c_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.UPDATE
 	),
-	UPDATE_ART_COUNTS_FOR_ALL_TOPIC_LEAF_CATS("UPDATE categories SET categories.num_articles = (SELECT count(*) FROM cat_news WHERE cat_news.c_key = categories.cat_key) WHERE categories.t_key = ? AND categories.f_key != -1",
+	UPDATE_ART_COUNTS_FOR_ALL_TOPIC_LEAF_CATS("UPDATE categories SET categories.num_articles = (SELECT count(*) FROM cat_news WHERE cat_news.c_key = categories.c_key) WHERE categories.t_key = ? AND categories.f_key != -1",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.UPDATE
 	),
@@ -1248,12 +1285,12 @@ public enum SQL_Stmt
       SQL_StmtType.UPDATE
 	),
 	UPDATE_LEAF_CAT_NEWS_INFO(
-		"UPDATE categories SET last_update = ?, num_new_articles = ?, num_articles = (select count(*) from cat_news where c_key = categories.cat_key) WHERE cat_key = ?",
+		"UPDATE categories SET last_update = ?, num_new_articles = ?, num_articles = (select count(*) from cat_news where c_key = categories.c_key) WHERE c_key = ?",
       new SQL_ValType[] {TIMESTAMP, INT, LONG},
 		SQL_StmtType.UPDATE
 	),
 	UPDATE_CAT_NEWS_INFO(
-		"UPDATE categories SET num_articles = ?, last_update = ?, num_new_articles = ? WHERE cat_key = ?",
+		"UPDATE categories SET num_articles = ?, last_update = ?, num_new_articles = ? WHERE c_key = ?",
       new SQL_ValType[] {INT, TIMESTAMP, INT, LONG},
 		SQL_StmtType.UPDATE
 	),
@@ -1263,7 +1300,7 @@ public enum SQL_Stmt
 		SQL_StmtType.UPDATE
 	),
    RENAME_CAT(
-      "UPDATE categories SET name = ? WHERE cat_key = ?",
+      "UPDATE categories SET name = ? WHERE c_key = ?",
 		new SQL_ValType[] {STRING, LONG},
       SQL_StmtType.UPDATE,
 		new SQL_ColumnSize[] {CAT_TBL_NAME, NONE},
@@ -1271,12 +1308,12 @@ public enum SQL_Stmt
 		true
 	),
    UPDATE_CAT(
-      "UPDATE categories SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE cat_key = ?",
+      "UPDATE categories SET valid = ?, f_key = ?, name = ?, cat_id = ?, parent_cat = ?, taxonomy_path = ? WHERE c_key = ?",
 		new SQL_ValType[] {BOOLEAN, LONG, STRING, INT, LONG, STRING, LONG},
       SQL_StmtType.UPDATE
 	),
 	SET_NESTED_SET_IDS_FOR_CAT(
-      "UPDATE categories SET lft = ?, rgt = ? WHERE cat_key = ?",
+      "UPDATE categories SET lft = ?, rgt = ? WHERE c_key = ?",
 		new SQL_ValType[] {INT, INT, LONG},
       SQL_StmtType.UPDATE
 	),
@@ -1397,7 +1434,7 @@ public enum SQL_Stmt
       SQL_StmtType.DELETE
 	),
 	DELETE_CATEGORY(
-		"DELETE FROM categories WHERE cat_key = ?",
+		"DELETE FROM categories WHERE c_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
