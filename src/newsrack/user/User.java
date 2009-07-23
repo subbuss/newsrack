@@ -292,7 +292,7 @@ public class User implements java.io.Serializable
 			loadUserFilesFromDB();
 
 		for (UserFile uf: _files)
-			if (uf._name.equals(f))
+			if (uf.getName().equals(f))
 				return true;
 
 		return false;
@@ -304,9 +304,9 @@ public class User implements java.io.Serializable
 			loadUserFilesFromDB();
 
 		for (UserFile uf: _files) {
-			if (uf._name.equals(f)) {
+			if (uf.getName().equals(f)) {
 				_files.remove(f);
-				_db.deleteFile(this, f);
+				_db.deleteFile(uf);
 			}
 		}
 	}
@@ -562,8 +562,7 @@ public class User implements java.io.Serializable
 			try {
 					// IMPT: do the db call before adding to _files in case the upload fails
 				UserFile uf = new UserFile(this, f);
-				Long fileKey = _db.uploadFile(f, fis, this);
-				uf.setKey(fileKey);
+				_db.uploadFile(uf, fis);
 				_files.add(uf);
 			}
 			catch (Exception e) {
@@ -626,8 +625,7 @@ public class User implements java.io.Serializable
 			try {
 					// IMPT: do the db call before adding to _files in case the add fails
 				UserFile uf = new UserFile(this, f);
-				Long fileKey = _db.addFile(f, this);
-				uf.setKey(fileKey);
+				_db.addFile(uf);
 				_files.add(uf);
 			}
 			catch (Exception e) {
@@ -658,8 +656,20 @@ public class User implements java.io.Serializable
 			throw new EditProfileException("Renaming to " + newName + " failed!");
 
 			/* Now, rename the file in the user's listing */
-		removeFile(oldName);
-		try { addFile(newName); } catch(Exception e) { _log.error("Add file during rename failed!!", e); }
+		for (UserFile uf: _files) {
+			if (uf.getName().equals(oldName)) {
+				uf.renameFile(newName);
+				_db.renameFile(uf, newName);
+				// Sort order has changed -- resort
+				java.util.Collections.sort(_files, new java.util.Comparator() {
+																	public int compare(Object o1, Object o2) { 
+																		return ((UserFile)o1).getName().compareTo(((UserFile)o2).getName()); 
+																	} 
+															  }
+												  );
+				break;
+			}
+		}
 	}
 
 	/**

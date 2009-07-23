@@ -318,14 +318,21 @@ public abstract class DB_Interface
 	 *                exists and is accessible.  Else throws an IO exception
 	 */
 	public abstract Reader getFileReader(User reqUser, String uid, String fname) throws java.io.IOException;
+	
+	/**
+	 * This method renames an user file to a new name
+	 *
+	 * @param f        File to be renamed
+	 * @param newName  New name of the file
+	 */
+	public abstract void renameFile(UserFile f, String newName);
 
 	/**
 	 * This method deletes a file from the user's space
 	 *
-	 * @param u    User who has requested a file to be deleted
-	 * @param name The file to be deleted
+	 * @param f The file to be deleted
 	 */
-	public abstract void deleteFile(User u, String name);
+	public abstract void deleteFile(UserFile f);
 
 	/**
 	 * This method uploads a file from the user's computer to the user's info space.
@@ -335,23 +342,21 @@ public abstract class DB_Interface
 	 *
 	 * NOTE: The caller is responsible for closing the input stream
 	 *
-	 * @param fname The name of the local file into which the file should be uploaded.
-	 * @param is    The input stream from which the file should be uploaded. 
-	 * @param u     The user who is uploaded the file .
+	 * @param f   The file that is being uploaded
+	 * @param is  The input stream from which the file should be uploaded. 
 	 *
 	 * returns the database key for the file
 	 */
-	public abstract Long uploadFile(String fname, InputStream is, User u) throws java.io.IOException;
+	public abstract Long uploadFile(UserFile f, InputStream is) throws java.io.IOException;
 
 	/**
 	 * This method adds a file to the user's info space
 	 *
-	 * @param is The input stream from which the file should be uploaded. 
-	 * @param u  The user who is uploaded the file .
+	 * @param f The file to be added
 	 *
 	 * returns the database key for the file
 	 */
-	public abstract Long addFile(String fname, User u) throws java.io.IOException;
+	public abstract Long addFile(UserFile f) throws java.io.IOException;
 
 	/**
 	 * This method provides a path in the local file system for a file

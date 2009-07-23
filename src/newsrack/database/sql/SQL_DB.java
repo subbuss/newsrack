@@ -829,14 +829,15 @@ public class SQL_DB extends DB_Interface
 	 * uploaded.  For example, if the user is uploading "../../myfiles/my.concepts.xml"
 	 * the uploaded file will have the name "my.concepts.xml".
 	 *
-	 * @param fname  The name of the file being uploaded.
+	 * @param f      User file being uploaded
 	 * @param is     The input stream from which contents of the uploaded file can be read.
-	 * @param u      The user who is uploading the file.
 	 *
 	 * returns the database key for the file
 	 */
-	public Long uploadFile(String fname, InputStream is, User u) throws java.io.IOException
+	public Long uploadFile(UserFile f, InputStream is) throws java.io.IOException
 	{
+		String fname = f.getName();
+		User   u     = f.getUser();
 		if (fname.indexOf(File.separator) != -1)
 			throw new java.io.IOException("Cannot have / in file name.  Access denied");
 
@@ -844,23 +845,30 @@ public class SQL_DB extends DB_Interface
 		_log.info("Upload of file " + fname + " into " + localFileName);
 		IOUtils.copyStreamToLocalFile(is, localFileName);
 
-      return (Long)INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
+		Long fKey = (Long)INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
+		f.setKey(fKey);
+      return fKey;
 	}
 
 	/**
 	 * This method adds a file to the user's info space
 	 *
-	 * @param is     The input stream from which the file should be uploaded. 
-	 * @param u      The user who is uploaded the file .
+	 * @param f The file to be added
+	 *
+	 * returns the database key for the file
 	 */
-	public Long addFile(String fname, User u) throws java.io.IOException
+	public Long addFile(UserFile f) throws java.io.IOException
 	{
+		String fname = f.getName();
+		User   u     = f.getUser();
 		if (fname.indexOf(File.separator) != -1)
 			throw new java.io.IOException("Cannot have / in file name.  Access denied");
 
 		String localFileName = getFileUploadArea(u) + fname;
 		_log.info("Add of file " + fname + " into " + localFileName);
-      return (Long)INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
+      Long fKey = (Long)INSERT_USER_FILE.execute(new Object[] {u.getKey(), fname});
+		f.setKey(fKey);
+		return fKey;
 	}
 
 	/**
@@ -982,16 +990,31 @@ public class SQL_DB extends DB_Interface
 	{
 		return ni.getReader();
 	}
+	
+	/**
+	 * This method renames an user file to a new name
+	 *
+	 * @param f        File to be renamed
+	 * @param newName  New name of the file
+	 */
+	public void renameFile(UserFile f, String newName)
+	{
+		RENAME_USER_FILE.execute(new Object[] {newName, f.getKey()});
+		_cache.remove("USER_FILE", f.getKey());
+	}
 
 	/**
 	 * This method deletes a file from the user's space
 	 *
-	 * @param u    User who has requested a file to be deleted
-	 * @param name The file to be deleted
+	 * @param f    User file to be deleted
 	 */
-	public void deleteFile(User u, String name)
+	public void deleteFile(UserFile f)
 	{
-      DELETE_USER_FILE.execute(new Object[] {u.getKey(), name});
+		User   u    = f.getUser();
+		String name = f.getName();
+
+      DELETE_USER_FILE.execute(new Object[] {f.getKey()});
+		_cache.remove("USER_FILE", f.getKey());
 
 			// Move the file to the attic!
 		String fua   = getFileUploadArea(u);

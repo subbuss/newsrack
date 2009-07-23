@@ -39,7 +39,7 @@ public abstract class NR_Collection implements java.io.Serializable
 	{
 		_type    = t;
 		_file    = uf;
-		_creator = uf._user;
+		_creator = uf.getUser();
 		_name    = name;
 		_entries = entries;
       if (_log.isDebugEnabled()) _log.debug("RECORDED collection " + this);

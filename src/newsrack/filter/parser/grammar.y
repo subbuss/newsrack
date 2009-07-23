@@ -85,7 +85,7 @@
 	{
 		pushNewScope();
 
-		String f = uf._name;
+		String f = uf.getName();
 		_currFile       = uf;
 		_globalConcepts = new ArrayList();
 		_cptCounter     = 0;
@@ -193,7 +193,7 @@
 				prevNumLeft = numLeft;
 					// In each pass, at least one file should get processed!
 				for (Object uf: allFiles) {
-					String file = ((UserFile)uf)._name;
+					String file = ((UserFile)uf).getName();
 					if (!processedFiles.contains(file)) {
 						boolean ready = true;
 
@@ -372,13 +372,13 @@
 	private void recordSourceCollection(String cName, Collection<Source> srcs)
 	{
 		if (cName == null)
-			cName = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_sources";
+			cName = "_" + _currFile.getUser().getUid() + "_" + _currFile.getName() + "_global_sources";
 
 			// Add the new collection to the current scope!
 		getCurrentScope().addCollection(new NR_SourceCollection(_currFile, cName, srcs));
 
 			// Associate this collection with the current file
-		_collToFileMap.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, _currFile._name);
+		_collToFileMap.put(NR_CollectionType.SOURCE + ":" + _uid + ":" + cName, _currFile.getName());
 	}
 
 	private void recordConceptCollection(String cname, Concept[] cpts)
@@ -394,14 +394,14 @@
 	{
 			// If no collection name is provided, simply store them all in a single global collection (on a per-file basis)
 		if (cName == null)
-			cName = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_concepts";
+			cName = "_" + _currFile.getUser().getUid() + "_" + _currFile.getName() + "_global_concepts";
 
 			// Add the new collection to the current scope!
 		NR_ConceptCollection nc = new NR_ConceptCollection(_currFile, cName, cpts);
 		getCurrentScope().addCollection(nc);
 
 			// Associate this collection with the current file
-		_collToFileMap.put(NR_CollectionType.CONCEPT + ":" + _uid + ":" + cName, _currFile._name);
+		_collToFileMap.put(NR_CollectionType.CONCEPT + ":" + _uid + ":" + cName, _currFile.getName());
 
 			// Set the containing collection for the concept
 			// All concepts are part of some collection or the other!
@@ -423,13 +423,13 @@
 	private void recordFilterCollection(String c, Collection<Filter> filters)
 	{
 		if (c == null)
-			c = "_" + _currFile._user.getUid() + "_" + _currFile._name + "_global_filters";
+			c = "_" + _currFile.getUser().getUid() + "_" + _currFile.getName() + "_global_filters";
 
 			// Add the new collection to the current scope!
 		getCurrentScope().addCollection(new NR_FilterCollection(_currFile, c, filters));
 
 			// Associate this collection with the current file
-		_collToFileMap.put(NR_CollectionType.FILTER + ":" + _uid + ":" + c, _currFile._name);
+		_collToFileMap.put(NR_CollectionType.FILTER + ":" + _uid + ":" + c, _currFile.getName());
 	}
 
 	private void addCollectionEntries(Iterator it, NR_CollectionType cType)
@@ -463,10 +463,10 @@
 			String uniqCollName = cType + ":" + _uid + ":" + cid;
 
 				// Add to the list of imports in this file
-			List fileImports  = (List)_fileToImportsMap.get(_currFile._name);
+			List fileImports  = (List)_fileToImportsMap.get(_currFile.getName());
 			if (fileImports == null) {
 				fileImports = new ArrayList();
-				_fileToImportsMap.put(_currFile._name, fileImports);
+				_fileToImportsMap.put(_currFile.getName(), fileImports);
 			}
 			fileImports.add(uniqCollName);
 

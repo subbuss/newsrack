@@ -15,8 +15,8 @@ import newsrack.util.ParseUtils;
 
 public class UserFile
 {
-	public final User   _user;		// The user in whose space this file exists
-	public final String _name;		// Name of the file
+	private User   _user;		// The user in whose space this file exists
+	private String _name;		// Name of the file
 
 	private Long _key;
 
@@ -55,9 +55,11 @@ public class UserFile
 			parseName();
 	}
 
-	public Long getKey() { return _key; }
-
-	public void setKey(Long k) { _key = k; }
+	public void   renameFile(String newName) { _name = newName; }
+	public void   setKey(Long k) { _key = k; }
+	public Long   getKey() { return _key; }
+	public User   getUser() { return _user; }
+	public String getName() { return _name; }
 
 	private void parseName()
 	{

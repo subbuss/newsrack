@@ -68,14 +68,14 @@ public final class ParseUtils
 		StringUtils.error(msg);
 
 			/* Record error */
-		User u = f._user;
+		User u = f.getUser();
 		if (u != null) {
 			LinkedList errs = (LinkedList)_errTable.get(u);
 			if (errs == null) {
 				errs = new LinkedList();
 				_errTable.put(u, errs);
 			}
-			errs.add("[File <span class=\"filename\">" + f._name + ":</span> Line Number: <span class=\"linenum\">" + lineNum + "</span>]: " + msg);
+			errs.add("[File <span class=\"filename\">" + f.getName() + ":</span> Line Number: <span class=\"linenum\">" + lineNum + "</span>]: " + msg);
 		}
 	}
 
@@ -90,14 +90,14 @@ public final class ParseUtils
 		StringUtils.error(msg);
 
 			/* Record error */
-		User u = f._user;
+		User u = f.getUser();
 		if (u != null) {
 			LinkedList errs = (LinkedList)_errTable.get(u);
 			if (errs == null) {
 				errs = new LinkedList();
 				_errTable.put(u, errs);
 			}
-			errs.add("ERROR parsing file <span class=\"filename\">" + f._name + "</span>: " + msg);
+			errs.add("ERROR parsing file <span class=\"filename\">" + f.getName() + "</span>: " + msg);
 		}
 	}
 
@@ -182,7 +182,7 @@ public final class ParseUtils
 	public static Document getParsedDocument(UserFile f) throws Exception
 	{
 		try {
-			System.out.println("--> Parsing file " + f._name);
+			System.out.println("--> Parsing file " + f.getName());
 				// By using input readers (rather than streams), we allow
 				// file-specific encodings to be used.
 			return getParsedDocument(f.getFileReader());
@@ -190,7 +190,7 @@ public final class ParseUtils
 		catch (Exception e) {
 			System.out.println("exception: " + e);
 			e.printStackTrace();
-			throw new Exception("Exception while parsing file <b>" + f._name + "</b><br>" + e.toString().replaceAll("<", "&lt;").replaceAll(">","&gt;"));
+			throw new Exception("Exception while parsing file <b>" + f.getName() + "</b><br>" + e.toString().replaceAll("<", "&lt;").replaceAll(">","&gt;"));
 		}
 	}
 

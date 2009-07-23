@@ -1065,7 +1065,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_ALL_ACTIVE_FEEDS(
-	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources)",
+	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources, topics where topics.frozen = 0 and topic_sources.t_key=topics.t_key)",
 		new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -1219,6 +1219,11 @@ public enum SQL_Stmt
       SQL_StmtType.INSERT
 	),
 		// Prepared Statement Strings for UPDATEs 
+	RENAME_USER_FILE(
+		"UPDATE user_files SET file_name = ? WHERE file_key = ?",
+      new SQL_ValType[] {STRING, LONG},
+		SQL_StmtType.UPDATE
+	),
 	UPDATE_USER(
 		"UPDATE users SET password = ?, name = ?, email = ?, validated = ? WHERE u_key = ?",
       new SQL_ValType[] {STRING, STRING, STRING, BOOLEAN, LONG},
@@ -1384,8 +1389,8 @@ public enum SQL_Stmt
       SQL_StmtType.DELETE
 	),
 	DELETE_USER_FILE(
-		"DELETE FROM user_files WHERE u_key = ? AND file_name = ?",
-		new SQL_ValType[] {LONG, STRING},
+		"DELETE FROM user_files WHERE file_key = ?",
+		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
 	DELETE_IMPORT_DEPENDENCIES_FOR_USER(
