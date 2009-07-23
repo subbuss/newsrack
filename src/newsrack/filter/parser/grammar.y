@@ -69,7 +69,7 @@
 	private UserFile  _currFile;
 	private Symbol    _currSym;
 	private Stack 		_scopeStack; 			// Stack of parsing scopes!
-	private Iterator	_files;					// Iterator of the current user's files ... needed for recursive parsing
+	private Iterator<UserFile>	_files;		// Iterator of the current user's files ... needed for recursive parsing
 		// These two hashmaps are used to implicitly represent a
 		// directed graph of user files where there is an edge from file A to file B
 		// if file A imports a collection from file B.  This graph is used to derive
@@ -184,15 +184,16 @@
 				// Compute a topological sort ordering for file parsing.
 				// Do this implicitly without constructing a directed graph of file dependencies!
 				// Detect cycles too!
-			List allFiles       = u.getFileList();
-			List parseOrder     = new ArrayList();
-			Set  processedFiles = new HashSet();
+			List<UserFile> allFiles   = u.getFileList();
+			List<UserFile> parseOrder = new ArrayList<UserFile>();
+			Set<String> processedFiles = new HashSet<String>();
 			int  numLeft        = allFiles.size();
 			int  prevNumLeft    = numLeft;
 			while (numLeft > 0) {
 				prevNumLeft = numLeft;
 					// In each pass, at least one file should get processed!
-				for (Object file: allFiles) {
+				for (Object uf: allFiles) {
+					String file = ((UserFile)uf)._name;
 					if (!processedFiles.contains(file)) {
 						boolean ready = true;
 
@@ -201,7 +202,7 @@
 						List imports = (List)_fileToImportsMap.get(file);
 						if (imports != null) {
 							for (Object collName: imports) {
-								Object fname = _collToFileMap.get(collName);
+								String fname = (String)_collToFileMap.get(collName);
 									// Check for readiness only if the collection is defined in some file.
 									// If not, we won't make progress on this collection and falsely say that we are stuck in a cycle!
 									// This is an undefined reference that will be caught in the second pass of parsing.
@@ -214,7 +215,7 @@
 
 							// 'f' is ready ... add
 						if (ready) {
-							parseOrder.add(file);
+							parseOrder.add((UserFile)uf);
 							processedFiles.add(file);
 							numLeft--;
 							_log.info("PASS 2: Adding file " + file + " to parse order");

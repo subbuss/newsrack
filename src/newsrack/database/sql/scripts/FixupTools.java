@@ -220,28 +220,39 @@ public class FixupTools
 		}
 	}
 
-	public static void revalidateAllUsers()
+	public static void revalidateUsers(Long ukey)
 	{
-		/* Users that dont import from anyone else! */
-		List<Long> ukeys_1 = (List<Long>)SQL_StmtExecutor.query(
-										"SELECT u_key FROM users WHERE NOT EXISTS (SELECT * FROM import_dependencies WHERE importing_user_key = u_key)",
-										new SQL_ValType[] {},
-										new Object[]{},
-										SQL_StmtExecutor._longProcessor,
-										false);
+		if (ukey == null) {
+			/* Users that dont import from anyone else! */
+			List<Long> ukeys_1 = (List<Long>)SQL_StmtExecutor.query(
+											"SELECT u_key FROM users WHERE NOT EXISTS (SELECT * FROM import_dependencies WHERE importing_user_key = u_key) AND validated=1",
+											new SQL_ValType[] {},
+											new Object[]{},
+											SQL_StmtExecutor._longProcessor,
+											false);
 
-		/* Invalidate */
-		for (Long k: ukeys_1)
-			_db.getUser(k).invalidateAllIssues();
+			/* Invalidate */
+			for (Long k: ukeys_1)
+				_db.getUser(k).invalidateAllIssues();
 
-		/* Validate */
-		for (Long k: ukeys_1) {
-			User u = _db.getUser(k);
+			/* Validate */
+			for (Long k: ukeys_1) {
+				User u = _db.getUser(k);
+				try {
+					u.validateAllIssues(false);
+				}
+				catch (Exception e) {
+					System.out.println("Exception " + e + " validating user: " + u.getName());
+				}
+			}
+		}
+		else {
 			try {
-				u.validateAllIssues(false);
+				_db.getUser(ukey).invalidateAllIssues();
+				_db.getUser(ukey).validateAllIssues(false);
 			}
 			catch (Exception e) {
-				System.out.println("Exception " + e + " validating user: " + u.getName());
+				System.out.println("Exception " + e + " validating user: " + ukey);
 			}
 		}
 	}
@@ -300,8 +311,8 @@ public class FixupTools
 		else if (action.equals("get-cat-files")) {
 	      outputLocalFilePathsForCategorizedNews(Long.parseLong(args[2]));
 		}
-		else if (action.equals("revalidate-all-users")) {
-			revalidateAllUsers();
+		else if (action.equals("revalidate-users")) {
+			revalidateUsers(args.length > 2 ? Long.parseLong(args[2]) : null);
 		}
       else {
          System.out.println("Unknown action: " + action);

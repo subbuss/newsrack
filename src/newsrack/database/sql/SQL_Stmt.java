@@ -881,7 +881,7 @@ public enum SQL_Stmt
 		true
    ),
    GET_ALL_FILES_BY_USER_KEY(
-      "SELECT file_name, u_key, file_name FROM user_files WHERE u_key = ? ORDER BY file_name",
+      "SELECT file_key, u_key, file_name FROM user_files WHERE u_key = ? ORDER BY file_name",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -1175,7 +1175,7 @@ public enum SQL_Stmt
 	),
 	INSERT_COLLECTION(
 		"INSERT INTO user_collections (coll_name, coll_type, file_key, u_key, uid) VALUES (?, ?, ?, ?, ?)",
-		new SQL_ValType[] {STRING, STRING, LONG, STRING},
+		new SQL_ValType[] {STRING, STRING, LONG, LONG, STRING},
       SQL_StmtType.INSERT,
 		null,
 		new GetLongResultProcessor(),

@@ -813,7 +813,7 @@ public class User implements java.io.Serializable
 						if (allDone) {
 							try {
 								_log.info("Validating dependent user: " + u.getUid());
-								u.validateAllIssues(true);
+								u.validateAllIssues(genScanners);
 							} 
 							catch(Exception e) {
 								_log.error("Exception validating user: " + u.getUid(), e);
