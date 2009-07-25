@@ -244,6 +244,9 @@ public class FixupTools
 				catch (Exception e) {
 					System.out.println("Exception " + e + " validating user: " + u.getName());
 				}
+				catch (Error e) {
+					System.out.println("Error " + e + " validating user: " + u.getName());
+				}
 			}
 		}
 		else {

@@ -305,7 +305,7 @@ public class User implements java.io.Serializable
 
 		for (UserFile uf: _files) {
 			if (uf.getName().equals(f)) {
-				_files.remove(f);
+				_files.remove(uf);
 				_db.deleteFile(uf);
 			}
 		}

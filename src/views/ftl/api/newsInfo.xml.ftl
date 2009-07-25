@@ -6,6 +6,7 @@
   <url val="${n.getURL()}" />
   <date val="${n.date.toString()}" />
   <source val="${n.feed.name}" url="${n.feed.url}" />
+  <author val="${n.author}" />
   <desc val="${n.description}" />
   <categories>
   <#foreach c in categories>
