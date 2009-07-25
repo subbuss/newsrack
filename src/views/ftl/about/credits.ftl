@@ -62,7 +62,7 @@ have contributed code to the project which has already been incorporated into th
 <a target="_blank" href="http://beaver.sourceforge.net">Beaver (LALR Parser Generator)</a>, 
 <a target="_blank" href="http://htmlparser.sourceforge.net">HTMLParser</a>,
 <a target="_blank" href="http://rome.dev.java.net">Rome (RSS/Atom syndication tools) </a>,
-<a target="_blank" href="http://flex.de">Flex (Lexical Analyzer Generator)</a>, 
+<a target="_blank" href="http://jflex.de">JFlex (A Fast Scanner (Lexical Analyzer) Generator for Java)</a>, 
 <a target="_blank" href="http://opensymphony.com">OSCache</a>, and
 <a target="_blank" href="http://www.snaq.net/java/DBPool/">DBPool</a>.
 

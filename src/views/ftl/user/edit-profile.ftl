@@ -28,12 +28,12 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
 	<#foreach f in fileList>
   <tr>
     <td class="files"> 
-			<a target="_blank" href="<@s.url namespace="/file" action="display" file="${f}" />">${f}</a>
+			<a target="_blank" href="<@s.url namespace="/file" action="display" file="${f.name}" />">${f.name}</a>
     </td>
     <td class="actions">
-			<a href="<@s.url namespace="/file" action="edit" file="${f}" />">Edit</a>,
-			<a href="<@s.url namespace="/forms" action="rename-file" file="${f}" />">Rename</a>,
-			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f}'" /></@s.url>">Delete</a>
+			<a href="<@s.url namespace="/file" action="edit" file="${f.name}" />">Edit</a>,
+			<a href="<@s.url namespace="/forms" action="rename-file" file="${f.name}" />">Rename</a>,
+			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f.name}'" /></@s.url>">Delete</a>
     </td>
   </tr>
 	</#foreach>
