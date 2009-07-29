@@ -25,7 +25,7 @@ public class URLCanonicalizer
 
 		/* These are patterns for detecting feed proxies */
 	static String[] proxyREStrs = new String[] { 
-		"^feeds\\..*$", "^rss\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo.com$", "^azcentral.com$"
+		"^feeds\\..*$", "^rss\\..*$", "^feedproxy\\..*$", "^.*\\.feedburner.com$", "^pheedo\\..*$", "^azcentral.com$"
 	};
 
 		/* Domains & corresponding url-split rule */

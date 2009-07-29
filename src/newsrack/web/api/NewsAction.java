@@ -1,9 +1,12 @@
 package newsrack.web.api;
 
+import org.apache.struts2.interceptor.ServletRequestAware;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 import newsrack.archiver.Source;
 import newsrack.database.NewsItem;
@@ -16,11 +19,14 @@ import com.opensymphony.xwork2.Action;
 /**
  * class <code>NewsAction</code> implements the functionality of fetching news and other news-related info
  */
-public class NewsAction extends BaseApiAction
+public class NewsAction extends BaseApiAction implements ServletRequestAware
 {
    private static final ThreadLocal<SimpleDateFormat> DATE_PARSER = new ThreadLocal<SimpleDateFormat>() {
 		protected SimpleDateFormat initialValue() { return new SimpleDateFormat("yyyy.MM.dd"); }
 	};
+
+	private HttpServletRequest _req;
+	public void setServletRequest(HttpServletRequest request) { _req = request; }
 
 	private List<NewsItem> _news;
 	public List<NewsItem> getNewsList() { return _news; }
@@ -148,15 +154,19 @@ public class NewsAction extends BaseApiAction
 
 	public String getNewsInfo()
 	{
-		String url     = getApiParamValue("url", false); 	// URL - mandatory
 		String uidList = getApiParamValue("uids", true); 	// User id list, comma-separated - optional
 		String uid     = getApiParamValue("uid", true); 	// User - optional
 		String tname   = getApiParamValue("topic", true);  // Topic Name - optional (only works in conjunction with uid)
 		if (tname == null)
 			tname = getApiParamValue("issue", true); // Accept issue too - optional (only works in conjunction with uid)
 
+			// The url param is always the last parameter -- get it from the query string.  Using getApiParamValue will not work
+			// because if the target url has url params itself (&x=v), those will get stripped from the target url by the interceptor
+			// that sets these params (obviously, since it doesn't know anything about where the url begins and ends!)
+		String url = _req.getQueryString().replaceAll(".*&url=", "");
+
 			// Reduce url to canonical form before querying!
-		url = newsrack.util.URLCanonicalizer.canonicalize(url);
+		newsrack.util.URLCanonicalizer.canonicalize(url);
 		_newsItem = NewsItem.getNewsItemFromURL(url);
 		if (_newsItem == null) {
 			_errMsg = getText("url.not.found");
