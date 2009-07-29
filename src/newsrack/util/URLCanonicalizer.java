@@ -54,9 +54,9 @@ public class URLCanonicalizer
 		"latimes.com", "twincities.com", "mercurynews.com",
 		"seattletimes.nwsource.com", "reuters.com", "sltrib.com",
 		"thenation.com", "salon.com", "newsweek.com", "forbes.com",
-		"seattlepi.nwsource.com", "denverpost.com", "grist.org",
+		"seattlepi.nwsource.com", "denverpost.com", "grist.org", "gristmill.grist.org",
 		"topix.com", "cbc.ca", "esquire.com", "ibnlive.com",
-		"ft.com"
+		"ft.com", "alternet.org", "newyorker.com", "vanityfair.com"
    };
 
 	static Pattern[] proxyREs;
