@@ -465,11 +465,11 @@ public abstract class DB_Interface
 
 	/**
 	 * Record a classified news item!
-	 * @param ni   News Item that has been classified in category c
-	 * @param c    Category into which ni has been classified
-	 * @param matchCount  Match weight
+	 * @param ni    News Item that has been classified in category c
+	 * @param c     Category into which ni has been classified
+	 * @param score Match score
 	 */
-	public abstract void addNewsItem(NewsItem ni, Category c, int matchCount);
+	public abstract void addNewsItem(NewsItem ni, Category c, int score);
 
 	/**
 	 * Gets list of articles classified in a category

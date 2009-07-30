@@ -1828,11 +1828,11 @@ public class SQL_DB extends DB_Interface
 
 	/**
 	 * Record a classified news item!
-	 * @param ni   News Item that has been classified in category c
-	 * @param c    Category into which ni has been classified
-	 * @param matchCount  Match weight
+	 * @param ni    News Item that has been classified in category c
+	 * @param c     Category into which ni has been classified
+	 * @param score Match score
 	 */
-	public void addNewsItem(NewsItem ni, Category cat, int matchCount)
+	public void addNewsItem(NewsItem ni, Category cat, int score)
 	{
 		if (cat.isLeafCategory()) {
 			// NOTE: To be strictly correct, I need to purge news from this cat, my ancestors & children too .

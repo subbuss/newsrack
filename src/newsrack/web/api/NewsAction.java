@@ -163,7 +163,8 @@ public class NewsAction extends BaseApiAction implements ServletRequestAware
 			// The url param is always the last parameter -- get it from the query string.  Using getApiParamValue will not work
 			// because if the target url has url params itself (&x=v), those will get stripped from the target url by the interceptor
 			// that sets these params (obviously, since it doesn't know anything about where the url begins and ends!)
-		String url = _req.getQueryString().replaceAll(".*&url=", "");
+		String url = _req.getQueryString().replaceAll(".*url=", "");
+		_log.info("QS = " + _req.getQueryString() + "; url = " + url);
 
 			// Reduce url to canonical form before querying!
 		newsrack.util.URLCanonicalizer.canonicalize(url);
