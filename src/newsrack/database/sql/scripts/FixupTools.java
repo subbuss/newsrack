@@ -239,7 +239,7 @@ public class FixupTools
 			for (Long k: ukeys_1) {
 				User u = _db.getUser(k);
 				try {
-					u.validateAllIssues(false);
+					u.validateAllIssues(true);
 				}
 				catch (Exception e) {
 					System.out.println("Exception " + e + " validating user: " + u.getName());
@@ -252,7 +252,7 @@ public class FixupTools
 		else {
 			try {
 				_db.getUser(ukey).invalidateAllIssues();
-				_db.getUser(ukey).validateAllIssues(false);
+				_db.getUser(ukey).validateAllIssues(true);
 			}
 			catch (Exception e) {
 				System.out.println("Exception " + e + " validating user: " + ukey);

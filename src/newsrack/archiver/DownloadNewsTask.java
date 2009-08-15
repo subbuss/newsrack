@@ -250,7 +250,8 @@ public class DownloadNewsTask extends TimerTask
       	ExecutorService tpool = Executors.newFixedThreadPool(DOWNLOAD_MAX_THREADS);
 
          int feedCount = 0;
-			Collection<Feed> activeFeeds = Feed.getActiveFeeds();
+			List<Feed> activeFeeds = Feed.getActiveFeeds();
+         java.util.Collections.shuffle(activeFeeds);
 			for (Feed f: activeFeeds) {
             feedCount++;
             tpool.execute(new FeedDownloader(f));

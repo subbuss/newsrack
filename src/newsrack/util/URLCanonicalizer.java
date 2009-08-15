@@ -197,12 +197,16 @@ public class URLCanonicalizer
 		do {
 		   repeat = false;
 
-				// Special rule for news.google.com
+				// Special rule for news.google.com: FIXME: Merge this into existing rules!
 			if (url.indexOf("news.google.com/") != -1) {
 				int proxyUrlStart = url.lastIndexOf("http://");
 				if (proxyUrlStart != -1) {
 					url = url.substring(proxyUrlStart);
-					url = url.substring(0, url.lastIndexOf("&cid="));
+               int i = url.lastIndexOf("&usg=");
+               if (i < 0)
+                  i = url.lastIndexOf("&cid=");
+               if (i > 0)
+                  url = url.substring(0, i);
 				}
 			}
 

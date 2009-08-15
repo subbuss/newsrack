@@ -109,7 +109,7 @@ public class Feed implements java.io.Serializable
 		return f;
 	}
 
-	public static Collection<Feed> getActiveFeeds()
+	public static List<Feed> getActiveFeeds()
 	{
 		return _db.getAllActiveFeeds();
 	}
