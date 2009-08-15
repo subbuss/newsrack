@@ -1027,7 +1027,7 @@ public class Issue implements java.io.Serializable
 
 	private void scanAndClassifyNewsItems(Feed f, Collection<NewsItem> newsItems, boolean skipProcessed)
 	{
-		if (_log.isDebugEnabled()) _log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f._feedName));
+		if (_log.isDebugEnabled()) _log.debug("... request to scan and classify for " + getName() + " for feed " + ((f == null) ? null: f.getName()));
 
 		Long maxNewsId = (long)0;
 		PrintWriter pw = null;

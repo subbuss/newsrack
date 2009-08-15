@@ -51,7 +51,7 @@ public class DownloadNewsTask extends TimerTask
                done = true;
             }
             catch (Exception e) {
-               _log.error("Exception reading feed " + feed.getTag() + " with feed " + feed._feedUrl, e);
+               _log.error("Exception reading feed " + feed.getTag() + " with feed " + feed.getUrl(), e);
             }
          }
 
@@ -103,7 +103,7 @@ public class DownloadNewsTask extends TimerTask
 				for (Source s: iSrcs) {
 					try {
 						Feed f = s.getFeed();
-						if (f._feedUrl == null) {
+						if (f.getUrl() == null) {
 							_log.error("ERROR? empty url for feed with key: " + f.getKey() + " for source " + s.getName());
 							continue;
 						}

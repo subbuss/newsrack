@@ -406,7 +406,7 @@ class GetFeedResultProcessor extends AbstractResultProcessor
 		String feedTag   = rs.getString(2);
 		String feedName  = rs.getString(3);
 		String rssFeed   = rs.getString(4) + rs.getString(5);
-		Feed f = new Feed(feedKey, feedTag, feedName, rssFeed);
+		Feed f = new Feed(feedKey, feedTag, feedName, rssFeed, rs.getInt(8), rs.getInt(9));
 		f.setCacheableFlag(rs.getBoolean(6));
 		f.setShowCachedTextDisplayFlag(rs.getBoolean(7));
 		return f;
@@ -645,7 +645,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_FEED(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -653,7 +653,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_FEED_FROM_URL(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE url_root = ? AND url_tail = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE url_root = ? AND url_tail = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -661,7 +661,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_FEED_FROM_TAG(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_tag = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE feed_tag = ?",
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -669,7 +669,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_FEEDS(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -1065,7 +1065,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_ALL_ACTIVE_FEEDS(
-	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources, topics where topics.frozen = 0 and topic_sources.t_key=topics.t_key)",
+	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources, topics where topics.frozen = 0 and topic_sources.t_key=topics.t_key)",
 		new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -1098,7 +1098,7 @@ public enum SQL_Stmt
 		true
 	),
    INSERT_FEED(
-		"INSERT INTO feeds (feed_name, url_root, url_tail) VALUES (?,?,?)",
+		"INSERT INTO feeds (feed_name, url_root, url_tail, num_fetches, num_failures) VALUES (?,?,?,0,0)",
 		new SQL_ValType[] {STRING, STRING, STRING},
       SQL_StmtType.INSERT,
       new SQL_ColumnSize[] {NONE, FEED_TBL_FEEDURLROOT, FEED_TBL_FEEDURLTAIL},
@@ -1242,6 +1242,11 @@ public enum SQL_Stmt
 	SET_FEED_TAG(
 		"UPDATE feeds SET feed_tag = ? WHERE feed_key = ?",
       new SQL_ValType[] {STRING, LONG}, 
+		SQL_StmtType.UPDATE
+	),
+	UPDATE_FEED_STATS(
+		"UPDATE feeds SET num_fetches = ?, num_failures = ? WHERE feed_key = ?",
+      new SQL_ValType[] {INT, INT, LONG}, 
 		SQL_StmtType.UPDATE
 	),
    UPDATE_CONCEPT_TOKEN(

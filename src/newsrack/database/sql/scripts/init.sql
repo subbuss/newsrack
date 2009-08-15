@@ -18,6 +18,8 @@ create table if not exists feeds (
 	cacheable        boolean  default true,
 	show_cache_links boolean  default false,
 	mins_between_downloads int default 120,
+	num_fetches      int,
+	num_failures     int,
    primary key(feed_key),
 	unique(feed_tag)
 ) charset=utf8 collate=utf8_bin;

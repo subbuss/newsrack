@@ -194,32 +194,33 @@ public class Feed implements java.io.Serializable
 // ############### NON-STATIC FIELDS AND METHODS ############
 	/* 256 bytes for most => 4 feeds per KB => 4000 feeds per MB RAM */
 
-	public Long   _id;		 // System-assigned unique id (int) for this feed
-	public String _feedTag;	 // System-assigned unique id (String) for this feed
+	private Long   _id;			// System-assigned unique id (int) for this feed
+	private String _feedTag;	// System-assigned unique id (String) for this feed
 		// INVARIANT: "_feedTag" has "_id" at the beginning!
-	public String _feedUrl;	 // URL of the feed, if any exists.  null if none exists
-	public String _feedName; // Display name for the feed
+	private String _feedUrl;	// URL of the feed, if any exists.  null if none exists
+	private String _feedName;	// Display name for the feed
+	private int    _numFetches;	// Number of fetches of this feed
+	private int    _numFailures;	// Number of failed fetches
 
    private boolean _cacheableFlag;
    private boolean _cachedTextDisplayFlag;
 
 	public  Feed() { } /* Default constructor */
 
-	public Feed(Long key, String tag, String name, String url)
+	public Feed(Long key, String tag, String name, String url, int fetches, int failures)
 	{
 		_id       = key;
 		_feedTag  = tag;
 		_feedUrl  = url;
 		_feedName = name.trim();	// trim white space at the beginning and end
+		_numFetches = fetches;
+		_numFailures = failures;
 	}
-/**
-	public Feed(String tag, String name, String url)
+
+	public Feed(Long key, String tag, String name, String url)
 	{
-		_feedTag  = tag;
-		_feedUrl  = url;
-		_feedName = name.trim();	// trim white space at the beginning and end
+		this(key, tag, name, url, 0, 0);
 	}
-**/
 
 	public boolean equals(Object o) { return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed)o)._feedUrl); }
 
@@ -231,6 +232,8 @@ public class Feed implements java.io.Serializable
 	public String  getUrl()    { return _feedUrl; }
 	public boolean getCacheableFlag() { return _cacheableFlag; }
 	public boolean getCachedTextDisplayFlag() { return _cachedTextDisplayFlag; }
+	public int     getNumFetches() { return _numFetches; }
+	public int     getNumFailures() { return _numFailures; }
 
 	public void setCacheableFlag(boolean flag) { _cacheableFlag = flag; }
 	public void setShowCachedTextDisplayFlag(boolean flag) { _cachedTextDisplayFlag = flag; }
@@ -418,70 +421,78 @@ public class Feed implements java.io.Serializable
 	{
 		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 
-			// 1. Read the feed
-		Triple<SyndFeed, String, Date> t = fetchFeed();
-		if (t == null) 
-			return;
+		_numFetches++;
+		try {
+				// 1. Read the feed
+			Triple<SyndFeed, String, Date> t = fetchFeed();
+			if (t == null) 
+				return;
 
-		SyndFeed sf         = t._a;
-		String   baseUrl    = t._b;
-		Date     rssPubDate = t._c;
+			SyndFeed sf         = t._a;
+			String   baseUrl    = t._b;
+			Date     rssPubDate = t._c;
 
-			// 2. Inform the DB before news downloading  
-		_db.initializeNewsDownload(this, rssPubDate);
+				// 2. Inform the DB before news downloading  
+			_db.initializeNewsDownload(this, rssPubDate);
 
-			// 3. Process the news items in the feed
-		Iterator items = sf.getEntries().iterator();
-		while (items.hasNext()) {
-				// 4. Process a news item
-			SyndEntry se = (SyndEntry)items.next();
+				// 3. Process the news items in the feed
+			Iterator items = sf.getEntries().iterator();
+			while (items.hasNext()) {
+					// 4. Process a news item
+				SyndEntry se = (SyndEntry)items.next();
 
-				// 4a. Try getting published date of the news item 
-				// If no item date, default is the pub date of the RSS feed
-			Date itemDate = se.getPublishedDate();
-			Date niDate   = (itemDate != null) ? itemDate: rssPubDate;
-				// HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
-			if (_id == 241)
-				niDate = new Date();
+					// 4a. Try getting published date of the news item 
+					// If no item date, default is the pub date of the RSS feed
+				Date itemDate = se.getPublishedDate();
+				Date niDate   = (itemDate != null) ? itemDate: rssPubDate;
+					// HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
+				if (_id == 241)
+					niDate = new Date();
 
-				// 4b. Spit out some debug information
-			if (_log.isInfoEnabled()) {
-				StringBuffer sb = new StringBuffer();
-				sb.append("\ntitle     - " + se.getTitle());
-				sb.append("\nlink      - " + se.getLink());
-				sb.append("\nITEM date - " + itemDate);
-				_log.info(sb);
-			}
+					// 4b. Spit out some debug information
+				if (_log.isInfoEnabled()) {
+					StringBuffer sb = new StringBuffer();
+					sb.append("\ntitle     - " + se.getTitle());
+					sb.append("\nlink      - " + se.getLink());
+					sb.append("\nITEM date - " + itemDate);
+					_log.info(sb);
+				}
 
-				// 4c. Download the news item
-				//
-				// For some bad RSS feeds (Doordarshan), there exist initial
-				// <item> objects that have all their entries set to null!
-				// Hence the check below!
-			if (se.getLink() != null) {
-				NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), se.getTitle(), niDate);
-				if (ni != null) {
-						// Set up the various fields of the news item only if the item is not already in the db!
-					if (ni.getKey() == null) {
-						String auth  = se.getAuthor();
-						String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
-						try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = se.getTitle(); }
-						ni.setAuthor((auth != null) ? auth.trim() : null);
-						ni.setDescription((desc != null) ? desc.trim() : null);
+					// 4c. Download the news item
+					//
+					// For some bad RSS feeds (Doordarshan), there exist initial
+					// <item> objects that have all their entries set to null!
+					// Hence the check below!
+				if (se.getLink() != null) {
+					NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), se.getTitle(), niDate);
+					if (ni != null) {
+							// Set up the various fields of the news item only if the item is not already in the db!
+						if (ni.getKey() == null) {
+							String auth  = se.getAuthor();
+							String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
+							try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = se.getTitle(); }
+							ni.setAuthor((auth != null) ? auth.trim() : null);
+							ni.setDescription((desc != null) ? desc.trim() : null);
+						}
+
+							// 7d. Record the news item with the DB
+							//
+							// IMPORTANT: Even though ni might already be the db, we are passing it in because ni might have
+							// been downloaded by another feed.  By making this call, we ensure that ni gets added to all
+							// feeds that it belongs to!
+						_db.recordDownloadedNewsItem(this, ni);
 					}
-
-						// 7d. Record the news item with the DB
-						//
-						// IMPORTANT: Even though ni might already be the db, we are passing it in because ni might have
-						// been downloaded by another feed.  By making this call, we ensure that ni gets added to all
-						// feeds that it belongs to!
-					_db.recordDownloadedNewsItem(this, ni);
 				}
 			}
 		}
-
-			// 5. Inform the DB after news downloading  
-		_db.finalizeNewsDownload(this);
+		catch (Exception e) {
+			_numFailures++;
+			_log.error("ERROR: For feed " + this._id + ", got exception " + e + "; bumping failure count to " + _numFailures);
+		}
+		finally {
+				// 5. Inform the DB after news downloading  
+			_db.finalizeNewsDownload(this);
+		}
 	}
 
 	private NewsItem downloadNewsItem(String baseUrl, String storyUrl, String title, Date date)

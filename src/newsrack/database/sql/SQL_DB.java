@@ -1448,7 +1448,7 @@ public class SQL_DB extends DB_Interface
 
 	private Collection<NewsItem> getNewsForNewsRackFilterFeed(Feed f, Date startDate, Date endDate, int startId, int numArts)
 	{
-		_log.info("Request for news for " + f._feedUrl + " between " + startDate + " and " + endDate);
+		_log.info("Request for news for " + f.getUrl() + " between " + startDate + " and " + endDate);
 
 		// Request for filtered news from a newsrack topic / category
 		// The feed url can be in one of these forms:
@@ -1458,7 +1458,7 @@ public class SQL_DB extends DB_Interface
 		String url, server, uid, rest;
 
 		int i = "newsrack://".length();
-		url    = f._feedUrl;
+		url    = f.getUrl();
 		server = url.substring(i, url.indexOf("/", i));
 
 			// FIXME: Record error! Non-local servers not supported yet!
@@ -1559,6 +1559,8 @@ public class SQL_DB extends DB_Interface
 			// Nothing else to do!
 		if (NewsRack.inDebugMode())
 			printStats();
+
+		UPDATE_FEED_STATS.execute(new Object[]{f.getNumFetches(), f.getNumFailures(), f.getKey()});
 	}
 
 	private Long persistConcept(Long uKey, Concept c)
