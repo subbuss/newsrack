@@ -34,7 +34,7 @@ to be updated and made more readable.  Please feel free to
 <li><a href="#profile">Issue / Topic</a></li>
 <li><a href="#source">News Source</a></li>
 <li><a href="#concept">Concept</a></li>
-<li><a href="#category">Category</a></li>
+<li><a href="#category">Filtering Rules / Categories </a></li>
 <li><a href="#tips">Tips and Common mistakes</a></li>
 </ol>
 
@@ -357,7 +357,7 @@ that are written in different forms like this.
 
 <hr noshade="noshade">
 <a name="category"></a>
-<h2>6. Category</h2>
+<h2>6. Filtering Rules / Categories </h2>
 
 <p>
 As discussed earlier, NewsRack makes it possible for news articles within a topic to
@@ -379,16 +379,61 @@ using concepts.  For example, all the following are valid filtering rules:
 3. dam AND -smalldam
 4. dam AND (india OR pakistan)
 </pre>
-At this time, "AND" and "OR" and "-" are supported with their obvious meanings.  The first rule triggers whenever a dam concept is seen.
-The second rule triggers only when both a dam concept and the india concept is seen.  The third rule triggers only when the dam concept
-is present, but the smalldam concept is not present.  The fourth rule triggers whenever a dam concept and either india or pakistan
-concepts are seen.  
+At this time, "AND" and "OR" and "-" are supported with their obvious meanings.
+<ul>
+<li> The first rule triggers whenever a dam concept is seen. </li>
+<li> The second rule triggers only when both a dam concept and the india concept is seen. </li>
+<li> The third rule triggers only when the dam concept is present, but the smalldam concept is not present.</li>
+<li> The fourth rule triggers whenever a dam concept and either india or pakistan concepts are seen.  </li>
+</ul>
+</p>
 
-<h3>6.1 Context qualification</h3>
+<p>
+The next sections discuss a couple more advanced filtering options: proximity operator (~n), context-based filtering, specifying minimum # of occurences, nested categories.
+</p>
+
+<h3> 6.1 Proximity operator (~n) </h3>
+
+<p>
+Sometimes, two words/phrases you want to match might occur in different combinations.  For example, interlinking of rivers can occur in text in the 
+following forms: "river linking", "linking rivers", "linking of rivers", "linking of many rivers", "river inter-linking", "interlinking of rivers", and
+possibly a few others.  One way to do this is to define a concept that anticipates all these different phrase forms and records them in a single concept
+as follows: 
+<pre>
+define concepts
+  &lt;interlinking&gt; = river linking, linking rivers, linking of rivers,
+                   river interlinking, interlinking of rivers
+end
+def topic Interlinking = filter {rss.feeds} with interlinking
+</pre>
+While this will work, this is both cumbersome and might not necessarily capture everything.  Another way to handle this situation is to use the
+proximity operator.  For example, consider the following example:
+<pre>
+def concepts
+  &lt;river&gt; = river
+  &lt;interlinking&gt; = interlinking, linking
+end
+def topic Interlinking = filter {rss.feeds} with (river ~2 interlinking)
+</pre>
+The filtering rule: <span class="nrcode"> river ~2 interlinking </span> will trigger whenever the concepts river and interlinking are separated
+by at most two words.  This is more robust.
+</p>
+<p> One more example.  Consider the concepts:
+<pre>
+&lt;president&gt; = president, "mr."
+&lt;obama&gt; = obama, obaama
+</pre>
+With these concepts, the filtering rule <span class="nrcode">(president ~1 obama)</span> tries to match concepts president and obama separated by
+at most 1 word.   So, this will match "President Barack Obama" as well as "Mr. Obama" as well as "Mr. Barack Hussein Obaama".
+<p>
+So, more generally, the filtering rule <span class="nrcode"> a ~N b </span> will look for concepts 'a' and 'b' in text separated by at most N words.
+</p>
+
+<h3>6.2 Context qualification</h3>
 
 <p>
 Context qualification is also supported in filtering rules.  This is best
-explained using an example.  Consider the 2 rules
+explained using an example.  Consider the two rules:
 <pre>
 1. maheshwar
 2. |dam, hydel, narmada|.maheshwar
@@ -396,11 +441,25 @@ explained using an example.  Consider the 2 rules
 The first rule will match whenever the maheshwar concept is encountered in the article.
 But, "maheshwar" could be the name of a person or a place and I might only be interested
 in the reference to the Maheshwar dam and not about someone called maheshwar.  In cases
-such as these, the 2nd rule might be useful.  It asks newsrack to match the maheshwar
+such as these, the second rule might be useful.  It asks newsrack to match the maheshwar
 concept only if the article has references to dam, hydroelectricity, or narmada.
 </p>
 
-<h3>6.2 Nested Categories</h3>
+<h3>6.3 Controlling number of matches of a concept </h3>
+
+<p>
+NewsRack, by default, considers a concept to have matched if it finds at least two occurences.  
+For shorter articles (150 words or less), it loosens this requirement to only one occurence.
+But, you also have the option of changing this requirement in filtering rules as follows:
+<pre>
+dam AND india:1
+dam:5 AND india:5
+</pre>
+In the first case, you are asking that a single match of the india concept is sufficient.
+In the second case, you are asking that you want at least 5 matches of the dam and india concepts.
+</p>
+
+<h3>6.4 Nested Categories</h3>
 
 <p>
 Categories can also be organized into taxonomies.  So, you can define:
