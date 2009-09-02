@@ -74,8 +74,8 @@ Thus, you get greater precision in defining what you are looking for.
 NewsRack gives you the flexibility of specifying the exact set of news sources you want to
 monitor.  So, you can only monitor news from The Hindu, or you could only monitor
 all Indian editorial feeds, or you might want to monitor only business related feeds.
-But, if you want to monitor "all" news sources, NewsRack also provides features where
-you can simply pick "all known feeds", and use those.
+To get you started, NewsRack provides you several predefined feed collections to use.
+These are listed further below.
 </li>
 </ul>
 
@@ -284,6 +284,31 @@ define sources {Indian RSS Feeds}
 end
 </pre>
 </p>
+
+<h3>4.1 Predefined news collections </h3>
+<p>
+User account 'library' provides the following feed collections for you to use without having to go hunting for feeds.
+These collections are not comprehensive but is a good place to start and experiment.
+<ul>
+<li> India: {Indian News Media Feeds}, {Indian Magazine Feeds} </li>
+<li> US: {US News Media Feeds}, {US Magazine Feeds} </li>
+<li> UK: {BBC}, {Guardian} </li>
+<li> Canada: {Canada Feeds} </li>
+</ul>
+
+If you want to track US news media and magazines, please import them as follows:
+<pre>
+import {US News Media Feeds} from library
+import {US Magazine Feeds} from library
+
+... define concepts here ...
+
+define issue My Topic = filter sources {US News Media Feeds}, {US Magazine Feeds} into taxonomy
+   TAXONOMY-HERE
+end
+</pre>
+</p>
+
 
 <hr noshade="noshade">
 <a name="concept"></a>

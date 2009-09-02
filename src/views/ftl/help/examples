@@ -1,20 +1,18 @@
 (* ------------ Example 1 ---------------- *)
-import sources {rss.feeds} from subbu
-define topic Energy = filter {rss.feeds} with "energy"
-
+import sources {Indian News Media Feeds} from library
+define topic Energy = filter {Indian News Media Feeds} with "energy"
 
 (* ------------ Example 2 ---------------- *)
-import sources {rss.feeds} from subbu
+import sources {Indian News Media Feeds} from library
 define concepts
   &lt;energy&gt; = energy, power, electricity
   &lt;conventional&gt; = coal, lignite, oil, gas, petroleum
 end
 
-define topic Energy = filter {rss.feeds} with (energy AND conventional)
-
+define topic Energy = filter {Indian News Media Feeds} with (energy AND conventional)
 
 (* ------------ Example 3 ---------------- *)
-import sources {rss.feeds} from subbu
+import sources {Indian News Media Feeds} from library
 define concepts
    &lt;energy&gt; = energy, electricity, power
    &lt;coal&gt; = coal, lignite, coal-fired
@@ -24,7 +22,7 @@ define concepts
    &lt;wind&gt; = wind-power, wind, wind-mill
 end
 
-define issue Energy = filter {rss.feeds} into taxonomy
+define issue Energy = filter {Indian News Media Feeds} into taxonomy
    [Coal] = coal AND energy
    [Nuclear] = nuclear AND energy AND -ignore
    [Renewables] = {
@@ -32,3 +30,9 @@ define issue Energy = filter {rss.feeds} into taxonomy
       [Wind] = wind AND energy
    }
 end
+
+(* -------------- US Feeds ------------ *)
+(* If you want to track US Media, there are also some feed collections for US media.  Instead of {Indian News Media Feeds} above, use:
+import sources {US News Media Feeds} from library
+import sources {US Magazine Feeds} from library
+*)
