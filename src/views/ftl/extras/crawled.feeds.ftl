@@ -30,7 +30,6 @@
 	<li> <a href="<@s.url value="/crawled.feeds/ko.rss.xml" />">Kangla Online</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/epao.rss.xml" />">Manipur E-Pao</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/som.rss.xml" />">Star of Mysore</a> </li>
-	<li> <a href="<@s.url value="/crawled.feeds/nht.rss.xml" />">The Navhind Times</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/bs.rss.xml" />">Business Standard</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/oh.rss.xml" />">OHeraldo (Goa)</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/pioneer.rss.xml" />">The Pioneer</a> </li>
