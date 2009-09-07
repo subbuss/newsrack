@@ -421,6 +421,11 @@ public class Feed implements java.io.Serializable
 	{
 		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 
+      if (_numFetches > 100 && (_numFetches == _numFailures)) {
+         _log.info("... Ignoring feed: " + getKey() + "; too many past failures.  Probably a dead feed!");
+         return;
+      }
+
 		_numFetches++;
 		try {
 				// 1. Read the feed

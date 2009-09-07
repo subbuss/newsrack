@@ -24,7 +24,6 @@
 	</p>
 
 	<ul>
-	<li> <a href="<@s.url value="/crawled.feeds/dh.rss.xml" />">Deccan Herald</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/cc.rss.xml" />">Central Chronicle</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/ct.rss.xml" />">Chandigarh Tribune</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/at.rss.xml" />">Assam Tribune</a> </li>
