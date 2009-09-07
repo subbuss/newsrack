@@ -127,8 +127,8 @@ chop $date;
 $urlDateString      = "$date";
 #$urlDateString      = "20080610";
 #$date = "Tue, 3 Jan 2006 11:37:03 +0530";
-$defSiteRoot        = "http://www.centralchronicle.com/$urlDateString";
-$url                = "$defSiteRoot/index.htm";
+$defSiteRoot        = "http://www.centralchronicle.com";
+$url                = "$defSiteRoot/default.asp";
 ##
 ## END CUSTOM CODE 1
 ##
@@ -138,10 +138,10 @@ $url                = "$defSiteRoot/index.htm";
 &Initialize("", $url);
 
 ## Add any additional urls in addition to the root URL
-$altRootUrl = "$defSiteRoot/"; ## Alternative ROOT URL
-$urlList[1] = $altRootUrl;
-$links{$altRootUrl} = "ALT ROOT";
-print "ALT ROOT URL - $altRootUrl\n";
+#$altRootUrl = "$defSiteRoot/"; ## Alternative ROOT URL
+#$urlList[1] = $altRootUrl;
+#$links{$altRootUrl} = "ALT ROOT";
+#print "ALT ROOT URL - $altRootUrl\n";
 
 ## Process the url list while crawling the site
 while (@urlList) {
@@ -165,7 +165,7 @@ while (@urlList) {
 ## newspapers.
 ##
       # The next line uses information about Central Chronicle' site organization
-   if ($url =~ m{$urlDateString/\d+.htm$}) {
+   if ($url =~ m{/viewnews.asp}) {
 ##
 ## END CUSTOM CODE 2
 ##

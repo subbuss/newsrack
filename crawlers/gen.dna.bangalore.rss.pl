@@ -151,9 +151,8 @@ while (@urlList) {
    print LOG "PROCESSING $url ==> $links{$url}\n";
    $urlMap{$url} = $url;
 
-      ## The next line uses information about E-Pao's site structure
-		## http://www.e-pao.net/ge.asp?heading=1&src=161206
-   if ($url =~ m{newsid=(\d+)}i) {
+      ## The next line uses information about DNA-Bangalore's site structure
+   if ($url =~ m{$defSiteRoot/.*(\d+)$}i) {
       $origUrl = $url;
 		$title = $links{$url};
 		$title =~ s/<.*?>//g;

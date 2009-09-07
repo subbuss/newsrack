@@ -197,7 +197,7 @@ while (@urlList) {
 ## pti_.*       -- pti news
 ## author.asp   -- author pages
 
-   elsif (($url =~ m{$siteDomain/.*fodname=\d+.*$}) || ($url =~ /nextsubsection.asp/) || ($url =~ /pti_\w*.asp/) || ($url =~ /\&pn=\d*/) || ($url =~ /sectionpolls.asp/) || ($url =~ /\&cp=\d*/) || ($url =~ /photoessays/) || ($url =~ /archive\w*.asp/) || ($url =~ /subsecauthor.asp/) || ($url =~ /submain1.asp/) || ($url =~ /rants.asp/) || ($url =~ /author.asp/) || ($url =~ /quiz.asp/)) {
+   elsif (($url =~ m{$siteDomain/.*fodname=\d+.*$}) || ($url =~ /nextsubsection.asp/) || ($url =~ /pti_\w*.asp/) || ($url =~ /\&pn=\d*/) || ($url =~ /sectionpolls.asp/) || ($url =~ /\&cp=\d*/) || ($url =~ /photoessays/) || ($url =~ /archive\w*.asp/) || ($url =~ /subsecauthor.asp/) || ($url =~ /submain1.asp/) || ($url =~ /rants.asp/) || ($url =~ /author.asp/) || ($url =~ /quiz.asp/) || ($url =~ /web.aspx\?date=/)) {
 	   print "Skipping URL $url\n";
    }
 ##
