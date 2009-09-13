@@ -352,6 +352,19 @@ public class SQL_DB extends DB_Interface
 		return u;
 	}
 
+	private String getSecondaryIssueKey(User u, String issueName)
+	{
+		return u.getUid() + ":" + issueName;
+	}
+
+	private void addIssueToCache(Issue i)
+	{
+		User u       = i.getUser();
+		Long userKey = u.getKey();
+		_cache.add("ISSUE", userKey, i.getKey(), i);
+		_cache.add("ISSUE", userKey, getSecondaryIssueKey(u, i.getName()), i);
+	}
+
 	public Issue getIssue(Long key)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Looking for issue with key: " + key);
@@ -363,7 +376,7 @@ public class SQL_DB extends DB_Interface
 		if (i == null) {
 			i = (Issue)GET_ISSUE.get(key);
 			if (i != null)
-				_cache.add("ISSUE", i.getUserKey(), key, i);
+				addIssueToCache(i);
 		}
 		return i;
 	}
@@ -1093,14 +1106,13 @@ public class SQL_DB extends DB_Interface
 
    public Issue getIssue(User u, String issueName)
    {
-		String key = u.getUid() + ":" + issueName;
+		String key = getSecondaryIssueKey(u, issueName);
 		Issue i = (Issue)_cache.get("ISSUE", key);
 		if (i == null) {
 			i = (Issue)GET_ISSUE_BY_USER_KEY.execute(new Object[]{u.getKey(), issueName});
 			if (i != null) {
-				_cache.add("ISSUE", u.getKey(), key, i);
-				_cache.add("ISSUE", u.getKey(), i.getKey(), i);
 				i.setUser(u);
+				addIssueToCache(i);
 			}
 		}
 		return i;
