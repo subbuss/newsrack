@@ -2,8 +2,8 @@ The first example is a simple keyword-based filtering.  The topic simply tracks 
 
 <pre class="example">
 (* ------------ Example 1 ---------------- *)
-import sources {rss.feeds} from subbu
-define topic Energy = filter {rss.feeds} with "energy"
+import sources {Indian News Media Feeds} from library
+define topic Energy = filter {Indian News Media Feeds} with "energy"
 </pre>
 
 An improved version of the previous example where you try to capture all keywords that indicate energy, and also
@@ -12,13 +12,14 @@ called energy and conventional as shown below and then use that in the filter fo
 
 <pre class="example">
 (* ------------ Example 2 ---------------- *)
-import sources {rss.feeds} from subbu
+import sources {Indian News Media Feeds} from library
 define concepts
   &lt;energy&gt; = energy, power, electricity
   &lt;conventional&gt; = coal, lignite, oil, gas, petroleum
 end
 
-define topic Energy = filter {rss.feeds} with (energy AND conventional)
+define topic Energy = filter {Indian News Media Feeds} 
+                      with (energy AND conventional)
 </pre>
 
 This is an even more advanced version where you track news in various related categories and organize them into
@@ -27,7 +28,7 @@ in a taxonomy that is meaningful to you!
 
 <pre class="example">
 (* ------------ Example 3 ---------------- *)
-import sources {rss.feeds} from subbu
+import sources {Indian News Media Feeds} from library
 define concepts
    &lt;energy&gt; = energy, electricity, power
    &lt;coal&gt; = coal, lignite, coal-fired
@@ -37,7 +38,7 @@ define concepts
    &lt;wind&gt; = wind-power, wind, wind-mill
 end
 
-define issue Energy = filter {rss.feeds} into taxonomy
+define issue Energy = filter {Indian News Media Feeds} into taxonomy
    [Coal] = coal AND energy
    [Nuclear] = nuclear AND energy AND -ignore
    [Renewables] = {

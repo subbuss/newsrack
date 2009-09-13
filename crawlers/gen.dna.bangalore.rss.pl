@@ -123,8 +123,8 @@ sub ProcessPage
 
 $newspaper   = "DNA: Bangalore";
 $prefix      = "dna.blr";
-$defSiteRoot = "http://www.dnaindia.com/bangalore";
-$url         = "$defSiteRoot";
+$defSiteRoot = "http://www.dnaindia.com";
+$url         = "$defSiteRoot/bangalore";
 $rootUrl     = $url;
 
 ##
