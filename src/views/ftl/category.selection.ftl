@@ -124,13 +124,14 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="17" />">&nbsp;Mining</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="demo" issue="Multilingual-Demo" />">&nbsp;Multi Languages Demo</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="iwphindi" issue="Water" catID="2" />">&nbsp;पानी</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="4" />">&nbsp;Nandigram</a><br />
 </td>
 <td>
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Land+Issues" catID="4" />">&nbsp;Nandigram</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="7" />">&nbsp;Narmada Dams</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="narmada" catID="14" />">&nbsp;Narmada Rehab</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="6" />">&nbsp;National Envt. Policy</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Energy" catID="5" />">&nbsp;Nuclear Energy</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="nuclear" issue="Nuclear+Issues" />">&nbsp;Nuclear Issues</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="12" />">&nbsp;Oil Exploration</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="organic-agriculture" catID="1" />">&nbsp;Organic Agriculture</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Pink+Chaddi+Campaign" catID="1" />">&nbsp;Pink Chaddi Campaign</a><br />

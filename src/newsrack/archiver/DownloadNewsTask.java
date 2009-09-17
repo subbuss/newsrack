@@ -249,6 +249,7 @@ public class DownloadNewsTask extends TimerTask
 				// Create a thread pool for processing feeds in parallel
       	ExecutorService tpool = Executors.newFixedThreadPool(DOWNLOAD_MAX_THREADS);
 
+            // Randomize the download by shuffling the list
          int feedCount = 0;
 			List<Feed> activeFeeds = Feed.getActiveFeeds();
          java.util.Collections.shuffle(activeFeeds);
@@ -293,7 +294,9 @@ public class DownloadNewsTask extends TimerTask
 			}
 
             // Parse and classify news for every validated issue 
+            // Randomize the list
       	List<Issue> issues = User.getAllValidatedIssues();
+         java.util.Collections.shuffle(issues);
 			for (Issue i: issues) {
 				tpool.execute(new NewsClassifier(i));
 				issueCount++;
