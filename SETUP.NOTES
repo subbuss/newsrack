@@ -1,0 +1,37 @@
+1. edit /etc/init.d/tomcat5.5 and change 
+   - umask to 002
+	- logging from syslog to jsvc.out and jsvc.err
+	- add chmod commands to make these files accessible
+
+2. edit /etc/default/tomcat5.5 and change
+   - jvm path, if necessary
+	- add TOMCAT5_GROUP=tomcat55
+	- disable tomcat5 security
+	- edit jvm options to add heap sizes, server vm, gc settings
+
+3. for enabling access logs, edit server.xml and uncomment FastCommonAccessLogValve
+   and set log format to combined
+
+4. for mod_jk,
+   - edit /etc/libapache2-mod-jk/workers.properties 
+	   and change tomcat_home and java_home for our installation.
+   - set up newsrack.in.conf and mod-jk.conf in /etc/apache2/conf.d  
+	  (Or, set up newsrack.in in /sites.available and link in /sites.enabled, 
+	  can set virtualhosts * rather than for a specific ip addr)
+	- edit newsrack.in.conf and make sure the ip address is correct
+	- IMPORTANT: add socket_timeout for the works to ensure that sockets
+	  get closed promptly!
+	     worker.ajp13_worker.socket_timeout=5
+
+5. make sure permissions for files in data/users/ and data/news.archive/ are
+   set to g+w and that ownership is tomcat55:nogroup
+
+6. Edit /etc/security/limits.conf and double nofile limit for newsrack
+   from 1024 to 2048 -- to give me breathing space while I figure out
+	how to get tomcat/mod_jk to co-operate and not leave lots of sockets
+	in CLOSE_WAIT state -- this will also let me increase the number of
+	download threads without running out of available file descriptors
+
+	TIPS: 
+	1. Use sudo lsof -p <jsvc.process.id> to the list of open files!
+	2. Use sudo netstat to see the state of sockets

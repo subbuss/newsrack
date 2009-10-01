@@ -1,0 +1,40 @@
+1. Create resources/newsrack.properties.override and add the following properties there:
+--------------------------------
+# SQL db info
+sql.dbName             = 
+sql.userHome           = 
+sql.archiveHome        = 
+sql.user               = 
+sql.password           = 
+
+# Email info -- not needed if you are not going to send emails for password resets
+email.admin.emailid    =
+email.system.fromid    =
+email.smtp.server      =
+email.smtp.port        =
+email.smtp.auth        =
+email.smtp.auth.user   =
+email.smtp.auth.passwd =
+email.smtp.ssl         =
+
+# Set testing, readonly, debugging to true if you dont want anything to be downloaded
+testing                  = false
+readonly                 = false
+debugging                = false
+download.init_delay.secs = 60
+download.period.mins     = 120
+--------------------------------
+
+2. Read SETUP.NOTES for information about configuring tomcat and modjk
+
+3. Create build.properties and setup build properties that you want to override -- the two properties you might override are: 
+----------------
+webapp.name =   
+container.dir = 
+----------------
+
+4. ant build builds code 
+
+5. ant war builds war
+
+6. ant deploy deploys the application
