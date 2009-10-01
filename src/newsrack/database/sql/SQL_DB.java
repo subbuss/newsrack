@@ -381,6 +381,20 @@ public class SQL_DB extends DB_Interface
 		return i;
 	}
 
+   public Issue getIssue(User u, String issueName)
+   {
+		String key = getSecondaryIssueKey(u, issueName);
+		Issue i = (Issue)_cache.get("ISSUE", key);
+		if (i == null) {
+			i = (Issue)GET_ISSUE_BY_USER_KEY.execute(new Object[]{u.getKey(), issueName});
+			if (i != null) {
+				i.setUser(u);
+				addIssueToCache(i);
+			}
+		}
+		return i;
+   }
+
 	public Concept getConcept(Long key)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Looking for concept with key: " + key);
@@ -1103,20 +1117,6 @@ public class SQL_DB extends DB_Interface
 	{
       return (List<Feed>)GET_ALL_FEEDS.execute(EMPTY_ARGS);
 	}
-
-   public Issue getIssue(User u, String issueName)
-   {
-		String key = getSecondaryIssueKey(u, issueName);
-		Issue i = (Issue)_cache.get("ISSUE", key);
-		if (i == null) {
-			i = (Issue)GET_ISSUE_BY_USER_KEY.execute(new Object[]{u.getKey(), issueName});
-			if (i != null) {
-				i.setUser(u);
-				addIssueToCache(i);
-			}
-		}
-		return i;
-   }
 
    public List<Issue> getIssues(User u)
    {

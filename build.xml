@@ -45,6 +45,7 @@
     <fileset dir="${libdir}">
       <include name="**/*.jar" />
     </fileset>
+	 <pathelement location="/usr/share/tomcat5.5/common/lib/servlet-api.jar" />
   </path>
 
   <target name="beavertask" unless="beaver.available" description="creates Beaver Ant task">
@@ -99,11 +100,19 @@
 	 <copy failonerror="false" todir="${wardir}/crawled.feeds" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/crawled.feeds" /> </copy>
 	 <copy failonerror="false" todir="${wardir}/rss" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/rss" /> </copy>
 	    <!-- Next, copy all other files to the build dir -->
-    <copy todir="${webinf}">          <fileset dir="${webapp.config}"/> </copy>
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
-    <copy todir="${webinf}/lib">      <fileset dir="${libdir}"/> </copy>
     <copy todir="${wardir}/report">   <fileset dir="report"/> </copy>
     <copy todir="${classdir}">        <fileset dir="${webapp.resources}"/> </copy>
+    <copy todir="${webinf}/lib">
+	 	<fileset dir="${libdir}">
+			<exclude name="**/attic/*" />
+		</fileset>
+	 </copy>
+    <copy todir="${webinf}">          
+	   <fileset dir="${webapp.config}"> 
+			<exclude name="**/attic/*" />
+		</fileset>
+	 </copy>
 	 <copy todir="${classdir}">
 	 	<fileset dir="${srcdir}">
 			<exclude name="**/attic/*" />
@@ -145,5 +154,4 @@
     <taskdef name="urlrewritedoc" classname="org.tuckey.web.filters.urlrewrite.UrlRewriteDocTask" />
     <urlrewritedoc conf="${home}/config/urlrewrite.xml" dest="urlrewrite-conf-overview.html" />
   </target>
-
 </project>

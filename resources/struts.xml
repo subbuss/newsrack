@@ -60,7 +60,7 @@
       <result name="unhandledException">/ftl/internal.error.ftl</result>
       <result name="login">/ftl/forms/login.ftl</result>
       <result name="internal.app.error">/ftl/internal.error.ftl</result>
-      <result name="home" type="redirect-action">home</result>
+      <result name="home" type="redirectAction">home</result>
     </global-results>
 
     <global-exception-mappings>
@@ -180,7 +180,7 @@
       <interceptor-ref name="simpleLoginStack" />
       <result>/ftl/user/home.ftl</result>
       <result name="input">/ftl/user/reset-password.ftl</result>
-      <result name="error" type="redirect-action">home</result>
+      <result name="error" type="redirectAction">home</result>
     </action>
   </package>
 

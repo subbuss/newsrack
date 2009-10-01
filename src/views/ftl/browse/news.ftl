@@ -1,7 +1,6 @@
 [#ftl]
 
 [#-- Initialize various parameters --]
-
 [#assign issueName = issue.name]
 [#assign ownerID = owner.uid]
 [#assign startId = start+1]
@@ -40,6 +39,21 @@
 [#-- Check if user newstrust is signed in --]
 [#assign addNTButton = user?exists && user.uid.equals("newstrust")]
 
+[#-- Compute base url based on various params --]
+[#if unknownNewsCount]
+  [#if Parameters.start_date?exists && Parameters.source_tag?exists]
+    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" source_tag="${Parameters.source_tag}" /]
+  [#elseif Parameters.start_date?exists]
+    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" /]
+  [#elseif Parameters.source_tag?exists]
+    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${Parameters.source_tag}" /]
+  [#elseif cat.leafCategory == false ]
+    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" show_news="true" /]
+  [/#if]
+[#else]
+  [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]
+[/#if]
+
 [#--################################## --]
 [#macro displayNavigationBar]
 <div class="newsnavbar">
@@ -49,39 +63,29 @@
 [#if unknownNewsCount]
 	&nbsp;&nbsp;&nbsp; [#-- filler to ensure this navbar has some vertical space --]
    <div class="navbar">
-  [#if Parameters.start_date?exists && Parameters.source_tag?exists]
-    [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" source_tag="${Parameters.source_tag}" /]
-  [#elseif Parameters.start_date?exists]
-    [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" /]
-  [#elseif Parameters.source_tag?exists]
-    [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${Parameters.source_tag}" /]
-  [#elseif cat.leafCategory == false ]
-    [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" show_news="true" /]
-  [/#if] 
   [#if start < 1]
    |&lt; First &nbsp; &lt;&lt; Previous
   [#else]
-   <a href="${base_url}"> |&lt; First</a> &nbsp; <a href="${base_url}&start=${prevId?c}"> &lt;&lt; Previous</a> &nbsp;
+   <a href="${baseUrl}"> |&lt; First</a> &nbsp; <a href="${baseUrl}&start=${prevId?c}"> &lt;&lt; Previous</a> &nbsp;
   [/#if]
   [#if news.size() < numArtsPerPage]
    Next &gt; &gt;
   [#else]
-   <a href="${base_url}&start=${nextId?c}">Next &gt;&gt;</a>
+   <a href="${baseUrl}&start=${nextId?c}">Next &gt;&gt;</a>
   [/#if]
    &nbsp; Last &gt;|
    </div>
 [#else]
 	${rangeBegin} to ${rangeEnd} of ${numArts} &nbsp;&nbsp;&nbsp;
    <div class="navbar">
-   [@s.url id="base_url" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]
    [#if (startId>1)]
-		<a href="${base_url}"> |&lt; First</a> &nbsp; <a href="${base_url}&start=${prevId?c}"> &lt;&lt; Previous</a>
+		<a href="${baseUrl}"> |&lt; First</a> &nbsp; <a href="${baseUrl}&start=${prevId?c}"> &lt;&lt; Previous</a>
    [#else]
 		|&lt; First &nbsp; &lt;&lt; Previous
    [/#if]
 	&nbsp;
    [#if nextId <= numArts]
-		<a href="${base_url}&start=${nextId?c}">Next &gt;&gt;</a> &nbsp; <a href="${base_url}&start=${lastId?c}">Last &gt;|</a>
+		<a href="${baseUrl}&start=${nextId?c}">Next &gt;&gt;</a> &nbsp; <a href="${baseUrl}&start=${lastId?c}">Last &gt;|</a>
    [#else]
 		Next &gt;&gt; &nbsp; Last &gt;|
    [/#if]
@@ -105,6 +109,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
+<link rel="canonical" href="${baseUrl}" />
 <link rel="alternate" type="application/rss+xml" title="[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
 <title>[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}</title>
 <meta name="Description" content="This page displays news for [#if cat?exists] '${cat.name}' category in [/#if] '${issueName}' topic set up by user ${ownerID}.">
