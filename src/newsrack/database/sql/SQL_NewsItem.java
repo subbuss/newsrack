@@ -230,11 +230,18 @@ public class SQL_NewsItem extends NewsItem
 	public Reader  getReader() throws java.io.IOException 
 	{ 
 		String fullPath = getNewsItemPath(false);
-		if (fullPath != null)
-			return IOUtils.getUTF8Reader(fullPath);
+        /* If body text is less than 512 bytes, assume it to be a non-text
+           feed */
+		if (fullPath != null) {
+            if (new File(fullPath).length() < 512) {
+                return new java.io.StringReader(this.getDescription());
+            }
+            else
+                return IOUtils.getUTF8Reader(fullPath);
+        }
 		else
 			throw new java.io.FileNotFoundException();
-	}
+    }
 
 	public Date    getDate()           	
 	{ 
