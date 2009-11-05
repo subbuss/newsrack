@@ -827,7 +827,7 @@
 %terminals URL_TOK, IDENT_TOK, STRING_TOK, NUM_TOK;
 %terminals IMPORT_SRCS, IMPORT_CONCEPTS, IMPORT_FILTERS, FROM_OPML;
 %terminals FROM, WITH, INTO_TAXONOMY, FILTER;
-%terminals DEF_SRCS, DEF_CPTS, DEF_FILTERS, DEF_TOPIC;
+%terminals /* DEF_TAXONOMY, */ DEF_SRCS, DEF_CPTS, DEF_FILTERS, DEF_TOPIC;
 %terminals END;
 %terminals MONITOR_SRCS, ORGANIZE_CATS;
 %terminals MIN_MATCH_SCORE, MIN_CONCEPT_HITS;
@@ -851,14 +851,10 @@
 %typeof LeafConcept       = "newsrack.filter.Concept";
 %typeof Filt_Or_Cat_Use_Id= "java.lang.Object";	// Can be either newsrack.filter.Filter or newsrack.filter.Category
 %typeof Filter_Decl       = "newsrack.filter.Filter";
-%typeof IdentPrefix_1     = "java.lang.String";
-%typeof IdentPrefix_2     = "java.lang.String";
-%typeof SimpleIdent       = "java.lang.String";
-%typeof IdentPart         = "java.lang.String";
+%typeof RestrictedIdent       = "java.lang.String";
+%typeof RestrictedIdentPart   = "java.lang.String";
 %typeof Ident             = "java.lang.String";
-%typeof Reserved_Keywords = "java.lang.String";
-%typeof StringPart        = "java.lang.String";
-%typeof String            = "java.lang.String";
+%typeof IdentPart         = "java.lang.String";
 %typeof URL_TOK           = "java.lang.String";
 %typeof STRING_TOK        = "java.lang.String";
 %typeof IDENT_TOK         = "java.lang.String";
@@ -912,10 +908,9 @@ Block             = Import_Directive
                   | Filter_Collection
 /**
   TODO: Not supported yet!
-
+                  | Taxonomy
 						| Concept
 						| Filter
-                  | Taxonomy
 **/
 						| Topic
 						| Legacy_Issue_Decl
@@ -923,33 +918,29 @@ Block             = Import_Directive
 Url               = URL_TOK ;
 
 /*
- * This whole business of identifiers is arbitrary ... I could have made everything strings except that:
+ * This whole business of identifiers gets complicated because:
  *  (1) concept-ids can appear as bare words in filters
  *  (2) source names can be written without quotes
  *  (3) keywords in concept definitions can be written without quotes
+ *
  * All these together cause a lot of parse conflicts if all identifiers were "string"s
- * So, concept ids are currently restricted, and other ids don't have all reserved words as bare words 
+ * Hence, I am using restricted identifier for when concept names are used directly without quotes.
+ * So, concept-names that appear bare without angle-brackets cannot use reserved keywords "filter", "from", "and", "or"
  */
-IdentPrefix_1     = FILTER | FROM | IDENT_TOK | NUM_TOK ;
-IdentPrefix_2     = FILTER | FROM | IDENT_TOK | NUM_TOK | STRING_TOK ;
-IdentPart         = IdentPrefix_2 | AND | OR ;
-
-SimpleIdent       = IdentPrefix_1 | SimpleIdent.s1 IdentPrefix_2.s2 {: DEBUG("SimpleIdent"); return new Symbol(s1 + " " + s2); :} ;
-Ident             = IdentPart | Ident.s1 IdentPart.s2 {: DEBUG("String"); return new Symbol(s1 + " " + s2); :} ;
-
-Reserved_Keywords = AND | OR | WITH | FILTER | FROM ;
-StringPart        = IDENT_TOK | NUM_TOK | STRING_TOK | Reserved_Keywords ;
-String            = StringPart | String.s1 StringPart.s2 {: DEBUG("String"); return new Symbol(s1 + " " + s2); :} ;
-
-Concept_Id        = LANGLE SimpleIdent.c RANGLE {: DEBUG("Concept_Id"); return _symbol_c; :} ;
-Cpt_Use_Id        = SimpleIdent.i                       {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
-                  | Collection_Id.c COLON SimpleIdent.i {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
-						;
+RestrictedIdentPart = IDENT_TOK | NUM_TOK ;
+RestrictedIdent     = RestrictedIdentPart | RestrictedIdent.s1 RestrictedIdentPart.s2 {: DEBUG("RestrictedIdent"); return new Symbol(s1 + " " + s2); :} ;
+IdentPart         = RestrictedIdentPart | STRING_TOK | AND | OR | FROM | FILTER ;
+Ident             = IdentPart | Ident.s1 IdentPart.s2 {: DEBUG("Ident"); return new Symbol(s1 + " " + s2); :} ;
+Concept_Id        = LANGLE Ident.c RANGLE {: DEBUG("Concept_Id"); return _symbol_c; :} ;
+Filter_Id         = LBRACKET Ident.f RBRACKET ;
+Collection_Id     = LBRACE Ident.name RBRACE ;
 Cpt_Macro_Use_Id  = Concept_Id.i                       {: DEBUG("Cpt_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
                   | Collection_Id.c COLON Concept_Id.i {: DEBUG("Cpt_Macro_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
 						;
-Filter_Id         = LBRACKET Ident.f RBRACKET ;
-Collection_Id     = LBRACE Ident.name RBRACE ;
+Cpt_Use_Id        = RestrictedIdent.i                       {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(i)); :}
+                  | Collection_Id.c COLON RestrictedIdent.i {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return new Symbol(getConcept(c, i)); :}
+                  | Cpt_Macro_Use_Id.i                      {: DEBUG("Cpt_Use_Id"); _currSym = _symbol_i; return _symbol_i; :}
+						;
 Opt_Collection_Id = Collection_Id? ;
 Topic_Id          = Ident ;
 Import_Directive  = Import_Command.icmd Collection_Refs.coll_ids
@@ -1013,10 +1004,10 @@ Source_Defns      = Source_Defn.s                       {: HashSet<Source> srcs 
                   ;
 Source_Defn       = Url.feed                  {: Source s = Source.buildSource(_user, null, null, feed); recordSource(s); return new Symbol(s); :}
 						| Ident.tag EQUAL Url.feed  {: Source s = Source.buildSource(_user, tag, null, feed);  recordSource(s); return new Symbol(s); :}
-						| Ident.tag EQUAL String.name COMMA Url.feed {: Source s = Source.buildSource(_user, tag, name, feed); recordSource(s); return new Symbol(s); :}
+						| Ident.tag EQUAL Ident.name COMMA Url.feed {: Source s = Source.buildSource(_user, tag, name, feed); recordSource(s); return new Symbol(s); :}
 /*
  * Leads to several parsing conflicts!
-                  | String.name COMMA Url.feed {: Source s = Source.buildSource(_user, null, name, feed); recordSource(s); return new Symbol(s); :}
+                  | Ident.name COMMA Url.feed {: Source s = Source.buildSource(_user, null, name, feed); recordSource(s); return new Symbol(s); :}
  */
                   ;
 Source_Use        = Ident.s                              {: return new Symbol(new Triple(Boolean.TRUE, null, s)); :}
@@ -1032,7 +1023,7 @@ Concept_Decls     = Concept_Decl | Concept_Decls Concept_Decl ;
 TODO: Not supported yet
 Concept           = DEF_CPT Concept_Decl ;
 **/
-Concept_Decl      = Concept_Id.id EQUAL Keywords.kwds 
+Concept_Decl      = Concept_Id.id EQUAL Keywords.kwds
 						  {:
 						     if (_log.isDebugEnabled()) DEBUG("Concept_Decl");
 							  Concept c = null;
@@ -1054,9 +1045,9 @@ Concept_Decl      = Concept_Id.id EQUAL Keywords.kwds
 							  return DUMMY_SYMBOL;
 						  :}
 						;
-Keywords          = String.s                                {: DEBUG("Keyword: " + s); List l = new ArrayList(); l.add(s); return new Symbol(l); :}
+Keywords          = Ident.s                                {: DEBUG("Keyword: " + s); List l = new ArrayList(); l.add(s); return new Symbol(l); :}
                   | Cpt_Macro_Use_Id.c                      {: List l = new ArrayList(); l.add(c); return new Symbol(l); :}
-                  | Keywords.kwds COMMA String.s            {: DEBUG("Keywords"); kwds.add(s); return _symbol_kwds; :}
+                  | Keywords.kwds COMMA Ident.s            {: DEBUG("Keywords"); kwds.add(s); return _symbol_kwds; :}
                   | Keywords.kwds COMMA Cpt_Macro_Use_Id.c  {: kwds.add(c); return _symbol_kwds; :}
                   ;
 Filter_Collection = DEF_FILTERS Opt_Collection_Id.cid Filter_Decls.filts END {: recordFilterCollection(cid, filts); return DUMMY_SYMBOL; :} ;
@@ -1140,9 +1131,9 @@ Min_Score         = COLON NUM_TOK.n {: return new Symbol(Integer.valueOf(n)); :}
 Context           = Cpt_Use_Id.c                   {: ArrayList l = new ArrayList(); l.add(c); return new Symbol(l); :}
                   | Context.cxt COMMA Cpt_Use_Id.c {: cxt.add(c); return _symbol_cxt; :}
                   ;
-/*
+/**
 Taxonomy          = DEF_TAXONOMY Ident Taxonomy_Tree END ;
-*/
+**/
 Taxonomy_Tree     = Tree_Nodes ;
 Tree_Nodes        = Node.c {: List<Category> l = new ArrayList<Category>(); l.add(c); return new Symbol(l); :}
                   | Tree_Nodes.cl Node.c {: cl.add(c); return _symbol_cl; :}
@@ -1227,10 +1218,9 @@ Topic             = Topic_Header.t WITH Filter_Rule.r
 							  popScope();
 							  return DUMMY_SYMBOL;
 						  :}
-/*
-  not yet supported
-                  | Topic_Header.t INTO_TAXONOMY Ident {: return DEBUG("Topic w/ taxo name") :}
-*/
+/**
+                  | Topic_Header.t INTO_TAXONOMY Ident {: return DEBUG("Topic w/ taxo name"); :}
+**/
 						;
 Topic_Header      = DEF_TOPIC Topic_Id.i EQUAL FILTER Source_Uses.srcs
                     {:
