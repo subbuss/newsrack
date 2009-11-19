@@ -3,6 +3,16 @@
 	- logging from syslog to jsvc.out and jsvc.err
 	- add chmod commands to make these files accessible
 
+# -- sample commands --
+sudo chown -R tomcat55:nogroup /var/lib/tomcat5.5/webapps
+sudo chown -R tomcat55:nogroup /var/log/tomcat5.5
+sudo chmod 777 /var/lib/tomcat5.5/webapps
+sudo chmod 775 /var/log/tomcat5.5
+cd /var/log/tomcat5.5/
+sudo touch jsvc.out jsvc.err
+sudo chmod 666 jsvc.*
+sudo chown tomcat55:nogroup jsvc.*
+
 2. edit /etc/default/tomcat5.5 and change
    - jvm path, if necessary
 	- add TOMCAT5_GROUP=tomcat55
@@ -15,13 +25,17 @@
 4. for mod_jk,
    - edit /etc/libapache2-mod-jk/workers.properties 
 	   and change tomcat_home and java_home for our installation.
-   - set up newsrack.in.conf and mod-jk.conf in /etc/apache2/conf.d  
-	  (Or, set up newsrack.in in /sites.available and link in /sites.enabled, 
-	  can set virtualhosts * rather than for a specific ip addr)
-	- edit newsrack.in.conf and make sure the ip address is correct
 	- IMPORTANT: add socket_timeout for the works to ensure that sockets
 	  get closed promptly!
 	     worker.ajp13_worker.socket_timeout=5
+
+   EITHER:
+   - set up newsrack.in.conf and mod-jk.conf in /etc/apache2/conf.d  
+	- edit newsrack.in.conf and make sure the ip address is correct
+	OR:
+	- Set up newsrack.in in /sites.available and link in /sites.enabled, 
+	  can set virtualhosts * rather than for a specific ip addr
+   - Make sure that default site is not enabled in /sites.enabled
 
 5. make sure permissions for files in data/users/ and data/news.archive/ are
    set to g+w and that ownership is tomcat55:nogroup
@@ -31,6 +45,17 @@
 	how to get tomcat/mod_jk to co-operate and not leave lots of sockets
 	in CLOSE_WAIT state -- this will also let me increase the number of
 	download threads without running out of available file descriptors
+
+	Add the following:
+---------
+## SSS: Doubling the number of open descriptors -- mod_jk / tomcat seem to have
+## bug wherein they take a while before they close sockets -- they end up in
+## CLOSE_WAIT state for a long time, and when there is a lot of available memory
+## number of threads downloading feeds is high, this quickly leads to the
+## "Too many open files" error because 1024 fds are reached!
+	ubuntu soft nofile 2048
+	ubuntu hard nofile 2048
+---------
 
 	TIPS: 
 	1. Use sudo lsof -p <jsvc.process.id> to the list of open files!
