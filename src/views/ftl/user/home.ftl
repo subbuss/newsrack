@@ -57,7 +57,7 @@ span#dl_hide    { display:none; }
 	<@s.if test="!#user.validated">
 		<p class="center bold">
 		You do not yet have any validated topics! &nbsp;&nbsp;
-		<a href="<@s.url namespace="/user" action="edit-profile" />">Click here</a> 
+		<a href="<@s.url namespace="/my-account" action="edit-profile" />">Click here</a> 
 		and create / validate your topics.
 		</p>
 
@@ -103,11 +103,11 @@ span#dl_hide    { display:none; }
           <a class="rssfeed" href="${i.getRSSFeedURL()}"><img src="<@s.url namespace="/" value="/icons/rss-12x12.jpg"/>" alt="RSS 2.0"></a>
         </div>
         <div class="edit_bar">
-          <a onclick="return confirmReset()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'reset'" /><@s.param name="issue" value="'${i.name}'" /></@s.url>">Clear News</a>,
+          <a onclick="return confirmReset()" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'reset'" /><@s.param name="issue" value="'${i.name}'" /></@s.url>">Clear News</a>,
           <#if !i.frozen>
-          <a href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="'${i.name}'" /></@s.url>">Freeze</a>,
+          <a href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'freeze'" /><@s.param name="issue" value="'${i.name}'" /></@s.url>">Freeze</a>,
           <#else>
-          <a style="color:#070;font-weight:bold;" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="'${i.name}'" /></@s.url>">Unfreeze</a>,
+          <a style="color:#070;font-weight:bold;" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'unfreeze'" /><@s.param name="issue" value="'${i.name}'" /></@s.url>">Unfreeze</a>,
           </#if>
           <a href="<@s.url namespace="/forms" action="reclassify-news"><@s.param name="issue" value="'${i.name}'" /></@s.url>">Reclassify</a>
         </div>
@@ -125,7 +125,7 @@ span#dl_hide    { display:none; }
 		<p class="justify">Without that, you cannot monitor news and add them to your issues. </p>
 		<p>
 		Please go to the
-		<a href="<@s.url namespace="/user" action="edit-profile" />">edit issues page</a> 
+		<a href="<@s.url namespace="/my-account" action="edit-profile" />">edit issues page</a> 
 		and build your issues.
 		</p>
 		</#if> <#-- of #if issues -->

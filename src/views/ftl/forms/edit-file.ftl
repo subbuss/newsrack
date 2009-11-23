@@ -42,7 +42,7 @@ function resetForm()
 <div class="center">
 <textarea class="textarea" name="fileContent" rows="40" cols="85">${fileContent}</textarea>
 <br />
-<input type="button" class="submit" onclick="cancelEdit('<@s.url namespace="/user" action="edit-profile"/>')" value="Cancel">
+<input type="button" class="submit" onclick="cancelEdit('<@s.url namespace="/my-account" action="edit-profile"/>')" value="Cancel">
 <input type="button" class="submit" onclick="resetForm()" value="Reset">
 <input type="submit" class="submit" name="submit" value="Save">
 <input type="hidden" name="file" value="${file}">

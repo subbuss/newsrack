@@ -7,7 +7,7 @@
     http://tuckey.org/urlrewrite/
 -->
 <urlrewrite use-query-string="true">
-  <!-- ##### Kick out requests from Radio Tamil toolbar #### -->
+  <!-- ************* Kick out requests from Radio Tamil toolbar *************** -->
   <rule>
       <condition name="user-agent">Radio\s+Tamil.*</condition>
       <from>.*</from>
@@ -15,51 +15,64 @@
       <to>null</to>
   </rule>
 
-  <!-- ###################################################################### 
-       The first set of rules match urls from the current installation and
-       sends a 301 permanent redirect to the new urls.  This should ensure
-       that all old urls seamless work
-       ###################################################################### -->
-  <rule>
-    <note> Generic rewriting rule!  Issue a 301 redirect </note>
-    <from>^/DisplayNewsItem\.do(.*)</from>
-    <to type="permanent-redirect">%{context-path}/news/display$1</to>
-  </rule>
-
-  <rule>
-    <note> Rewriting rule for browse!  Issue a 301 redirect </note>
-    <from>^/Browse\.do(.*)?$</from>
-    <to type="permanent-redirect">%{context-path}/browse$1</to>
-  </rule>
-
   <rule>
     <note> Rewriting rule for clean browse urls with json/xml output!</note>
-    <from>^/news/(.*)/(.*)/(\d*)\.(\w+)(\?(.*))?$</from>
+    <from>^/stories/(.*)/(.*)/(\d*)\.(\w+)(\?(.*))?$</from>
     <to>/api/news?owner=$1&amp;issue=$2&amp;catID=$3&amp;output=$4&amp;$6</to>
   </rule>
 
   <rule>
     <note> Rewriting rule for clean browse urls!</note>
-    <from>^/news/(.*)/(.*)/(\d*)/?(\?(.*))?$</from>
+    <from>^/stories/(.*)/(.*)/(\d*)/?(\?(.*))?$</from>
     <to>/browse?owner=$1&amp;issue=$2&amp;catID=$3&amp;$5</to>
   </rule>
 
   <rule>
     <note> Rewriting rule for clean browse urls!</note>
-    <from>^/topic/(.*)/(.*)/?$</from>
+    <from>^/topics/(.*)/(.*)/?$</from>
     <to>/browse?owner=$1&amp;issue=$2</to>
   </rule>
 
   <rule>
     <note> Rewriting rule for clean browse urls!</note>
-    <from>^/user/(.*)/?$</from>
+    <from>^/users/(.*)/?$</from>
     <to>/browse?owner=$1</to>
   </rule>
 
+  <!-- ************* Next 4 rules are redirects from old-style urls to newer cleaner urls *************** -->
   <rule>
-    <note> Rewriting rule for GetIssueTaxonomy!  Issue a 301 redirect </note>
+    <from>^/[b|B]rowse(.action|.do)?\?owner=(.*?)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
+    <to type="permanent-redirect">%{context-path}/stories/$2/$6/$4</to>
+  </rule>
+
+  <rule>
+    <from>^/[b|B]rowse(.action|.do)?\?owner=(.*?)&amp;(amp;)?issue=(.*?)&amp;(amp;)?catID=([0-9]+)$</from>
+    <to type="permanent-redirect">%{context-path}/stories/$2/$4/$6</to>
+  </rule>
+
+  <rule>
+    <from>^/[b|B]rowse(.action|.do)?\?owner=(.*?)&amp;(amp;)?issue=(.*?)$</from>
+    <to type="permanent-redirect">%{context-path}/topics/$2/$4</to>
+  </rule>
+
+  <rule>
+    <from>^/[b|B]rowse(.action|.do)?\?owner=(.*?)$</from>
+    <to type="permanent-redirect">%{context-path}/users/$2</to>
+  </rule>
+
+  <!-- ************* Next set of rules are redirects from much older-style urls to newer urls *************** -->
+  <rule>
+    <from>^/DisplayNewsItem\.do(.*)</from>
+    <to type="permanent-redirect">%{context-path}/news/display$1</to>
+  </rule>
+  <rule>
     <from>^/GetIssueTaxonomy\.do(.*)?$</from>
     <to type="permanent-redirect">%{context-path}/api/issue-taxonomy$1</to>
+  </rule>
+
+  <rule>
+    <from>^/Browse\.do(.*)?$</from>
+    <to type="permanent-redirect">%{context-path}/browse$1</to>
   </rule>
 
   <rule>
@@ -168,23 +181,28 @@
   </outbound-rule>
 
   <outbound-rule>
-    <from>browse(.action)?\?owner=(.*?)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
-    <to>news/$2/$6/$4</to>
+    <from>browse(.action)?\?(.*)catID=([0-9]+)&amp;(amp;)?(.*)issue=(.*?)&amp;(amp;)?owner=([^\\&amp;]+)(&amp;(amp;)?(.*))?$</from>
+    <to>stories/$8/$6/$3?$2$5$11</to>
   </outbound-rule>
 
   <outbound-rule>
-    <from>browse(.action)?\?(.*)catID=([0-9]+)&amp;(amp;)?(.*)issue=(.*?)&amp;(amp;)?owner=([^\\&amp;]+)(&amp;(amp;)?(.*))?$</from>
-    <to>news/$8/$6/$3?$2$5$11</to>
+    <from>browse(.action)?\?owner=([^\\&amp;]+)&amp;(amp;)?(.*)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
+    <to>stories/$2/$8/$6?$4</to>
+  </outbound-rule>
+
+  <outbound-rule>
+    <from>browse(.action)?\?owner=(.*?)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
+    <to>stories/$2/$6/$4</to>
   </outbound-rule>
 
   <outbound-rule>
     <from>browse(.action)?\?owner=(.*?)&amp;(amp;)?issue=(.*?)$</from>
-    <to>topic/$2/$4</to>
+    <to>topics/$2/$4</to>
   </outbound-rule>
 
   <outbound-rule>
     <from>browse(.action)?\?owner=(.*?)$</from>
-    <to>user/$2</to>
+    <to>users/$2</to>
   </outbound-rule>
 
   <outbound-rule>

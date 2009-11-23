@@ -12,9 +12,9 @@
 	</@s.if>
 	<@s.else>
 		<#if !user.issues.empty>
-		<div class="menu_link"> <a href="<@s.url namespace="/user" action="home" />">My Issues</a> </div>
+		<div class="menu_link"> <a href="<@s.url namespace="/my-account" action="home" />">My Issues</a> </div>
     </#if>
-		<div class="menu_link"> <a href="<@s.url namespace="/user" action="edit-profile" />">Edit Issues</a> </div>
+		<div class="menu_link"> <a href="<@s.url namespace="/my-account" action="edit-profile" />">Edit Issues</a> </div>
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="change-password" />">Change Password</a> </div>
 		<#if !user.issues.empty>
 		<div class="menu_link"> <a href="<@s.url namespace="/forms" action="browse-sources" />">Browse by Source</a> </div>

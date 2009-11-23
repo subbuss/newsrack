@@ -33,7 +33,7 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
     <td class="actions">
 			<a href="<@s.url namespace="/file" action="edit" file="${f.name}" />">Edit</a>,
 			<a href="<@s.url namespace="/forms" action="rename-file" file="${f.name}" />">Rename</a>,
-			<a onclick="return confirmDelete()" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f.name}'" /></@s.url>">Delete</a>
+			<a onclick="return confirmDelete()" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'deleteFile'" /><@s.param name="file" value="'${f.name}'" /></@s.url>">Delete</a>
     </td>
   </tr>
 	</#foreach>
@@ -95,8 +95,8 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
     <tr>
   <@s.if test="#hasIssues == true">
     <td colspan="2" style="font-weight:bold; text-align:center">
-    Your files have been validated and <a href="<@s.url namespace="/user" action="home" />">you can find your issues here</a>. <br/><br/>
-    <a class="s16" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> <br/><br/>
+    Your files have been validated and <a href="<@s.url namespace="/my-account" action="home" />">you can find your issues here</a>. <br/><br/>
+    <a class="s16" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> <br/><br/>
   </@s.if>
   <@s.else>
     <#if user.files?exists&& user.files.hasNext()>
@@ -106,7 +106,7 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
     Your issues won't be ready for monitoring till you validate them and fix any problems.
     </div>
     <br/>
-    <a class="s16" href="<@s.url namespace="/user" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Validate files</a>
+    <a class="s16" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Validate files</a>
     </td>
     </tr><tr> 
     </#if>

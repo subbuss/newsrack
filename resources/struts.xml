@@ -147,7 +147,7 @@
     <action name="*"> <result>/ftl/forms/{1}.ftl</result> </action>
   </package>
 
-  <package name="user" extends="app-default" namespace="/user">
+  <package name="my-account" extends="app-default" namespace="/my-account">
     <default-interceptor-ref name="simpleLoginStack" />     
     <action name="change-password" class="newsrack.web.UserAction" method="changePassword">
       <result>/ftl/user/home.ftl</result>

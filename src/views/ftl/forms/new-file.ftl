@@ -45,7 +45,7 @@ function resetForm()
 <br />
 <span class="bold">File Name:</span> <input type="text" name="file" class="text">
 <br />
-<input type="button" class="submit" onclick="cancelEdit('<@s.url namespace="/user" action="edit-profile"/>')" value="Cancel">
+<input type="button" class="submit" onclick="cancelEdit('<@s.url namespace="/my-account" action="edit-profile"/>')" value="Cancel">
 <input type="button" class="submit" onclick="resetForm()" value="Clear">
 <input type="submit" class="submit" name="submit" value="Save">
 </div>
