@@ -77,6 +77,13 @@ public class HTMLFilter extends NodeVisitor
 	}
 
 	static private class DOM_Node_Info {
+		static int _overallApproxContentSize;
+
+		static void init()
+		{
+			_overallApproxContentSize = 0;
+		}
+
 		String       tagName;						// Tag for this DOM node
 		int          totalContentSize;			// Total size of all content in the subtree rooted at this dom node
 		StringBuffer currUnfilteredContent;		// Buffer containing current unfiltered content 
@@ -103,14 +110,18 @@ public class HTMLFilter extends NodeVisitor
 		{
 			currUnfilteredContent.append(s);
 			currFilteredContent.append(s);
-			totalContentSize += s.length();
+			int n = s.length();
+			totalContentSize += n;
+			_overallApproxContentSize += n;
 		}
 	
 		public void appendContent(String s1, String s2)
 		{
 			currUnfilteredContent.append(s1);
 			currFilteredContent.append(s2);
-			totalContentSize += s1.length();
+			int n = s1.length();
+			totalContentSize += n;
+			_overallApproxContentSize += n;
 		}
 
 		public void discardContent()
@@ -144,6 +155,7 @@ public class HTMLFilter extends NodeVisitor
 				if (_debug) System.out.println("BLK: Accumulating " + childContent.replaceAll("\n", "|"));
 			}
 
+			// No matter whether we discarded child content or not, we accumulate how much content exists in this dom subtree
 			totalContentSize += child.totalContentSize;
 		}
 	}
@@ -165,6 +177,7 @@ public class HTMLFilter extends NodeVisitor
 	private boolean	   _PREtagContent;
 	private boolean	   _isTitleTag;
    private boolean      _outputToFile; // Should the content be output to a file?
+	private boolean	   _ignoreComments;	// Should we ignore comments?
 		// Next field is for domain-specific hacks
 	private boolean	   _ignoreEverything;
 		// Next 2 fields for Newkerala.com hack -- May 18, 2006
@@ -184,9 +197,12 @@ public class HTMLFilter extends NodeVisitor
 		_closeStream      = false;
 		_spanTagStack     = new Stack();
       _outputToFile     = true;     // By default, content is written to file!
+		_ignoreComments   = true;		// By default, we ignore comments and everything else after that.
 		_ignoreEverything = false;
 		_foundKonaBody    = false;
-		_isBMmirror        = false;
+		_isBMmirror       = false;
+
+		DOM_Node_Info.init();
 
 			// Set up some default connection properties!
 		Hashtable headers = new Hashtable();
@@ -348,8 +364,15 @@ public class HTMLFilter extends NodeVisitor
 				// SPECIAL CASE: Don't ignore non-href anchor tags 
 				// Required so that Hindustan Times article titles don't get stripped out!
 				String href = tag.getAttribute("HREF");
-				if (href == null || href.equals(""))
+				if (href == null || href.equals("")) {
+					// If we hit an inline anchor named comments, we assume that we have run into comments on the page.
+					String name = tag.getAttribute("NAME");
+					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && (name != null) && name.equals("comments")) {
+						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
+						_ignoreEverything = true;
+					}
 					return;
+				}
 			}
 			_ignoreFlagStack.push(tagName);
 			if (_debug) System.out.println("--> PUSHED");
@@ -379,12 +402,20 @@ public class HTMLFilter extends NodeVisitor
 				_eltContentStack.push(new DOM_Node_Info(tagName));
 			}
 
-			// Mumbai/Bangalore Mirror hack -- June 7, 2009
-			// Everything after id="tags" is not required.
-			if (tagName.equals("DIV") && _isBMmirror) {
+			if (tagName.equals("DIV")) { 
 				String divId = tag.getAttribute("id");
-				if ((divId != null) && divId.equals("tags"))
-					_ignoreEverything = true;
+				if (divId != null) {
+						// Mumbai/Bangalore Mirror hack -- June 7, 2009
+						// Everything after id="tags" is not required.
+					if (_isBMmirror && divId.equals("tags"))
+						_ignoreEverything = true;
+						// Assume that if we hit a div with an id that has comment in its name
+						// we have hit comments.
+				   else if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
+						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
+						_ignoreEverything = true;
+					}
+				}
 			}
 
 			if (!_ignoreEverything && (BLOCK_ELTS_TBL.get(tagName) != null)) {
@@ -473,18 +504,6 @@ public class HTMLFilter extends NodeVisitor
 			catch (Exception e) {
 				if (_log.isErrorEnabled()) _log.error("popped out all span tags already! .. empty stack!");
 			}
-/**
- * Commented out Jun 5, 2009; extra crud in the text
- *
-			if (_url != null) {
-				if (_url.indexOf("newkerala.com") != -1)
-					_content.append("\nCopyright 2001-2005 newkerala.com");
-				else if (_url.indexOf("indianexpress.com") != -1)
-					_content.append("\n\n&copy; 2006: Indian Express Newspapers (Mumbai) Ltd. All rights reserved throughout the world");
-				else if (_url.indexOf("financialexpress.com") != -1)
-					_content.append("\n\n&copy; 2006: Indian Express Newspapers (Mumbai) Ltd. All rights reserved throughout the world");
-			}
-	**/
 		}
 	}
 
