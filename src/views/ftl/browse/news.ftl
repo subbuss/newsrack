@@ -54,6 +54,12 @@
   [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]
 [/#if]
 
+[#if startId > 1]
+  [@s.url var="canonicalUrl" includeContext="false" escapeAmp="false" value="${baseUrl}" start="${Parameters.start}" /]
+[#else]
+  [#assign canonicalUrl = baseUrl]
+[/#if]
+
 [#--################################## --]
 [#macro displayNavigationBar]
 <div class="newsnavbar">
@@ -66,12 +72,12 @@
   [#if start < 1]
    |&lt; First &nbsp; &lt;&lt; Previous
   [#else]
-   <a href="${baseUrl}"> |&lt; First</a> &nbsp; <a href="${baseUrl}&start=${prevId?c}"> &lt;&lt; Previous</a> &nbsp;
+   <a href="${baseUrl}"> |&lt; First</a> &nbsp; <a href="[@s.url includeContext="false" escapeAmp="false" value="${baseUrl}" start="${prevId?c}" /]"> &lt;&lt; Previous</a> &nbsp;
   [/#if]
   [#if news.size() < numArtsPerPage]
    Next &gt; &gt;
   [#else]
-   <a href="${baseUrl}&start=${nextId?c}">Next &gt;&gt;</a>
+   <a href="[@s.url includeContext="false" escapeAmp="false" value="${baseUrl}" start="${nextId?c}" /]">Next &gt;&gt;</a>
   [/#if]
    &nbsp; Last &gt;|
    </div>
@@ -79,13 +85,13 @@
 	${rangeBegin} to ${rangeEnd} of ${numArts} &nbsp;&nbsp;&nbsp;
    <div class="navbar">
    [#if (startId>1)]
-		<a href="${baseUrl}"> |&lt; First</a> &nbsp; <a href="${baseUrl}&start=${prevId?c}"> &lt;&lt; Previous</a>
+		<a href="${baseUrl}"> |&lt; First</a> &nbsp; <a href="[@s.url includeContext="false" escapeAmp="false" value="${baseUrl}" start="${prevId?c}" /]"> &lt;&lt; Previous</a>
    [#else]
 		|&lt; First &nbsp; &lt;&lt; Previous
    [/#if]
 	&nbsp;
    [#if nextId <= numArts]
-		<a href="${baseUrl}&start=${nextId?c}">Next &gt;&gt;</a> &nbsp; <a href="${baseUrl}&start=${lastId?c}">Last &gt;|</a>
+		<a href="[@s.url includeContext="false" escapeAmp="false" value="${baseUrl}" start="${nextId?c}" /]">Next &gt;&gt;</a> &nbsp; <a href="[@s.url includeContext="false" escapeAmp="false" value="${baseUrl}" start="${lastId?c}" /]">Last &gt;|</a>
    [#else]
 		Next &gt;&gt; &nbsp; Last &gt;|
    [/#if]
@@ -109,7 +115,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
-<link rel="canonical" href="${baseUrl}" />
+<link rel="canonical" href="${canonicalUrl}" />
 <link rel="alternate" type="application/rss+xml" title="[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
 <title>[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}</title>
 <meta name="Description" content="This page displays news for [#if cat?exists] '${cat.name}' category in [/#if] '${issueName}' topic set up by user ${ownerID}.">
@@ -168,16 +174,14 @@ function getSelectedValue(selId)
 function updateUrl()
 {
    [#-- replace any existing source tag + removed any existing start count + add new source tag --]
-  var newUrl     = document.location.href.replace(/&source_tag=[^&]*/, '').replace(/&start=[^&]*/, '').replace(/&start_date=[^&]*/, '').replace(/&end_date=[^&]*/, '');
+  var newUrl = document.location.href.replace(/&source_tag=[^&]*/, '').replace(/&start=[^&]*/, '').replace(/&start_date=[^&]*/, '').replace(/&end_date=[^&]*/, '');
+  if (!newUrl.match("\\?")) newUrl += "?";
   var source_tag = getSelectedValue('source_select');
   var start_date = getObj('start_date_box').value
   var end_date   = getObj('end_date_box').value
-  if (source_tag != "")
-    newUrl += "&source_tag=" + source_tag;
-  if (start_date != "")
-    newUrl += "&start_date=" + start_date;
-  if (end_date != "")
-    newUrl += "&end_date=" + end_date;
+  if (source_tag != "") newUrl += "&source_tag=" + source_tag;
+  if (start_date != "") newUrl += "&start_date=" + start_date;
+  if (end_date != "") newUrl += "&end_date=" + end_date;
 
   document.location.href = newUrl;
   return false;
