@@ -228,6 +228,9 @@ public class HTMLFilter extends NodeVisitor
 
 			// Mumbai/Bangalore Mirror specific hack -- June 7, 2009
 		_isBMmirror = _urlDomain.equals("bangaloremirror.com") || _urlDomain.equals("mumbaimirror.com");
+			// Nov 24, 2009 -- Some bug with comments for guardian and pib
+		if (_urlDomain.equals("guardian.co.uk") || _urlDomain.equals("pib.nic.in"))
+		   _ignoreComments = false;
 	}
 	
 	/**

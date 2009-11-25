@@ -46,7 +46,7 @@
     <to>/browse?owner=$1</to>
   </rule>
 
-  <!-- ************* Next 7 rules are redirects from old-style urls to newer cleaner urls *************** -->
+  <!-- ************* Next 8 rules are redirects from old-style urls to newer cleaner urls *************** -->
   <rule>
     <from>^/[b|B]rowse(.action|.do)?\?(.*)(&amp;(amp;)?)?owner=([^\\&amp;]+)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)(&amp;(amp;)?(.*))?$</from>
     <to type="permanent-redirect">%{context-path}/stories/$5/$9/$7?$2$12</to>
@@ -55,6 +55,11 @@
   <rule>
     <from>^/[b|B]rowse(.action|.do)?\?owner=(.*?)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
     <to type="permanent-redirect">%{context-path}/stories/$2/$6/$4</to>
+  </rule>
+
+  <rule>
+    <from>^/[b|B]rowse(.action|.do)?\?owner=(.*?)&amp;(amp;)?issue=(.*?)&amp;(amp;)?catID=([0-9]+)(&amp;(amp;)?(.*))$</from>
+    <to type="permanent-redirect">%{context-path}/stories/$2/$4/$6?$9</to>
   </rule>
 
   <rule>

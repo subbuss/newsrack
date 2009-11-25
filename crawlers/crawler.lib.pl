@@ -207,7 +207,7 @@ sub Initialize
 		## Output the RSS header
 	$currDir = `pwd`;
 	chop $currDir;
-	$home    = "$currDir/../ROOT/crawled.feeds";
+	$home    = "/var/lib/tomcat5.5/webapps/ROOT/crawled.feeds";
    $rssFile = "$prefix.rss.xml";
 	$tmpRSS  = "$home/$rssFile.tmp";
 	if (!$date) {
