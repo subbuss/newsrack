@@ -618,7 +618,7 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
-	GET_ALL_FEEDS_FOR_NEWS(
+	GET_ALL_FEEDS_FOR_NEWS_ITEM(
 		"SELECT feed_key FROM news_collections where n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
@@ -1153,12 +1153,9 @@ public enum SQL_Stmt
 		true
 	),
 	INSERT_INTO_CAT_NEWS_TABLE(
-		"INSERT INTO cat_news (c_key, n_key, ni_key, date_stamp) VALUES (?,?,?,?)",
+		"INSERT IGNORE INTO cat_news (c_key, n_key, ni_key, date_stamp) VALUES (?,?,?,?)",
 		new SQL_ValType[] {LONG, LONG, LONG, DATE},
-      SQL_StmtType.INSERT,
-		null,
-		new GetLongResultProcessor(),
-		true
+      SQL_StmtType.INSERT
 	),
 	INSERT_USER_FILE(
 		"INSERT INTO user_files(u_key, file_name) VALUES (?, ?)",
@@ -1539,17 +1536,17 @@ public enum SQL_Stmt
     * @param args   Argument array for this sql statement
 	 * @returns the result of executing the query, if any 
     */
-   Object execute(Object[] args)
+   public Object execute(Object[] args)
    {
 		return SQL_StmtExecutor.execute(_stmtString, _stmtType, args, _argTypes, _colSizes, _rp, _singleRowOutput);
    }
 
-	Object get(Long key)
+	public Object get(Long key)
 	{
 		return SQL_StmtExecutor.execute(_stmtString, _stmtType, new Object[]{key}, _argTypes, _colSizes, _rp, _singleRowOutput);
 	}
 
-	Object delete(Long key)
+	public Object delete(Long key)
 	{
 		return SQL_StmtExecutor.execute(_stmtString, _stmtType, new Object[]{key}, _argTypes, _colSizes, _rp, _singleRowOutput);
 	}

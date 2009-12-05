@@ -191,7 +191,7 @@ public class SQL_NewsItem extends NewsItem
 
 			// 2. Didn't work .. check if this news item has been associated with other feeds
 		if (!((new File(fullPath)).isFile())) {
-				List<Long> allFeedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS.get(getKey());
+				List<Long> allFeedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS_ITEM.get(getKey());
 				fullPath = getValidFilePath(pathPrefix, localName, allFeedKeys);
 
 				// 3. Check with local name stored in the db -- backward compatibility

@@ -219,11 +219,11 @@ public class SQL_StmtExecutor
                n = stmt.executeUpdate();
 					if (_log.isDebugEnabled()) _log.debug("Insert statement " + stmt + " completed without exceptions!");
 						// Don't complain if the stmt. is an insert ignore!
-					if ((n == 0) && (stmtString.indexOf(" IGNORE ") == -1) && (stmtString.indexOf(" ignore ") == -1))
+					if ((n == 0) && (stmtString.toLowerCase().indexOf(" ignore ") == -1))
 						_log.error("Insert statement " + stmt + " returned 0 rows!");
 
 					if (rp == null) {
-						retVal = null;
+						retVal = new Integer(n);
 					}
 					else {
 						rs = stmt.getGeneratedKeys();

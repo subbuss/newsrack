@@ -6,13 +6,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.List;
 
 import newsrack.NewsRack;
 import newsrack.database.DB_Interface;
+import newsrack.util.StringUtils;
 import newsrack.database.NewsIndex;
 import newsrack.database.NewsItem;
 import newsrack.database.sql.SQL_NewsIndex;
 import newsrack.database.sql.SQL_NewsItem;
+import newsrack.database.sql.SQL_Stmt;
 import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.database.sql.SQL_ValType;
 import newsrack.filter.Category;
@@ -21,6 +24,8 @@ import newsrack.user.User;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.xmlrules.DigesterLoader;
 
 public class FixupTools
 {
@@ -220,6 +225,80 @@ public class FixupTools
 		}
 	}
 
+	public static void exportNews(Long start, int n)
+	{
+      Long end = start + n;
+      Long k   = start;
+      System.out.println("<items>");
+      while (k < end) {
+         NewsItem ni = _db.getNewsItem(k);
+			if (ni != null) {
+				System.out.println("<item>");
+				System.out.println("<url val=\"" + ni.getURL().replaceAll("&", "&amp;") + "\" />");
+				System.out.println("<title val=\"" + StringUtils.filterForXMLOutput(ni.getTitle()) + "\" />");
+				System.out.println("<desc val=\"" + StringUtils.filterForXMLOutput(ni.getDescription()) + "\" />");
+				System.out.println("<author val=\"" + StringUtils.filterForXMLOutput(ni.getAuthor()) + "\" />");
+				System.out.println("<date val=\"" + ni.getDateString() + "\" />");
+				System.out.print("<feeds list=\"");
+				List<Long> feedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS_ITEM.get(ni.getKey());
+				for (Long x: feedKeys) System.out.print(x + ",");
+				System.out.println("-1\" />");
+				System.out.print("<cats list=\"");
+				List<Long> catKeys = (List<Long>)SQL_Stmt.GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+				for (Long x: catKeys) System.out.print(x + ",");
+				System.out.println("-1\" />");
+				System.out.println("</item>");
+			}
+
+			k++;
+      }
+      System.out.println("</items>");
+	}
+
+	public static void importNews(String fileName)
+	{
+      File f = new File(fileName);
+		if (!f.exists())
+			System.out.println("No file exists: " + fileName);
+
+		try {
+			List<NewsItemDTO> nis = new ArrayList<NewsItemDTO>();
+		   java.net.URL digesterRules = FixupTools.class.getClassLoader().getResource("import.rules.xml");
+			Digester d = DigesterLoader.createDigester(digesterRules);
+			d.push(nis);
+			d.parse(f);
+			for (NewsItemDTO x: nis) {
+				String[] feedKeys = x.feeds.split(",");
+				NewsItem ni = _db.getNewsItemFromURL(x.url);
+				if (ni == null) {
+					ni = new SQL_NewsItem(x.url, Long.parseLong(feedKeys[0]), new java.util.Date());
+					ni.setDate(x.date);
+					ni.setTitle(x.title);
+					ni.setAuthor(x.author);
+					ni.setDescription(x.desc);
+					System.out.println("News item " + x.url + " not present in db!  Inserting!");
+				}
+				else {
+					System.out.println("News item " + x.url + " already present in db!");
+				}
+				for (String fk: feedKeys) {
+					if (!fk.equals("-1"))
+						_db.recordDownloadedNewsItem(_db.getFeed(Long.parseLong(fk)), ni);
+				}
+
+				String[] catKeys = x.cats.split(",");
+				for (String ck: catKeys) {
+					if (!ck.equals("-1"))
+						_db.addNewsItem(ni, _db.getCategory(Long.parseLong(ck)), 2);
+				}
+			}
+		}
+		catch (Exception e) {
+			System.out.println("Exception: " + e);
+			e.printStackTrace();
+		}
+	}
+
 	public static void revalidateUsers(Long ukey)
 	{
 		if (ukey == null) {
@@ -316,6 +395,12 @@ public class FixupTools
 		}
 		else if (action.equals("revalidate-users")) {
 			revalidateUsers(args.length > 2 ? Long.parseLong(args[2]) : null);
+		}
+		else if (action.equals("export-news")) {
+			exportNews(Long.parseLong(args[2]), Integer.parseInt(args[3]));
+		}
+		else if (action.equals("import-news")) {
+			importNews(args[2]);
 		}
       else {
          System.out.println("Unknown action: " + action);

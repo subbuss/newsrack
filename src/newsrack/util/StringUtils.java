@@ -334,7 +334,13 @@ public final class StringUtils
 				  .replaceAll(">", "&gt;")
 				  .replaceAll("&amp;amp;", "&amp;")
 				  .replaceAll("&amp;apos;", "&apos;")
-				  .replaceAll("&amp;quot;", "&quot;");
+				  .replaceAll("&amp;quot;", "&quot;")
+				  .replaceAll("&amp;lt;", "&lt;")
+				  .replaceAll("&amp;rt;", "&rt;")
+				  .replaceAll("&amp;lsquo;", "&quot;")	   // windows encoding?
+				  .replaceAll("&amp;ldquo;", "&quot;")	   // windows encoding?
+				  .replaceAll("&amp;rsquo;", "&quot;")	   // windows encoding?
+				  .replaceAll("&amp;rdquo;", "&quot;");	// windows encoding?
 	}
 
 	public static String getDomainForUrl(String url)

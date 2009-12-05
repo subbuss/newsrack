@@ -1860,27 +1860,31 @@ public class SQL_DB extends DB_Interface
 			if (!sni.inTheDB())
 				_log.error("News item " + sni + " not in the db yet!");
 			SQL_NewsIndex idx = sni.getNewsIndex();
-         INSERT_INTO_CAT_NEWS_TABLE.execute(new Object[] {cat.getKey(), sni.getKey(), idx.getKey(), idx.getCreationTime()});
+         Integer numInserts = (Integer)INSERT_INTO_CAT_NEWS_TABLE.execute(new Object[] {cat.getKey(), sni.getKey(), idx.getKey(), idx.getCreationTime()});
+			if (numInserts > 0) {
+					// Increment # of unique articles in the category
+				cat.setNumArticles(1+cat.getNumArticles());
 
-				// Increment # of unique articles in the category
-			cat.setNumArticles(1+cat.getNumArticles());
+					// Do not commit anything to the database yet!
+					// It is done in one pass after the download phase is complete!
+					// Record cat in a table
+				List<Category> l = _leafCatsToCommit.get(cat.getIssue().getKey());
+				if (l == null) {
+					l = new ArrayList<Category>();
+					_leafCatsToCommit.put(cat.getIssue().getKey(), l);
+				}
+				l.add(cat);
 
-				// Do not commit anything to the database yet!
-				// It is done in one pass after the download phase is complete!
-				// Record cat in a table
-			List<Category> l = _leafCatsToCommit.get(cat.getIssue().getKey());
-			if (l == null) {
-				l = new ArrayList<Category>();
-				_leafCatsToCommit.put(cat.getIssue().getKey(), l);
+					// Don't commit right away -- because this will lead to a spate of cache purges.
+					// It is okay to have stale info for a short time.
+					//
+					// FIXME: Relies on the fact that the category objects are live
+					// through the entire news classification phase
+				//commitCatToDB(cat, false);
 			}
-			l.add(cat);
-
-				// Don't commit right away -- because this will lead to a spate of cache purges.
-				// It is okay to have stale info for a short time.
-				//
-				// FIXME: Relies on the fact that the category objects are live
-				// through the entire news classification phase
-			//commitCatToDB(cat, false);
+			else {
+				_log.info("Zero inserts into cat news table! " + ni.getKey() + " already present in category " + cat.getKey());
+			}
 		}
 	}
 
