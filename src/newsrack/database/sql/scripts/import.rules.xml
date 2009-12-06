@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<digester-rules>
+   <pattern value="items/item">
+      <object-create-rule classname="newsrack.database.sql.scripts.NewsItemDTO" />
+
+      <call-method-rule pattern="url" methodname="setUrl" paramcount="1" />
+      <call-param-rule  pattern="url" paramnumber="0" attrname="val" />
+
+      <call-method-rule pattern="title" methodname="setTitle" paramcount="1" />
+      <call-param-rule  pattern="title" paramnumber="0" attrname="val" />
+
+      <call-method-rule pattern="author" methodname="setAuthor" paramcount="1" />
+      <call-param-rule  pattern="author" paramnumber="0" attrname="val" />
+
+      <call-method-rule pattern="desc" methodname="setDesc" paramcount="1" />
+      <call-param-rule  pattern="desc" paramnumber="0" attrname="val" />
+
+      <call-method-rule pattern="date" methodname="setDate" paramcount="1" />
+      <call-param-rule  pattern="date" paramnumber="0" attrname="val" />
+
+      <call-method-rule pattern="feeds" methodname="setFeeds" paramcount="1" />
+      <call-param-rule  pattern="feeds" paramnumber="0" attrname="list" />
+
+      <call-method-rule pattern="cats" methodname="setCats" paramcount="1" />
+      <call-param-rule  pattern="cats" paramnumber="0" attrname="list" />
+
+      <set-next-rule methodname="add" />
+   </pattern>
+</digester-rules>
