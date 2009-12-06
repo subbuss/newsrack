@@ -231,23 +231,28 @@ public class FixupTools
       Long k   = start;
       System.out.println("<items>");
       while (k < end) {
-         NewsItem ni = _db.getNewsItem(k);
-			if (ni != null) {
-				System.out.println("<item>");
-				System.out.println("<url val=\"" + ni.getURL().replaceAll("&", "&amp;") + "\" />");
-				System.out.println("<title val=\"" + StringUtils.filterForXMLOutput(ni.getTitle()) + "\" />");
-				System.out.println("<desc val=\"" + StringUtils.filterForXMLOutput(ni.getDescription()) + "\" />");
-				System.out.println("<author val=\"" + StringUtils.filterForXMLOutput(ni.getAuthor()) + "\" />");
-				System.out.println("<date val=\"" + ni.getDateString() + "\" />");
-				System.out.print("<feeds list=\"");
-				List<Long> feedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS_ITEM.get(ni.getKey());
-				for (Long x: feedKeys) System.out.print(x + ",");
-				System.out.println("-1\" />");
-				System.out.print("<cats list=\"");
-				List<Long> catKeys = (List<Long>)SQL_Stmt.GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
-				for (Long x: catKeys) System.out.print(x + ",");
-				System.out.println("-1\" />");
-				System.out.println("</item>");
+			try {
+				NewsItem ni = _db.getNewsItem(k);
+				if (ni != null) {
+					System.out.println("<item>");
+					System.out.println("<url val=\"" + ni.getURL().replaceAll("&", "&amp;") + "\" />");
+					System.out.println("<title val=\"" + StringUtils.filterForXMLOutput(ni.getTitle()) + "\" />");
+					System.out.println("<desc val=\"" + StringUtils.filterForXMLOutput(ni.getDescription()) + "\" />");
+					System.out.println("<author val=\"" + StringUtils.filterForXMLOutput(ni.getAuthor()) + "\" />");
+					System.out.println("<date val=\"" + ni.getDateString() + "\" />");
+					System.out.print("<feeds list=\"");
+					List<Long> feedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS_ITEM.get(ni.getKey());
+					for (Long x: feedKeys) System.out.print(x + ",");
+					System.out.println("-1\" />");
+					System.out.print("<cats list=\"");
+					List<Long> catKeys = (List<Long>)SQL_Stmt.GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+					for (Long x: catKeys) System.out.print(x + ",");
+					System.out.println("-1\" />");
+					System.out.println("</item>");
+				}
+			}
+			catch (Exception e) {
+				System.err.println("Exception " + e + " for news key " + k + ".  Ignoring it!");
 			}
 
 			k++;
@@ -349,7 +354,7 @@ public class FixupTools
    	String appPropertiesFile = args[0];
 		String action = args[1];
 
-		System.out.println("Properties file: " + appPropertiesFile);
+		System.err.println("Properties file: " + appPropertiesFile);
 		NewsRack.startup(null, appPropertiesFile);
       _db = NewsRack.getDBInterface();
 
@@ -406,7 +411,7 @@ public class FixupTools
          System.out.println("Unknown action: " + action);
       }
 
-      System.out.println("\n -- DONE --");
       System.out.flush();
+      System.err.println("\n -- DONE --");
 	}
 }
