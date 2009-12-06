@@ -204,7 +204,7 @@
     </note>
     <condition name="user-agent">googlebot</condition>
     <from>^(.*?)(?:\;jsessionid=[^\?#]*)?(\?[^#]*)?(#.*)?$</from>
-    <to>$1$2$3</to>
+    <to last="false">$1$2$3</to>
   </outbound-rule>
 
   <outbound-rule>
