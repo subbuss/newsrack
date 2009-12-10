@@ -176,11 +176,6 @@ public class SQL_NewsItem extends NewsItem
 
 	private String getNewsItemPath(boolean wantOrig)
 	{
-		if (getKey() == null) {
-			_log.error("NewsItem with url " + getURL() + " is not in the db!");
-			return null;
-		}
-
 			// Convert 12.11.2005 --> 2005/11/12/
 		String[] dateStr = getDateString().split("\\.");
 		String pathPrefix = getGlobalNewsArchive() + (wantOrig ? "orig" : "filtered") + File.separator + dateStr[2] + File.separator + dateStr[1] + File.separator + dateStr[0];
@@ -191,8 +186,13 @@ public class SQL_NewsItem extends NewsItem
 
 			// 2. Didn't work .. check if this news item has been associated with other feeds
 		if (!((new File(fullPath)).isFile())) {
-				List<Long> allFeedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS_ITEM.get(getKey());
-				fullPath = getValidFilePath(pathPrefix, localName, allFeedKeys);
+			if (getKey() == null) {
+				_log.error("NewsItem with url " + getURL() + " is not in the db!");
+				return null;
+			}
+
+			List<Long> allFeedKeys = (List<Long>)SQL_Stmt.GET_ALL_FEEDS_FOR_NEWS_ITEM.get(getKey());
+			fullPath = getValidFilePath(pathPrefix, localName, allFeedKeys);
 
 				// 3. Check with local name stored in the db -- backward compatibility
 				// IMPORTANT: Check this *before* checking with old-style naming because

@@ -125,29 +125,34 @@ public class FixupTools
       Collection<NewsItem> news = _db.getArchivedNews(ni);
       List<NewsItem> refilteredNews = new ArrayList<NewsItem>();
       for (NewsItem n: news) {
-         File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
-         File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
-         if (origOrig.exists() && origFilt.exists() && (origFilt.length() < minLength)) {
-            System.out.println("Will have to filter " + origFilt + " again!");
-            origFilt.delete();
-            try {
-					String f = origFilt.toString();
-					HTMLFilter hf = new HTMLFilter(n.getURL(), origOrig.toString(), f.substring(0, f.lastIndexOf(File.separatorChar)));
-					hf.setIgnoreCommentsHeuristic(n.getFeed().getIgnoreCommentsHeuristic());
-					hf.run();
-					SQL_StmtExecutor.delete("DELETE FROM cat_news WHERE n_key = ?", new SQL_ValType[] {SQL_ValType.LONG}, new Object[]{n.getKey()});
-               refilteredNews.add(n);
-            }
-            catch (Exception e) {
-               System.err.println("Error filtering news item: " + e);
-            }
-         }
-         else if (origFilt.exists()) {
-            System.out.println("No need to filter " + origFilt + " again .. it has size " + origFilt.length());
-         }
-         else {
-            System.out.println("Bad path: " + origFilt);
-         }
+			try {
+				File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
+				File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
+				if (origOrig.exists() && origFilt.exists() && (origFilt.length() < minLength)) {
+					System.out.println("Will have to filter " + origFilt + " again!");
+					origFilt.delete();
+					try {
+						String f = origFilt.toString();
+						HTMLFilter hf = new HTMLFilter(n.getURL(), origOrig.toString(), f.substring(0, f.lastIndexOf(File.separatorChar)));
+						hf.setIgnoreCommentsHeuristic(n.getFeed().getIgnoreCommentsHeuristic());
+						hf.run();
+						SQL_StmtExecutor.delete("DELETE FROM cat_news WHERE n_key = ?", new SQL_ValType[] {SQL_ValType.LONG}, new Object[]{n.getKey()});
+						refilteredNews.add(n);
+					}
+					catch (Exception e) {
+						System.err.println("Error filtering news item: " + e);
+					}
+				}
+				else if (origFilt.exists()) {
+					System.out.println("No need to filter " + origFilt + " again .. it has size " + origFilt.length());
+				}
+				else {
+					System.out.println("Bad path: " + origFilt);
+				}
+			}
+			catch (Exception e) {
+				System.out.println("EXCEPTION fixing news item: " + n.getKey() + "; Exception is " + e);
+			}
       } 
 
 		if (refilteredNews.isEmpty())

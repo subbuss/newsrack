@@ -118,7 +118,7 @@ abstract public class NewsItem implements java.io.Serializable
 								hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
 								hf.setIgnoreCommentsHeuristic(false);
 								hf.run();
-                  		_log.info("Filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
+                  		_log.info("For file with path " + filtPath + ", filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
 							}
 						}
                }
