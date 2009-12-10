@@ -101,6 +101,9 @@ public class FixupTools
 
 	private static void reclassifyDependentIssues(Long feedKey, List<NewsItem> news)
 	{
+		if (news.isEmpty())
+			return;
+
          /* Now fetch all topics that monitor this feed! */
       List<Long> tkeys = (List<Long>)SQL_StmtExecutor.query("SELECT DISTINCT(t_key) FROM topic_sources WHERE feed_key = ?",
                                                             new SQL_ValType[] {SQL_ValType.LONG},
@@ -145,9 +148,12 @@ public class FixupTools
          else {
             System.out.println("Bad path: " + origFilt);
          }
-      }
+      } 
 
-		reclassifyDependentIssues(((SQL_NewsIndex)ni).getFeedKey(), refilteredNews);
+		if (refilteredNews.isEmpty())
+			System.out.println("--- Nothing to reclassify.  No new filtered news items ---");
+		else 
+			reclassifyDependentIssues(((SQL_NewsIndex)ni).getFeedKey(), refilteredNews);
 
          // GC!
       System.gc();

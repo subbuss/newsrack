@@ -92,13 +92,35 @@ abstract public class NewsItem implements java.io.Serializable
                numTries++;
 
                HTMLFilter hf = new HTMLFilter(url, filtPw, true);
-					hf.setIgnoreCommentsHeuristic(getFeed().getIgnoreCommentsHeuristic());
                hf.run();
                String origText = hf.getOrigHtml();
-                  // Null implies there was an error downloading the url
+
+					// Null implies there was an error downloading the url
                if (origText != null) {
                   origPw.println(origText);
+						origPw.flush();
                   done = true;
+
+						// Check the size of the filtered output.
+						// If we got a file size that is too small, try to filter again, this time while not using the comment ignoring heuristic.
+						filtPw.flush();
+						File filtFile = getFilteredFilePath();
+						long len = filtFile.length();
+						if (len < 750) {
+							boolean flag = getFeed().getIgnoreCommentsHeuristic();
+							if (flag == false) {
+								// Close original open writer first 
+								try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
+
+								// Retry (but without downloading first)
+								String origPath = getOrigFilePath().toString();
+								String filtPath = filtFile.toString();
+								hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
+								hf.setIgnoreCommentsHeuristic(false);
+								hf.run();
+                  		_log.info("Filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
+							}
+						}
                }
                else {
                   _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
