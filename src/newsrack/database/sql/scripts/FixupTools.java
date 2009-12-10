@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.List;
 
 import newsrack.NewsRack;
+import newsrack.archiver.HTMLFilter;
 import newsrack.database.DB_Interface;
-import newsrack.util.StringUtils;
 import newsrack.database.NewsIndex;
 import newsrack.database.NewsItem;
 import newsrack.database.sql.SQL_NewsIndex;
@@ -21,6 +21,7 @@ import newsrack.database.sql.SQL_ValType;
 import newsrack.filter.Category;
 import newsrack.filter.Issue;
 import newsrack.user.User;
+import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -98,6 +99,75 @@ public class FixupTools
 		}
 	}
 
+	private static void reclassifyDependentIssues(Long feedKey, List<NewsItem> news)
+	{
+         /* Now fetch all topics that monitor this feed! */
+      List<Long> tkeys = (List<Long>)SQL_StmtExecutor.query("SELECT DISTINCT(t_key) FROM topic_sources WHERE feed_key = ?",
+                                                            new SQL_ValType[] {SQL_ValType.LONG},
+                                                            new Object[]{feedKey},
+                                                            SQL_StmtExecutor._longProcessor,
+                                                            false);
+         // Reclassify!
+      for (Long tkey: tkeys) {
+         Issue i = _db.getIssue(tkey);
+         if (!i.isFrozen()) {
+            System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
+            i.scanAndClassifyNewsItems(null, news);
+         }
+      }
+	}
+
+   public static void refilterNewsForNewsIndex(NewsIndex ni, Long minLength)
+	{
+      Collection<NewsItem> news = _db.getArchivedNews(ni);
+      List<NewsItem> refilteredNews = new ArrayList<NewsItem>();
+      for (NewsItem n: news) {
+         File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
+         File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
+         if (origOrig.exists() && origFilt.exists() && (origFilt.length() < minLength)) {
+            System.out.println("Will have to filter " + origFilt + " again!");
+            origFilt.delete();
+            try {
+					String f = origFilt.toString();
+					HTMLFilter hf = new HTMLFilter(n.getURL(), origOrig.toString(), f.substring(0, f.lastIndexOf(File.separatorChar)));
+					hf.setIgnoreCommentsHeuristic(n.getFeed().getIgnoreCommentsHeuristic());
+					hf.run();
+					SQL_StmtExecutor.delete("DELETE FROM cat_news WHERE n_key = ?", new SQL_ValType[] {SQL_ValType.LONG}, new Object[]{n.getKey()});
+               refilteredNews.add(n);
+            }
+            catch (Exception e) {
+               System.err.println("Error filtering news item: " + e);
+            }
+         }
+         else if (origFilt.exists()) {
+            System.out.println("No need to filter " + origFilt + " again .. it has size " + origFilt.length());
+         }
+         else {
+            System.out.println("Bad path: " + origFilt);
+         }
+      }
+
+		reclassifyDependentIssues(((SQL_NewsIndex)ni).getFeedKey(), refilteredNews);
+
+         // GC!
+      System.gc();
+	}
+
+   public static void refilterNewsForNewsIndex(Long niKey, Long minLength)
+   {
+      refilterNewsForNewsIndex(_db.getNewsIndex(niKey), minLength);
+   }
+
+   public static void refilterFeedNewsInDateRange(Long feedKey, Long minLength, Date startDate, Date endDate)
+   {
+      java.util.Iterator<? extends NewsIndex> nis = _db.getIndexesOfAllArchivedNews(feedKey, startDate, endDate);
+      while (nis.hasNext()) {
+         NewsIndex ni = nis.next();
+         System.out.println("Will refilter news for index: " + ni.getKey() + "; date is " + ni.getCreationTime());
+         refilterNewsForNewsIndex(ni, minLength);
+      }
+   }
+
    public static void refetchNewsForNewsIndex(NewsIndex ni, Long minLength)
    {
       Collection<NewsItem> news = _db.getArchivedNews(ni);
@@ -126,20 +196,7 @@ public class FixupTools
          }
       }
 
-         /* Now fetch all topics that monitor this feed! */
-      List<Long> tkeys = (List<Long>)SQL_StmtExecutor.query("SELECT DISTINCT(t_key) FROM topic_sources WHERE feed_key = ?",
-                                                            new SQL_ValType[] {SQL_ValType.LONG},
-                                                            new Object[]{((SQL_NewsIndex)ni).getFeedKey()},
-                                                            SQL_StmtExecutor._longProcessor,
-                                                            false);
-         // Reclassify!
-      for (Long tkey: tkeys) {
-         Issue i = _db.getIssue(tkey);
-         if (!i.isFrozen()) {
-            System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
-            i.scanAndClassifyNewsItems(null, downloadedNews);
-         }
-      }
+		reclassifyDependentIssues(((SQL_NewsIndex)ni).getFeedKey(), downloadedNews);
 
          // GC!
       System.gc();
@@ -372,9 +429,6 @@ public class FixupTools
       else if (action.equals("add-news-to-cat")) {
 	      addNewsItemsToCat(Long.parseLong(args[2]), args[3]);
       }
-      else if (action.equals("refetch-news")) {
-         refetchNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));
-      }
       else if (action.equals("canonicalize-urls-for-feed")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
@@ -385,6 +439,9 @@ public class FixupTools
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
          canonicalizeURLs(args[2], sd, ed);
       }
+      else if (action.equals("refetch-news")) {
+         refetchNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));
+      }
       else if (action.equals("refetch-feeds-in-date-range")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[2]);
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
@@ -392,6 +449,18 @@ public class FixupTools
          for (int i = 5; i < args.length; i++) {
             Long fk = Long.parseLong(args[i]);
             refetchFeedInDateRange(fk, minLength, sd, ed);
+         }
+      }
+      else if (action.equals("refilter-news")) {
+         refilterNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));
+      }
+      else if (action.equals("refilter-feeds-in-date-range")) {
+         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[2]);
+         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
+         Long minLength = Long.parseLong(args[4]);
+         for (int i = 5; i < args.length; i++) {
+            Long fk = Long.parseLong(args[i]);
+            refilterFeedNewsInDateRange(fk, minLength, sd, ed);
          }
       }
       else if (action.equals("setup-topic-nested-sets")) {
