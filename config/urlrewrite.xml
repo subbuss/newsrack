@@ -208,23 +208,23 @@
   </outbound-rule>
 
   <outbound-rule>
-    <from>browse(.action)?\?(.*)catID=([0-9]+)&amp;(amp;)?(.*)issue=(.*?)&amp;(amp;)?owner=([^\\&amp;]+)(&amp;(amp;)?(.*))?$</from>
-    <to>stories/$8/$6/$3?$2$5$11</to>
+    <from>browse(.action)?\?(.*)catID=([0-9]+)&amp;(amp;)?(.*)owner=(.*?)&amp;(amp;)?issue=([^\\&amp;]+)(&amp;(amp;)?(.*))?$</from>
+    <to>stories/$6/$8/$3?$2$5$11</to>
   </outbound-rule>
 
   <outbound-rule>
-    <from>browse(.action)?\?owner=([^\\&amp;]+)&amp;(amp;)?(.*)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
-    <to>stories/$2/$8/$6?$4</to>
+    <from>browse(.action)?\?issue=([^\\&amp;]+)&amp;(amp;)?(.*)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?owner=(.*?)$</from>
+    <to>stories/$8/$2/$6?$4</to>
   </outbound-rule>
 
   <outbound-rule>
-    <from>browse(.action)?\?owner=(.*?)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)$</from>
-    <to>stories/$2/$6/$4</to>
+    <from>browse(.action)?\?issue=(.*?)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?owner=(.*?)$</from>
+    <to>stories/$6/$2/$4</to>
   </outbound-rule>
 
   <outbound-rule>
-    <from>browse(.action)?\?owner=(.*?)&amp;(amp;)?issue=(.*?)$</from>
-    <to>topics/$2/$4</to>
+    <from>browse(.action)?\?issue=(.*?)&amp;(amp;)?owner=(.*?)$</from>
+    <to>topics/$4/$2</to>
   </outbound-rule>
 
   <outbound-rule>

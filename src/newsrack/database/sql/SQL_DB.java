@@ -2525,7 +2525,7 @@ public class SQL_DB extends DB_Interface
 		return cat.getNumArticles();
 	}
 
-	private void updateArtCounts(Issue i)
+	public void updateArtCounts(Issue i)
 	{
 		int n    = 0;
 		int orig = i.getNumArticles();

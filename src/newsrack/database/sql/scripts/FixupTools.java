@@ -92,7 +92,9 @@ public class FixupTools
 	{
       List<Issue> issues = User.getAllValidatedIssues();
 		for (Issue i: issues) {
-			i.storeNewsToArchive();
+			System.out.println("Will update count for: " + i.getName());
+			SQL_Stmt.UPDATE_ART_COUNTS_FOR_ALL_TOPIC_LEAF_CATS.execute(new Object[]{i.getKey()});
+			((newsrack.database.sql.SQL_DB)_db).updateArtCounts(i);
 		}
 	}
 
@@ -120,7 +122,7 @@ public class FixupTools
             System.out.println("No need to download " + origFilt + " again .. it has size " + origFilt.length());
          }
          else {
-            System.out.println("Bath path: " + origFilt);
+            System.out.println("Bad path: " + origFilt);
          }
       }
 
