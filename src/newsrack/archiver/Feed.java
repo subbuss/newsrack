@@ -204,6 +204,7 @@ public class Feed implements java.io.Serializable
 
    private boolean _cacheableFlag;
    private boolean _cachedTextDisplayFlag;
+   private boolean _useIgnoreCommentsHeuristic;
 
 	public  Feed() { } /* Default constructor */
 
@@ -232,11 +233,13 @@ public class Feed implements java.io.Serializable
 	public String  getUrl()    { return _feedUrl; }
 	public boolean getCacheableFlag() { return _cacheableFlag; }
 	public boolean getCachedTextDisplayFlag() { return _cachedTextDisplayFlag; }
+	public boolean getIgnoreCommentsHeuristic() { return _useIgnoreCommentsHeuristic; }
 	public int     getNumFetches() { return _numFetches; }
 	public int     getNumFailures() { return _numFailures; }
 
 	public void setCacheableFlag(boolean flag) { _cacheableFlag = flag; }
 	public void setShowCachedTextDisplayFlag(boolean flag) { _cachedTextDisplayFlag = flag; }
+	public void setIgnoreCommentsHeuristic(boolean flag) { _useIgnoreCommentsHeuristic = flag; }
 
 	public boolean isNewsRackFilter() { return _feedUrl.startsWith("newsrack://"); }
 
@@ -381,7 +384,7 @@ public class Feed implements java.io.Serializable
 			rssPubDate = f.getPublishedDate();
 
 		if (rssPubDate == null) {
-			if (_log.isErrorEnabled()) _log.error("ERROR: For feed " + _feedUrl + "; Publishing date : null .. using today's date");
+			if (_log.isDebugEnabled()) _log.debug("ERROR: For feed " + _feedUrl + "; Publishing date : null .. using today's date");
 			rssPubDate = new Date();
 		}
 

@@ -402,13 +402,14 @@ class GetFeedResultProcessor extends AbstractResultProcessor
 {
 	public Object processResultSet(ResultSet rs) throws java.sql.SQLException
 	{
-		Long   feedKey   = rs.getLong(1);
-		String feedTag   = rs.getString(2);
-		String feedName  = rs.getString(3);
-		String rssFeed   = rs.getString(4) + rs.getString(5);
+		Long   feedKey  = rs.getLong(1);
+		String feedTag  = rs.getString(2);
+		String feedName = rs.getString(3);
+		String rssFeed  = rs.getString(4) + rs.getString(5);
 		Feed f = new Feed(feedKey, feedTag, feedName, rssFeed, rs.getInt(8), rs.getInt(9));
 		f.setCacheableFlag(rs.getBoolean(6));
 		f.setShowCachedTextDisplayFlag(rs.getBoolean(7));
+		f.setIgnoreCommentsHeuristic(rs.getBoolean(10));
 		return f;
 	}
 }
@@ -645,7 +646,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_FEED(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE feed_key = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures, use_ignore_comments_heuristic FROM feeds WHERE feed_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
@@ -653,7 +654,7 @@ public enum SQL_Stmt
 		true
 	),
    GET_FEED_FROM_URL(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE url_root = ? AND url_tail = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures, use_ignore_comments_heuristic FROM feeds WHERE url_root = ? AND url_tail = ?",
       new SQL_ValType[] {STRING, STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -661,7 +662,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_FEED_FROM_TAG(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE feed_tag = ?",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures, use_ignore_comments_heuristic FROM feeds WHERE feed_tag = ?",
       new SQL_ValType[] {STRING},
 		SQL_StmtType.QUERY,
 		null,
@@ -669,7 +670,7 @@ public enum SQL_Stmt
 		true
 	),
 	GET_ALL_FEEDS(
-		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds",
+		"SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures, use_ignore_comments_heuristic FROM feeds",
       new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,
@@ -1065,7 +1066,7 @@ public enum SQL_Stmt
 		false
    ),
 	GET_ALL_ACTIVE_FEEDS(
-	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources, topics where topics.frozen = 0 and topic_sources.t_key=topics.t_key)",
+	   "SELECT feed_key, feed_tag, feed_name, url_root, url_tail, cacheable, show_cache_links, num_fetches, num_failures, use_ignore_comments_heuristic FROM feeds WHERE feed_key IN (SELECT distinct feed_key FROM topic_sources, topics where topics.frozen = 0 and topic_sources.t_key=topics.t_key)",
 		new SQL_ValType[] {},
 		SQL_StmtType.QUERY,
 		null,

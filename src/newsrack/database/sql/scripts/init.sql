@@ -16,6 +16,9 @@ create table if not exists feeds (
    url_root         varchar(256)  not null,
    url_tail         varchar(2048) not null,
 	cacheable        boolean  default true,
+		/* By default all domains will use the html filtering heuristic to ignore comments 
+		 * This will be selectively turned off for certain domains based on results. */
+	use_ignore_comments_heuristic boolean default true,
 	show_cache_links boolean  default false,
 	mins_between_downloads int default 120,
 	num_fetches      int,

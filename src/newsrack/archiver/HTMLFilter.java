@@ -228,9 +228,6 @@ public class HTMLFilter extends NodeVisitor
 
 			// Mumbai/Bangalore Mirror specific hack -- June 7, 2009
 		_isBMmirror = _urlDomain.equals("bangaloremirror.com") || _urlDomain.equals("mumbaimirror.com");
-			// Nov 24, 2009 -- Some bug with comments for guardian and pib
-		if (_urlDomain.equals("guardian.co.uk") || _urlDomain.equals("pib.nic.in"))
-		   _ignoreComments = false;
 	}
 	
 	/**
@@ -342,6 +339,8 @@ public class HTMLFilter extends NodeVisitor
 		_origHtml = parser.getLexer().getPage().getText();
 	}
 
+	public void setIgnoreCommentsHeuristic(boolean flag) { _ignoreComments = flag; }
+
    @Override
 	public boolean shouldRecurseSelf() { return true; } 
 
@@ -405,16 +404,24 @@ public class HTMLFilter extends NodeVisitor
 				_eltContentStack.push(new DOM_Node_Info(tagName));
 			}
 
-			if (tagName.equals("DIV")) { 
+			if (tagName.equals("DIV")) {
+				String divClass = tag.getAttribute("class");
 				String divId = tag.getAttribute("id");
 				if (divId != null) {
 						// Mumbai/Bangalore Mirror hack -- June 7, 2009
 						// Everything after id="tags" is not required.
 					if (_isBMmirror && divId.equals("tags"))
 						_ignoreEverything = true;
+
 						// Assume that if we hit a div with an id that has comment in its name
 						// we have hit comments.
-				   else if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
+				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
+						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
+						_ignoreEverything = true;
+					}
+				}
+				if (divClass != null) {
+				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}

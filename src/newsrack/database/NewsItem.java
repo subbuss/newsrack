@@ -92,6 +92,7 @@ abstract public class NewsItem implements java.io.Serializable
                numTries++;
 
                HTMLFilter hf = new HTMLFilter(url, filtPw, true);
+					hf.setIgnoreCommentsHeuristic(getFeed().getIgnoreCommentsHeuristic());
                hf.run();
                String origText = hf.getOrigHtml();
                   // Null implies there was an error downloading the url
@@ -118,9 +119,9 @@ abstract public class NewsItem implements java.io.Serializable
          throw e;
       }
       finally {
-            // close the files
-         if (origPw != null) origPw.close();
-         if (filtPw != null) filtPw.close();
+            // close the files -- ignore any resulting exceptions
+         try { if (origPw != null) origPw.close(); } catch(Exception e) {}
+         try { if (filtPw != null) filtPw.close(); } catch(Exception e) {}
       }
 
          // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
