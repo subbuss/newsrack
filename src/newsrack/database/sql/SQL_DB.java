@@ -556,13 +556,12 @@ public class SQL_DB extends DB_Interface
 /**
 	public String getUniqueFeedTag(final String feedURL, final String sTag, final String feedName)
 	{
-		Tuple<String,String> t = splitURL(feedURL);
-		Object tag = GET_UNIQUE_FEED_TAG.execute(new Object[] {t._a, t._b});
+		Object tag = GET_UNIQUE_FEED_TAG.execute(new Object[] {feedURL});
 		if (tag != null) {
 			return (String)tag;
 		}
 		else if (sTag != null) {
-			Object intKey = INSERT_FEED.execute(new Object[] {feedName, t._a, t._b});
+			Object intKey = INSERT_FEED.execute(new Object[] {feedName, feedURL});
 			String fTag = intKey + "." + sTag;
 			SET_FEED_TAG.execute(new Object[] {fTag, intKey});
 			return fTag;
@@ -575,8 +574,7 @@ public class SQL_DB extends DB_Interface
 
 	public Feed getFeed(final String feedURL, String sTag, String feedName)
 	{
-		Tuple<String,String> t = splitURL(feedURL);
-		Feed f = (Feed)GET_FEED_FROM_URL.execute(new Object[] {t._a, t._b});
+		Feed f = (Feed)GET_FEED_FROM_URL.execute(new Object[] {feedURL});
 		if (f != null) {
 			return f;
 		}
@@ -587,7 +585,7 @@ public class SQL_DB extends DB_Interface
 				feedName = f.getName();
 				sTag = f.getTag();
 			}
-			Object intKey = INSERT_FEED.execute(new Object[] {feedName, t._a, t._b});
+			Object intKey = INSERT_FEED.execute(new Object[] {feedName, feedURL});
 			String fTag = intKey + "." + sTag;
 			SET_FEED_TAG.execute(new Object[] {fTag, intKey});
 			return new Feed((Long)intKey, fTag, feedName, feedURL);

@@ -12,13 +12,10 @@ create table if not exists feeds (
    feed_key         bigint        not null auto_increment,
    feed_tag         varchar(64),
 	feed_name        varchar(128)  not null,	/* obtained from the feed */
-      /* Q: Is this dumb optimization below -- of splitting url -- really necessary? */
-   url_root         varchar(256)  not null,
-   url_tail         varchar(2048) not null,
+   url              varchar(2048) not null,
 	cacheable        boolean  default true,
-		/* By default all domains will use the html filtering heuristic to ignore comments 
-		 * This will be selectively turned off for certain domains based on results. */
-	use_ignore_comments_heuristic boolean default true,
+	use_ignore_comments_heuristic boolean default true, /* By default all domains will use the html filtering heuristic to ignore comments 
+	                                                     * This will be selectively turned off for certain domains based on results. */
 	show_cache_links boolean  default false,
 	mins_between_downloads int default 120,
 	num_fetches      int,
