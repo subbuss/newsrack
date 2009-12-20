@@ -1,25 +1,8 @@
-#!/bin/tcsh
+#!/bin/sh
 
-set dirname = `date +'%d.%m.%y'`;
-set BKPDIR = "/home/newsrack/backup/$dirname"
-
-#set TMPDIR = "/tmp/user.backup"
-#set BKP    = "/tmp/user.backup.tgz"
-#set UDIR   = "/home/newsrack/data/users"
-#set UTABLE = "$UDIR/user.table.xml"
-#rm -rf $TMPDIR
-#mkdir $TMPDIR
-#mkdir -p $BKPDIR
-#foreach i (`grep uid $UTABLE | cut -f2 -d'"'`)
-#	if ( $i != "admin" ) then
-#		echo "Making backup for $i"
-#		cp -r $UDIR/$i $TMPDIR
-#	endif
-#end
-#cp $UTABLE $TMPDIR
-#tar czf $BKP $TMPDIR
-#\mv $BKP $BKPDIR
-
+dirname=`date +'%d.%m.%y'`;
+BKPDIR="/home/newsrack/backup/$dirname"
+mkdir -p $BKPDIR
 mysqldump --user=newsrack --password=123news newsrack users | gzip > $BKPDIR/users.gz
 mysqldump --user=newsrack --password=123news newsrack feeds | gzip > $BKPDIR/feeds.gz
 mysqldump --user=newsrack --password=123news newsrack topics | gzip > $BKPDIR/topics.gz
@@ -39,5 +22,3 @@ mysqldump --user=newsrack --password=123news newsrack news_items | gzip > $BKPDI
 mysqldump --user=newsrack --password=123news newsrack news_collections | gzip > $BKPDIR/news_collections.gz
 mysqldump --user=newsrack --password=123news newsrack news_item_url_md5_hashes | gzip > $BKPDIR/news_item_url_md5_hashes.gz
 ##mysqldump --user=newsrack --password=123news newsrack news_item_localnames | gzip > $BKPDIR/news_item_localnames.gz
-
-##rm -rf $TMPDIR

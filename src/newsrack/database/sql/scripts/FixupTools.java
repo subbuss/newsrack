@@ -186,10 +186,16 @@ public class FixupTools
       for (NewsItem n: news) {
          File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
          File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
-         if (origFilt.exists() && (origFilt.length() < minLength)) {
-            System.out.println("Will have to download " + origFilt + " again!");
-            origOrig.delete();
-            origFilt.delete();
+         if (origFilt == null || (origFilt.length() < minLength)) {
+				if (origFilt== null) 
+					System.out.println("Missing file ... have to download .." + n.getKey() + ": " + n.getURL() + " again!");
+				else
+               System.out.println("Will have to download " + origFilt + " again!");
+
+				if (origFilt != null) {
+					origOrig.delete();
+					origFilt.delete();
+				}
             try {
                n.download(_db);
                downloadedNews.add(n);
