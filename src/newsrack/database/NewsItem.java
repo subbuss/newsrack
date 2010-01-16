@@ -55,7 +55,8 @@ abstract public class NewsItem implements java.io.Serializable
 	/** Returns a reader object to read the contents of the news item */
 	abstract public Reader   getReader() throws java.io.IOException;
 	abstract public int      getNumCats();
-	abstract public List<Category> getCategories();
+	abstract public List<Category> getLeafCategories();
+	abstract public List<Category> getAllCategories();
    /** Can the cached text of this news item be displayed?  */
    abstract public boolean  getDisplayCachedTextFlag();
 	abstract public String   getSourceNameForUser(User u);

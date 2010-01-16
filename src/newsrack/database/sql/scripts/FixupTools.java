@@ -321,7 +321,7 @@ public class FixupTools
 					for (Long x: feedKeys) System.out.print(x + ",");
 					System.out.println("-1\" />");
 					System.out.print("<cats list=\"");
-					List<Long> catKeys = (List<Long>)SQL_Stmt.GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+					List<Long> catKeys = (List<Long>)SQL_Stmt.GET_LEAF_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
 					for (Long x: catKeys) System.out.print(x + ",");
 					System.out.println("-1\" />");
 					System.out.println("</item>");

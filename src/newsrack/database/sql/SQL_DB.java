@@ -2262,14 +2262,16 @@ public class SQL_DB extends DB_Interface
 		return news;
 	}
 
-	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni)
+	protected List<Category> getClassifiedCatsForNewsItem(SQL_NewsItem ni, boolean onlyLeaf)
 	{
-		Long cacheKey = ni.getKey();
-
+		String cacheKey = ni.getKey() + (onlyLeaf ? "" : "_all");
 		List<Long> catKeys = (List<Long>)_cache.get("NEWS_CATS", cacheKey);
 		if (catKeys == null) {
 				// Fetch cat-keys and add to cache
-			catKeys = (List<Long>)GET_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+			if (onlyLeaf)
+				catKeys = (List<Long>)GET_LEAF_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
+			else
+				catKeys = (List<Long>)GET_ALL_CAT_KEYS_FOR_NEWSITEM.get(ni.getKey());
 
 			// FIXME: Better to create cache groups for the news item?
 			_cache.add("NEWS_CATS", cacheKey, catKeys);

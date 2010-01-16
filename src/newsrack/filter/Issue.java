@@ -933,7 +933,7 @@ public class Issue implements java.io.Serializable
 			allArts.add(ni);
 				// FIXME: 250 is arbitrary!
 			classifyArticle(ni, 250, tokTable);
-			if (ni.getCategories().size() == 0)
+			if (ni.getLeafCategories().size() == 0)
 				unclassifiedArts.add(ni);
 		}
 	}

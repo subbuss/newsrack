@@ -318,7 +318,7 @@ newstrust_story_date = '${ni.date?string("yyyy-MM-dd")}';
 		<tr class="newsdesc"> <td colspan="3"> ${ni.description} </td> </tr>
       [/#if]
 			[#-- Display the other categories it belongs to ### --]
-      [#assign cats = ni.categories]
+      [#assign cats = ni.leafCategories]
       [#if cats.size() > 1 || (cat.leafCategory == false)]
 		<tr class="newscats"> 
 			<td colspan="3">

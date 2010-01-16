@@ -173,8 +173,8 @@ public class NewsAction extends BaseApiAction implements ServletRequestAware
 			return Action.ERROR;
 		}
 
-			// Build a list of categories for this news item
-		List<Category> allCats = _newsItem.getCategories();
+			// Build a list of all leaf and non-leaf categories for this news item
+		List<Category> allCats = _newsItem.getAllCategories();
 		_cats = new ArrayList<Category>();
 			// No filtering by uids
 		if ((uid == null) && (uidList == null)) {

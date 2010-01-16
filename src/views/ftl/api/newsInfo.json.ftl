@@ -7,7 +7,7 @@ var _nr_newsitem = {
   date   : "${n.date.toString()}",
   author : "${n.author}",
   desc   : "${n.description}",
-  score  : "${n.categories.size()}",
+  score  : "${n.leafCategories.size()}",
   categories : [
   <#foreach c in categories>
     {

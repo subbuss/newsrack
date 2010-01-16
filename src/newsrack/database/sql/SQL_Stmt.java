@@ -566,8 +566,16 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		false
 	),
-	GET_CAT_KEYS_FOR_NEWSITEM(
+	GET_LEAF_CAT_KEYS_FOR_NEWSITEM(
 		"SELECT cn.c_key FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.c_key AND c.valid = true",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
+	GET_ALL_CAT_KEYS_FOR_NEWSITEM(
+		"SELECT distinct(c2.c_key) FROM cat_news cn, categories c, categories c2 WHERE n_key = ? AND cn.c_key = c.c_key AND c.valid = true AND c2.t_key=c.t_key AND c2.lft <= c.lft AND c2.rgt >= c.rgt",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.QUERY,
 		null,

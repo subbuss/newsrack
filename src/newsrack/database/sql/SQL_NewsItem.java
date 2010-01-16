@@ -160,8 +160,9 @@ public class SQL_NewsItem extends NewsItem
 	public String  getAuthor()      { return _author; }
 	public String  getDescription() { return _description; }
 	public String  getURL()         { return _urlRoot + _urlTail; }
-	public List<Category> getCategories() { return SQL_DB._sqldb.getClassifiedCatsForNewsItem(this); }
-	public int     getNumCats()           { return getCategories().size(); }
+	public List<Category> getLeafCategories() { return SQL_DB._sqldb.getClassifiedCatsForNewsItem(this, true); }
+	public List<Category> getAllCategories()  { return SQL_DB._sqldb.getClassifiedCatsForNewsItem(this, false); }
+	public int     getNumCats()           { return getLeafCategories().size(); }
 	public Long    getFeedKey()           { return _feedKey; }
 	public Feed    getFeed()              { return SQL_DB._sqldb.getFeed(_feedKey); }
 	public String  getLinkForCachedItem() { return _localCopyName + ":" + _nKey; }
