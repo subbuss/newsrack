@@ -276,7 +276,7 @@ public class Issue implements java.io.Serializable
 		}
 	}
 
-	private static void processMatchedConcept(String token, int tokenPosn, Hashtable tokTable, PrintWriter pw)
+	private static void processMatchedConcept(String token, String matchedText, int tokenPosn, Hashtable tokTable, PrintWriter pw)
 	{
 			// Increment match score of the matched concept and record information
 			// about where in the article it was found
@@ -287,8 +287,9 @@ public class Issue implements java.io.Serializable
 			cnt.addMatch(tokenPosn);
 
 			// Output the concept to the token file for debugging purposes
-		if (pw != null)
-			pw.println(token + ":" + tokenPosn);
+		if (pw != null) {
+			pw.println(token + ":" + tokenPosn + ":TEXT=" + matchedText);
+		}
 	}
 
 // ############### NON-STATIC FIELDS AND METHODS ############
@@ -980,10 +981,10 @@ public class Issue implements java.io.Serializable
 						// and all of c1, c2, and c3 will get the same token position!
 						// So, the rule (c1 ~0 c2) will fire even though it shouldn't.
 					for (String element : toks)
-						processMatchedConcept(element, numTokens, tokTable, pw);
+						processMatchedConcept(element, tok._text, numTokens, tokTable, pw);
 				}
 				else {
-					processMatchedConcept(tok.getToken(), numTokens, tokTable, pw);
+					processMatchedConcept(tok.getToken(), tok._text, numTokens, tokTable, pw);
 				}
 			}
 		}
