@@ -369,7 +369,7 @@ public class HTMLFilter extends NodeVisitor
 				if (href == null || href.equals("")) {
 					// If we hit an inline anchor named comments, we assume that we have run into comments on the page.
 					String name = tag.getAttribute("NAME");
-					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && (name != null) && name.equals("comments")) {
+					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 1250 && (name != null) && name.equals("comments")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
@@ -404,7 +404,9 @@ public class HTMLFilter extends NodeVisitor
 				_eltContentStack.push(new DOM_Node_Info(tagName));
 			}
 
-			if (tagName.equals("DIV")) {
+			// DNA uses iframes
+			//   <iframe src="/comments_link.php?newsid=1346702" name="/comments_frame910.php?newsid=1346702" width="100%" id="comment_frame" marginheight="0" frameborder="0" scrolling="no" onload="frame_auto_resize('comment_frame',230);"></iframe>
+			if (tagName.equals("DIV") || tagName.equals("IFRAME")) {
 				String divClass = tag.getAttribute("class");
 				String divId = tag.getAttribute("id");
 				if (divId != null) {
@@ -415,13 +417,13 @@ public class HTMLFilter extends NodeVisitor
 
 						// Assume that if we hit a div with an id that has comment in its name
 						// we have hit comments.
-				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
+				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 1250 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
 				}
 				if (divClass != null) {
-				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
+				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 1250 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
