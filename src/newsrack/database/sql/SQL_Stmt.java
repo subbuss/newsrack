@@ -458,10 +458,20 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		true
 	),
-    GET_NEWS_ITEM_FROM_URL(
+   GET_NEWS_ITEM_FROM_URL(
  		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
 			" FROM news_item_url_md5_hashes h, news_items n, news_indexes ni" +
 			" WHERE h.url_hash = md5(?) AND h.n_key = n.n_key AND n.primary_ni_key = ni.ni_key",
+		new SQL_ValType[] {STRING},
+       SQL_StmtType.QUERY,
+ 		null,
+ 		new GetNewsItemResultProcessor(),
+ 		true
+ 	),
+   GET_NEWS_ITEM_FROM_TITLE(
+ 		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
+			" FROM news_items n, news_indexes ni" +
+			" WHERE n.primary_ni_key = ni.ni_key AND n.title = ?",
 		new SQL_ValType[] {STRING},
        SQL_StmtType.QUERY,
  		null,

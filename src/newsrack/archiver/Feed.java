@@ -517,11 +517,24 @@ public class Feed implements java.io.Serializable
 			String canonicalUrl = URLCanonicalizer.canonicalize(URLCanonicalizer.cleanup(baseUrl, storyUrl));
 			if (_log.isInfoEnabled()) _log.info("URL :" + canonicalUrl);
 
+			if (title != null)
+				title = title.trim();
+
 				// 2. Check if the article has already been downloaded previously
-			ni = _db.getNewsItemFromURL(canonicalUrl);
+			ni = _db.getNewsItemFromURLOrTitle(canonicalUrl, title);
 			if (ni != null) {
-				if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
-				return ni;
+				if (ni.getURL().equals(canonicalUrl)) {
+					if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
+					return ni;
+				}
+				// Title matched, it is at least 30 characters long, and is from the same domain!
+				else if (title.length() > 30 && StringUtils.getDomainForUrl(canonicalUrl).equals(StringUtils.getDomainForUrl(ni.getURL()))) {
+					if (_log.isInfoEnabled()) _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
+					return ni;
+				}
+				else {
+					if (_log.isInfoEnabled()) _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + ni.getURL());
+				}
 			}
 
 				// 3. Else, create a new item.  NOTE: This won't be stored to the db yet!
@@ -529,7 +542,7 @@ public class Feed implements java.io.Serializable
 
             // 4. Download it
 				// Set title prior to downloading because the title is used for some smart content extraction
-			ni.setTitle((title != null) ? title.trim() : null);
+			ni.setTitle(title);
          ni.download(_db); 
 
 				// 5. Create the news item and return it!

@@ -1197,8 +1197,7 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * This method returns a NewsItem object for an article
-	 * that has already been downloaded
+	 * This method returns a NewsItem object for an article that has already been downloaded
 	 *
 	 * @param url   URL of the article
 	 * @returns a news item object for the article
@@ -1253,6 +1252,28 @@ public class SQL_DB extends DB_Interface
 
 			return n;
 		}
+	}
+
+	/**
+	 * This method returns a NewsItem object for an article that has already been downloaded
+	 *
+	 * @param url    URL of the article
+	 * @param title  Title to look for
+	 * @returns a news item object for the article
+	 */
+	public NewsItem getNewsItemFromURLOrTitle(String url, String title)
+	{
+		NewsItem n = getNewsItemFromURL(url);
+		if (n == null) {
+      	n = (NewsItem)GET_NEWS_ITEM_FROM_TITLE.execute(new Object[]{title});
+			if (n != null) {
+				// Add newsitem both by key & url
+				_cache.add("NEWSITEM", n.getKey(), n);
+				_cache.add("NEWSITEM", url, n);
+			}
+		}
+
+		return n;
 	}
 
 	private Triple getLocalPathTerms(String path)

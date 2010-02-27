@@ -519,13 +519,22 @@ public abstract class DB_Interface
 	public abstract Reader getNewsItemReader(NewsItem ni) throws java.io.IOException;
 
 	/**
-	 * This method returns a NewsItem object for an article
-	 * that has already been downloaded
+	 * This method returns a NewsItem object for an article that has already been downloaded
 	 *
 	 * @param url   URL of the article
 	 * @returns a news item object for the article
 	 */
 	public abstract NewsItem getNewsItemFromURL(String url);
+
+	/**
+	 * This method returns a NewsItem object for an article that has already been downloaded
+	 * This method could use the title to find a match in case the urls dont match.
+	 *
+	 * @param url    URL of the article
+	 * @param title  Title to look for
+	 * @returns a news item object for the article
+	 */
+	public abstract NewsItem getNewsItemFromURLOrTitle(String url, String title);
 
 	/**
 	 * This method returns a NewsItem object for an article
