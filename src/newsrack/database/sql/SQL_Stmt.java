@@ -470,8 +470,8 @@ public enum SQL_Stmt
  	),
    GET_NEWS_ITEM_FROM_TITLE(
  		"SELECT n.n_key, n.primary_ni_key, n.url_root, n.url_tail, n.title, n.description, n.author, ni.created_at, ni.feed_key" +
-			" FROM news_items n, news_indexes ni" +
-			" WHERE n.primary_ni_key = ni.ni_key AND n.title = ?",
+			" FROM news_items n, news_indexes ni, recent_news_title_hashes h" +
+			" WHERE n.primary_ni_key = ni.ni_key AND h.n_key = n.n_key AND h.title_hash = md5(?)",
 		new SQL_ValType[] {STRING},
        SQL_StmtType.QUERY,
  		null,
@@ -1149,6 +1149,11 @@ public enum SQL_Stmt
 		new SQL_ValType[] {LONG, STRING},
 		SQL_StmtType.INSERT
 	),
+	INSERT_TITLE_HASH(
+		"INSERT INTO recent_news_title_hashes(n_key, title_hash, story_date) VALUES(?, md5(?), ?)",
+		new SQL_ValType[] {LONG, STRING, DATE},
+		SQL_StmtType.INSERT
+	),
 	INSERT_INTO_RECENT_DOWNLOAD_TABLE(
 		"INSERT IGNORE INTO downloaded_news (feed_key, n_key) VALUES (?, ?)",
 		new SQL_ValType[] {LONG, LONG},
@@ -1400,6 +1405,11 @@ public enum SQL_Stmt
 	),
 	DELETE_URL_HASH_ENTRY(
 	   "DELETE FROM news_item_url_md5_hashes WHERE n_key = ?",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.DELETE
+	),
+	DELETE_TITLE_HASH_ENTRY(
+	   "DELETE FROM recent_news_title_hashes WHERE n_key = ?",
 		new SQL_ValType[] {LONG},
       SQL_StmtType.DELETE
 	),
