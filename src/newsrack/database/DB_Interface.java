@@ -527,14 +527,13 @@ public abstract class DB_Interface
 	public abstract NewsItem getNewsItemFromURL(String url);
 
 	/**
-	 * This method returns a NewsItem object for an article that has already been downloaded
-	 * This method could use the title to find a match in case the urls dont match.
+	 * This method returns NewsItems object for an article that has already been downloaded
+	 * This method could use the title to find a match -- multiple items could match the title!
 	 *
-	 * @param url    URL of the article
 	 * @param title  Title to look for
-	 * @returns a news item object for the article
+	 * @returns a list of news item objects matching the title
 	 */
-	public abstract NewsItem getNewsItemFromURLOrTitle(String url, String title);
+	public abstract List<NewsItem> getNewsItemFromTitle(String title);
 
 	/**
 	 * This method returns a NewsItem object for an article

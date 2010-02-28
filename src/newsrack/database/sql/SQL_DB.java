@@ -1256,28 +1256,21 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * This method returns a NewsItem object for an article that has already been downloaded
+	 * This method returns NewsItems object for an article that has already been downloaded
+	 * This method could use the title to find a match -- multiple items could match the title!
 	 *
-	 * @param url    URL of the article
 	 * @param title  Title to look for
-	 * @returns a news item object for the article
+	 * @returns a list of news item objects matching the title
 	 */
-	public NewsItem getNewsItemFromURLOrTitle(String url, String title)
+	public List<NewsItem> getNewsItemFromTitle(String title)
 	{
-		NewsItem n = getNewsItemFromURL(url);
-		if (n == null) {
-      	Long n_key = (Long)GET_NEWS_ITEM_FROM_TITLE.execute(new Object[]{title});
-			if (n_key != null) {
-				n = getNewsItem(n_key);
-				if (n != null) {
-					// Add newsitem both by key & url
-					_cache.add("NEWSITEM", n.getKey(), n);
-					_cache.add("NEWSITEM", url, n);
-				}
-			}
+		try {
+			return (List<NewsItem>)GET_NEWS_ITEM_FROM_TITLE.execute(new Object[]{title});
 		}
-
-		return n;
+		catch (Exception e) {
+			_log.error("Exception " + e + " fetching news item by title: " + title);
+			return null;
+		}
 	}
 
 	private Triple getLocalPathTerms(String path)
@@ -1320,7 +1313,8 @@ public class SQL_DB extends DB_Interface
 		}
 		else {
 				// Ex: 663f59096f4ab33251cde3cc303214c7:348545
-			int      i       = 1 + path.indexOf(':');
+			int i = 1 + path.indexOf(':');
+			if (i == 0) i = 3 + path.indexOf("%3A");  // url-encoded!
 			String   md5Hash = path.substring(0, i-1);
 			Long     nKey    = Long.parseLong(path.substring(i));
 			NewsItem ni      = getNewsItem(nKey);

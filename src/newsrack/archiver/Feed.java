@@ -512,28 +512,36 @@ public class Feed implements java.io.Serializable
 
 		NewsItem ni = null;
 		try {
+			boolean logInfo = _log.isInfoEnabled();
+
 				// 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
 				// 1b. Canonicalize it so that we can catch duplicate urls more easily! 
 			String canonicalUrl = URLCanonicalizer.canonicalize(URLCanonicalizer.cleanup(baseUrl, storyUrl));
-			if (_log.isInfoEnabled()) _log.info("URL :" + canonicalUrl);
+			if (logInfo) _log.info("URL :" + canonicalUrl);
 
 			if (title != null)
 				title = title.trim();
 
-				// 2. Check if the article has already been downloaded previously
-			ni = _db.getNewsItemFromURLOrTitle(canonicalUrl, title);
+				// 2a. Check if the article has already been downloaded previously (by url)
+			ni = _db.getNewsItemFromURL(canonicalUrl);
 			if (ni != null) {
-				if (ni.getURL().equals(canonicalUrl)) {
-					if (_log.isInfoEnabled()) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
-					return ni;
-				}
-				// Title matched, it is at least 30 characters long, and is from the same domain!
-				else if (title.length() > 30 && StringUtils.getDomainForUrl(canonicalUrl).equals(StringUtils.getDomainForUrl(ni.getURL()))) {
-					if (_log.isInfoEnabled()) _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
-					return ni;
-				}
-				else {
-					if (_log.isInfoEnabled()) _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + ni.getURL());
+				if (logInfo) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
+				return ni;
+			}
+
+				// 2b. Check if the article has already been downloaded previously (by title)
+			if (title.length() > 30) {
+				List<NewsItem> nis = _db.getNewsItemFromTitle(title);
+				if ((nis != null) && nis.size() > 0) {
+					// Title matched, is at least 30 characters long -- check for domain matches!
+					String d = StringUtils.getDomainForUrl(canonicalUrl);
+					for (NewsItem x: nis) {
+						if (d.equals(StringUtils.getDomainForUrl(x.getURL()))) {
+							if (logInfo) _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
+							return x;
+						}
+						if (logInfo) _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + ni.getURL());
+					}
 				}
 			}
 

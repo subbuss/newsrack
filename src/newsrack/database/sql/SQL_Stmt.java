@@ -476,7 +476,7 @@ public enum SQL_Stmt
        SQL_StmtType.QUERY,
  		null,
  		new GetNewsItemResultProcessor(),
- 		true
+ 		false
  	),
 	GET_ALL_NEWS_ITEMS_WITH_URL(
 		"SELECT n_key FROM news_item_url_md5_hashes WHERE url_hash = md5(?)",
