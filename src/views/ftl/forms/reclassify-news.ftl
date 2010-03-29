@@ -10,6 +10,12 @@
 <body>
 
 <#assign months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]>
+<#assign privileged = ["neitham", "admin", "subbu", "lalremlein"]>
+<#if privileged?seq_contains(user.uid)>
+  <#assign yearRange = 2004..2010>
+<#else>
+  <#assign yearRange = 2010..2010>
+</#if>
 
 <@s.set name="user" value="#session.user" />
 <@s.if test="#user">
@@ -93,13 +99,11 @@
   </select>
 	<select name="sm">
   <#foreach month in months>
-    <#if (months?seq_index_of(month) > 5)>
     <option value="${1+months?seq_index_of(month)}">${month}</option>
-    </#if>
   </#foreach>
 	</select>
 	<select name="sy">
-  <#foreach num in 2008..2009>
+  <#foreach num in yearRange>
     <option value="${num?c}">${num?c}</option>
   </#foreach>
   </select>
@@ -118,7 +122,7 @@
   </#foreach>
 	</select>
 	<select name="ey">
-  <#foreach num in 2008..2009>
+  <#foreach num in yearRange>
     <option value="${num?c}">${num?c}</option>
   </#foreach>
 	</select>
