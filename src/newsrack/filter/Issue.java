@@ -401,8 +401,6 @@ public class Issue implements java.io.Serializable
 
 	public void addSources(Collection<Source> srcs) { _sources = srcs; }
 
-	public Source getSourceByTag(String tag) { return _db.getSource(this, tag); }
-
 	/**
 	 * Gets a category, given its id.
 	 *

@@ -119,12 +119,12 @@ public class NewsAction extends BaseApiAction implements ServletRequestAware
 			}
 
 				// source tag - optional
-			String srcTag = getApiParamValue("source_tag", true);
+			String srcKey = getApiParamValue("source_key", true);
 			Source src    = null;
-			if (srcTag != null)
-				src = i.getSourceByTag(srcTag);
+			if (srcKey != null)
+		      try { src = i.getUser().getSourceByKey(Long.parseLong(srcKey)); } catch (Exception e) { }
 
-			_log.info("API: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + start + "; count - " + count + "; start - " + startDate + "; end - " + endDate + "; srcTag - " + srcTag + "; src - " + (src != null ? src.getKey() : null));
+			_log.info("API: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + start + "; count - " + count + "; start - " + startDate + "; end - " + endDate + "; srcKey - " + srcKey + "; src - " + (src != null ? src.getKey() : null));
 
 				// Set up news
 			_news = (c == null) ? new ArrayList<NewsItem>() //i.getNews(startDate, endDate, src, start, count)

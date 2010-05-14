@@ -189,19 +189,12 @@ public abstract class DB_Interface
 
 	public abstract Source getSource(Long key);
 
-	/**
-	 * Get a source object given a src tag, the user defining it
-	 * @param u       user requesting the source 
-	 * @param tag     tag assigned by the user to the feed
-	 */
-	public abstract Source getSource(User u, String tag);
-
-	/**
-	 * Get a source object given a src tag, and the topic that monitors it 
-	 * @param i       topic monitoring the source 
-	 * @param tag     tag assigned by the user to the feed
-	 */
-	public abstract Source getSource(Issue i, String tag);
+   /**
+    * Get a source object given a src tag, the user defining it
+    * @param u       user requesting the source 
+    * @param tag     tag assigned by the user to the feed
+    */
+   public abstract Source getSource(User u, String tag);
 
 /* #### Support for User #### */
 	/**

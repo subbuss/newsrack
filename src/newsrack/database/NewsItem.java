@@ -109,7 +109,7 @@ abstract public class NewsItem implements java.io.Serializable
 						long len = filtFile.length();
 						if (len < 750) {
 							boolean flag = getFeed().getIgnoreCommentsHeuristic();
-							if (flag == false) {
+							if (flag == true) {
 								// Close original open writer first 
 								try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
 

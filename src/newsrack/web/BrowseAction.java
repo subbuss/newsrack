@@ -208,10 +208,10 @@ public class BrowseAction extends BaseAction
 				}
 
 					// Filter by source
-			   String srcTag = getParam("source_tag");
+			   String srcKey = getParam("source_key");
 				Source src    = null;
-				if ((srcTag != null) && (srcTag != ""))
-					src = _issue.getSourceByTag(srcTag);
+				if ((srcKey != null) && (srcKey != ""))
+		         try { src = _issue.getUser().getSourceByKey(Long.parseLong(srcKey)); } catch (Exception e) { }
 
 				Date startDate = null;
 				String sdStr = getParam("start_date");
@@ -260,15 +260,15 @@ public class BrowseAction extends BaseAction
 		}
 
 			// Fetch source
-		String srcId = getParam("srcId");
-		if (srcId == null) {
+		String srcKey = getParam("source_key");
+		if (srcKey == null) {
 			_log.error("No source id provided!");
 			return Action.INPUT;
 		}
 
-		_src = _user.getSourceByTag(srcId);
+		try { _src = _user.getSourceByKey(Long.parseLong(srcKey)); } catch (Exception e) { }
 		if (_src == null) {
-			_log.error("Unknown source: " + srcId);
+			_log.error("Unknown source: " + srcKey);
 			return Action.INPUT;
 		}
 

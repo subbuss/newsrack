@@ -16,7 +16,7 @@
 [/#if]
 
 [#-- Check if we are browsing news filtered by date or source .. in those situations, paging will be implemented differently! --]
-[#if Parameters.start_date?exists || (Parameters.source_tag?exists && Parameters.source_tag != "") || cat.leafCategory == false]
+[#if Parameters.start_date?exists || (Parameters.source_key?exists && Parameters.source_key != "") || cat.leafCategory == false]
   [#assign unknownNewsCount = true]
 [#else]
   [#assign unknownNewsCount = false]
@@ -41,12 +41,12 @@
 
 [#-- Compute base url based on various params --]
 [#if unknownNewsCount]
-  [#if Parameters.start_date?exists && Parameters.source_tag?exists]
-    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" source_tag="${Parameters.source_tag}" /]
+  [#if Parameters.start_date?exists && Parameters.source_key?exists]
+    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" source_key="${Parameters.source_key}" /]
   [#elseif Parameters.start_date?exists]
     [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" start_date="${Parameters.start_date}" end_date="${Parameters.end_date}" /]
-  [#elseif Parameters.source_tag?exists]
-    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_tag="${Parameters.source_tag}" /]
+  [#elseif Parameters.source_key?exists]
+    [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" source_key="${Parameters.source_key}" /]
   [#elseif cat.leafCategory == false ]
     [@s.url var="baseUrl" namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" show_news="true" /]
   [/#if]
@@ -174,12 +174,12 @@ function getSelectedValue(selId)
 function updateUrl()
 {
    [#-- replace any existing source tag + removed any existing start count + add new source tag --]
-  var newUrl = document.location.href.replace(/&source_tag=[^&]*/, '').replace(/&start=[^&]*/, '').replace(/&start_date=[^&]*/, '').replace(/&end_date=[^&]*/, '');
+  var newUrl = document.location.href.replace(/&source_key=[^&]*/, '').replace(/&start=[^&]*/, '').replace(/&start_date=[^&]*/, '').replace(/&end_date=[^&]*/, '');
   if (!newUrl.match("\\?")) newUrl += "?";
-  var source_tag = getSelectedValue('source_select');
+  var source_key = getSelectedValue('source_select');
   var start_date = getObj('start_date_box').value
   var end_date   = getObj('end_date_box').value
-  if (source_tag != "") newUrl += "&source_tag=" + source_tag;
+  if (source_key != "") newUrl += "&source_key=" + source_key;
   if (start_date != "") newUrl += "&start_date=" + start_date;
   if (end_date != "") newUrl += "&end_date=" + end_date;
 
@@ -227,11 +227,11 @@ function show(obj, style) { obj.style.display = style; }
       <form action="[@s.url namespace="/" action="browse" owner="${ownerID}" issue="${issueName}" catID="${cat.catId}" /]" method="post" onsubmit="return updateUrl()">
         <div class="filter">
           <label>Source:</label>
-          <select id="source_select" name="source_tag" size="1">
+          <select id="source_select" name="source_key" size="1">
           <option value="">All Sources</option>
 [#foreach s in issue.monitoredSources]
   [#if !s.feed.isNewsRackFilter()]
-          <option [#if Parameters.source_tag?exists && (s.tag == Parameters.source_tag)]selected[/#if] value="${s.tag}">${s.name}</option>
+          <option [#if Parameters.source_key?exists && (s.tag == Parameters.source_key)]selected[/#if] value="${s.key?c}">${s.name}</option>
   [/#if]
 [/#foreach]
           </select>

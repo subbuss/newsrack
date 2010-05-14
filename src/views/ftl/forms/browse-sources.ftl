@@ -29,10 +29,10 @@
 
 	<tr> <td class="tblhdr center bold"> Sources </td> </tr>
 	<tr> <td class="brownish center">
-	<select name="srcId" size="10">
+	<select name="source_key" size="10">
 <#assign srcs = user.sources>
 <#foreach s in srcs>
-    <option value="${s.tag}">${s.name}</option>
+    <option value="${s.key?c}">${s.name}</option>
 </#foreach>
   </select>
 	</tr>

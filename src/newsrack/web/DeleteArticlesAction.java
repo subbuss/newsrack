@@ -166,10 +166,10 @@ public class DeleteArticlesAction extends BaseAction
                   }
 
                      // Filter by source
-                  String srcTag = getParam("source_tag");
+                  String srcKey = getParam("source_key");
                   Source src    = null;
-                  if ((srcTag != null) && (srcTag != ""))
-                     src = _issue.getSourceByTag(srcTag);
+                  if ((srcKey != null) && (srcKey != ""))
+		               try { src = _issue.getUser().getSourceByKey(Long.parseLong(srcKey)); } catch (Exception e) { }
 
                   Date startDate = null;
                   String sdStr = getParam("start_date");

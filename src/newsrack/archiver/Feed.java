@@ -537,10 +537,10 @@ public class Feed implements java.io.Serializable
 					String d = StringUtils.getDomainForUrl(canonicalUrl);
 					for (NewsItem x: nis) {
 						if (d.equals(StringUtils.getDomainForUrl(x.getURL()))) {
-							if (logInfo) _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
+							if (logInfo) _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + x.getRelativeFilePath());
 							return x;
 						}
-						if (logInfo) _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + ni.getURL());
+						if (logInfo) _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + x.getURL());
 					}
 				}
 			}

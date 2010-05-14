@@ -571,9 +571,9 @@ public class User implements java.io.Serializable
 		}
 	}
 
-	public Source getSourceByTag(String tag)
+	public Source getSourceByKey(Long key)
 	{
-		return _db.getSource(this, tag);
+		return _db.getSource(key);
 	}
 
 	public String getFileUploadArea()

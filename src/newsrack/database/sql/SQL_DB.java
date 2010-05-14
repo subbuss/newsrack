@@ -319,6 +319,26 @@ public class SQL_DB extends DB_Interface
 		return s;
 	}
 
+   /**
+    * Get a source object for a feed, given a feed url, a user and his/her preferred tag for the source
+    * @param u       user requesting the source 
+    * @param srcTag tag assigned by the user to the feed
+    */
+   public Source getSource(User u, String srcTag)
+   {
+      String k = u.getUid() + ":" + srcTag;
+      Source s = (Source)_cache.get("SOURCE", k);
+      if (s == null) {
+         s = (Source)GET_USER_SOURCE.execute(new Object[]{u.getKey(), srcTag});
+         if (s != null) {
+            _cache.add("SOURCE", u.getKey(), s.getKey(), s);
+            _cache.add("SOURCE", u.getKey(), k, s);
+            s.setUser(u);
+         }
+      }
+      return s;
+   }
+
 	public Feed getFeed(Long key)
 	{
 		if (_log.isDebugEnabled()) _log.debug("Looking for feed with key: " + key);
@@ -469,48 +489,7 @@ public class SQL_DB extends DB_Interface
 		return (Feed)GET_FEED_FROM_TAG.execute(new Object[]{feedTag});
 	}
 
-	/**
-	 * Get a source object for a feed, given a feed url, a user and his/her preferred tag for the source
-	 * @param u       user requesting the source 
-	 * @param srcTag tag assigned by the user to the feed
-	 */
-	public Source getSource(User u, String srcTag)
-	{
-		String k = u.getUid() + ":" + srcTag;
-		Source s = (Source)_cache.get("SOURCE", k);
-		if (s == null) {
-			s = (Source)GET_USER_SOURCE.execute(new Object[]{u.getKey(), srcTag});
-			if (s != null) {
-				_cache.add("SOURCE", u.getKey(), s.getKey(), s);
-				_cache.add("SOURCE", u.getKey(), k, s);
-				s.setUser(u);
-			}
-		}
-		return s;
-	}
-
-	public Source getSource(Issue i, String srcTag)
-	{
-		User   u = i.getUser();
-		String k = i.getKey() + ":" + srcTag;
-		Source s = (Source)_cache.get("SOURCE", k);
-		if (s == null) {
-			s = (Source)GET_TOPIC_SOURCE.execute(new Object[]{i.getKey(), srcTag});
-			if (s != null) {
-				String[] cacheGrps = new String[] {u.getKey().toString(), i.getKey().toString()};
-				_cache.add("SOURCE", cacheGrps, s.getKey(), s);
-				_cache.add("SOURCE", cacheGrps, k, s);
-				s.setUser(u);
-			}
-			else {
-				_log.info("DID NOT FIND source: " + k);
-			}
-		}
-		return s;
-	}
-
-
-	public Long getSourceKey(Long userKey, Long feedKey, String srcTag)
+	private Long getSourceKey(Long userKey, Long feedKey, String srcTag)
 	{
 		return (Long)GET_USER_SOURCE_KEY.execute(new Object[] {userKey, feedKey, srcTag});
 	}

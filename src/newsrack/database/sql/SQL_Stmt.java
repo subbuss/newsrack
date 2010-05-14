@@ -931,7 +931,7 @@ public enum SQL_Stmt
 		false
 	),
 	GET_ALL_MONITORED_SOURCES_FOR_USER(
-		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM topics t, topic_sources ts, sources s WHERE t.u_key = ? AND ts.t_key = t.t_key AND s.src_key = ts.src_key GROUP BY s.src_key ORDER BY lower(s.src_name)",
+		"SELECT s.src_key, s.u_key, s.feed_key, s.src_name, s.src_tag, s.cacheable, s.show_cache_links FROM topics t, topic_sources ts, sources s WHERE t.u_key = ? AND ts.t_key = t.t_key AND s.src_key = ts.src_key GROUP BY s.feed_key ORDER BY lower(s.src_name)",
 		new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,

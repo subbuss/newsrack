@@ -6,7 +6,7 @@
   <#foreach src in issue.monitoredSources>
     {
       name : ${src.name},
-      tag  : ${src.tag},
+      key  : ${src.key},
       feed : ${src.feed.url}
     }
   </#foreach>

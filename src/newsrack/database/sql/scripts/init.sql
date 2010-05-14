@@ -385,3 +385,18 @@ create table if not exists topic_ratings (
 	constraint fk_topic_ratings_2 foreign key(u_key) references user_table(u_key)
 );
  * ***************************************************************** */
+
+create table recent_news_title_hashes(
+  n_key       bigint,
+  title_hash  char(32),
+  story_date  date,        
+  constraint fk_recent_news_title_hashes_1 foreign key(n_key) references news_items(n_key),
+  index title_hash_index(title_hash)
+);
+
+create table tags(
+  tag_key       int,
+  taggable_type char(16),
+  taggable_id   bigint,
+  index tags_hash(taggable_type, taggable_id)
+);
