@@ -115,6 +115,7 @@ public class HTMLFilter extends NodeVisitor
 			_overallApproxContentSize += n;
 		}
 	
+/**
 		public void appendContent(String s1, String s2)
 		{
 			currUnfilteredContent.append(s1);
@@ -123,6 +124,7 @@ public class HTMLFilter extends NodeVisitor
 			totalContentSize += n;
 			_overallApproxContentSize += n;
 		}
+**/
 
 		public void discardContent()
 		{
@@ -369,7 +371,7 @@ public class HTMLFilter extends NodeVisitor
 				if (href == null || href.equals("")) {
 					// If we hit an inline anchor named comments, we assume that we have run into comments on the page.
 					String name = tag.getAttribute("NAME");
-					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 1250 && (name != null) && name.equals("comments")) {
+					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && (name != null) && name.equals("comments")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
@@ -415,15 +417,15 @@ public class HTMLFilter extends NodeVisitor
 					if (_isBMmirror && divId.equals("tags"))
 						_ignoreEverything = true;
 
-						// Assume that if we hit a div with an id that has comment in its name
-						// we have hit comments.
-				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 1250 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
+						// Assume that if we hit a div with an id that has comment in its name we have hit comments.
+				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
 				}
 				if (divClass != null) {
-				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 1250 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
+						// Assume that if we hit a div with a class that has comment in its name we have hit comments.
+				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
 						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}

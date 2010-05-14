@@ -107,7 +107,7 @@ abstract public class NewsItem implements java.io.Serializable
 						filtPw.flush();
 						File filtFile = getFilteredFilePath();
 						long len = filtFile.length();
-						if (len < 750) {
+						if (len < 900) {
 							boolean flag = getFeed().getIgnoreCommentsHeuristic();
 							if (flag == true) {
 								// Close original open writer first 
