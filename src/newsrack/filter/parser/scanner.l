@@ -88,6 +88,7 @@ SPACE  = {WS}*
 	"MIN_MATCH_SCORE"|"MIN-MATCH-SCORE"   { return token(Terminals.MIN_MATCH_SCORE); }
 	"MIN_CONCEPT_HITS"|"MIN-CONCEPT-HITS" { return token(Terminals.MIN_CONCEPT_HITS); }
 	"FROM"{SPACE}"OPML" { return token(Terminals.FROM_OPML); }
+	"SOURCE"{SPACE}"IN" { return token(Terminals.SOURCE_IN); }
 	{NUMBER}                    { return token(Terminals.NUM_TOK); }
 	{WORD}                      { return token(Terminals.IDENT_TOK); }
 	"(<xml.*?>)?(<opml.*</opml>)" { /* IGNORE */ }

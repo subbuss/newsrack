@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import newsrack.archiver.Feed;
 import newsrack.archiver.Source;
 import newsrack.user.User;
 
@@ -61,4 +62,13 @@ public final class NR_SourceCollection extends NR_Collection
 	public Object getEntryByName(String name) { return getSource(name); }
 
 	public Collection getEntries() { return getSources(); }
+
+	public boolean containsFeed(Feed f) {
+		for (Object s: getSources()) {
+			if (((Source)s).getFeed().getKey().equals(f.getKey()))
+				return true;
+		}
+
+		return false;
+	}
 }

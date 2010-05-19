@@ -119,7 +119,7 @@
 			</#if>
       </td>
         <#-- Display the categories it belongs to -->
-      <#assign cats = ni.categories>
+      <#assign cats = ni.leafCategories>
 			<#if (cats.size() > 1)>
       <td class="newscats center">
 				<#foreach c in cats>

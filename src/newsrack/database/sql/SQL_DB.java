@@ -1616,6 +1616,11 @@ public class SQL_DB extends DB_Interface
 				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
 				break;
 
+			case SOURCE_FILTER:
+				op1Key = ((NR_Collection)op1).getKey();
+				rtKey = (Long)INSERT_RULE_TERM.execute(new Object[] {filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
+				break;
+
 			case LEAF_FILTER:
 				op1Key = ((Filter)op1).getKey();
 				if (op1Key < 0) {
@@ -1658,6 +1663,9 @@ public class SQL_DB extends DB_Interface
 					// Insert the proximity val operand separately with term type value PROXIMITY_TERM_OPERAND_TYPE
 				INSERT_RULE_TERM.execute(new Object[] {filtKey, PROXIMITY_TERM_OPERAND_TYPE, rtKey, (long)((ProximityTerm)r).getProximityVal()});
 				break;
+
+			default:
+			   throw new Error("Unknown rule type: " + r.getType() + " encountered while persisting filter " + filtKey + " for user " + uKey);
 		}
 
 		return rtKey;

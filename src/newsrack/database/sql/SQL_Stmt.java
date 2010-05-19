@@ -229,6 +229,9 @@ class GetFilterResultProcessor extends AbstractResultProcessor
 			case LEAF_FILTER:
 				return new Filter.LeafFilter(SQL_Stmt._db.getFilter((Long)rtVals[2]));
 
+			case SOURCE_FILTER:
+				return new Filter.SourceFilter((NR_SourceCollection)SQL_Stmt.GET_COLLECTION_BY_KEY.get((Long)rtVals[2]));
+
 			case LEAF_CAT:
 				return new Filter.LeafCategory(SQL_Stmt._db.getCategory((Long)rtVals[2]));
 
@@ -853,6 +856,14 @@ public enum SQL_Stmt
 	GET_COLLECTION(
 		"SELECT coll_key,file_key,coll_name,coll_type FROM user_collections WHERE uid = ? AND coll_name = ? AND coll_type = ?",
       new SQL_ValType[] {STRING, STRING, STRING},
+		SQL_StmtType.QUERY,
+		null,
+		new GetCollectionResultProcessor(),
+		true
+	),
+	GET_COLLECTION_BY_KEY(
+		"SELECT coll_key,file_key,coll_name,coll_type FROM user_collections WHERE coll_key = ?",
+      new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
 		new GetCollectionResultProcessor(),

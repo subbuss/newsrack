@@ -27,7 +27,7 @@ public class Filter implements java.io.Serializable
 	private static final FilterOp[] _termTypes;
 	private static final HashMap<FilterOp, Integer> _typeMap = new HashMap<FilterOp, Integer>();
 
-	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER, PROXIMITY_TERM };
+	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER, PROXIMITY_TERM, SOURCE_FILTER };
 
 	public static int CONTEXT_TERM_OPERAND   = -1;
 	public static int PROXIMITY_TERM_OPERAND = -2;
@@ -161,6 +161,23 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + _filt.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _filt.collectUsedConcepts(usedConcepts); }
 		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) { return _filt.getMatchScore(article, numTokens, matchScores); }
+	}
+
+	/* class SourceFilter encodes a source filter */
+	public static class SourceFilter extends RuleTerm
+	{
+		private NR_SourceCollection _srcColl;
+
+		public SourceFilter(final NR_SourceCollection coll) { _srcColl = coll; }
+		public FilterOp getType()   { return FilterOp.SOURCE_FILTER; }
+		public Object getOperand1() { return _srcColl; }
+		public Object getOperand2() { return null; }
+		public String toString()    { return "[" + _srcColl.getName() + "]"; }
+		public void print(PrintWriter pw) { pw.println(_indent + _srcColl.getName()); }
+		public void collectUsedConcepts(final Set<Concept> usedConcepts) { }
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) {
+			return _srcColl.containsFeed(article.getFeed()) ? GLOBAL_MIN_MATCH_SCORE : 0;
+		}
 	}
 
 	/* class LeafCategory encodes a leaf category */

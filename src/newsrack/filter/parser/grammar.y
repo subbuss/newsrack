@@ -22,6 +22,7 @@
 %import "newsrack.filter.Filter.LeafConcept";
 %import "newsrack.filter.Filter.LeafFilter";
 %import "newsrack.filter.Filter.LeafCategory";
+%import "newsrack.filter.Filter.SourceFilter";
 %import "newsrack.filter.Filter.NegTerm";
 %import "newsrack.filter.Filter.AndOrTerm";
 %import "newsrack.filter.Filter.ContextTerm";
@@ -653,7 +654,7 @@
 
 	private Source getSource(String s) { return getSource(null, s); }
 
-	private Collection<Source> getSourceCollection(String sc)
+	private NR_SourceCollection getSourceCollection(String sc)
 	{
 		if (_log.isDebugEnabled()) DEBUG_OUT("getSourceCollection: Looking for " + _uid + ":" + sc);
 
@@ -661,7 +662,7 @@
 		while (i >= 0) {
 			Object o = ((Scope)_scopeStack.get(i))._allCollections.get(NR_CollectionType.SOURCE + ":" +_uid + ":" + sc);
 			if (o != null)
-				return ((NR_SourceCollection)o).getSources();
+				return (NR_SourceCollection)o;
 
 			i--;
 		}
@@ -669,12 +670,23 @@
 		if (_isFirstPass) {
 			_log.info("UNRESOLVED: ...");
 			_haveUnresolvedRefs = true;
-			return new ArrayList<Source>();
+			return null;
 		}
 		else {
 			ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any source collection with name <b>" + sc + "</b>.  Did you (a) mis-spell the collection name? (b) forget to import the collection?");
 			return null;
 		}
+	}
+
+	private Collection<Source> getSourcesFromSourceCollection(String sc)
+	{
+		NR_SourceCollection coll = getSourceCollection(sc);
+		if (coll != null)
+			return coll.getSources();
+		else if (_isFirstPass)
+			return new ArrayList<Source>();
+		else
+			return null;
 	}
 
 	private void addToUsedSources(Set<Source> h, String cid, String sid)
@@ -706,7 +718,7 @@
 
 	private void addCollectionToUsedSources(Set<Source> h, String cid)
 	{
-		Collection<Source> c = getSourceCollection(cid);
+		Collection<Source> c = getSourcesFromSourceCollection(cid);
 			// Can be null due to parsing errors OR because of forward references
 		if (c == null)
 			return;
@@ -721,7 +733,7 @@
 
 	private void removeCollectionFromUsedSources(Set<Source> h, String cid)
 	{
-		Collection<Source> c = getSourceCollection(cid);
+		Collection<Source> c = getSourcesFromSourceCollection(cid);
 			// Can be null due to parsing errors OR because of forward references
 		if (c == null)
 			return;
@@ -826,7 +838,7 @@
 /** tokens **/
 %terminals URL_TOK, IDENT_TOK, STRING_TOK, NUM_TOK;
 %terminals IMPORT_SRCS, IMPORT_CONCEPTS, IMPORT_FILTERS, FROM_OPML;
-%terminals FROM, WITH, INTO_TAXONOMY, FILTER;
+%terminals FROM, WITH, INTO_TAXONOMY, FILTER, SOURCE_IN;
 %terminals /* DEF_TAXONOMY, */ DEF_SRCS, DEF_CPTS, DEF_FILTERS, DEF_TOPIC;
 %terminals END;
 %terminals MONITOR_SRCS, ORGANIZE_CATS;
@@ -1111,6 +1123,20 @@ Rule_Term_Leaf    = LeafConcept.c
 						      else
 									return new Symbol(new LeafCategory((Category)f));
 						  :}
+						| SOURCE_IN Collection_Id.cid
+						  {: 
+						  		DEBUG("SourceFilter");
+								_currSym = _symbol_cid;
+								return new Symbol(new SourceFilter(getSourceCollection(cid)));
+						  :}
+/**
+						| SOURCE_IS Ident.src_tag
+						  {: 
+						  		DEBUG("SourceFilter"); 
+								_currSym = _symbol_c; 
+								return new Symbol(new SourceFilter(src_tag));
+						  :}
+**/
 						;
 LeafConcept       = STRING_TOK.s
 						  {: 
