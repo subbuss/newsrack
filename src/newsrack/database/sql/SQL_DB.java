@@ -1516,12 +1516,16 @@ public class SQL_DB extends DB_Interface
 			}
 		}
 		else {
-			Category cat = (Category)GET_CATEGORY_FROM_TAXONOMY_PATH.execute(new Object[] {uid + "/" + rest, true});
-			if (cat == null) {
+			Tuple<Long, Category> tcat = (Tuple<Long, Category>)GET_CATEGORY_FROM_TAXONOMY_PATH.execute(new Object[] {uid + "/" + rest, true});
+			if (tcat == null) {
 				_log.error("Did not find cat for taxonomy " + uid + "/" + rest);
 				return noItems;
 			}
-			return getNews(cat, startDate, endDate, null, startId, numArts);
+
+			// To prevent duplicate cached objects being active (and potentially leading to inconsistent data) 
+			// refetch the category using the category key we just got!
+			Category c = getCategory(tcat._b.getKey());
+			return getNews(c, startDate, endDate, null, startId, numArts);
 		}
 	}
 
