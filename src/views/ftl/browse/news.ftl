@@ -113,8 +113,7 @@
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
+[#include "/ftl/layout/common_includes.ftl"]
 <link rel="canonical" href="${canonicalUrl}" />
 <link rel="alternate" type="application/rss+xml" title="[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
 <title>[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}</title>
@@ -322,15 +321,17 @@ newstrust_story_date = '${ni.date?string("yyyy-MM-dd")}';
       [#if cats.size() > 1 || (cat.leafCategory == false)]
 		<tr class="newscats"> 
 			<td colspan="3">
-			<span class="normal underline">Also found in:</span>
+		    <a class="normal underline" onclick="$(this).parent().children('.cross_ref').toggle();return false;">[ Also found in: + ]</a>
+        <span class="cross_ref" style="display:none;">
         [#foreach c in cats]
           [#if !cat.key.equals(c.key)]
 			[${c.user.uid} :: <a href="[@s.url namespace="/" action="browse" owner="${c.user.uid}" issue="${c.issue.name}" catID="${c.catId}" /]">${c.name}</a>] &nbsp;
           [/#if]
         [/#foreach]
-      [/#if]
+        </span>
 			</td>
     </tr>
+      [/#if]
     [/#if]
   [/#foreach]
 		</table>

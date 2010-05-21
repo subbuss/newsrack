@@ -322,20 +322,19 @@ div.public_files ul {
 }
 
 div.public_files a, div.publicfiletypes a {
-	color           : #113399;
+	color           : #139;
 	font-weight     : bold;
 	text-decoration : none;
 }
 
 div.public_files a:hover, div.publicfiletypes a:hover {
-	background      : #113399;
+	background      : #139;
 	color           : white;
 }
 
 /* The following styles are for displaying errors */ 
 div.errors, div.messages {
   text-align  : left;
-  font-weight : bold;
 }
 
 div.errors ul, div.messages ul {
@@ -423,6 +422,7 @@ a.sign_out {
 
 a.helplink {
 	font-weight : bold;
+  color       : #080;
 }
 
 a.helplink:hover {
@@ -498,7 +498,6 @@ table.editprofile td, table.publicfiles td {
 table.editprofile td.files {
   padding     : 5px;
 	text-align  : right;
-  font-weight : bold;
 }
 
 table.editprofile td.actions {
@@ -515,9 +514,27 @@ table.editprofile td.actions a:hover {
   background : #800;
 }
 
+table.editprofile div.more_files {
+  margin: 10px 0;
+  text-align: center;
+}
+
 table.editprofile div.more_files a {
-  font-weight : bold;
-  font-size   : 14px;
+  font-size   : 16px;
+  padding     : 0 10px;
+}
+
+table.editprofile a.helplink {
+  color: #080;
+}
+
+table.editprofile a.helplink:hover {
+  color : white;
+  background: #080;
+}
+
+table.editprofile a.action_link {
+  font-size: 20px;
 }
 
 tr.tblhdr {
@@ -543,11 +560,11 @@ td.hdrcol {
 
 table.editprofile a, table.publicfiles a {
 	text-decoration  : none;
-	color            : #113399;
+	color            : #139;
 }
 
 table.editprofile a:hover, table.publicfiles a:hover {
-	background-color : #113399;
+	background-color : #139;
 	color            : white;
 }
 

@@ -2,27 +2,21 @@
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 <title>User space</title>
-<script language="Javascript">
+<#include "/ftl/layout/common_includes.ftl">
+<script language="javascript">
 function confirmReset() { return confirm("All filtered news will be removed. Are you sure?"); }
-function getObj(objId)  { return document.getElementById(objId); }
-function hide(obj)      { obj.style.display = 'none'; }
-function show(obj)      { obj.style.display = 'block'; }
-function showObj(objId) { show(getObj(objId)); }
-function hideObj(objId) { hide(getObj(objId)); }
 function hideHelp()     { 
-  var d = getObj('dl_div');
-  d.style.background = 'none';
-  d.style.border = 'none';
-  hideObj('dl_help'); showObj('dl_show'); hideObj('dl_hide'); 
+  $('#dl_div').attr('style', 'background:none;style:none');
+  $('#dl_help').hide();
+  $('#dl_show').show();
+  $('#dl_hide').hide();
 }
 function showHelp()     { 
-  var d = getObj('dl_div');
-  d.style.background = '#f8f8f8';
-  d.style.border = '1px solid #aaa';
-  showObj('dl_help'); hideObj('dl_show'); showObj('dl_hide'); 
+  $('#dl_div').attr('style', 'background:#f8f8f8;style:1px solid #aaa');
+  $('#dl_help').show();
+  $('#dl_show').hide();
+  $('#dl_hide').show();
 }
 </script>
 <style>

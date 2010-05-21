@@ -2,9 +2,8 @@
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 <title>${owner.uid}'s topics</title>
+<#include "/ftl/layout/common_includes.ftl">
 </head>
 
 <body>

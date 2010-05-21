@@ -2,10 +2,9 @@
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
 <title>Edit Profile</title>
-<script language="Javascript">
+<#include "/ftl/layout/common_includes.ftl">
+<script language="javascript">
 function confirmDelete() { return confirm("Do you want to delete the file?"); }
 </script>
 <style>
@@ -39,10 +38,9 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
 	</#foreach>
   <#else>
   <tr>
-  <td style="padding:15px; text-align:left; font-weight:bold;" colspan="2">
+  <td style="padding:15px; text-align:left;" colspan="2">
   In NewsRack, you define your topics by defining concepts, filters, topics, and sources to monitor.<br/><br/>
-  <a href="#examples">See examples below!</a>
-  Also check the <a class="helplink" target="_blank" href="<@s.url namespace="/help" action="user-guide" />">User Guide</a>.
+  <a class="helplink" href="#" onclick="$('#examples').toggle(); return false;">See examples</a> and/or check the <a class="helplink" target="_blank" href="<@s.url namespace="/help" action="user-guide" />">User Guide</a>.
   </td>
   </tr>
 	</#if>
@@ -71,48 +69,48 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
 		<table class="editprofile" cellspacing="0">
     <#call displayFiles(user.files)> 
     <tr>
-			<td colspan="2" class="center">
-        <h2 class="center s14"> Add Files </h2>
-        <div style="text-align:left;margin:20px;">
-        <ul style="text-align:left;margin:0 0 20px 0">
-        <li> Create a new file using the "Create new file" link </li>
-        <li> Get a file from other users and edit it to meet your needs </li>
-        <li> Upload a file from your disk using the upload form </li>
-        </ul>
-        <span class="bold">Note that the files have to conform to what NewsRack understands.  Do not upload Word docs, html files, images, etc. </span>
-        </div>
-
+			<td colspan="2">
         <div class="more_files">
-          <a href="<@s.url namespace="/forms" action="new-file" />">Create new file</a> </br/>
-          <a href="<@s.url namespace="/" action="public-files" />">Get from another user</a>
-          <form style="width:275px" class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
+          <a href="<@s.url namespace="/forms" action="new-file" />">Create new file</a>
+          <a href="<@s.url namespace="/" action="public-files" />">Copy from another user</a>
+          <a href="#" onclick="$('#upload_form').toggle(); return false;">Upload file</a>
+          <a href="#" class='helplink' onclick="$('#new_file_help').toggle(); return false;">Help</a>
+          <form id="upload_form" style="width:275px;display:none;" class="upload" action="<@s.url namespace="/file" action="upload" />" enctype="multipart/form-data" method="post">
             <input class="file_browse" size="15" name="uploadedFile" type="file" />
             <div align="center"><input class="submit" value="Upload File" type="submit"></div>
           </form>
+        </div>
+
+        <div id="new_file_help" style="text-align:left;margin:20px;display:none;">
+        <ul style="text-align:left;margin:0 0 20px 0">
+        <li> Create a new file using the "Create new file" link </li>
+        <li> Get a file from other users and edit it to meet your needs </li>
+        <li> Upload a file from your disk using the upload form. <span class="bold">Note that the files have to conform to what NewsRack understands.  Do not upload Word docs, html files, images, etc. </span> </li>
+        </ul>
         </div>
 			</td>
 		</tr>
     <tr>
   <@s.if test="#hasIssues == true">
-    <td colspan="2" style="font-weight:bold; text-align:center">
-    Your files have been validated and <a href="<@s.url namespace="/my-account" action="home" />">you can find your issues here</a>. <br/><br/>
-    <a class="s16" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all issues</a> <br/><br/>
+    <td colspan="2" style="text-align:center">
+    Your files have been validated and <a href="<@s.url namespace="/my-account" action="home" />">you can find your topics here</a>. <br/><br/>
+    <a class="action_link" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'disableActiveProfile'" /></@s.url>">Invalidate all topics</a> <br/><br/>
   </@s.if>
   <@s.else>
     <#if user.files?exists&& user.files.hasNext()>
-    <td colspan="2" style="font-weight:bold; text-align:center">
-    <div style="color:red">
-    Your files have not been validated.
-    Your issues won't be ready for monitoring till you validate them and fix any problems.
-    </div>
+    <td colspan="2" style="text-align:center">
+    <a class="action_link" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Validate files</a>
     <br/>
-    <a class="s16" href="<@s.url namespace="/my-account" action="edit-profile"><@s.param name="action" value="'validateProfile'" /></@s.url>">Validate files</a>
+    <div style="color:red;margin:10px;">
+    Your files have not been validated.<br/>
+    Please validate them and fix errors to turn on news monitoring.
+    </div>
     </td>
     </tr><tr> 
     </#if>
-    <td colspan="2">
+    <td id="examples" style="display:none;" colspan="2">
       <a name="examples"></a>
-      <div style="padding:5px 10px;text-align:left">
+      <div style="padding:5px 10px;text-align:left;">
         <h1> Examples </h1>
 <#include "/ftl/issue.template">		
       </div>

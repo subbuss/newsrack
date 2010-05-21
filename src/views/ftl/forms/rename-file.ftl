@@ -2,8 +2,7 @@
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
+<#include "/ftl/layout/common_includes.ftl">
 <title>Rename file</title>
 </head>
 

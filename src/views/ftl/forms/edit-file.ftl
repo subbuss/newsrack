@@ -2,9 +2,8 @@
 <html>
 <head>
 <title>Edit File</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
-<script language="Javascript">
+<#include "/ftl/layout/common_includes.ftl">
+<script language="javascript">
 function cancelEdit(cancelUrl)
 {
 	if (confirm("Do you want to cancel the edit?")) {

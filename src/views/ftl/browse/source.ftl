@@ -66,8 +66,7 @@
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" href="<@s.url value="/css/main.css" />" type="text/css">
+<#include "/ftl/layout/common_includes.ftl">
 <link rel="alternate" type="application/rss+xml" title="RSS feed for ${source.name}" href="${source.feed.url}" />
 <title>News downloaded from source ${source.name}</title>
 </head>
