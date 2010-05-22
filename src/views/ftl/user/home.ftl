@@ -50,12 +50,10 @@ span#dl_hide    { display:none; }
   <h1> Your issues </h1>
 	<@s.if test="!#user.validated">
 		<p class="center bold">
-		You do not yet have any validated topics! &nbsp;&nbsp;
+		You have not defined any topics yet.<br/><br/>
 		<a href="<@s.url namespace="/my-account" action="edit-profile" />">Click here</a> 
-		and create / validate your topics.
+		to define topics to monitor news for -- you will also find some example topics to get you started.
 		</p>
-
-		<#include "/ftl/help/monitoring.steps.ftl">
 	</@s.if>
 	<@s.else>
     <#assign issues=user.issues>
@@ -115,13 +113,9 @@ span#dl_hide    { display:none; }
 		</table>
 		</div>
 		<#else>
-		<p class="bold center">You have not built your issues yet!</p>
-		<p class="justify">Without that, you cannot monitor news and add them to your issues. </p>
-		<p>
-		Please go to the
-		<a href="<@s.url namespace="/my-account" action="edit-profile" />">edit issues page</a> 
-		and build your issues.
-		</p>
+      <p class="bold center">You have not validated your topics yet!</p>
+      <p>Please go to the <a href="<@s.url namespace="/my-account" action="edit-profile" />">edit topics page</a> 
+      and validate them to be able to monitor news</p>
 		</#if> <#-- of #if issues -->
 	</@s.else> <#-- of #if active-profile exists -->
 	</td>

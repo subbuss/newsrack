@@ -321,7 +321,7 @@ newstrust_story_date = '${ni.date?string("yyyy-MM-dd")}';
       [#if cats.size() > 1 || (cat.leafCategory == false)]
 		<tr class="newscats"> 
 			<td colspan="3">
-		    <a class="normal underline" onclick="$(this).parent().children('.cross_ref').toggle();return false;">[ Also found in: + ]</a>
+		    <a class="crossrefs_toggle" onclick="$(this).parent().children('.cross_ref').toggle();return false;"> Also found in: [+]</a>
         <span class="cross_ref" style="display:none;">
         [#foreach c in cats]
           [#if !cat.key.equals(c.key)]

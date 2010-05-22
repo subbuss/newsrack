@@ -805,14 +805,19 @@ tr.newscats td {
 	font-size   : 10px;
 }
 
+tr.newscats a.crossrefs_toggle { 
+	text-decoration: underline;
+	font-weight    : bold;
+}
+
 tr.newscats a {
 	text-decoration: none;
-	color          : #008800;
+	color          : #080;
 }
 
 tr.newscats a:hover {
 	color            : white;
-	background-color : #008800;
+	background-color : #080;
 }
 
 td.newstitle {

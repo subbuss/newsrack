@@ -39,7 +39,7 @@ pre.example { padding: 20px; font-size: 11px; font-weight: bold;}
   <#else>
   <tr>
   <td style="padding:15px; text-align:left;" colspan="2">
-  In NewsRack, you define your topics by defining concepts, filters, topics, and sources to monitor.<br/><br/>
+  In NewsRack, you create files within which you define your topics by defining concepts, filters, topics, and sources to monitor.<br/><br/>
   <a class="helplink" href="#" onclick="$('#examples').toggle(); return false;">See examples</a> and/or check the <a class="helplink" target="_blank" href="<@s.url namespace="/help" action="user-guide" />">User Guide</a>.
   </td>
   </tr>
