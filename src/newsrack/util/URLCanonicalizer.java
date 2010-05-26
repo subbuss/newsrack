@@ -199,6 +199,8 @@ public class URLCanonicalizer
 
 				// Special rule for news.google.com: FIXME: Merge this into existing rules!
 			if (url.indexOf("news.google.com/") != -1) {
+				// Unescape the url
+				try { url = java.net.URLDecoder.decode(url, "UTF-8"); } catch (Exception e) { _log.error("Exception " + e + " decoding url: " + url); }
 				int proxyUrlStart = url.lastIndexOf("http://");
 				if (proxyUrlStart != -1) {
 					url = url.substring(proxyUrlStart);

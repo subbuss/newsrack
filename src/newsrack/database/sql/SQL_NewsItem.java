@@ -321,6 +321,7 @@ public class SQL_NewsItem extends NewsItem
 					System.out.println("Modified url from: " + oldUrl + " to " + newUrl);
 				}
 				else {
+					File deletedFile = this.getFilteredFilePath();
 						// News item already exists .. merge the two news items!
 						// 1. Assign over all of this news item's category assignments to the dupe
 					SQL_StmtExecutor.update("UPDATE IGNORE cat_news SET n_key = ? WHERE n_key = ?",
@@ -335,6 +336,7 @@ public class SQL_NewsItem extends NewsItem
 					                        new SQL_ValType[] { SQL_ValType.LONG },
 													new Object[] { getKey() });
 
+					System.out.println("please REMOVE: " + deletedFile);
 					System.out.println("Modified url from: " + oldUrl + " to " + newUrl + " and deleted news item: " + getKey());
 				}
 			}

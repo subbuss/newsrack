@@ -101,6 +101,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="venniyoor" issue="FM+Radio" catID="1" />">&nbsp;FM Radio</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Agriculture" catID="2" />">&nbsp;GE/GM</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="gujarat" catID="2" />">&nbsp;Godhra</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Green+Hunt" catID="1" />">&nbsp;Green Hunt</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="jai_ism" issue="Harry-Potter" />">&nbsp;Harry Potter</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Hasiru+Usiru" catID="1" />">&nbsp;Hasiru Usiru</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Health" catID="14" />">&nbsp;HIV/AIDs</a><br />
@@ -135,6 +136,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="12" />">&nbsp;Oil Exploration</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="organic-agriculture" catID="1" />">&nbsp;Organic Agriculture</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Pink+Chaddi+Campaign" catID="1" />">&nbsp;Pink Chaddi Campaign</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Companies" catID="3" />">&nbsp;POSCO</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="ammujo" issue="Pratibha-BPO" />">&nbsp;Prathibha-BPO Murder</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Decision-Making" catID="5" />">&nbsp;Public Hearings</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="servelots" issue="Energy" catID="1" />">&nbsp;Renewable Energy</a><br />

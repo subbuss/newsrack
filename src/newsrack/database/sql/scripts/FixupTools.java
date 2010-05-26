@@ -290,7 +290,7 @@ public class FixupTools
 
 	public static void canonicalizeURLs(String domain, Date startDate, Date endDate)
    {
-      List<Long> fkeys = (List<Long>)SQL_StmtExecutor.query("SELECT feed_key FROM feeds WHERE url_root like ?",
+      List<Long> fkeys = (List<Long>)SQL_StmtExecutor.query("SELECT feed_key FROM feeds WHERE url like ?",
                                                             new SQL_ValType[] {SQL_ValType.STRING},
                                                             new Object[]{"%" + domain + "%"},
                                                             SQL_StmtExecutor._longProcessor,
