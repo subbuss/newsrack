@@ -43,7 +43,9 @@ public class URLCanonicalizer
 		"^.*.indiatimes.com$:(.*.indiatimes.com)/(.*)articleshow/(.*.cms):$1/articleshow/$3",
 		"^traxfer.ft.com$:traxfer.ft.com/(.*)\\?.*:www.ft.com/$1",
 		"^.*philly.com$:.*philly.com/r.*&40=(.*):$1",
-		"^(www.*)?nytimes.com$:(http...).*?(nytimes.com/.*?)(\\?.*)?$:$1www.$2"
+		"^(www.*)?nytimes.com$:(http...).*?(nytimes.com/.*?)(\\?.*)?$:$1www.$2",
+		  // Hindu has changed its site but forgot to update story urls in its rss feeds!
+		"^(www.*)?thehindu.com$:(http...)(www.)?thehindu.com/(\\d+.*):$1www.hindu.com/$3"
    };
 
    	/* Domains for which we'll replace all ?.* url-tracking parameters */
@@ -56,7 +58,9 @@ public class URLCanonicalizer
 		"thenation.com", "salon.com", "newsweek.com", "forbes.com",
 		"seattlepi.nwsource.com", "denverpost.com", "grist.org", "gristmill.grist.org",
 		"topix.com", "cbc.ca", "esquire.com", "ibnlive.com",
-		"ft.com", "alternet.org", "newyorker.com", "vanityfair.com"
+		"ft.com", "alternet.org", "newyorker.com", "vanityfair.com",
+		"slate.com", "techcrunch.com", "usatoday.com", "tnr.com",
+		"crooksandliars.com"
    };
 
 	static Pattern[] proxyREs;

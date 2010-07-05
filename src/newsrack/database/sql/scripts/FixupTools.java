@@ -280,12 +280,19 @@ public class FixupTools
 
 	public static void canonicalizeURLs(Long feedKey, Date startDate, Date endDate)
    {
+		List<NewsItem> modifiedNews = new ArrayList<NewsItem>();
       java.util.Iterator<? extends NewsIndex> nis = _db.getIndexesOfAllArchivedNews(feedKey, startDate, endDate);
       while (nis.hasNext()) {
          Collection<NewsItem> news = _db.getArchivedNews(nis.next());
-      	for (NewsItem n: news)
-				((SQL_NewsItem)n).canonicalizeURL();
+      	for (NewsItem n: news) {
+				SQL_NewsItem sqn = (SQL_NewsItem)n;
+				sqn.canonicalizeURL();
+				modifiedNews.add(sqn);
+			}
 		}
+
+		// On canonicalization, reclassify
+		reclassifyDependentIssues(feedKey, modifiedNews);
 	}
 
 	public static void canonicalizeURLs(String domain, Date startDate, Date endDate)

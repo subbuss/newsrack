@@ -167,7 +167,7 @@ public class SQL_NewsItem extends NewsItem
 	public Feed    getFeed()              { return SQL_DB._sqldb.getFeed(_feedKey); }
 	public String  getLinkForCachedItem() { return _localCopyName + ":" + _nKey; }
 
-	public SQL_NewsIndex getNewsIndex() 
+	public SQL_NewsIndex getNewsIndex()
 	{ 
 		if (_newsIndex == null)
 			_newsIndex = SQL_DB._sqldb.getNewsIndex(_newsIndexKey);
@@ -307,6 +307,9 @@ public class SQL_NewsItem extends NewsItem
 			synchronized(syncKey) {
 				NewsItem dupe = getNewsItemFromURL(newUrl);
 				if (dupe == null) {
+					File oldOrig = getFilteredFilePath();
+					File oldFilt = getOrigFilePath();
+
 						// No conflict with the new url!
 					newsrack.util.Tuple<String,String> t = SQL_DB.splitURL(newUrl);
 						// Update the url
@@ -318,7 +321,28 @@ public class SQL_NewsItem extends NewsItem
 					                        new SQL_ValType[] { SQL_ValType.STRING, SQL_ValType.LONG },
 													new Object[] { newUrl, getKey() });
 
+						// Update the local copy name
+					_localCopyName = StringUtils.md5(newUrl);
 					System.out.println("Modified url from: " + oldUrl + " to " + newUrl);
+
+						// Rename files to use the new md5 hash!
+					File newOrig = getOrigFilePath();
+					File newFilt = getFilteredFilePath();
+					if (oldOrig.exists()) oldOrig.renameTo(newOrig);
+					if (oldFilt.exists()) {
+						oldFilt.renameTo(newFilt);
+					   System.out.println("Renamed file from: " + oldFilt + " to " + newFilt);
+					}
+					else {
+						// download the news item if it doesn't exist!
+						try {
+							download(SQL_DB._sqldb);
+							System.out.println("Downloading from canonicalized url: " + newFilt);
+						}
+						catch (Exception e) {
+							System.out.println("Got exception: " + e + " downloading from canonicalized url: " + newFilt);
+						}
+					}
 				}
 				else {
 					File deletedFile = this.getFilteredFilePath();
