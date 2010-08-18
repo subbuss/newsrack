@@ -53,6 +53,8 @@ public class HTMLFilter extends NodeVisitor
 	public static final Hashtable BLOCK_ELTS_TBL;
 	public static final Hashtable IGNORE_ELTS_TBL;
 
+	private static String  _lineSep;	// Line separator
+
 	static {
 		IGNORE_ELTS_TBL = new Hashtable();
 		for (String element : IGNORE_ELTS)
@@ -76,6 +78,11 @@ public class HTMLFilter extends NodeVisitor
       Parser.getConnectionManager().setCookieProcessingEnabled(true);
 	}
 
+	private static void DEBUG(String msg) {
+		System.out.println(msg);
+		if (_log != null) _log.info("DEBUG: " + msg);
+	}
+
 	static private class DOM_Node_Info {
 		static int _overallApproxContentSize;
 
@@ -83,6 +90,10 @@ public class HTMLFilter extends NodeVisitor
 		{
 			_overallApproxContentSize = 0;
 		}
+
+		boolean      debug;
+		boolean      ignoreContent;				// Flag to ignore all content contained in the DOM subtree rooted here
+															// Used for special-case hacks right now
 
 		String       tagName;						// Tag for this DOM node
 		int          totalContentSize;			// Total size of all content in the subtree rooted at this dom node
@@ -98,16 +109,23 @@ public class HTMLFilter extends NodeVisitor
 			totalContentSize = 0;
 			currUnfilteredContent = new StringBuffer();
 			currFilteredContent = new StringBuffer();
+			ignoreContent = false;
 		}
 
 		public void appendUnfilteredContent(String s)
 		{
+			if (ignoreContent)
+				return;
+
 			currUnfilteredContent.append(s);
 			totalContentSize += s.length();
 		}
 
 		public void appendContent(String s)
 		{
+			if (ignoreContent)
+				return;
+
 			currUnfilteredContent.append(s);
 			currFilteredContent.append(s);
 			int n = s.length();
@@ -115,17 +133,6 @@ public class HTMLFilter extends NodeVisitor
 			_overallApproxContentSize += n;
 		}
 	
-/**
-		public void appendContent(String s1, String s2)
-		{
-			currUnfilteredContent.append(s1);
-			currFilteredContent.append(s2);
-			int n = s1.length();
-			totalContentSize += n;
-			_overallApproxContentSize += n;
-		}
-**/
-
 		public void discardContent()
 		{
 			currUnfilteredContent = new StringBuffer();
@@ -140,21 +147,21 @@ public class HTMLFilter extends NodeVisitor
 			//   If not, it might just be that this is just a header for some link block -- so no use retaining it!
 			int b1_len = currUnfilteredContent.length();  
 			int b2_len = currFilteredContent.length();
-			if (_debug) System.out.println("b1_len - " + b1_len + "; b2_len - " + b2_len + "; n1 - " + totalContentSize);
-			return (   (b2_len * 1.0 / b1_len) > 0.5
-					  && (b1_len * 1.0 / (b1_len + totalContentSize) > 0.05));
+			if (debug) HTMLFilter.DEBUG("b1_len - " + b1_len + "; b2_len - " + b2_len + "; n1 - " + totalContentSize);
+			return (   (b2_len * 1.0 / b1_len) >= 0.5
+					  && (b1_len * 1.0 / (b1_len + totalContentSize) >= 0.05));
 		}
 
 		public void swallowChild(DOM_Node_Info child, boolean discardContent)
 		{
 			if (discardContent) {
-				if (_debug) System.out.println("BLK: Discarding " + child.currUnfilteredContent.toString().replaceAll("\n", "|"));
+				if (debug) HTMLFilter.DEBUG("BLK: Discarding " + child.currUnfilteredContent.toString().replaceAll("\n", "|"));
 			}
 			else {
 				String childContent = child.currUnfilteredContent.toString();
 				currUnfilteredContent.append(childContent);
 				currFilteredContent.append(childContent);
-				if (_debug) System.out.println("BLK: Accumulating " + childContent.replaceAll("\n", "|"));
+				if (debug) HTMLFilter.DEBUG("BLK: Accumulating " + childContent.replaceAll("\n", "|"));
 			}
 
 			// No matter whether we discarded child content or not, we accumulate how much content exists in this dom subtree
@@ -162,9 +169,7 @@ public class HTMLFilter extends NodeVisitor
 		}
 	}
 
-	private static String  _lineSep;	// Line separator
-   private static boolean _debug = false;
-
+   private boolean      _debug; // Debugging?
 	private Stack<String> _ignoreFlagStack;
 	private Stack<DOM_Node_Info> _eltContentStack;
 	private String		   _title;
@@ -187,6 +192,8 @@ public class HTMLFilter extends NodeVisitor
 	private Stack        _spanTagStack;
 		// Next field is for Mumbai/Bangalore Mirror hack -- June 7, 2009
 	private boolean      _isBMmirror;
+		// Next field is for PTI hack -- Aug 18, 2010
+	private boolean      _isPTI;
 
 	private void initFilter()
 	{
@@ -203,6 +210,8 @@ public class HTMLFilter extends NodeVisitor
 		_ignoreEverything = false;
 		_foundKonaBody    = false;
 		_isBMmirror       = false;
+		_isPTI            = false;
+		_debug            = false;
 
 		DOM_Node_Info.init();
 
@@ -230,6 +239,9 @@ public class HTMLFilter extends NodeVisitor
 
 			// Mumbai/Bangalore Mirror specific hack -- June 7, 2009
 		_isBMmirror = _urlDomain.equals("bangaloremirror.com") || _urlDomain.equals("mumbaimirror.com");
+
+		   // PTI specific hack -- Aug 18, 2010
+		_isPTI = _urlDomain.equals("ptinews.com");
 	}
 	
 	/**
@@ -314,6 +326,8 @@ public class HTMLFilter extends NodeVisitor
 		_closeStream = true;
 	}
 
+	public void debug() { _debug = true; }
+
 	public String getOrigHtml() { return _origHtml; }
 
 	public String getUrl() { return _url; }
@@ -357,11 +371,23 @@ public class HTMLFilter extends NodeVisitor
 		_content = new StringBuffer();
 	}
 
+	private void pushNewTag(String tagName)
+	{
+		DOM_Node_Info di = new DOM_Node_Info(tagName);
+		di.debug = _debug;
+
+		// If my parent is in ignore content mode, I'll do the same as well!
+		if (!_eltContentStack.empty() && _eltContentStack.peek().ignoreContent)
+			di.ignoreContent = true;
+
+		_eltContentStack.push(di);
+	}
+
    @Override
 	public void visitTag(Tag tag) 
 	{
 		String tagName = tag.getTagName();
-		if (_debug) System.out.println("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
+		if (_debug) DEBUG("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
 
 		if (IGNORE_ELTS_TBL.get(tagName) != null) {
 			if (tagName.equals("A")) {
@@ -372,14 +398,14 @@ public class HTMLFilter extends NodeVisitor
 					// If we hit an inline anchor named comments, we assume that we have run into comments on the page.
 					String name = tag.getAttribute("NAME");
 					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && (name != null) && name.equals("comments")) {
-						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
+						if (_debug) DEBUG("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
 					return;
 				}
 			}
 			_ignoreFlagStack.push(tagName);
-			if (_debug) System.out.println("--> PUSHED");
+			if (_debug) DEBUG("--> PUSHED");
 		}
 		else if (tagName.equals("BR")) {
 			// India together articles have some strange html that leads to empty stack here!
@@ -396,14 +422,14 @@ public class HTMLFilter extends NodeVisitor
 			_isTitleTag = true;
 		}
 		else if (tagName.equals("HTML") || tagName.equals("BODY")) {
-			if (_debug) System.out.println("Pushing new dom-node-info for " + tagName);
-			_eltContentStack.push(new DOM_Node_Info(tagName));
+			if (_debug) DEBUG("Pushing new dom-node-info for " + tagName);
+			pushNewTag(tagName);
 		}
 		else {
 				// Push a new dom-node-info only for block elements
 			if (BLOCK_ELTS_TBL.get(tagName) != null) {
-				if (_debug) System.out.println("Pushing new dom-node-info for " + tagName);
-				_eltContentStack.push(new DOM_Node_Info(tagName));
+				if (_debug) DEBUG("Pushing new dom-node-info for " + tagName);
+				pushNewTag(tagName);
 			}
 
 			// DNA uses iframes
@@ -419,14 +445,19 @@ public class HTMLFilter extends NodeVisitor
 
 						// Assume that if we hit a div with an id that has comment in its name we have hit comments.
 				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
-						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
+						if (_debug) DEBUG("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
 				}
+
 				if (divClass != null) {
+						// Ignore all content from the image carousel!
+					if (_isPTI && divClass.toLowerCase().matches("stepcarousel"))
+						_eltContentStack.peek().ignoreContent = true;
+
 						// Assume that if we hit a div with a class that has comment in its name we have hit comments.
 				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
-						if (_debug) System.out.println("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
+						if (_debug) DEBUG("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
 						_ignoreEverything = true;
 					}
 				}
@@ -453,7 +484,7 @@ public class HTMLFilter extends NodeVisitor
 	private void processCurrStackElt()
 	{
 		DOM_Node_Info top = _eltContentStack.pop();
-		if (_debug) System.out.println("Popping dom-node-info for " + top.tagName);
+		if (_debug) DEBUG("Popping dom-node-info for " + top.tagName);
 
 		// If we are the end, the unfiltered buffer contains our content
 		if (_eltContentStack.isEmpty()) {
@@ -468,7 +499,7 @@ public class HTMLFilter extends NodeVisitor
 				//
 				// IMPORTANT: Process left siblings *before* processing the current block DOM element
 			if (!parent.shouldKeepBlockContent()) {
-				if (_debug) System.out.println("BLK: Discarding " + parent.currUnfilteredContent.toString().replaceAll("\n", "|"));
+				if (_debug) DEBUG("BLK: Discarding " + parent.currUnfilteredContent.toString().replaceAll("\n", "|"));
 				parent.discardContent();
 			}
 
@@ -485,7 +516,7 @@ public class HTMLFilter extends NodeVisitor
 	{
 		String tagName = tag.getTagName();
 
-		if (_debug) System.out.println("END : " + tagName);
+		if (_debug) DEBUG("END : " + tagName);
 
 		if (!_eltContentStack.isEmpty()) {
 			DOM_Node_Info topElt = _eltContentStack.peek();
@@ -493,12 +524,12 @@ public class HTMLFilter extends NodeVisitor
 				if (topElt.tagName.equals(tagName))
 					processCurrStackElt();
 				else
-					if (_debug) System.out.println(" ... Waiting for " + topElt.tagName + "; got " + tagName);
+					if (_debug) DEBUG(" ... Waiting for " + topElt.tagName + "; got " + tagName);
 			}
 		}
 
 		if (!_ignoreFlagStack.isEmpty() && _ignoreFlagStack.peek().equals(tagName)) {
-			if (_debug) System.out.println("--> POPPED");
+			if (_debug) DEBUG("--> POPPED");
 			_ignoreFlagStack.pop();
 		}
 
@@ -524,7 +555,7 @@ public class HTMLFilter extends NodeVisitor
 	public void visitStringNode(Text string) 
 	{
 		String eltContent = string.getText();
-		if (_debug) System.out.println("TAG txt - " + eltContent);
+		if (_debug) DEBUG("TAG txt - " + eltContent);
 
 		if (_eltContentStack.isEmpty())
 			return;
@@ -533,7 +564,7 @@ public class HTMLFilter extends NodeVisitor
 
 			// If this text is coming in the context of a ignoreable tag, discard
 		if (!_ignoreFlagStack.isEmpty()) {
-		   if (_debug) System.out.println(" -- IGNORED");
+		   if (_debug) DEBUG(" -- IGNORED");
 
 				// Add it to unfiltered buffer
 			String currIgnoreTag = _ignoreFlagStack.peek();
@@ -544,16 +575,16 @@ public class HTMLFilter extends NodeVisitor
 		}
 			// Newkerala.com hack -- May 18, 2006
 		else if (_ignoreEverything) {
-		   if (_debug) System.out.println(" -- IGNORED");
+		   if (_debug) DEBUG(" -- IGNORED");
 			return;
 		}
 
 		if (_PREtagContent) {
 			topElt.appendContent(eltContent);
-			if (_debug) System.out.println("PRE: Accumulating " + eltContent);
+			if (_debug) DEBUG("PRE: Accumulating " + eltContent);
 		}
 		else if (_isTitleTag) {
-			if (_debug) System.out.println("TITLE: ... " + eltContent);
+			if (_debug) DEBUG("TITLE: ... " + eltContent);
 			if (_title.equals("")) {
 				_title = eltContent;
 			}
@@ -562,10 +593,10 @@ public class HTMLFilter extends NodeVisitor
 			eltContent = collapseWhiteSpace(eltContent);
 			if (!isJunk(eltContent)) { // skip spurious content!
 				topElt.appendContent(eltContent);
-				if (_debug) System.out.println("NORMAL: Accumulating " + eltContent);
+				if (_debug) DEBUG("NORMAL: Accumulating " + eltContent);
 			}
 			else {
-				if (_debug) System.out.println("JUNK: Discarding " + eltContent);
+				if (_debug) DEBUG("JUNK: Discarding " + eltContent);
 			}
 		}
 	}
@@ -574,7 +605,7 @@ public class HTMLFilter extends NodeVisitor
 	{
 		// We have unbalanced tags!
 		if (!_eltContentStack.isEmpty()) {
-			if (_debug) System.out.println("Malformed HTML? Got an unbalanced content stack!");
+			if (_debug) DEBUG("Malformed HTML? Got an unbalanced content stack!");
 			while (!_eltContentStack.isEmpty())
 				processCurrStackElt();
 		}
@@ -603,7 +634,7 @@ public class HTMLFilter extends NodeVisitor
 
 				// New title!
 			_title = t1;
-			if (_debug) System.out.println("ORIG TITLE: " + _title + "\nNEW TITLE: " + _title);
+			if (_debug) DEBUG("ORIG TITLE: " + _title + "\nNEW TITLE: " + _title);
 		}
 
 			// Split the content around matches of the title, if any ... But, check this out!
@@ -616,7 +647,7 @@ public class HTMLFilter extends NodeVisitor
 			//    Without this fix to the above strategy (3. above), we will have partial replacements
 			//    Ex: With title "Attack-hit women of Bangalore vent ire on the Web", only "Attack" will be
 			//        removed leaving a partial title in the article which is not as good as we can do.
-		String  titleRE = _title.replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\?|\\(|\\)|\\[|\\]|\\|)", ".");
+		String  titleRE = _title.replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\?|\\(|\\)|\\[|\\]|\\|\\*|\\^|\\.)", ".");
 		titleRE = titleRE.replaceAll("[:\\-]", ".") + "|" + titleRE.replaceAll("[:\\-]+", "|");
 		String[] xs = Pattern.compile(titleRE, Pattern.CASE_INSENSITIVE).split(_content, 2);
 		if ((xs.length > 1) && (xs[0].length() < xs[1].length())) {
@@ -633,12 +664,12 @@ public class HTMLFilter extends NodeVisitor
 
 				// New content!
 			_content = (new StringBuffer(dateLine)).append("\n\n").append(xs[1]);
-			if (_debug) System.out.println("Stripping away " + xs[0].length() + " chars; Leaving " + xs[1].length() + " chars;\n Stripping away: " + xs[0]);
+			if (_debug) DEBUG("Stripping away " + xs[0].length() + " chars; Leaving " + xs[1].length() + " chars;\n Stripping away: " + xs[0]);
 		}
 		else if (_debug) {
-			System.out.println("Got " + xs.length + " items from splitting around " + titleRE);
+			DEBUG("Got " + xs.length + " items from splitting around " + titleRE);
 			if (xs.length > 1)
-				System.out.println("xs[0] size: " + xs[0].length() + " chars; xs[1] size: " + xs[1].length() + " chars;\n xs[0]: " + xs[0]);
+				DEBUG("xs[0] size: " + xs[0].length() + " chars; xs[1] size: " + xs[1].length() + " chars;\n xs[0]: " + xs[0]);
 		}
 
 /**
@@ -912,8 +943,9 @@ public class HTMLFilter extends NodeVisitor
 		int    argIndex = 0;
 		String nextArg  = args[argIndex];
 		String outDir   = ".";
+		boolean debug = false;
 		if (nextArg.equals("-debug")) {
-			_debug = true;
+			debug = true;
 			argIndex++;
 			nextArg = args[argIndex];
 		}
@@ -936,10 +968,9 @@ public class HTMLFilter extends NodeVisitor
 					if (line == null)
 						break;
 					try {
-						if (urls)
-							(new HTMLFilter(line, outDir, true)).run();
-						else
-							(new HTMLFilter(line, outDir, false)).run();
+						HTMLFilter hf = new HTMLFilter(line, outDir, urls);
+						if (debug) hf.debug();
+						hf.run();
 					}
 					catch (Exception e) {
 						System.err.println("ERROR filtering " + line);
@@ -957,17 +988,23 @@ public class HTMLFilter extends NodeVisitor
 				try {
 					boolean isUrl  = args[i].equals("-u");
 					if (isUrl) {
-						(new HTMLFilter(args[i+1], outDir, true)).run();
+						HTMLFilter hf = new HTMLFilter(args[i+1], outDir, true);
+						if (debug) hf.debug();
+						hf.run();
 						i++;
 					}
 					else {
 						if (args[i].equals("-url")) {
 //							System.out.println("URL - " + args[i+1] + "; fname - " + args[i+2]);
-							(new HTMLFilter(args[i+1], args[i+2], outDir)).run();
+							HTMLFilter hf = new HTMLFilter(args[i+1], args[i+2], outDir);
+							if (debug) hf.debug();
+							hf.run();
 							i += 2;
 						}
 						else {
-							(new HTMLFilter(args[i], outDir, false)).run();
+							HTMLFilter hf = new HTMLFilter(args[i], outDir, false);
+							if (debug) hf.debug();
+							hf.run();
 						}
 					}
 				}

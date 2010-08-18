@@ -278,7 +278,7 @@ public class FixupTools
 		} while ((news != null) && !news.isEmpty());
 	}
 
-	public static void canonicalizeURLs(Long feedKey, Date startDate, Date endDate)
+	public static void canonicalizeURLs(Long feedKey, Date startDate, Date endDate, boolean refetch)
    {
 		List<NewsItem> modifiedNews = new ArrayList<NewsItem>();
       java.util.Iterator<? extends NewsIndex> nis = _db.getIndexesOfAllArchivedNews(feedKey, startDate, endDate);
@@ -286,7 +286,7 @@ public class FixupTools
          Collection<NewsItem> news = _db.getArchivedNews(nis.next());
       	for (NewsItem n: news) {
 				SQL_NewsItem sqn = (SQL_NewsItem)n;
-				sqn.canonicalizeURL();
+				sqn.canonicalizeURL(refetch);
 				modifiedNews.add(sqn);
 			}
 		}
@@ -295,7 +295,7 @@ public class FixupTools
 		reclassifyDependentIssues(feedKey, modifiedNews);
 	}
 
-	public static void canonicalizeURLs(String domain, Date startDate, Date endDate)
+	public static void canonicalizeURLs(String domain, Date startDate, Date endDate, boolean refetch)
    {
       List<Long> fkeys = (List<Long>)SQL_StmtExecutor.query("SELECT feed_key FROM feeds WHERE url like ?",
                                                             new SQL_ValType[] {SQL_ValType.STRING},
@@ -304,7 +304,7 @@ public class FixupTools
                                                             false);
 		for (Long k: fkeys) {
 			System.out.println("------ Canonicalizing for feed: " + k + " ------");
-			canonicalizeURLs(k, startDate, endDate);
+			canonicalizeURLs(k, startDate, endDate, refetch);
 		}
 	}
 
@@ -456,12 +456,14 @@ public class FixupTools
       else if (action.equals("canonicalize-urls-for-feed")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
-         canonicalizeURLs(Long.parseLong(args[2]), sd, ed);
+			boolean refetch = (args.length > 4) && (args[5].equals("true")) ? true : false;
+         canonicalizeURLs(Long.parseLong(args[2]), sd, ed, refetch);
       }
       else if (action.equals("canonicalize-urls-for-domain")) {
          Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
          Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
-         canonicalizeURLs(args[2], sd, ed);
+			boolean refetch = (args.length > 4) && (args[5].equals("true")) ? true : false;
+         canonicalizeURLs(args[2], sd, ed, refetch);
       }
       else if (action.equals("refetch-news")) {
          refetchNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));

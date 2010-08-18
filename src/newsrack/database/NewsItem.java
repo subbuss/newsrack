@@ -120,6 +120,18 @@ abstract public class NewsItem implements java.io.Serializable
 								hf.setIgnoreCommentsHeuristic(false);
 								hf.run();
                   		_log.info("For file with path " + filtPath + ", filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
+								// See what happened now!
+								filtFile = getFilteredFilePath();
+								len = filtFile.length();
+								if (len < 600) {
+									try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
+									// Retry with debugging this time around (but without downloading first)
+									hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
+									hf.debug();
+									hf.setIgnoreCommentsHeuristic(false);
+									hf.run();
+								}
+
 							}
 						}
                }

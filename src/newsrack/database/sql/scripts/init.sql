@@ -21,6 +21,8 @@ create table if not exists feeds (
 	num_fetches      int,
 	num_failures     int,
    primary key(feed_key),
+	dead             boolean,        /* Is this now a dead feed? */
+	publication      varchar(255),	/* Publication: Hindu, Times of India, Deccan Herald, etc. */
 	unique(feed_tag)
 ) charset=utf8 collate=utf8_bin;
 

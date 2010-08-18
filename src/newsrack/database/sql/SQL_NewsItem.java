@@ -298,7 +298,7 @@ public class SQL_NewsItem extends NewsItem
 	   this._description   = ni._description;
 	}
 
-	public void canonicalizeURL()
+	public void canonicalizeURL(boolean refetch)
 	{
 		String oldUrl = getURL();
 		String newUrl = newsrack.util.URLCanonicalizer.canonicalize(oldUrl);
@@ -334,7 +334,11 @@ public class SQL_NewsItem extends NewsItem
 					   System.out.println("Renamed file from: " + oldFilt + " to " + newFilt);
 					}
 					else {
-						// download the news item if it doesn't exist!
+						refetch = true;
+					}
+
+					// download the news item if it doesn't exist!
+					if (refetch) {
 						try {
 							download(SQL_DB._sqldb);
 							System.out.println("Downloading from canonicalized url: " + newFilt);
