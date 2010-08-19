@@ -96,8 +96,8 @@ abstract public class NewsItem implements java.io.Serializable
                hf.run();
                String origText = hf.getOrigHtml();
 
-					// Null implies there was an error downloading the url
-               if (origText != null) {
+					// Null or small file lengths implies there was an error downloading the url
+               if ((origText != null) && (origText.length() > 100)) {
                   origPw.println(origText);
 						origPw.flush();
                   done = true;
@@ -135,6 +135,19 @@ abstract public class NewsItem implements java.io.Serializable
 							}
 						}
                }
+					else if ((origText != null) && (origText.length() <= 100)) {
+						// Delete the files so they can be fetched afresh!
+						File origFile = getOrigFilePath();
+						if (origFile.exists()) {
+							if (!origFile.delete())
+								_log.error("Could not delete file " + origFile);
+						}
+						File filtFile = getFilteredFilePath();
+						if (filtFile.exists()) {
+							if (!filtFile.delete())
+								_log.error("Could not delete file " + filtFile);
+						}
+					}
                else {
                   _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
                   newsrack.util.StringUtils.sleep(5);
