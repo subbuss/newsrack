@@ -19,7 +19,7 @@ chdir $orig;
 @allYears = grep !/^\.\.?/, readdir ARCHIVE;
 foreach $year (@allYears) {
 	next if -f $year;
-	print "got $year; testing against $YEAR\n";
+#	print "got $year; testing against $YEAR\n";
 	next if $YEAR && !($year == $YEAR);
 
 	print "--- YEAR: $year ---\n";
@@ -29,7 +29,7 @@ foreach $year (@allYears) {
 	@allMonths = grep !/^\.\.?/, readdir YEARDIR;
 	foreach $month (@allMonths) {
 		next if -f $month;
-		print "got $month; testing against $MONTH\n";
+#		print "got $month; testing against $MONTH\n";
 		next if $MONTH && !($month == $MONTH);
 
 		print "--- MONTH: $month ---\n";
@@ -39,7 +39,7 @@ foreach $year (@allYears) {
 		@allDates = grep !/^\.\.?/, readdir MONTHDIR;
 		foreach $date (@allDates) {
 			next if -f $date;
-		   print "got $date; testing against $D_REGEXP\n";
+#		   print "got $date; testing against $D_REGEXP\n";
  			next if $D_REGEXP && !($date =~ /$D_REGEXP/);
 
 			print "--- DATE: $date ---\n";
@@ -59,9 +59,9 @@ foreach $year (@allYears) {
                if (-d "$x/$gna2/orig/$year/$month/$date/$src") {
                   system("mkdir -p \'$src\'; mv $x/$gna2/orig/$year/$month/$date/$src/* $src");
                   system("rm -rf $x/$gna2/orig/$year/$month/$date/$src");
-                  print "EXEC: cd $orig/$year/$month/$date; tar czf \'$src.tgz\' \'$src\'\n";
+#                  print "EXEC: cd $orig/$year/$month/$date; tar czf \'$src.tgz\' \'$src\'\n";
                   system("cd $orig/$year/$month/$date; tar czf \'$src.tgz\' \'$src\'");
-                  print "EXEC: rm -rf \'$orig/$year/$month/$date/$src\'\n" ;
+#                  print "EXEC: rm -rf \'$orig/$year/$month/$date/$src\'\n" ;
                   system("rm -rf \'$orig/$year/$month/$date/$src\'");
                }
             }
@@ -84,9 +84,9 @@ foreach $year (@allYears) {
                }
 
                   # Compress the original articles into its new destination
-               print "EXEC: cd $orig/$year/$month/$date; tar czf \'$src.tgz\' \'$src\'\n";
+#               print "EXEC: cd $orig/$year/$month/$date; tar czf \'$src.tgz\' \'$src\'\n";
                system("cd $orig/$year/$month/$date; tar czf \'$src.tgz\' \'$src\'");
-               print "EXEC: rm -rf \'$orig/$year/$month/$date/$src\'\n" ;
+#               print "EXEC: rm -rf \'$orig/$year/$month/$date/$src\'\n" ;
                system("rm -rf \'$orig/$year/$month/$date/$src\'");
             }
 			}
