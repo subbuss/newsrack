@@ -46,6 +46,12 @@
     <to>/browse?owner=$1</to>
   </rule>
 
+  <rule>
+    <note> For redirects from http://floss.sarai.net which is now resolving directly to the newsrack.in domain! Hardcoded redirect to newsrack.in </note>
+    <from>^/newsrack(/.*)?$</from>
+    <to type="permanent-redirect">http://newsrack.in$1</to>
+  </rule>
+
   <!-- ************* Next 8 rules are redirects from old-style urls to newer cleaner urls *************** -->
   <rule>
     <from>^/[b|B]rowse(.action|.do)?\?(.*)(&amp;(amp;)?)?owner=([^\\&amp;]+)&amp;(amp;)?catID=([0-9]+)&amp;(amp;)?issue=(.*?)(&amp;(amp;)?(.*))?$</from>
