@@ -3,7 +3,7 @@
 $scriptPath = $0;
 $scriptDir  = $1 if ($scriptPath =~ m{(.*)/(.*)});
 if (!$scriptDir) {
-	$scriptDir = ".";
+   $scriptDir = ".";
 }
 require "$scriptDir/crawler.lib.pl";
 
@@ -56,7 +56,7 @@ sub ProcessPage
    }
 
       # Check if absolute URLs are okay with this page 
-	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
+   $rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
 
       # Initialize the list of new urls
    my $urlList = ();
@@ -73,11 +73,11 @@ sub ProcessPage
       if ($urlRef =~ /$baseHref/oi) {
          $newUrl = $urlRef;
       }
-		elsif ($urlRef =~ /^\#/) {
-			$thisUrl = $url;
-			$thisUrl =~ s/\#.*//;
+      elsif ($urlRef =~ /^\#/) {
+         $thisUrl = $url;
+         $thisUrl =~ s/\#.*//;
          $newUrl  = $thisUrl.$urlRef;
-		}
+      }
       elsif ($urlRef =~ /^http/i) {
          $newUrl = $urlRef;
          $msg    = "-http-";
@@ -85,10 +85,10 @@ sub ProcessPage
       }
       elsif ($urlRef =~ m{^/}) {
          $newUrl = $siteRoot.$urlRef;
-			if ($rejectAbsoluteUrls) {
-				$msg    = "-ABSOLUTE-";
-				$ignore = 1;
-			}
+         if ($rejectAbsoluteUrls) {
+            $msg    = "-ABSOLUTE-";
+            $ignore = 1;
+         }
       }
       elsif ($urlRef =~ /^\.\./) {
          $newUrl = $baseHref.$urlRef;
@@ -107,7 +107,7 @@ sub ProcessPage
       ($newUrl =~ s{://}{###}g); 
       ($newUrl =~ s{//}{/}g); 
       ($newUrl =~ s{###}{://}g); 
-		($newUrl =~ s{\\}{/});
+      ($newUrl =~ s{\\}{/});
 
          # Add or ignore, as appropriate
       if ($ignore) {
@@ -119,9 +119,9 @@ sub ProcessPage
          $urlList[scalar(@urlList)] = $newUrl; 
          $links{$newUrl} = $link;
       }
-		else {
-			print LOG "Trishanku swarga $newUrl\n";
-		}
+      else {
+         print LOG "Trishanku swarga $newUrl\n";
+      }
    }
 
    return $urlList;
@@ -136,15 +136,15 @@ sub ProcessPage
 ## newspaper depending on how their site is structured.
 ##
 $newspaper          = "The Asssam Tribune";
-$prefix             = "at";
+$prefix             = "at.verify";
 $date               = `date +"%d %b %y"`;
 #$date               = "03 Jan 07";
 ($day, $mon, $year) = ($date =~ /(\d+) (\w+) (\d+)/);
 $mon                = lcfirst $mon;
 $urlDateString      = "$mon$day$year";
 #$urlDateString      = "jun1008";
-$defSiteRoot        = "http://www.assamtribune.com/scripts/details.asp?id=$urlDateString";
-$url                = "$defSiteRoot/main";
+$defSiteRoot        = "http://www.assamtribune.com/scripts/detailsnew.asp?id=$urlDateString";
+$url                = "$defSiteRoot";
 ##
 ## END CUSTOM CODE 1
 ##
@@ -152,6 +152,9 @@ $url                = "$defSiteRoot/main";
 ## Initialize
 &Initialize("", $url);
 #&Initialize("", $url, "Tue, 10 Jun 2008 06:43:49 +0530");
+
+# Crawl root page
+&CrawlWebPage($url);
 
 ## Process the url list while crawling the site
 while (@urlList) {
@@ -175,23 +178,18 @@ while (@urlList) {
 ## newspapers.
 ##
       # The next line uses information about Assam Tribune's site organization
-		# http://www.assamtribune.com/dec1405/edit.html
-		# Only the main page has links to articles on the site
-	$sect = "";
-	$sect = $1 if ($url =~ m{http://www.assamtribune.com/scripts/details.asp\?id=$urlDateString/(.*)});
-	next if (!$sect);
+      # http://www.assamtribune.com/dec1405/edit.html
+      # Only the main page has links to articles on the site
+   $sect = "";
+   $sect = $1 if ($url =~ m{http://www.assamtribune.com/scripts/detailsnew.asp\?id=$urlDateString/(.*)});
+   next if (!$sect);
 
-   if (!$crawlSects{$sect}) {
 ##
 ## END CUSTOM CODE 2
 ##
-      $title = $links{$url};
-      $desc  = $title;
-		&PrintRSSItem();
-   }
-   else {
-		&CrawlWebPage($url);
-   }
+   $title = $links{$url};
+   $desc  = $title;
+   &PrintRSSItem();
 }
 
 &FinalizeRSSFeed();
