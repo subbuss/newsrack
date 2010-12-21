@@ -122,63 +122,72 @@ sub ProcessPage
 ##
 
 $newspaper   = "Kangla Online";
-$prefix      = "ko";
-$date        = `date +"%d %m %Y"`;
-($d, $mon, $year) = ($date =~ /(\d+) (\d+) (\d+)/);
-$defSiteRoot = "http://kanglaonline.com/$year/$mon";
-$url         = "$defSiteRoot/$d";
-
-##
-## END CUSTOM CODE 1
-##
+$prefix      = "ko.archives";
 
 ## Initialize
 &Initialize("", $url);
 
-## Special case -- crawl just the main page and nothing else!
-&CrawlWebPage($url);
+$year = "2010";
+@monStrs   = ("12","11","10","09","08");
+@lastDates = (21,30,31,30,15);
+$index = 0;
 
-## Process the url list while crawling the site
-while (@urlList) {
-   $total++;
-   $url = shift @urlList;
-   next if ($urlMap{$url});       # Skip if this URL has already been processed;
-   next if (! ($url =~ /http/i)); # Skip if this URL is not valid
+while ($index < 6) {
+   $mon = shift @monStrs;
+   $d = shift @lastDates;
+   $index = $index +1;
+   print "------- $index; $d; $mon; $m; ----\n";
+   while ($d > 0) {
+      $defSiteRoot = "http://kanglaonline.com/$year/$mon";
+      $url         = "$defSiteRoot/$d";
 
-      # Get the new page and process it
-   $processed++;
-   print     "PROCESSING $url ==> $links{$url}\n";
-   print LOG "PROCESSING $url ==> $links{$url}\n";
-   $urlMap{$url} = $url;
+      print "------- string: $url ------------\n"
 
-##
-## BEGIN CUSTOM CODE 2: This section needs to be customized for every
-## newspaper depending on how their site is structured.  This line
-## tries to identify URLs that pertain to news stories (as opposed to
-## index pages).  This check crucially relies on knowledge of the site
-## structure and organization and needs to be customized for different
-## newspapers.
-##
-      ## The next line uses information about Kangla Online's site structure
-      ## http://www.kanglaonline.com/2010/11/....
-   if ($url =~ m{$defSiteRoot$}) {
-     &CrawlWebPage($url);
-   }
-   elsif ($url =~ m{$defSiteRoot/\d*[^\d/]+[^/]+/$}) {
-         # For most sites, the next line suffices!
-      $title = $links{$url};
-      $title =~ s/<.*?>//g;
-      $title =~ s/^\s*//g;
-      $title =~ s/\s*$//g;
-##
-## END CUSTOM CODE 2
-##
-      $title =~ s/<.*?>//g;
-      ($title) = &ReadTitle($url) if $title =~ /^\s*$/g;
-      print "TITLE of $url is \'$title\'\n";
-      $title =~ s/\s*\|\s*Kanglaonline\s*$//i;
-      $desc  = $title;
-      &PrintRSSItem();
+      ## Special case -- crawl just the main page and nothing else!
+      &CrawlWebPage($url);
+
+      ## Process the url list while crawling the site
+      while (@urlList) {
+         $total++;
+         $url = shift @urlList;
+         next if ($urlMap{$url});       # Skip if this URL has already been processed;
+         next if (! ($url =~ /http/i)); # Skip if this URL is not valid
+
+            # Get the new page and process it
+         $processed++;
+         print     "PROCESSING $url ==> $links{$url}\n";
+         print LOG "PROCESSING $url ==> $links{$url}\n";
+         $urlMap{$url} = $url;
+
+      ##
+      ## BEGIN CUSTOM CODE 2: This section needs to be customized for every
+      ## newspaper depending on how their site is structured.  This line
+      ## tries to identify URLs that pertain to news stories (as opposed to
+      ## index pages).  This check crucially relies on knowledge of the site
+      ## structure and organization and needs to be customized for different
+      ## newspapers.
+      ##
+            ## The next line uses information about Kangla Online's site structure
+            ## http://www.kanglaonline.com/2010/11/....
+         if ($url =~ m{$defSiteRoot/\d*[^\d/]+[^/]+/$}) {
+          # For most sites, the next line suffices!
+            $title = $links{$url};
+            $title =~ s/<.*?>//g;
+            $title =~ s/^\s*//g;
+            $title =~ s/\s*$//g;
+      ##
+      ## END CUSTOM CODE 2
+      ##
+            $title =~ s/<.*?>//g;
+            ($title) = &ReadTitle($url) if $title =~ /^\s*$/g;
+            $title =~ s/\s*\|\s*Kanglaonline\s*$//i;
+            print "TITLE of $url is \'$title\'\n";
+            $desc  = $title;
+            $dateStr = &GetRFC822Date("2010",$mon,$d);
+            &PrintRSSItem($dateStr);
+         }
+      }
+      $d = $d -1;
    }
 }
 

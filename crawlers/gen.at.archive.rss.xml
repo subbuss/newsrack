@@ -7,11 +7,22 @@ if (!$scriptDir) {
 }
 require "$scriptDir/crawler.lib.pl";
 
+%crawlSects = (
+   "main" => "1",
+   "cit" => "1",
+   "sta" => "1",
+   "ner" => "1",
+   "spo" => "1",
+   "obit" => "1",
+   "edi" => "1",
+   "let" => "1",
+);
+
 # -- Process a downloaded page
 sub ProcessPage
 {
    my ($fileName, $url) = ($_[0], $_[1]);
-   ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?$}i);
+   ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?(\?.*)?$}i);
    $baseHref .= "/";
    print LOG "URL               - $url\n";
    print LOG "FILE              - $fileName\n";
@@ -51,9 +62,9 @@ sub ProcessPage
    my $urlList = ();
 
       # Match anchors -- across multiple lines, and match all instances
-   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
+   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)([^ "<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
-      print LOG "REF - $urlRef; LINK - $link; "; 
+      print LOG "REF - $urlRef; LINK - $link; \n"; 
       $msg="";
       $ignore = 0;
          # Check this before the "^http" check because
@@ -70,7 +81,7 @@ sub ProcessPage
       elsif ($urlRef =~ /^http/i) {
          $newUrl = $urlRef;
          $msg    = "-http-";
-         $ignore = 1 if ($urlRef !~ /kanglaonline.com/);
+         $ignore = 1;
       }
       elsif ($urlRef =~ m{^/}) {
          $newUrl = $siteRoot.$urlRef;
@@ -96,6 +107,7 @@ sub ProcessPage
       ($newUrl =~ s{://}{###}g); 
       ($newUrl =~ s{//}{/}g); 
       ($newUrl =~ s{###}{://}g); 
+      ($newUrl =~ s{\\}{/});
 
          # Add or ignore, as appropriate
       if ($ignore) {
@@ -106,6 +118,9 @@ sub ProcessPage
          print LOG "ADDING NEW - $newUrl\n";
          $urlList[scalar(@urlList)] = $newUrl; 
          $links{$newUrl} = $link;
+      }
+      else {
+         print LOG "Trishanku swarga $newUrl\n";
       }
    }
 
@@ -120,65 +135,78 @@ sub ProcessPage
 ## BEGIN CUSTOM CODE 1: This section needs to be customized for every
 ## newspaper depending on how their site is structured.
 ##
+$newspaper          = "The Asssam Tribune";
+$prefix             = "at.tst";
+#$date               = `date +"%d %b %y"`;
+#($day, $mon, $year) = ($date =~ /(\d+) (\w+) (\d+)/);
+#$mon                = lcfirst $mon;
 
-$newspaper   = "Kangla Online";
-$prefix      = "ko";
-$date        = `date +"%d %m %Y"`;
-($d, $mon, $year) = ($date =~ /(\d+) (\d+) (\d+)/);
-$defSiteRoot = "http://kanglaonline.com/$year/$mon";
-$url         = "$defSiteRoot/$d";
+$year = "10";
+@monStrs   = ("dec","nov","oct","sep","aug","jul","jun","may","apr","mar","feb");
+@lastDates = (20,30,31,30,31,31,30,31,30,30,28);
+@ms        = (12,11,10,9,8,7,6,5,4,3,2);
+$index = 0;
 
-##
-## END CUSTOM CODE 1
-##
+ ## Initialize
+$defSiteRoot="http://www.assamtribune.com/";
+&Initialize("", "http://www.assamtribune.com/");
 
-## Initialize
-&Initialize("", $url);
+while ($index < 11) {
+   $mon=shift @monStrs;
+   $m=shift @ms;
+   $d=shift @lastDates;
+   $index = $index +1;
+   print "------- $index; $d; $mon; $m; ----\n";
+   while ($d > 0) {
+      $day = $d > 10 ? $d : "0$d";
+      $urlDateString      = "$mon$day$year";
+      $defSiteRoot        = "http://www.assamtribune.com/scripts/detailsnew.asp?id=$urlDateString";
+      $url                = "$defSiteRoot";
+      print "------- string: $urlDateString; url: $url ------------\n"
+      ##
+      ## END CUSTOM CODE 1
+      ##
 
-## Special case -- crawl just the main page and nothing else!
-&CrawlWebPage($url);
+      # Crawl root page
+      &CrawlWebPage($url);
 
-## Process the url list while crawling the site
-while (@urlList) {
-   $total++;
-   $url = shift @urlList;
-   next if ($urlMap{$url});       # Skip if this URL has already been processed;
-   next if (! ($url =~ /http/i)); # Skip if this URL is not valid
+      ## Process the url list while crawling the site
+      while (@urlList) {
+         $total++;
+         $url = shift @urlList;
+         next if ($urlMap{$url});       # Skip if this URL has already been processed;
+         next if (! ($url =~ /http/i)); # Skip if this URL is not valid
 
-      # Get the new page and process it
-   $processed++;
-   print     "PROCESSING $url ==> $links{$url}\n";
-   print LOG "PROCESSING $url ==> $links{$url}\n";
-   $urlMap{$url} = $url;
+            # Get the new page and process it
+         $processed++;
+         print     "PROCESSING $url ==> $links{$url}\n";
+         print LOG "PROCESSING $url ==> $links{$url}\n";
+         $urlMap{$url} = $url;
 
-##
-## BEGIN CUSTOM CODE 2: This section needs to be customized for every
-## newspaper depending on how their site is structured.  This line
-## tries to identify URLs that pertain to news stories (as opposed to
-## index pages).  This check crucially relies on knowledge of the site
-## structure and organization and needs to be customized for different
-## newspapers.
-##
-      ## The next line uses information about Kangla Online's site structure
-      ## http://www.kanglaonline.com/2010/11/....
-   if ($url =~ m{$defSiteRoot$}) {
-     &CrawlWebPage($url);
-   }
-   elsif ($url =~ m{$defSiteRoot/\d*[^\d/]+[^/]+/$}) {
-         # For most sites, the next line suffices!
-      $title = $links{$url};
-      $title =~ s/<.*?>//g;
-      $title =~ s/^\s*//g;
-      $title =~ s/\s*$//g;
-##
-## END CUSTOM CODE 2
-##
-      $title =~ s/<.*?>//g;
-      ($title) = &ReadTitle($url) if $title =~ /^\s*$/g;
-      print "TITLE of $url is \'$title\'\n";
-      $title =~ s/\s*\|\s*Kanglaonline\s*$//i;
-      $desc  = $title;
-      &PrintRSSItem();
+      ##
+      ## BEGIN CUSTOM CODE 2: This section needs to be customized for every
+      ## newspaper depending on how their site is structured.  This line
+      ## tries to identify URLs that pertain to news stories (as opposed to
+      ## index pages).  This check crucially relies on knowledge of the site
+      ## structure and organization and needs to be customized for different
+      ## newspapers.
+      ##
+            # The next line uses information about Assam Tribune's site organization
+            # http://www.assamtribune.com/dec1405/edit.html
+            # Only the main page has links to articles on the site
+         $sect = "";
+         $sect = $1 if ($url =~ m{http://www.assamtribune.com/scripts/detailsnew.asp\?id=$urlDateString/(.*)});
+         next if (!$sect);
+
+      ##
+      ## END CUSTOM CODE 2
+      ##
+         $title = $links{$url};
+         $desc  = $title;
+         $dateStr = &GetRFC822Date("2010",$m,$d);
+         &PrintRSSItem($dateStr);
+      }
+      $d = $d -1;
    }
 }
 
