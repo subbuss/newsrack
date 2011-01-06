@@ -39,6 +39,8 @@ is not an exhaustive list):
 	<li> <a target="_blank" href="http://www.action2007.net">Action 2007</a> </li>
 	<li> <a target="_blank" href="http://www.praja.in">Praja.in</a> </li>
 	<li> <a target="_blank" href="http://votereport.in">Vote Report India</a> </li>
+	<li> <a target="_blank" href="http://indiabiodiversity.org">The India Biodiversity Portal</a> </li>
+	<li> <a target="_blank" href="http://bbmpelections.in">BBMP Elections</a> </li>
 	</ul>
 	</p>
 
