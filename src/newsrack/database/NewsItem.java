@@ -143,7 +143,7 @@ abstract public class NewsItem implements java.io.Serializable
 								_log.error("Could not delete file " + origFile);
 						}
 						File filtFile = getFilteredFilePath();
-						if ((filtFile != null)) && filtFile.exists()) {
+						if ((filtFile != null) && filtFile.exists()) {
 							if (!filtFile.delete())
 								_log.error("Could not delete file " + filtFile);
 						}
