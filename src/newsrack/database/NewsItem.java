@@ -138,12 +138,12 @@ abstract public class NewsItem implements java.io.Serializable
 					else if ((origText != null) && (origText.length() <= 100)) {
 						// Delete the files so they can be fetched afresh!
 						File origFile = getOrigFilePath();
-						if (origFile.exists()) {
+						if ((origFile != null) && origFile.exists()) {
 							if (!origFile.delete())
 								_log.error("Could not delete file " + origFile);
 						}
 						File filtFile = getFilteredFilePath();
-						if (filtFile.exists()) {
+						if ((filtFile != null)) && filtFile.exists()) {
 							if (!filtFile.delete())
 								_log.error("Could not delete file " + filtFile);
 						}
