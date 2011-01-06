@@ -9,11 +9,11 @@
 <body>
 
 <#assign months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]>
-<#assign privileged = ["neitham", "admin", "subbu", "lalremlein"]>
+<#assign privileged = ["neitham", "himanshu", "admin", "subbu", "lalremlein"]>
 <#if privileged?seq_contains(user.uid)>
   <#assign yearRange = 2004..2010>
 <#else>
-  <#assign yearRange = 2010..2010>
+  <#assign yearRange = 2010..2011>
 </#if>
 
 <@s.set name="user" value="#session.user" />
