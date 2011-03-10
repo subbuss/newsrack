@@ -2,7 +2,8 @@
 <html>
 
 <head>
-<title>${owner.uid}'s topics</title>
+<title>NewsRack: ${owner.uid}'s topics</title>
+<meta name="Description" content="NewsRack: Topics set up by user ${owner.uid}">
 <#include "/ftl/layout/common_includes.ftl">
 </head>
 

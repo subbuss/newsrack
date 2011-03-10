@@ -10,9 +10,9 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="[@s.url value="/css/main.css" /]" type="text/css">
-<link rel="alternate" type="application/rss+xml" title="'${issueName}' news for user ${ownerID}" href="${issue.getRSSFeedURL()}" />
-<title>'${issueName}' news for user ${ownerID}</title>
-<meta name="Description" content="This page set up by user ${ownerID} has the following news categories in '${issueName}' topic: [#foreach cat in cats] ${cat.name}; [/#foreach]">
+<link rel="alternate" type="application/rss+xml" title="NewsRack: '${issueName}' news for user ${ownerID}" href="${issue.getRSSFeedURL()}" />
+<title>NewsRack: '${issueName}' news for user ${ownerID}</title>
+<meta name="Description" content="NewsRack: This page set up by user ${ownerID} has the following news categories in '${issueName}' topic: [#foreach cat in cats] ${cat.name}; [/#foreach]">
 </head>
 
 <body>
