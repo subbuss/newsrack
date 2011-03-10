@@ -115,9 +115,9 @@
 <head>
 [#include "/ftl/layout/common_includes.ftl"]
 <link rel="canonical" href="${canonicalUrl}" />
-<link rel="alternate" type="application/rss+xml" title="[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
-<title>[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}</title>
-<meta name="Description" content="This page displays news for [#if cat?exists] '${cat.name}' category in [/#if] '${issueName}' topic set up by user ${ownerID}.">
+<link rel="alternate" type="application/rss+xml" title="NewsRack:[#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID}" href="${cat.getRSSFeedURL()}" />
+<title>NewsRack: [#if cat?exists] '${cat.name}' news in [/#if] '${issueName}' topic for user ${ownerID} [#if startId > 1] (${startId}-${nextId} [#if !unknownNewsCount]of ${lastId-1}[/#if]) [/#if]</title>
+<meta name="Description" content="NewsRack: Filtered news for [#if cat?exists] category:'${cat.name}' [/#if] in topic:'${issueName}' for user ${ownerID}[#if startId > 1] (${startId}-${nextId} [#if !unknownNewsCount]of ${lastId-1}[/#if])[/#if].">
 <style>
 div#check_all_button { 
   width:58px;
