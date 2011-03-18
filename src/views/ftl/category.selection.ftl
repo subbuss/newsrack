@@ -1,10 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN")">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
 <title> NewsRack: Topic Listing</title>
 <#include "/ftl/layout/common_includes.ftl">
 
-<style>
+<style type="text/css">
 div.catselection {
 	line-height : 150%;
 }
@@ -42,11 +42,11 @@ a.selcat:hover { padding: 2px 0px; text-decoration: none; background-color: #882
 
 <body>
 
-<div class="bodymain")">
-<table class="userhome" cellspacing="0")">
+<div class="bodymain">
+<table class="userhome" cellspacing="0">
 <#include "/ftl/layout/header.ftl"><tr>
-<#include "/ftl/layout/left.menu.ftl"><td class="user_space")">
-<div class="catselection")">
+<#include "/ftl/layout/left.menu.ftl"><td class="user_space">
+<div class="catselection">
 <h1>Sample Topics</h1>
 <div>
 This is a sample editorial selection of all news categories on NewsRack being monitored by several registered users of NewsRack.
@@ -54,15 +54,15 @@ This is a sample editorial selection of all news categories on NewsRack being mo
 for a complete listing of classified news across all users.
 </div>
 
-<table class="selCats")">
+<table class="selCats">
 <tr> <td class="bold center underline" colspan="3"> Topics with an Indian focus (with mostly Indian news sources) </td> </tr>
 <tr>
 <td width="33%">
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Bangalore" catID="14" />">&nbsp;ABIDe-Bangalore</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="prs" issue="Legal-News" catID="1" />">&nbsp;Acts & Bills (Central)</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="prs" issue="Legal-News" catID="1" />">&nbsp;Acts &amp; Bills (Central)</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="ifinews" issue="IFIs" catID="7" />">&nbsp;ADB</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="subbu" issue="Adivasi" />">&nbsp;Adivasi</a><br />
-<a class="selcat" href="<@s.url namespace="/" action="browse" owner="rahuldewan" issue="Airlines" catID="3" />">&nbsp;Airlines & Airports</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="rahuldewan" issue="Airlines" catID="3" />">&nbsp;Airlines &amp; Airports</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Health" catID="19" />">&nbsp;Alzheimers</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Attacks+on+Women" catID="1" />">&nbsp;Attacks on Women</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="fredericknoronha" issue="Autism" catID="1" />">&nbsp;Autism</a><br />
@@ -198,8 +198,6 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="irge304" />">Topics set up for Boston University's IR/GE 304 Course (Fall 2007)</a><br />
 </td>
 </tr>
-<tr>
-<td>
 </table>
 
 </div>
