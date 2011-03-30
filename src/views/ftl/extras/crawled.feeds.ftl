@@ -42,7 +42,7 @@
 <!-- <li> <a href="<@s.url value="/crawled.feeds/iln.rss.xml" />">Ind Law News </a> </li> -->
 	<li> <a href="<@s.url value="/crawled.feeds/frontline.rss.xml" />">Frontline</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/outlook.rss.xml" />">Outlook</a> </li>
-	<li> <a href="<@s.url value="/crawled.feeds/nbt.rss.xml" />">नवभारत टैम्स (Navbharat Times) </a> </li>
+	<li> <a href="<@s.url value="/crawled.feeds/nbt.rss.xml" />"> नवभारत टाइम्स (Navbharat Times) </a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/dj.rss.xml" />"> दैनिक जागरण (Dainik Jagran)</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/hd.rss.xml" />"> हिन्दुस्तान दैनिक (Hindustan Dainik)</a> </li>
 	<li> <a href="<@s.url value="/crawled.feeds/db.rss.xml" />"> दैनिक भास्कर (Dainik Bhaskar)</a> </li>
