@@ -619,6 +619,9 @@ public class Category implements Comparable, java.io.Serializable
 
 	public void updateRSSFeed()
 	{
+		if (_outputFeed == null)
+			initFeed();
+
 		_outputFeed.update();
 		_numItemsSinceLastDownload = _outputFeed.getNumItemsSinceLastDownload();
 
