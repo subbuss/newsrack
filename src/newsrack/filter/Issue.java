@@ -307,6 +307,7 @@ public class Issue implements java.io.Serializable
 	private   OutputFeed _outputFeed;		// Output rss feed for this issue
 	private   int        _numItemsSinceLastDownload;	// Number of new items since last download
 	private   String     _taxonomyPath;		// Unique global taxonomy path
+	private   boolean    _scannerInUse;
 
 	/* These are transient and need not be persisted. */
 				 private Set<Concept> _usedConcepts;		// Concepts used by all filters in this topic
@@ -954,6 +955,7 @@ public class Issue implements java.io.Serializable
 
 	private int scanNewsItem(PrintWriter pw, Hashtable tokTable) throws Exception
 	{
+		_scannerInUse = true;
 		int numTokens = 0;
 
 			// MAIN SCANNER LOOP
@@ -987,6 +989,7 @@ public class Issue implements java.io.Serializable
 			}
 		}
 
+		_scannerInUse = false;
 		return numTokens;
 	}
 
@@ -1108,12 +1111,14 @@ public class Issue implements java.io.Serializable
 
 	public void unloadScanners()
 	{
+		if (!_scannerInUse) {
 			// Set these fields to null so that the scanners can be gc'ed as necessary!
-		_lexerScanMethod = null;
-		_lexerResetMethod = null;
-		_lexerCloseMethod = null;
-		_lexerConstr = null;
-		_lexer = null;
+			_lexerScanMethod = null;
+			_lexerResetMethod = null;
+			_lexerCloseMethod = null;
+			_lexerConstr = null;
+			_lexer = null;
+		}
 	}
 
 	/**
@@ -1213,6 +1218,9 @@ public class Issue implements java.io.Serializable
 
 	public void updateRSSFeed()
 	{
+		if (_outputFeed == null) 
+			initFeed();
+
 		_outputFeed.update();
 		_numItemsSinceLastDownload = _outputFeed.getNumItemsSinceLastDownload();
 
