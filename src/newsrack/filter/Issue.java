@@ -1205,7 +1205,7 @@ public class Issue implements java.io.Serializable
 	public void invalidateRSSFeed()
 	{
 		if (_outputFeed == null) 
-			initFeed();
+			readInCurrentRSSFeed();
 
 			// Reset the feed
 		_outputFeed.invalidate();

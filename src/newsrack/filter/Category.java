@@ -604,7 +604,7 @@ public class Category implements Comparable, java.io.Serializable
 	public void invalidateRSSFeed()
 	{
 		if (_outputFeed == null) 
-			initFeed();
+			readInCurrentRSSFeed();
 
 			// Reset the feed
 		_outputFeed.invalidate();
