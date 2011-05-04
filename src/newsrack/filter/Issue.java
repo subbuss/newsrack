@@ -1205,7 +1205,7 @@ public class Issue implements java.io.Serializable
 	public void invalidateRSSFeed()
 	{
 		if (_outputFeed == null) 
-			readInCurrentRSSFeed();
+			initFeed();
 
 			// Reset the feed
 		_outputFeed.invalidate();
@@ -1219,7 +1219,7 @@ public class Issue implements java.io.Serializable
 	public void updateRSSFeed()
 	{
 		if (_outputFeed == null) 
-			initFeed();
+			readInCurrentRSSFeed();
 
 		_outputFeed.update();
 		_numItemsSinceLastDownload = _outputFeed.getNumItemsSinceLastDownload();
