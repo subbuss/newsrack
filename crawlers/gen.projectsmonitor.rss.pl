@@ -127,8 +127,7 @@ sub ProcessPage
 $newspaper   = "Projects Monitor";
 $prefix      = "pm";
 $defSiteRoot = "http://www.projectsmonitor.com";
-$url         = "$defSiteRoot/index.asp";
-$artnum1     = &OpenArtNumFile("1000");
+$url         = "$defSiteRoot/";
 
 ##
 ## END CUSTOM CODE 1
@@ -159,19 +158,10 @@ while (@urlList) {
 ## newspapers.
 ##
       ## The next line uses information about Project Monitor's URL structure
-   if ($url =~ m{[\&|\?]newsid=(\d+)}) {
-		$artNum = $1;
-		print "Article number = $artNum\n";
-		next if ($artNum < $startingArtNum);
-
-		if ($artNum > $maxArtNum) {
-			$maxArtNum = $artNum;
-		}
+   if ($url =~ m{/\w+/\w+}) {
 
 			# For most sites, the next line suffices!
 		$title = $links{$url};
-			# Clean up the URL
-		$url =~ s{(newsid=\d+).*}{\1};
 ##
 ## END CUSTOM CODE 2
 ##
@@ -184,11 +174,10 @@ while (@urlList) {
 		&PrintRSSItem();
    }
 	else {
-		next if ($url =~ /archive.asp/);
+		next if ($url =~ /Archives.*aspx/);
 		&CrawlWebPage($url);
 	}
 }
 
 &FinalizeRSSFeed();
-&SaveArtNumFile();
 &PrintStatsAndCleanup();
