@@ -16,7 +16,9 @@
 
   <property file="build.properties"/>
   
-  <property name="container.dir"     value="/var/lib/tomcat5.5/webapps" />
+  <property name="tomcat"            value="tomcat6" />
+  <property name="servlet-jar-dir"   value="/usr/share/tomcat6" />
+  <property name="container.dir"     value="/var/lib/${tomcat}/webapps" />
   <property name="webapp.name"       value="ROOT" /> <!-- override in build.properties -->
   <property name="webapp.target.dir" location="${container.dir}/${webapp.name}" />
   <property name="home"              location="." />
@@ -45,7 +47,7 @@
     <fileset dir="${libdir}">
       <include name="**/*.jar" />
     </fileset>
-	 <pathelement location="/usr/share/tomcat5.5/common/lib/servlet-api.jar" />
+	 <pathelement location="${servlet-jar-dir}/lib/servlet-api.jar" />
   </path>
 
   <target name="beavertask" unless="beaver.available" description="creates Beaver Ant task">

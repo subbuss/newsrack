@@ -1,22 +1,17 @@
-1. edit /etc/init.d/tomcat5.5 and change 
+1. edit /etc/init.d/tomcat6 and change 
    - umask to 002
-	- logging from syslog to jsvc.out and jsvc.err
-	- add chmod commands to make these files accessible
 
 # -- sample commands --
-sudo chown -R tomcat55:nogroup /var/lib/tomcat5.5/webapps
-sudo chown -R tomcat55:nogroup /var/log/tomcat5.5
-sudo chmod 777 /var/lib/tomcat5.5/webapps
-sudo chmod 775 /var/log/tomcat5.5
-cd /var/log/tomcat5.5/
-sudo touch jsvc.out jsvc.err
-sudo chmod 666 jsvc.*
-sudo chown tomcat55:nogroup jsvc.*
+sudo chown -R tomcat6:nogroup /var/lib/tomcat6/webapps
+sudo chown -R tomcat6:nogroup /var/log/tomcat6
+sudo chmod 777 /var/lib/tomcat6/webapps
+sudo chmod 775 /var/log/tomcat6
+cd /var/log/tomcat6/
 
-2. edit /etc/default/tomcat5.5 and change
+2. edit /etc/default/tomcat6 and change
    - jvm path, if necessary
-	- add TOMCAT5_GROUP=tomcat55
-	- disable tomcat5 security
+	- add TOMCAT5_GROUP=tomcat6
+	- disable tomcat6 security
 	- edit jvm options to add heap sizes, server vm, gc settings
 
 3. for enabling access logs, edit server.xml and uncomment FastCommonAccessLogValve
@@ -38,7 +33,7 @@ sudo chown tomcat55:nogroup jsvc.*
    - Make sure that default site is not enabled in /sites.enabled
 
 5. make sure permissions for files in data/users/ and data/news.archive/ are
-   set to g+w and that ownership is tomcat55:nogroup
+   set to g+w and that ownership is tomcat6:nogroup
 
 6. Edit /etc/security/limits.conf and double nofile limit for newsrack
    from 1024 to 2048 -- to give me breathing space while I figure out
