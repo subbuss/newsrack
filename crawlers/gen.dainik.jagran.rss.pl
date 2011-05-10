@@ -181,7 +181,7 @@ while (@urlList) {
 			# For most sites, the next line suffices!
       $title = $links{$url};
 		$title =~ s/<.*?>//g;
-      if (!$title || ($title =~ m{^\s*$})) {
+      if (!$title || ($title =~ m{^\s*$}) || ($title =~ /foldgroup/i)) {
          $title = Encode::decode('utf-8', &ReadTitle($url, "<h1[^<>]*>", "</h1>"));
       }
 ##

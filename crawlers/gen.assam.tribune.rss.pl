@@ -136,7 +136,7 @@ sub ProcessPage
 ## newspaper depending on how their site is structured.
 ##
 $newspaper          = "The Asssam Tribune";
-$prefix             = "at.verify";
+$prefix             = "at";
 $date               = `date +"%d %b %y"`;
 #$date               = "03 Jan 07";
 ($day, $mon, $year) = ($date =~ /(\d+) (\w+) (\d+)/);
