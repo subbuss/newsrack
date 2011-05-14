@@ -551,10 +551,9 @@ public class Feed implements java.io.Serializable
             // 4. Download it
 				// Set title prior to downloading because the title is used for some smart content extraction
 			ni.setTitle(title);
-         ni.download(_db); 
 
 				// 5. Create the news item and return it!
-			return ni;
+         return (ni.download(_db)) ? ni : null;
 		}
 		catch (Exception e) {
 			if (_log.isInfoEnabled()) _log.info(" ... FAILED!");

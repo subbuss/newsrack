@@ -80,7 +80,7 @@ abstract public class NewsItem implements java.io.Serializable
 		return getDate().compareTo(n.getDate());
 	}
 
-   public void download(DB_Interface dbi) throws Exception
+   public boolean download(DB_Interface dbi) throws Exception
    {
       PrintWriter filtPw = dbi.getWriterForFilteredArticle(this);
 		PrintWriter origPw = dbi.getWriterForOrigArticle(this);
@@ -177,5 +177,8 @@ abstract public class NewsItem implements java.io.Serializable
 
          // Clear the cookie jar after each download so that you get fresh cookies for each article
 		HTMLFilter.clearCookieJar();
+
+		// We succeeded if the filtered file exists
+		return (getFilteredFilePath().exists());
    }
 }
