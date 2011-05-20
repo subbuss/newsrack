@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.List;
 
 import newsrack.NewsRack;
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
 import newsrack.archiver.HTMLFilter;
 import newsrack.database.DB_Interface;
 import newsrack.database.NewsIndex;
@@ -99,6 +101,27 @@ public class FixupTools
 		}
 	}
 
+	private static void reclassifyNewsForTopic(Long tKey, Date sd, Date ed)
+	{
+		Issue i = _db.getIssue(tKey);
+		i.readInCurrentRSSFeed();
+		for (Source s: i.getMonitoredSources()) {
+			i.reclassifyNews(s, false, sd, ed);
+		}
+	}
+
+	private static void classifyNewsForTopic(Long tKey, List<NewsItem> news)
+	{
+		Issue i = _db.getIssue(tKey);
+		if (i == null) {
+			System.out.println("ERROR: Null issue for " + tKey + ".  Check topic_sources for stale ref!");
+		}
+		else if (!i.isFrozen()) {
+			System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
+			i.scanAndClassifyNewsItems(null, news);
+		}
+	}
+
 	private static void reclassifyDependentIssues(Long feedKey, List<NewsItem> news)
 	{
 		if (news.isEmpty())
@@ -112,11 +135,7 @@ public class FixupTools
                                                             false);
          // Reclassify!
       for (Long tkey: tkeys) {
-         Issue i = _db.getIssue(tkey);
-         if (!i.isFrozen()) {
-            System.out.println("Reclassifying for " + i.getName() + " for user " + i.getUser().getUid());
-            i.scanAndClassifyNewsItems(null, news);
-         }
+			classifyNewsForTopic(tkey, news);
       }
 	}
 
@@ -186,14 +205,14 @@ public class FixupTools
       for (NewsItem n: news) {
          File origOrig = ((SQL_NewsItem)n).getOrigFilePath();
          File origFilt = ((SQL_NewsItem)n).getFilteredFilePath();
-         if (origFilt == null || (origFilt.length() < minLength)) {
-				if (origFilt== null) 
+         if (origFilt == null || !origFilt.exists() || (origFilt.length() < minLength)) {
+				if ((origFilt== null) || !origFilt.exists())
 					System.out.println("Missing file ... have to download .." + n.getKey() + ": " + n.getURL() + " again!");
 				else
                System.out.println("Will have to download " + origFilt + " again!");
 
 				if (origFilt != null) {
-					origOrig.delete();
+					if (origOrig != null) origOrig.delete();
 					origFilt.delete();
 				}
             try {
@@ -206,7 +225,7 @@ public class FixupTools
             }
          }
          else if (origFilt.exists()) {
-            System.out.println("No need to download " + origFilt + " again .. it has size " + origFilt.length());
+            // System.out.println("No need to download " + origFilt + " again .. it has size " + origFilt.length());
          }
          else {
             System.out.println("Bad path: " + origFilt);
@@ -233,6 +252,13 @@ public class FixupTools
          refetchNewsForNewsIndex(ni, minLength);
       }
    }
+
+	public static void refetchAllFeedsInDateRange(Long minLength, Date startDate, Date endDate)
+	{
+		for (Feed f: _db.getAllActiveFeeds()) {
+			refetchFeedInDateRange(f.getKey(), minLength, startDate, endDate);
+		}
+	}
 
 	public static int getNextNestedSetId(int nsId, Category cat)
 	{
@@ -376,8 +402,14 @@ public class FixupTools
 
 				String[] catKeys = x.cats.split(",");
 				for (String ck: catKeys) {
-					if (!ck.equals("-1"))
-						_db.addNewsItem(ni, _db.getCategory(Long.parseLong(ck)), 2);
+					try {
+						if (!ck.equals("-1")) {
+							_db.addNewsItem(ni, _db.getCategory(Long.parseLong(ck)), 2);
+						}
+					} catch (Exception e) {
+						System.err.println("Exception " + e + " adding news to category: " + ck);
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -477,6 +509,12 @@ public class FixupTools
             refetchFeedInDateRange(fk, minLength, sd, ed);
          }
       }
+      else if (action.equals("refetch-all-feeds-in-date-range")) {
+         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[2]);
+         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
+         Long minLength = Long.parseLong(args[4]);
+         refetchAllFeedsInDateRange(minLength, sd, ed);
+      }
       else if (action.equals("refilter-news")) {
          refilterNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));
       }
@@ -489,6 +527,12 @@ public class FixupTools
             refilterFeedNewsInDateRange(fk, minLength, sd, ed);
          }
       }
+      else if (action.equals("reclassify-news-for-topic")) {
+			Long tKey = Long.parseLong(args[2]);
+         Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
+         Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
+			reclassifyNewsForTopic(tKey, sd, ed);
+		}
       else if (action.equals("setup-topic-nested-sets")) {
 			assignNestedSetIds();
       }
