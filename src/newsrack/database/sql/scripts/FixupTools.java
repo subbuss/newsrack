@@ -539,8 +539,11 @@ public class FixupTools
 		else if (action.equals("get-cat-files")) {
 	      outputLocalFilePathsForCategorizedNews(Long.parseLong(args[2]));
 		}
-		else if (action.equals("revalidate-users")) {
+		else if (action.equals("revalidate-user")) {
 			revalidateUsers(args.length > 2 ? Long.parseLong(args[2]) : null);
+		}
+		else if (action.equals("revalidate-user-by-key")) {
+			revalidateUsers(args.length > 2 ? _db.getUser(args[2]).getKey() : null);
 		}
 		else if (action.equals("export-news")) {
 			exportNews(Long.parseLong(args[2]), Integer.parseInt(args[3]));
@@ -554,5 +557,6 @@ public class FixupTools
 
       System.out.flush();
       System.err.println("\n -- DONE --");
+		System.exit(0);
 	}
 }
