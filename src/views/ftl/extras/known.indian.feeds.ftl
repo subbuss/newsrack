@@ -22,7 +22,7 @@ td.user_space a:hover { padding: 3px 0px; text-decoration: none; background-colo
 
   <p>
   The name of the magazine / newspaper (or newspaper section, as the case might be) is linked to the RSS feed for that magazine / newspaper.
-  <span class="bold">If you find any error or find a feed that should be listed here, please <a href="<@s.url value="/ftl/contact.ftl" />">get in touch</a>!</span>
+  <span class="bold">If you find any error or find a feed that should be listed here, please <a href="<@s.url namespace="/about" action="contact" />">get in touch</a>!</span>
   </p>
 
 <table>
