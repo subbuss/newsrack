@@ -289,7 +289,9 @@
 
     <!-- Extras -->
   <package name="extras" extends="app-default" namespace="/extras">
+    <action name="known-indian-feeds" class="newsrack.web.MiscAction" method="knownIndianFeeds"> 
+      <result>/ftl/extras/known.indian.feeds.ftl</result> 
+    </action>
     <action name="crawled-feeds"> <result>/ftl/extras/crawled.feeds.ftl</result> </action>
-    <action name="known-indian-feeds"> <result>/ftl/extras/known.indian.feeds.ftl</result> </action>
   </package>
 </struts>

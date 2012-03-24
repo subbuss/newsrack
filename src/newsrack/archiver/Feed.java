@@ -33,7 +33,7 @@ import com.sun.syndication.feed.synd.SyndFeedImpl;
 import com.sun.syndication.io.WireFeedInput;
 import com.sun.syndication.io.XmlReader;
 
-public class Feed implements java.io.Serializable
+public class Feed implements java.io.Serializable, Comparable
 {
 // ############### STATIC FIELDS AND METHODS ############
    private static Log _log = LogFactory.getLog(Feed.class);
@@ -224,6 +224,17 @@ public class Feed implements java.io.Serializable
 	}
 
 	public boolean equals(Object o) { return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed)o)._feedUrl); }
+
+   public int compareTo(Object o)
+   { 
+      if (o instanceof Feed) {
+         Feed other = (Feed)o;
+         return getName().compareTo(other.getName());
+      }
+      else {
+         throw new ClassCastException("Feed cannot be compared with " + o.getClass().getName());
+      }
+   }
 
 	public int hashCode() { return _feedUrl.hashCode(); }
 

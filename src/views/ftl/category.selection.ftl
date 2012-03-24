@@ -117,6 +117,7 @@ for a complete listing of classified news across all users.
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="makbak" issue="JNNURM" catID="1" />">&nbsp;JNNURM</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="16" />">&nbsp;Kalinganagar</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Issues" catID="13" />">&nbsp;Kudremukh</a><br />
+<a class="selcat" href="<@s.url namespace="/" action="browse" owner="campaigns" issue="Lokpal+Bill" />">&nbsp;Lokpal Bill</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Health" catID="4" />">&nbsp;Malaria</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="indiatogether" issue="Health" catID="3" />">&nbsp;Mental Health</a><br />
 <a class="selcat" href="<@s.url namespace="/" action="browse" owner="esg" issue="Health" catID="23" />">&nbsp;Maternal Mortality</a><br />

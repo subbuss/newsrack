@@ -18,6 +18,7 @@ import newsrack.database.DB_Interface;
 import newsrack.filter.Issue;
 import newsrack.filter.NR_Collection;
 import newsrack.filter.NR_CollectionType;
+import newsrack.filter.NR_SourceCollection;
 import newsrack.filter.PublicFile;
 import newsrack.filter.UserFile;
 import newsrack.filter.parser.NRLanguageParser;
@@ -476,6 +477,11 @@ public class User implements java.io.Serializable
 	public Collection<Source> getSources()
 	{
 		return _db.getMonitoredSourcesForAllTopics(this);
+	}
+
+	public NR_SourceCollection getSourceCollection(String collectionName)
+	{
+		return (NR_SourceCollection)_db.getCollection(NR_CollectionType.SOURCE, getUid(), collectionName);
 	}
 
 	/**
