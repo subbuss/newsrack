@@ -8,8 +8,8 @@ $YEAR     = @ARGV[0] if $numargs > 0;
 $MONTH    = @ARGV[1] if $numargs > 1;
 $D_REGEXP = @ARGV[2] if $numargs > 2;
 
-$gna  = "/data/news.archive";
-#$gna  = "/home/newsrack/data/news.archive";
+#$gna  = "/data/news.archive";
+$gna  = "/home/newsrack/data/news.archive";
 $gna2 = $gna;
 $gna2 =~ s{^/}{};
 $orig = "$gna/orig";
