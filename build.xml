@@ -103,7 +103,7 @@
 	 <copy failonerror="false" todir="${wardir}/rss" preservelastmodified="true"> <fileset dir="${webapp.target.dir}/rss" /> </copy>
 	    <!-- Next, copy all other files to the build dir -->
     <copy todir="${wardir}">          <fileset dir="${viewdir}" /> </copy>
-    <copy todir="${wardir}/report">   <fileset dir="report"/> </copy>
+    <copy failonerror="false" todir="${wardir}/report">   <fileset dir="report"/> </copy>
     <copy todir="${classdir}">        <fileset dir="${webapp.resources}"/> </copy>
     <copy todir="${webinf}/lib">
 	 	<fileset dir="${libdir}">
