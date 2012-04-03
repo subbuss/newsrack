@@ -63,6 +63,7 @@ public class URLCanonicalizer
 		"crooksandliars.com"
    };
 
+	static Pattern   gaTrackingFixupRule;
 	static Pattern[] proxyREs;
 	static Triple[]  urlFixupRules;
 	static GeneralCacheAdministrator _urlCache;
@@ -95,6 +96,9 @@ public class URLCanonicalizer
 		cm.setRedirectionProcessingEnabled(true);
 		cm.setCookieProcessingEnabled(true);
 		cm.setDefaultRequestProperties(headers);
+
+		   // GA tracking fixup rules
+		gaTrackingFixupRule = Pattern.compile("&?utm_(campaign|source|medium|content)=[^&]*");
 
 			// Compile proxy domain patterns 
 		proxyREs = new Pattern[proxyREStrs.length];
@@ -223,6 +227,10 @@ public class URLCanonicalizer
 			String domain = StringUtils.getDomainForUrl(url);
 			if (_log.isDebugEnabled()) _log.debug("Domain for default rule: " + domain);
 
+			   // GA fixup -- get rid of GA trackers 
+			url = gaTrackingFixupRule.matcher(url).replaceAll("");
+			int n = url.length();
+
 				// Domain-specific url fixup rules
 			boolean done = false;
 			for (Triple ufr: urlFixupRules) {
@@ -265,6 +273,10 @@ public class URLCanonicalizer
 				if (i != -1)
 					url = url.substring(i);
 			}
+
+			   // Get rid of orphaned '?'
+			if (url.indexOf("?") == n-1)
+				url = url.substring(0, n-1);
 		} while(repeat);
 
 		return url;
