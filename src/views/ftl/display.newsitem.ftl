@@ -35,7 +35,7 @@ div#newsItemCats {
   <div id="newsItemHdr">
   This article was downloaded from: <a href="${newsItem.getURL()}">${newsItem.getURL()}</a>
   </div>
-<@s.if test="newsItem.categories">
+<@s.if test="newsItem.leafCategories">
   <div id="newsItemCats">
 <#--	This article has been classified in the following NewsRack categories [USER : ISSUE : CATEGORY] <br /> -->
   This article has been classified in the following NewsRack categories [USER :: CATEGORY] <br />
