@@ -405,7 +405,7 @@ public abstract class DB_Interface
 	 * @param startIndex  starting article
 	 * @param numArts     number of articles to fetch
 	 */
-	//public abstract List<NewsItem> getNews(Issue i, Date start, Date end, Source src, int startIndex, int numArts);
+	public abstract List<NewsItem> getNews(Issue i, Date start, Date end, Source src, int startIndex, int numArts);
 
 /* #### Support for Concept #### */
 	public abstract Concept getConcept(Long key);

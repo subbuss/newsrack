@@ -23,9 +23,15 @@
 
   <!-- clean browse urls -->
   <rule>
-    <note> Rewriting rule for clean browse urls with json/xml output!</note>
+    <note> Category-level news: Rewriting rule for clean browse urls with json/xml output!</note>
     <from>^/stories/(.*)/(.*)/(\d*)\.(\w+)(\?(.*))?$</from>
     <to>/api/news?owner=$1&amp;issue=$2&amp;catID=$3&amp;output=$4&amp;$6</to>
+  </rule>
+
+  <rule>
+    <note> Topic-level news: Rewriting rule for clean browse urls with json/xml output!</note>
+    <from>^/stories/(.*)/(.*)\.(\w+)(\?(.*))?$</from>
+    <to>/api/news?owner=$1&amp;issue=$2&amp;output=$3&amp;$5</to>
   </rule>
 
   <rule>

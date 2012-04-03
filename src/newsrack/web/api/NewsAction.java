@@ -127,7 +127,7 @@ public class NewsAction extends BaseApiAction implements ServletRequestAware
 			_log.info("API: owner uid - " + uid + "; issue name - " + issueName + "; catID - " + catId + "; start - " + start + "; count - " + count + "; start - " + startDate + "; end - " + endDate + "; srcKey - " + srcKey + "; src - " + (src != null ? src.getKey() : null));
 
 				// Set up news
-			_news = (c == null) ? new ArrayList<NewsItem>() //i.getNews(startDate, endDate, src, start, count)
+			_news = (c == null) ? i.getNews(startDate, endDate, src, start, count)
 			                    : c.getNews(startDate, endDate, src, start, count);
 
 			_cat = c;
@@ -197,7 +197,6 @@ public class NewsAction extends BaseApiAction implements ServletRequestAware
 				}
 			}
 		}
-			
 			// Filter by uid/issue
 		else {
 			for (Category c: allCats) {

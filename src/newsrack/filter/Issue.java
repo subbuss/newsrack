@@ -390,12 +390,10 @@ public class Issue implements java.io.Serializable
 	 * @param startIndex  starting article
 	 * @param numArts     number of articles to fetch
 	 */
-/**
 	public List<NewsItem> getNews(Date start, Date end, Source src, int startIndex, int numArts) 
 	{ 
 		return _db.getNews(this, start, end, src, startIndex, numArts); 
 	}
-**/
 
 	/** Gets the sources monitored by this issue */
 	public Collection<Source> getMonitoredSources() { return (_sources == null) ? null : _sources; }

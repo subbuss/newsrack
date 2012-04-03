@@ -1,8 +1,13 @@
 var _nr_metadata = {
   site_base_url : "${siteUrl}",
   issue_name    : "${Parameters.issue}",
+<#if category??>
   category_name : "${category.name}",
-  listing_url   : "/browse?owner=${Parameters.owner}&issue=${Parameters.issue}&catID=${Parameters.catID}"
+  listing_url   : "/stories/${Parameters.owner}/${Parameters.issue}/${Parameters.catID}"
+<#else>
+  category_name : "",
+  listing_url   : "/topics/${Parameters.owner}/${Parameters.issue}"
+</#if>
 }
 var _nr_stories = [
 <#foreach n in newsList>
