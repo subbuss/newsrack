@@ -562,7 +562,6 @@ public enum SQL_Stmt
 		new GetNewsItemResultProcessor(),
 		false
 	),
-**/
 	GET_NEWS_KEYS_FROM_ISSUE(
 		"SELECT n_key FROM cat_news cn, categories c WHERE c.t_key = ? AND cn.c_key = c.c_key ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?",
 		new SQL_ValType[] {LONG, INT, INT},
@@ -579,6 +578,7 @@ public enum SQL_Stmt
 		new GetLongResultProcessor(),
 		false
 	),
+**/
 	GET_LEAF_CAT_KEYS_FOR_NEWSITEM(
 		"SELECT cn.c_key FROM cat_news cn, categories c WHERE n_key = ? AND cn.c_key = c.c_key AND c.valid = true",
 		new SQL_ValType[] {LONG},
@@ -805,6 +805,14 @@ public enum SQL_Stmt
 		new GetIssueResultProcessor(),
 		false
    ),
+	GET_LEAF_CAT_KEYS_FOR_ISSUE(
+	   "SELECT c.c_key FROM categories c WHERE c.t_key = ? AND c.valid = TRUE AND c.rgt = c.lft + 1",
+		new SQL_ValType[] {LONG},
+      SQL_StmtType.QUERY,
+		null,
+		new GetLongResultProcessor(),
+		false
+	),
 	GET_CAT_KEYS_FOR_ISSUE(
 		"SELECT c_key FROM categories WHERE t_key = ? AND valid = true",
 		new SQL_ValType[] {LONG},

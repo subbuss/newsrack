@@ -2259,15 +2259,77 @@ public class SQL_DB extends DB_Interface
 		return getNews(cat, null, null, null, 0, numArts);
 	}
 
-	public List<NewsItem> getNews(Issue i, Date start, Date end, Source src, int startId, int numArts)
+	public List<NewsItem> getNews(Issue issue, Date start, Date end, Source src, int startId, int numArts)
 	{
+		Long   issueKey = issue.getKey();
+		String cacheKey = (start == null) ? "ISSUE:" + issueKey + (src == null ? "" : ":" + src.getKey()) + ":" + startId + ":" + numArts : null;
+		Object keys     = (start == null) ? (List)_cache.get("LIST", cacheKey) : null;
+
+		if (keys == null) {
+				// Initialize ...
+			StringBuffer      queryBuf    = new StringBuffer();
+			List              argList     = new ArrayList();
+			List<SQL_ValType> argTypeList = new ArrayList<SQL_ValType>();
+
+				// Init query
+			queryBuf.append("SELECT DISTINCT(c.n_key) FROM cat_news c");
+
+				// Add conditions for feed-specific news
+			if (src != null) {
+				queryBuf.append(" JOIN news_collections nc ON nc.n_key = c.n_key AND nc.feed_key = ?");
+				argList.add(src.getFeed().getKey());
+				argTypeList.add(SQL_ValType.LONG);
+			}
+
+				// Add category-specific conditions
+			queryBuf.append(" WHERE c.c_key IN (");
+			List<Long> allLeafCatKeys = (List<Long>)GET_LEAF_CAT_KEYS_FOR_ISSUE.get(issueKey);
+			Iterator<Long> it = allLeafCatKeys.iterator();
+			while (it.hasNext()) {
+				queryBuf.append(it.next());
+				if (it.hasNext())
+					queryBuf.append(",");
+			}
+			queryBuf.append(")");
+
+				// Add conditions for date-limited news
+			if (start != null) {
+				queryBuf.append(" AND date_stamp >= ? AND date_stamp <= ?");
+				argList.add(new java.sql.Date(start.getTime()));
+				argList.add(new java.sql.Date(end.getTime()));
+				argTypeList.add(SQL_ValType.DATE);
+				argTypeList.add(SQL_ValType.DATE);
+			}
+
+				// Add sorting and limiting constraints
+			queryBuf.append(" ORDER by date_stamp DESC, n_key DESC LIMIT ?, ?");
+			argList.add(startId);
+			argList.add(numArts);
+			argTypeList.add(SQL_ValType.INT);
+			argTypeList.add(SQL_ValType.INT);
+
+				// Have to do this nonsense because generic type info and type parameter info is lost at runtime ... 
+			Object[] tmp = argTypeList.toArray();
+			SQL_ValType[] argTypes = new SQL_ValType[tmp.length];
+			int i = 0;
+			for (Object v: tmp) {
+				argTypes[i] = (SQL_ValType)v;
+				i++;
+			}
+
+			if (_log.isDebugEnabled()) _log.debug("Executing: " + queryBuf.toString() + " with start value " + startId);
+
+				// Run the query and fetch news!
+			keys = SQL_StmtExecutor.execute(queryBuf.toString(), SQL_StmtType.QUERY, argList.toArray(), argTypes, null, new GetLongResultProcessor(), false);
+
+				// Caching non-datestamp requests right now 
+			if (start == null)
+				_cache.add("LIST", new String[]{issue.getUser().getKey().toString(), "ISSUE:" + issueKey}, cacheKey, keys);
+		}
+
+			// Set up the list of news items
 		List<NewsItem> news = new ArrayList<NewsItem>();
-		List<Long> keys;
-		if (start == null)
-			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE.execute(new Object[] {i.getKey(), startId, numArts});
-		else
-			keys = (List<Long>)GET_NEWS_KEYS_FROM_ISSUE_BETWEEN_DATES.execute(new Object[] {i.getKey(), new java.sql.Date(start.getTime()), new java.sql.Date(end.getTime()), startId, numArts});
-		for (Long k: keys)
+		for (Long k: (List<Long>)keys)
 			news.add(getNewsItem(k));
 
 		return news;
