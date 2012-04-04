@@ -37,10 +37,9 @@ div#newsItemCats {
   </div>
 <@s.if test="newsItem.leafCategories">
   <div id="newsItemCats">
-<#--	This article has been classified in the following NewsRack categories [USER : ISSUE : CATEGORY] <br /> -->
-  This article has been classified in the following NewsRack categories [USER :: CATEGORY] <br />
+  This article has been classified in the following NewsRack categories: <br />
 	<span style="font-weight:bold">
-  <@s.iterator value="newsItem.categories">
+  <@s.iterator value="newsItem.leafCategories">
     [${user.uid} ::
      <a href="<@s.url namespace="/" action="browse" owner="${user.uid}" issue="${issue.name}" catID="${catId}" />">${name}</a>] &nbsp;
 	</@s.iterator>
