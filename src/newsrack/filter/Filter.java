@@ -93,7 +93,7 @@ public class Filter implements java.io.Serializable
 			return _rule.getMatchScore(this, article, numTokens, matchScores); 
 		}
 		catch (Exception e) {
-			_log.error("Caught exception in match score for filter: " + _key + ": " + _ruleString, e);
+			_log.error("Caught exception in match score for filter: " + _key +  + ": " + _name + ": " + _ruleString, e);
 			return 0;
 		}
 	}
