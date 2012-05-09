@@ -902,12 +902,12 @@ public enum SQL_Stmt
 		false
 	),
 	GET_COLLECTION_FOR_CONCEPT(
-	   "SELECT c.coll_key,c.file_key,c.coll_name,c.coll_type from user_collections c, collection_entries ce WHERE c.coll_key = ce.coll_key AND ce.entry_key = ?",
+	   "SELECT c.coll_key,c.file_key,c.coll_name,c.coll_type from user_collections c, collection_entries ce WHERE c.coll_type = 'CPT' AND c.coll_key = ce.coll_key AND ce.entry_key = ?",
       new SQL_ValType[] {LONG},
 		SQL_StmtType.QUERY,
 		null,
 		new GetCollectionResultProcessor(),
-		false
+		true
 	),
    GET_USER_FILE(
       "SELECT file_key, u_key, file_name FROM user_files WHERE file_key = ?",

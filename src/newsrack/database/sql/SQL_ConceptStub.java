@@ -21,7 +21,7 @@ public class SQL_ConceptStub extends Concept
 	{
 		NR_ConceptCollection c = super.getCollection();
 		if (c == null) {
-			c = (NR_ConceptCollection)SQL_Stmt.GET_COLLECTION_FOR_CONCEPT.execute(new Object[]{c.getKey()});
+			c = (NR_ConceptCollection)SQL_Stmt.GET_COLLECTION_FOR_CONCEPT.execute(new Object[]{getKey()});
 			super.setCollection(c);
 		}
 		return c;
@@ -29,7 +29,7 @@ public class SQL_ConceptStub extends Concept
 
 	public int hashCode()
 	{
-		super.getCollection();
+		getCollection();
 		return super.hashCode();
 	}
 
@@ -39,7 +39,7 @@ public class SQL_ConceptStub extends Concept
 		}
 		catch (NullPointerException e) {
 			String keywords = (String)SQL_StmtExecutor.execute(
-										"SELECT keywords FROM concept_table WHERE cpt_key = ?",
+										"SELECT keywords FROM concepts WHERE cpt_key = ?",
 										SQL_StmtType.QUERY,
 										new Object[]{getKey()},
 										new SQL_ValType[]{SQL_ValType.LONG},
