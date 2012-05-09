@@ -55,7 +55,6 @@ public class Issue implements java.io.Serializable
 {
 // ############### STATIC FIELDS AND METHODS ############
 	private final static String PREDEF_KWORDS[] = {
-//		"WORD",       "[^ \\t\\n\\r]+",
       "WORD",       "[^ \\t\\n\\r\\\\.,;:?+*&\\^%$#@!|~'/`\\\"\\-\\{\\}()\\[\\]<>]+",
 		"WS",         "[ \\t\\n\\r]",
 		"SPACE",      "{WS}+",
@@ -670,6 +669,44 @@ public class Issue implements java.io.Serializable
 
 		return _usedConcepts.iterator(); 
 	}
+
+   public void compileIntoTrie(ConceptTrie trie) {
+		HashMap<String, Concept> tokenMap = new HashMap<String, Concept>();
+		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); ) {
+			Concept c = e.next();
+			Concept x = tokenMap.get(c.getName());
+				// No conflict!
+			if (x == null) {
+				tokenMap.put(c.getName(), c);
+
+					// IMPORTANT: If the lexer token is already set, don't reset it!
+					// Some other issue might have already set it to be a qualified name!
+				if (c.getLexerToken() == null) {
+					c.setLexerToken(new ConceptToken(c.getName()));
+					_db.updateConceptLexerToken(c);
+				}
+			}
+				// Conflict!!  Qualify with collection name ... conflicts are expected to be rare
+			else {
+				String xToken = x.getCollection().getName() + ":" + x.getName();
+				x.setLexerToken(new ConceptToken(xToken));
+				_db.updateConceptLexerToken(x);
+				tokenMap.put(xToken, x);
+
+				String cToken = c.getCollection().getName() + ":" + c.getName();
+				c.setLexerToken(new ConceptToken(cToken));
+				_db.updateConceptLexerToken(c);
+				tokenMap.put(cToken, c);
+			}
+
+         // Add all keywords to the trie
+			Iterator<String> kws = c.getKeywords();
+			while (kws.hasNext()) {
+            // IMPORTANT: Canonicalize to lower-case since keyword matching is case-insensitive
+            trie.addKeyword(kws.next().toLowerCase(), c);
+			}
+      }
+   }
 
 	/**
 	 * Generate regular expressions for a JFLEX based lexical scanner.

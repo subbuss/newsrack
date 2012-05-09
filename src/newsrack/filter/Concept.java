@@ -91,7 +91,7 @@ public class Concept implements java.io.Serializable
 		// (a) white space characters
 		// (b) hyphen characters
 		int          n   = s.length();
-		final StringBuffer ns  = new StringBuffer();
+		StringBuffer ns  = new StringBuffer();
 		char[]       cs  = s.toCharArray();
 		boolean      ws  = false;
 		boolean      hyp = false;

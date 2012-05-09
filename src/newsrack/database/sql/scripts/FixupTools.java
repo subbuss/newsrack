@@ -1,6 +1,8 @@
 package newsrack.database.sql.scripts;
 
 import java.io.BufferedReader;
+import java.io.Reader;
+import java.io.PrintWriter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,8 +23,10 @@ import newsrack.database.sql.SQL_Stmt;
 import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.database.sql.SQL_ValType;
 import newsrack.filter.Category;
+import newsrack.filter.ConceptTrie;
 import newsrack.filter.Issue;
 import newsrack.user.User;
+import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
@@ -550,6 +554,25 @@ public class FixupTools
 		}
 		else if (action.equals("import-news")) {
 			importNews(args[2]);
+		}
+		else if (action.equals("test-trie")) {
+			// New trie
+			ConceptTrie trie = new ConceptTrie();
+
+			// Read in one or more topics into trie
+			int i = 2;
+			while (i < args.length) {
+				Long tKey = Long.parseLong(args[i++]);
+				Issue t = _db.getIssue(tKey);
+				t.compileIntoTrie(trie);
+			}
+
+			// Test it
+			Reader      r  = IOUtils.getUTF8Reader("/tmp/test_item");
+			PrintWriter pw = IOUtils.getUTF8Writer("/tmp/test.tokens");
+			trie.processArticle(r, pw);
+			pw.close();
+			r.close();
 		}
       else {
          System.out.println("Unknown action: " + action);
