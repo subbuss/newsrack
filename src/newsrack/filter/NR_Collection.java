@@ -28,20 +28,22 @@ public abstract class NR_Collection implements java.io.Serializable
 	}
 
 // ############### NON-STATIC FIELDS AND METHODS ############
-	      public Long     _key;
-	final public User     _creator;
-	final public UserFile _file;
-	final public String   _name;
-	final public NR_CollectionType _type;
-	      public Collection _entries;
+	      public  Long       _key;
+	final public  User       _creator;
+	final public  UserFile   _file;
+	final public  String     _name;
+	final public  NR_CollectionType _type;
+	      public  Collection _entries;
+         private int        _hashCode;
 
 	public NR_Collection(NR_CollectionType t, UserFile uf, String name, Collection entries)
 	{
-		_type    = t;
-		_file    = uf;
-		_creator = uf.getUser();
-		_name    = name;
-		_entries = entries;
+		_type     = t;
+		_file     = uf;
+		_creator  = uf.getUser();
+		_name     = name;
+		_entries  = entries;
+		_hashCode = _name.hashCode()*31 + _type.hashCode()*31 + _creator.hashCode()*31;
       if (_log.isDebugEnabled()) _log.debug("RECORDED collection " + this);
 	}
 
@@ -54,7 +56,7 @@ public abstract class NR_Collection implements java.io.Serializable
 		return false;
 	}
 
-	public int hashCode() { return _name.hashCode()*31 + _type.hashCode()*31 + _creator.hashCode()*31; }
+	public int hashCode() { return _hashCode; }
 
 	public String toString() { return "NAME: " + _name + "; type - " + _type + "; creator - " + _creator.getUid(); }
 
