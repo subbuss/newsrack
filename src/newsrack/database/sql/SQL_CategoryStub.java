@@ -2,7 +2,7 @@ package newsrack.database.sql;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -126,7 +126,7 @@ class SQL_CategoryStub extends Category
 	public Category clone() { setupAllFields(); return super.clone(); }
 	protected void setupForDownloading(Issue issue) { setupAllFields(); super.setupForDownloading(issue); }
 	protected void collectUsedConcepts(Set<Concept> usedConcepts) { setupAllFields(); super.collectUsedConcepts(usedConcepts); }
-	public synchronized Score getMatchScore(final NewsItem article, final int numTokens, final Hashtable matchScores) { setupAllFields(); return super.getMatchScore(article, numTokens, matchScores); } 
+	public synchronized Score getMatchScore(final NewsItem article, final int numTokens, final HashMap<String,Score> matchScores) { setupAllFields(); return super.getMatchScore(article, numTokens, matchScores); } 
 	// public String getTaxonomy() { setupAllFields; return super.getTaxonomy(); }
 	//
 	public Category getCategory(final String catName) { getChildren(); return super.getCategory(catName); }

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -434,7 +434,7 @@ public class Category implements Comparable, java.io.Serializable
 	 *                     If a non-leaf category, the match score is the
 	 *                       maximum of match score of its sub-categories
 	 */
-	public synchronized Score getMatchScore(NewsItem article, int numTokens, Hashtable matchScores)
+	public synchronized Score getMatchScore(NewsItem article, int numTokens, HashMap<String, Score> matchScores)
 	{
 		if (_log.isDebugEnabled()) _log.debug(" --> get match score for " + _name);
 

@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,7 +64,7 @@ public class Issue implements java.io.Serializable
 
 		// Populate the table of predefined keywords with the
 		// corresponding JFLEX macros.
-	public static Hashtable PREDEFINED_KEYWORDS;
+	public static HashMap PREDEFINED_KEYWORDS;
 
 	public static final String JFLEX_SPACE               = "\" {SPACE} \"";
 	public static final String JFLEX_HYPHEN              = "\" {HYPHEN} \"";
@@ -82,7 +81,7 @@ public class Issue implements java.io.Serializable
 
 	public static void init(DB_Interface db)
 	{
-		PREDEFINED_KEYWORDS = new Hashtable();
+		PREDEFINED_KEYWORDS = new HashMap();
 		int n = PREDEF_KWORDS.length;
 		for (int i = 0; i < n; i += 2) {
 			PREDEFINED_KEYWORDS.put(PREDEF_KWORDS[i], PREDEF_KWORDS[i+1]);
@@ -102,7 +101,7 @@ public class Issue implements java.io.Serializable
 		return i;
 	}
 
-	private static HashSet processKeywordSubstringList(Hashtable<String,HashSet> kwToCptMap, String rootKw, String newWord, HashSet kwsh)
+	private static HashSet processKeywordSubstringList(HashMap<String,HashSet> kwToCptMap, String rootKw, String newWord, HashSet kwsh)
 	{
 		HashSet kwshNew = new HashSet();
 
@@ -145,7 +144,7 @@ public class Issue implements java.io.Serializable
 	 *                   among the existing keyword set.  This keyword has been
 	 *                   canonicalized to lower-case!
 	 */
-	private static void identifyMultiTokens(Hashtable kwToCptMap, String kw)
+	private static void identifyMultiTokens(HashMap<String,HashSet> kwToCptMap, String kw)
 	{
 		if (_log.isDebugEnabled()) _log.debug("IdentifyMultiTokens for " + kw);
 
@@ -247,7 +246,7 @@ public class Issue implements java.io.Serializable
 		buf.append("\"");
 	}
 
-	private static void gen_JFLEX_RegExps(Concept c, PrintWriter pw, Hashtable kwToCptMap)
+	private static void gen_JFLEX_RegExps(Concept c, PrintWriter pw, HashMap<String,HashSet> kwToCptMap)
 	{
 		if (_log.isDebugEnabled()) _log.debug("GJRE: Generating regexp for " + c.getName());
 
@@ -275,7 +274,7 @@ public class Issue implements java.io.Serializable
 		}
 	}
 
-	private static void processMatchedConcept(String token, String matchedText, int tokenPosn, Hashtable tokTable, PrintWriter pw)
+	private static void processMatchedConcept(String token, String matchedText, int tokenPosn, HashMap<String,Score> tokTable, PrintWriter pw)
 	{
 			// Increment match score of the matched concept and record information
 			// about where in the article it was found
@@ -784,7 +783,7 @@ public class Issue implements java.io.Serializable
 		}
 
 			// Identify all keywords
-		Hashtable<String,HashSet> kwToCptMap = new Hashtable<String,HashSet>();
+		HashMap<String,HashSet> kwToCptMap = new HashMap<String,HashSet>();
 		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); ) {
 			Concept c = e.next();
 			Iterator<String> it = c.getKeywords();
@@ -806,16 +805,15 @@ public class Issue implements java.io.Serializable
 			// "water privatisation" is present in one concept and "water" is
 			// present in another concept, when "water privatisation" is seen
 			// in the text, both the concepts should be triggered.
-		for (Enumeration<String> e = kwToCptMap.keys(); e.hasMoreElements(); )
-			identifyMultiTokens(kwToCptMap, e.nextElement());
+		for (String s: kwToCptMap.keySet())
+			identifyMultiTokens(kwToCptMap, s);
 
 			// Spit out regular tokens for concepts
 		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); )
 			gen_JFLEX_RegExps(e.next(), pw, kwToCptMap);
 
 			// Spit out multi-tokens
-		for (Enumeration<String> e = kwToCptMap.keys(); e.hasMoreElements(); ) {
-			String  kw = e.nextElement();
+		for (String kw: kwToCptMap.keySet()) {
 			HashSet hs = kwToCptMap.get(kw);
 			if (hs.size() > 1)
 				genMultiToken_JFLEX_RegExp(pw, kw, hs);
@@ -927,7 +925,7 @@ public class Issue implements java.io.Serializable
 	 * @param numTokens number of tokens encountered
 	 * @param tokTable  the table of recognized tokens/concepts
 	 */
-	public void classifyArticle(NewsItem ni, int numTokens, Hashtable tokTable)
+	public void classifyArticle(NewsItem ni, int numTokens, HashMap tokTable)
 	{
 		int matchScore = 0;
 		ArrayList<Category> matchedCats = new ArrayList<Category>();
@@ -958,7 +956,7 @@ public class Issue implements java.io.Serializable
 	 * Fetch the news item that is stored in 'newsItemFileName', examine the tokens
 	 * in 'tokTable', and classify the news item accordingly.
 	 */
-	private void classifyArticle(String newsItemFileName, Hashtable tokTable, Hashtable newsTable, List allArts, List unclassifiedArts)
+	private void classifyArticle(String newsItemFileName, HashMap tokTable, HashMap newsTable, List allArts, List unclassifiedArts)
 	{
 		NewsItem ni = (NewsItem)newsTable.get(newsItemFileName);
 		if (ni == null) {
@@ -988,7 +986,7 @@ public class Issue implements java.io.Serializable
 		}
 	}
 
-	private int scanNewsItem(PrintWriter pw, Hashtable tokTable) throws Exception
+	private int scanNewsItem(PrintWriter pw, HashMap<String,Score> tokTable) throws Exception
 	{
 		_scannerInUse = true;
 		int numTokens = 0;
@@ -1108,7 +1106,7 @@ public class Issue implements java.io.Serializable
 
 				Reader r = null;
 				try {
-					Hashtable tokTable = new Hashtable();
+					HashMap<String,Score> tokTable = new HashMap<String,Score>();
 					r = ni.getReader();
 					initScanner(r, workDir);
 					int numTokens = scanNewsItem(pw, tokTable);
@@ -1271,7 +1269,7 @@ public class Issue implements java.io.Serializable
 				Reader r = new java.io.FileReader(args[1]);
 				PrintWriter pw = new PrintWriter(args[0] + ".tokens");
 				i.initScanner(r, null);
-				i.scanNewsItem(pw, new Hashtable());
+				i.scanNewsItem(pw, new HashMap<String,Score>());
 				r.close();
 				pw.close();
 			}

@@ -3,7 +3,6 @@ package newsrack.filter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -87,7 +86,7 @@ public class Filter implements java.io.Serializable
 	public String getRuleString() { return _ruleString; }
 	public int getMinMatchScore() { return _minMatchScore; }
 
-	public int getMatchScore(NewsItem article, int numTokens, Hashtable matchScores)
+	public int getMatchScore(NewsItem article, int numTokens, HashMap<String, Score> matchScores)
 	{
 		try {
 			return _rule.getMatchScore(this, article, numTokens, matchScores); 
@@ -121,7 +120,7 @@ public class Filter implements java.io.Serializable
 		abstract public String   toString();
 		abstract public void     print(PrintWriter pw);
 		abstract public void     collectUsedConcepts(Set<Concept> usedConcepts);
-		abstract public int      getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores);
+		abstract public int      getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores);
 	}
 
 	/* class LeafConcept encodes a leaf concept */
@@ -140,7 +139,7 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + _concept.getLexerToken().getToken() + (_minConceptHitScore == 1 ? "" : ":" + _minConceptHitScore)); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_concept); }
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
 		{
 			Score mc    = (Score)matchScores.get(_concept.getLexerToken().getToken());
 			int   score = ((mc == null) ? 0 : mc.value());
@@ -160,7 +159,7 @@ public class Filter implements java.io.Serializable
 		public String toString()    { return "[" + _filt.getName() + "]"; }
 		public void print(PrintWriter pw) { pw.println(_indent + _filt.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _filt.collectUsedConcepts(usedConcepts); }
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) { return _filt.getMatchScore(article, numTokens, matchScores); }
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores) { return _filt.getMatchScore(article, numTokens, matchScores); }
 	}
 
 	/* class SourceFilter encodes a source filter */
@@ -175,7 +174,7 @@ public class Filter implements java.io.Serializable
 		public String toString()    { return "[" + _srcColl.getName() + "]"; }
 		public void print(PrintWriter pw) { pw.println(_indent + _srcColl.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { }
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) {
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores) {
 			return _srcColl.containsFeed(article.getFeed()) ? GLOBAL_MIN_MATCH_SCORE : 0;
 		}
 	}
@@ -193,7 +192,7 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + _cat.getName()); }
 		public void collectUsedConcepts(Set<Concept> usedConcepts) { }
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
 		{
 				// FIXME: Use hashcode instead!
 			Score mc = (Score)matchScores.get("[" + _cat.getName() + "]");
@@ -249,7 +248,7 @@ public class Filter implements java.io.Serializable
 			_r.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
 		{
 				// First, check if the context matches
 			boolean contextMatched = false;
@@ -282,7 +281,7 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + "-" + _t); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _t.collectUsedConcepts(usedConcepts); }
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
 		{
 				// FIXME: This is very strict!
 			final int score = (1 - _t.getMatchScore(f, article, numTokens, matchScores));
@@ -324,7 +323,7 @@ public class Filter implements java.io.Serializable
 			_rTerm.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
 		{
 			final int lscore = _lTerm.getMatchScore(f, article, numTokens, matchScores);
 			final int rscore = _rTerm.getMatchScore(f, article, numTokens, matchScores);
@@ -359,7 +358,7 @@ public class Filter implements java.io.Serializable
 			pw.println(_indent + _c1.getLexerToken().getToken() + " ~" + _proximityVal + " " + _c2.getLexerToken().getToken()); 
 		}
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) 
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores) 
 		{ 
 			Score s1 = (Score)matchScores.get(_c1.getLexerToken().getToken());
 			Score s2 = (Score)matchScores.get(_c2.getLexerToken().getToken());
