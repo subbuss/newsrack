@@ -893,7 +893,7 @@ public class Issue implements java.io.Serializable
 		loadScannerClass(workDir);
 	}
 
-	public Map<Category,Score> getMatchedCategories(NewsItem ni, int numTokens, HashMap<Concept, Score> matchedConcepts) {
+	public Map<Category,Score> getMatchedCategories(NewsItem ni, Map<Concept, Score> matchedConcepts) {
 		Map<Category, Score> matchedCats = new HashMap<Category, Score>();
 		for (Category c: getCategories()) {
 			// The category might have been processed while processing another category

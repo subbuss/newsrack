@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.List;
+import java.util.Map;
 
 import newsrack.NewsRack;
 import newsrack.archiver.Feed;
@@ -22,12 +22,15 @@ import newsrack.database.sql.SQL_NewsItem;
 import newsrack.database.sql.SQL_Stmt;
 import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.database.sql.SQL_ValType;
+import newsrack.filter.Concept;
 import newsrack.filter.Category;
 import newsrack.filter.ConceptTrie;
 import newsrack.filter.Issue;
+import newsrack.filter.Score;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
+import newsrack.util.Tuple;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -560,17 +563,20 @@ public class FixupTools
 			ConceptTrie trie = new ConceptTrie();
 
 			// Read in one or more topics into trie
-			int i = 2;
+			int   i = 2;
+			Issue t = null;
 			while (i < args.length) {
 				Long tKey = Long.parseLong(args[i++]);
-				Issue t = _db.getIssue(tKey);
+				t = _db.getIssue(tKey);
 				t.compileIntoTrie(trie);
 			}
 
 			// Test it
 			Reader      r  = IOUtils.getUTF8Reader("/tmp/test_item");
 			PrintWriter pw = IOUtils.getUTF8Writer("/tmp/test.tokens");
-			trie.processArticle(r, pw);
+			Tuple<Integer, Map<Concept, Score>> matchInfo = trie.processArticle(r, pw);
+			Map<Category, Score> catMatches = t.getMatchedCategories(null, matchInfo._b);
+			for (Category c: catMatches.keySet()) System.out.println("Matched category " + c + " with score: " + catMatches.get(c).value());
 			pw.close();
 			r.close();
 		}
@@ -582,6 +588,7 @@ public class FixupTools
 		   List<Issue> issues = _db.getAllValidatedIssues();
 			int n = 0;
 		   for (Issue i: issues) {
+				System.out.println("compiling: " + i.getKey() + " with name " + i.getName());
 				i.compileIntoTrie(trie);
 				n++;
 			}
@@ -589,23 +596,40 @@ public class FixupTools
 
 			// Test it
 			PrintWriter pw = IOUtils.getUTF8Writer("/tmp/test.tokens");
-			for (int j = 0; j < 1000; j++) {
+			int loopCount = 1000;
+			if (args.length > 2) loopCount = Integer.parseInt(args[2]);
+			for (int j = 0; j < loopCount; j++) {
 				pw.println("***** Iteration " + n + " *****"); 
 				Reader r;
 
 				pw.println("--- file 1 ---");
 				r = IOUtils.getUTF8Reader("/tmp/test_item");
-				trie.processArticle(r, pw);
+				Tuple<Integer, Map<Concept, Score>> matchInfo = trie.processArticle(r, pw);
+				for (Issue i: issues) {
+					System.out.println("--Issue: " + i.getName() + " by " + i.getUser().getName() + "--");
+					Map<Category, Score> catMatches = i.getMatchedCategories(null, matchInfo._b);
+					for (Category c: catMatches.keySet()) System.out.println("Matched category " + c.getName() + " with score: " + catMatches.get(c).value());
+				}
 				r.close();
 
 				pw.println("--- file 2 ---");
 				r = IOUtils.getUTF8Reader("/tmp/test_item.2");
-				trie.processArticle(r, pw);
+				matchInfo = trie.processArticle(r, pw);
+				for (Issue i: issues) {
+					System.out.println("--Issue: " + i.getName() + " by " + i.getUser().getName() + "--");
+					Map<Category, Score> catMatches = i.getMatchedCategories(null, matchInfo._b);
+					for (Category c: catMatches.keySet()) System.out.println("Matched category " + c.getName() + " with score: " + catMatches.get(c).value());
+				}
 				r.close();
 
 				pw.println("--- file 3 ---");
 				r = IOUtils.getUTF8Reader("/tmp/test_item.3");
-				trie.processArticle(r, pw);
+				matchInfo = trie.processArticle(r, pw);
+				for (Issue i: issues) {
+					System.out.println("--Issue: " + i.getName() + " by " + i.getUser().getName() + "--");
+					Map<Category, Score> catMatches = i.getMatchedCategories(null, matchInfo._b);
+					for (Category c: catMatches.keySet()) System.out.println("Matched category " + c.getName() + " with score: " + catMatches.get(c).value());
+				}
 				r.close();
 			}
 			pw.close();
