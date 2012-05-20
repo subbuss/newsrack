@@ -207,6 +207,8 @@ public class Category implements Comparable, java.io.Serializable
 		return cloneCat;
 	}
 
+	public int hashCode() { return _key.hashCode(); }
+
 	public int compareTo(final Object o)
 	{
 		if (o instanceof Category) {
@@ -434,7 +436,7 @@ public class Category implements Comparable, java.io.Serializable
 	 *                     If a non-leaf category, the match score is the
 	 *                       maximum of match score of its sub-categories
 	 */
-	public synchronized Score getMatchScore(NewsItem article, int numTokens, HashMap<String, Score> matchScores)
+	public synchronized Score getMatchScore(NewsItem article, int numTokens, Map<String, Score> matchScores)
 	{
 		if (_log.isDebugEnabled()) _log.debug(" --> get match score for " + _name);
 
@@ -493,6 +495,35 @@ public class Category implements Comparable, java.io.Serializable
 			matchScores.remove("[" + subCat._name + "]");
 
 		return retVal;
+	}
+
+	public Score getMatchScore(NewsItem article, Map<Concept, Score> matchedConcepts, Map<Category, Score> matchedCats)
+	{
+		if (_log.isDebugEnabled()) _log.debug(" --> get match score for " + _name);
+
+		boolean matched    = false;
+		int     matchScore = 0;
+		if (isLeafCategory()) {
+			if (_log.isDebugEnabled()) _log.debug("---- trying to match <" + _name + "> with rule <" + _filter._ruleString + "> ----");
+
+			// Match the rule for this category
+			matchScore = _filter.getMatchScore(article, matchedConcepts, matchedCats);
+			matched    = (matchScore >= _filter.getMinMatchScore());
+		} else {
+			// Go through all nested categories and match rules
+			if (_log.isDebugEnabled()) _log.debug("CAT:"+ _name + ": Processing subcats ...");
+			for (Category subCat: _children) {
+				Score subCatScore = subCat.getMatchScore(article, matchedConcepts, matchedCats);
+				if (matchedCats.get(subCat) != null) matched = true;
+				// Match score for this cat = max(match scores of sub-cats)
+				if (subCatScore.value() > matchScore) matchScore = subCatScore.value();
+			}
+			if (_log.isDebugEnabled()) _log.debug("CAT:"+ _name + ": DONE processing subcats ...");
+      }
+
+		Score s = new Score(matchScore);
+		if (matched) matchedCats.put(this, s);
+		return s;
 	}
 
 	protected int updateCatMap(int catId, final Map catMap)

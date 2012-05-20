@@ -8,7 +8,15 @@ public final class Score implements Comparable, java.io.Serializable
 	private List<Integer>  _matchPosns;
 	private List<Category> _matchedCats;
 
-	public Score(int n, List<Category> l) 
+	public Score(int posn)
+	{
+		_score = getWeightedScore(posn);
+		_matchPosns = new java.util.ArrayList<Integer>();
+		_matchPosns.add(posn);
+		_matchedCats = null;
+	}
+
+	public Score(int n, List<Category> l)
 	{ 
 		_score = n; 
 		_matchedCats = l;
@@ -29,14 +37,6 @@ public final class Score implements Comparable, java.io.Serializable
 			n += 1;
 
 		return n;
-	}
-
-	public Score(int posn)
-	{
-		_score = getWeightedScore(posn);
-		_matchPosns = new java.util.ArrayList<Integer>();
-		_matchPosns.add(posn);
-		_matchedCats = null;
 	}
 
 	public void addMatch(int posn) { _score += getWeightedScore(posn); _matchPosns.add(posn); }

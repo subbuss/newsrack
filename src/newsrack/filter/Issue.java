@@ -893,6 +893,20 @@ public class Issue implements java.io.Serializable
 		loadScannerClass(workDir);
 	}
 
+	public Map<Category,Score> getMatchedCategories(NewsItem ni, int numTokens, HashMap<Concept, Score> matchedConcepts) {
+		Map<Category, Score> matchedCats = new HashMap<Category, Score>();
+		for (Category c: getCategories()) {
+			// The category might have been processed while processing another category
+			// Ex: because of a rule like this: [Slums and Courts] = [Slums] and Courts
+			// [Slums and Courts] references the [Slums] category and so, while processing
+			// this cat, the [Slums] cat might have been processed.
+			// If so, dont re-filter!
+			if (matchedCats.get(c) == null) c.getMatchScore(ni, matchedConcepts, matchedCats);
+		}
+
+		return matchedCats;
+	}
+
 	/**
 	 * This method classifies a news item based on tokens that have
 	 * been identified by the scanner.
@@ -902,7 +916,6 @@ public class Issue implements java.io.Serializable
 	 */
 	public void classifyArticle(NewsItem ni, int numTokens, HashMap<String,Score> tokTable)
 	{
-		int matchScore = 0;
 		ArrayList<Category> matchedCats = new ArrayList<Category>();
 		for (Category c: getCategories()) {
 			Score s = (Score)tokTable.get("[" + c.getName() + "]");
@@ -915,8 +928,6 @@ public class Issue implements java.io.Serializable
 				s = c.getMatchScore(ni, numTokens, tokTable);
 			else
 				if (_log.isDebugEnabled()) _log.debug("CAT " + c.getName() + " in issue " + getName() + " has already been processed!");
-			if (s.value() > matchScore)
-				matchScore = s.value();
 			matchedCats.addAll(s.getMatchedCats());
 		}
 

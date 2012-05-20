@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import newsrack.util.Tuple;
+
 public class ConceptTrie {
    static public class Node {
 		Character                _c;
@@ -137,7 +139,7 @@ public class ConceptTrie {
 	}
 
 	// Find all concepts that match 
-	public Map<Concept, Score> processArticle(Reader r, PrintWriter pw) throws java.io.IOException {
+	public Tuple<Integer, Map<Concept, Score>> processArticle(Reader r, PrintWriter pw) throws java.io.IOException {
 		String    currToken  = null;
 		ArrayList prevStates = new ArrayList();
 		int       tokenPosn  = 0;
@@ -148,52 +150,40 @@ public class ConceptTrie {
 		// Use a 1-character buffer pushback reader
 		PushbackReader pbr = new PushbackReader(r);
 
-		boolean eof = skipHeader(pbr);
-		while (!eof) {
-		   ArrayList newStates = new ArrayList();
-			char      separator = ' ';
+		try {
+			boolean eof = skipHeader(pbr);
+			while (!eof) {
+				ArrayList newStates = new ArrayList();
+				char      separator = ' ';
 
-			// Read stream and build up a token
-			boolean done = false;
-			while (!done) {
-				int i = pbr.read();
-				if (i == -1) {
-					done = true;
-					eof = true;
-				} else {
-					char c = (char)i;
-					if (Character.isLetterOrDigit(c) || Character.isHighSurrogate(c) || Character.isLowSurrogate(c)) {
-						buf.append(c);
-					} else {
-						// FIXME: Normalize white-space
-						separator = swallowWhiteSpace(c, pbr);
+				// Read stream and build up a token
+				boolean done = false;
+				while (!done) {
+					int i = pbr.read();
+					if (i == -1) {
 						done = true;
+						eof = true;
+					} else {
+						char c = (char)i;
+						if (Character.isLetterOrDigit(c) || Character.isHighSurrogate(c) || Character.isLowSurrogate(c)) {
+							buf.append(c);
+						} else {
+							// FIXME: Normalize white-space
+							separator = swallowWhiteSpace(c, pbr);
+							done = true;
+						}
 					}
 				}
-			}
-			String token = buf.toString();
-			tokenPosn++;
+				String token = buf.toString();
+				tokenPosn++;
 
-			// Clear buffer
-			buf.delete(0, buf.length());
+				// Clear buffer
+				buf.delete(0, buf.length());
 
-			// Match token from the root
-         //System.out.println(tokenPosn + ". TOKEN: " + token + "; separator: <" + separator + ">");
-			Node match = matchString(null, token);
-			if (match != null) {
-				if (match._matchedConcepts != null) processMatchedConcepts(match._matchedConcepts, match._matchedString, tokenPosn, tokenMap, pw);
-				if (!eof) {
-					// Match the separator
-					match = match._children.get(separator);
-					if (match != null) newStates.add(match);
-				}
-			}
-
-			// Match from each of the match states from previous tokens
-			for (Object s: prevStates) {
-				match = matchString(s, token);
+				// Match token from the root
+				//System.out.println(tokenPosn + ". TOKEN: " + token + "; separator: <" + separator + ">");
+				Node match = matchString(null, token);
 				if (match != null) {
-					// fixme
 					if (match._matchedConcepts != null) processMatchedConcepts(match._matchedConcepts, match._matchedString, tokenPosn, tokenMap, pw);
 					if (!eof) {
 						// Match the separator
@@ -201,14 +191,28 @@ public class ConceptTrie {
 						if (match != null) newStates.add(match);
 					}
 				}
-			}
 
-			// new previous states
-			prevStates = newStates;
+				// Match from each of the match states from previous tokens
+				for (Object s: prevStates) {
+					match = matchString(s, token);
+					if (match != null) {
+						// fixme
+						if (match._matchedConcepts != null) processMatchedConcepts(match._matchedConcepts, match._matchedString, tokenPosn, tokenMap, pw);
+						if (!eof) {
+							// Match the separator
+							match = match._children.get(separator);
+							if (match != null) newStates.add(match);
+						}
+					}
+				}
+
+				// new previous states
+				prevStates = newStates;
+			}
+		} finally {
+			pbr.close();
 		}
 
-		pbr.close();
-
-		return tokenMap;
+		return new Tuple<Integer, Map<Concept,Score>>(tokenPosn, tokenMap);
 	}
 }

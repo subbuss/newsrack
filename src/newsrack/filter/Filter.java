@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import newsrack.NewsRack;
@@ -24,7 +25,7 @@ public class Filter implements java.io.Serializable
 	private static       int        _defaultMinMatchScore;	         // Minimum score for a filter to be triggered
 	private static       String     _indent               = "";
 	private static final FilterOp[] _termTypes;
-	private static final HashMap<FilterOp, Integer> _typeMap = new HashMap<FilterOp, Integer>();
+	private static final Map<FilterOp, Integer> _typeMap = new HashMap<FilterOp, Integer>();
 
 	public static enum FilterOp { NOP, LEAF_CONCEPT, AND_TERM, OR_TERM, NOT_TERM, CONTEXT_TERM, LEAF_CAT, LEAF_FILTER, PROXIMITY_TERM, SOURCE_FILTER };
 
@@ -86,10 +87,21 @@ public class Filter implements java.io.Serializable
 	public String getRuleString() { return _ruleString; }
 	public int getMinMatchScore() { return _minMatchScore; }
 
-	public int getMatchScore(NewsItem article, int numTokens, HashMap<String, Score> matchScores)
+	public int getMatchScore(NewsItem article, int numTokens, Map<String, Score> matchScores)
 	{
 		try {
 			return _rule.getMatchScore(this, article, numTokens, matchScores); 
+		}
+		catch (Exception e) {
+			_log.error("Caught exception in match score for filter: " + _key + ": " + _name + ": " + _ruleString, e);
+			return 0;
+		}
+	}
+
+	public int getMatchScore(NewsItem article, Map<Concept, Score> matchedConcepts, Map<Category, Score> matchedCats)
+	{
+		try {
+			return _rule.getMatchScore(this, article, matchedConcepts, matchedCats);
 		}
 		catch (Exception e) {
 			_log.error("Caught exception in match score for filter: " + _key + ": " + _name + ": " + _ruleString, e);
@@ -120,7 +132,8 @@ public class Filter implements java.io.Serializable
 		abstract public String   toString();
 		abstract public void     print(PrintWriter pw);
 		abstract public void     collectUsedConcepts(Set<Concept> usedConcepts);
-		abstract public int      getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores);
+		abstract public int      getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores);
+		abstract public int      getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats);
 	}
 
 	/* class LeafConcept encodes a leaf concept */
@@ -139,9 +152,15 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + _concept.getLexerToken().getToken() + (_minConceptHitScore == 1 ? "" : ":" + _minConceptHitScore)); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { usedConcepts.add(_concept); }
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores)
 		{
 			Score mc    = (Score)matchScores.get(_concept.getLexerToken().getToken());
+			int   score = ((mc == null) ? 0 : mc.value());
+			return (f._minMatchScore * score) / _minConceptHitScore;
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
+			Score mc    = (Score)matchedConcepts.get(_concept);
 			int   score = ((mc == null) ? 0 : mc.value());
 			return (f._minMatchScore * score) / _minConceptHitScore;
 		}
@@ -159,7 +178,8 @@ public class Filter implements java.io.Serializable
 		public String toString()    { return "[" + _filt.getName() + "]"; }
 		public void print(PrintWriter pw) { pw.println(_indent + _filt.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _filt.collectUsedConcepts(usedConcepts); }
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores) { return _filt.getMatchScore(article, numTokens, matchScores); }
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores) { return _filt.getMatchScore(article, numTokens, matchScores); }
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) { return _filt.getMatchScore(article, matchedConcepts, matchedCats); }
 	}
 
 	/* class SourceFilter encodes a source filter */
@@ -174,7 +194,10 @@ public class Filter implements java.io.Serializable
 		public String toString()    { return "[" + _srcColl.getName() + "]"; }
 		public void print(PrintWriter pw) { pw.println(_indent + _srcColl.getName()); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { }
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores) {
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores) {
+			return _srcColl.containsFeed(article.getFeed()) ? GLOBAL_MIN_MATCH_SCORE : 0;
+		}
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
 			return _srcColl.containsFeed(article.getFeed()) ? GLOBAL_MIN_MATCH_SCORE : 0;
 		}
 	}
@@ -192,13 +215,22 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + _cat.getName()); }
 		public void collectUsedConcepts(Set<Concept> usedConcepts) { }
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores)
 		{
 				// FIXME: Use hashcode instead!
 			Score mc = (Score)matchScores.get("[" + _cat.getName() + "]");
 			if (mc == null) {
 				if (_log.isDebugEnabled()) _log.debug("CAT " + _cat.getName() + " in issue " + _cat.getIssue().getName() + " being processed recursively!");
 				mc = _cat.getMatchScore(article, numTokens, matchScores);
+			}
+			return mc.value();
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
+			Score mc = (Score)matchedCats.get(_cat);
+			if (mc == null) {
+				if (_log.isDebugEnabled()) _log.debug("CAT " + _cat.getName() + " in issue " + _cat.getIssue().getName() + " being processed recursively!");
+				mc = _cat.getMatchScore(article, matchedConcepts, matchedCats);
 			}
 			return mc.value();
 		}
@@ -248,7 +280,7 @@ public class Filter implements java.io.Serializable
 			_r.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores)
 		{
 				// First, check if the context matches
 			boolean contextMatched = false;
@@ -266,6 +298,23 @@ public class Filter implements java.io.Serializable
 
 			return _r.getMatchScore(f, article, numTokens, matchScores);
 		}
+
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
+				// First, check if the context matches
+			boolean contextMatched = false;
+			final Iterator it = _context.iterator();
+			while (it.hasNext()) {
+				final Concept c = (Concept)it.next();
+				if (matchedConcepts.get(c) != null) {
+					contextMatched = true;
+					break;
+				}
+			}
+
+			if (!contextMatched) return 0;
+
+			return _r.getMatchScore(f, article, matchedConcepts, matchedCats);
+		}
 	}
 
 	/* class NegConcept encodes a negation of a concept */
@@ -281,10 +330,16 @@ public class Filter implements java.io.Serializable
 		public void print(PrintWriter pw) { pw.println(_indent + "-" + _t); }
 		public void collectUsedConcepts(final Set<Concept> usedConcepts) { _t.collectUsedConcepts(usedConcepts); }
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores)
 		{
 				// FIXME: This is very strict!
 			final int score = (1 - _t.getMatchScore(f, article, numTokens, matchScores));
+			return (score > 0) ? f._minMatchScore : 0;
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
+				// FIXME: This is very strict!
+			final int score = (1 - _t.getMatchScore(f, article, matchedConcepts, matchedCats));
 			return (score > 0) ? f._minMatchScore : 0;
 		}
 	}
@@ -323,10 +378,24 @@ public class Filter implements java.io.Serializable
 			_rTerm.collectUsedConcepts(usedConcepts);
 		}
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores)
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores)
 		{
 			final int lscore = _lTerm.getMatchScore(f, article, numTokens, matchScores);
 			final int rscore = _rTerm.getMatchScore(f, article, numTokens, matchScores);
+			if (_op == FilterOp.AND_TERM) {
+				if ((lscore >= f._minMatchScore) && (rscore >= f._minMatchScore))
+					return (lscore + rscore)/2;
+				else
+					return Math.min(lscore, rscore);
+			} 
+			else {
+				return lscore + rscore;
+			}
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
+			final int lscore = _lTerm.getMatchScore(f, article, matchedConcepts, matchedCats);
+			final int rscore = _rTerm.getMatchScore(f, article, matchedConcepts, matchedCats);
 			if (_op == FilterOp.AND_TERM) {
 				if ((lscore >= f._minMatchScore) && (rscore >= f._minMatchScore))
 					return (lscore + rscore)/2;
@@ -358,13 +427,7 @@ public class Filter implements java.io.Serializable
 			pw.println(_indent + _c1.getLexerToken().getToken() + " ~" + _proximityVal + " " + _c2.getLexerToken().getToken()); 
 		}
 
-		public int getMatchScore(Filter f, NewsItem article, int numTokens, HashMap<String,Score> matchScores) 
-		{ 
-			Score s1 = (Score)matchScores.get(_c1.getLexerToken().getToken());
-			Score s2 = (Score)matchScores.get(_c2.getLexerToken().getToken());
-			if ((s1 == null) || (s2 == null))
-				return 0;
-
+		private int numProximityMatches(Score s1, Score s2) {
 			Iterator<Integer> mp1 = s1.getMatchPosns().iterator();
 			Iterator<Integer> mp2 = s2.getMatchPosns().iterator();
 
@@ -394,6 +457,19 @@ public class Filter implements java.io.Serializable
 			}
 
 			return score;
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, int numTokens, Map<String,Score> matchScores) 
+		{
+			Score s1 = (Score)matchScores.get(_c1.getLexerToken().getToken());
+			Score s2 = (Score)matchScores.get(_c2.getLexerToken().getToken());
+			return ((s1 == null) || (s2 == null)) ? 0 : numProximityMatches(s1, s2);
+		}
+
+		public int getMatchScore(Filter f, NewsItem article, Map<Concept,Score> matchedConcepts, Map<Category,Score> matchedCats) {
+			Score s1 = (Score)matchedConcepts.get(_c1);
+			Score s2 = (Score)matchedConcepts.get(_c2);
+			return ((s1 == null) || (s2 == null)) ? 0 : numProximityMatches(s1, s2);
 		}
 	}
 }

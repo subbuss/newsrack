@@ -266,7 +266,7 @@ public class Concept implements java.io.Serializable
 		}
 	}
 
-	public int hashCode() { return _name.hashCode() * 31 + _collection.hashCode() * 31; }
+	public int hashCode() { return _key.hashCode(); }
 
 	/**
 	 * This method prints the concept along with the
