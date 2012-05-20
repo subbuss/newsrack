@@ -673,31 +673,6 @@ public class Issue implements java.io.Serializable
 		HashMap<String, Concept> tokenMap = new HashMap<String, Concept>();
 		for (Iterator<Concept> e = getUsedConcepts(); e.hasNext(); ) {
 			Concept c = e.next();
-			Concept x = tokenMap.get(c.getName());
-				// No conflict!
-			if (x == null) {
-				tokenMap.put(c.getName(), c);
-
-					// IMPORTANT: If the lexer token is already set, don't reset it!
-					// Some other issue might have already set it to be a qualified name!
-				if (c.getLexerToken() == null) {
-					c.setLexerToken(new ConceptToken(c.getName()));
-					_db.updateConceptLexerToken(c);
-				}
-			}
-				// Conflict!!  Qualify with collection name ... conflicts are expected to be rare
-			else {
-				String xToken = x.getCollection().getName() + ":" + x.getName();
-				x.setLexerToken(new ConceptToken(xToken));
-				_db.updateConceptLexerToken(x);
-				tokenMap.put(xToken, x);
-
-				String cToken = c.getCollection().getName() + ":" + c.getName();
-				c.setLexerToken(new ConceptToken(cToken));
-				_db.updateConceptLexerToken(c);
-				tokenMap.put(cToken, c);
-			}
-
          // Add all keywords to the trie
 			Iterator<String> kws = c.getKeywords();
 			while (kws.hasNext()) {
@@ -925,7 +900,7 @@ public class Issue implements java.io.Serializable
 	 * @param numTokens number of tokens encountered
 	 * @param tokTable  the table of recognized tokens/concepts
 	 */
-	public void classifyArticle(NewsItem ni, int numTokens, HashMap tokTable)
+	public void classifyArticle(NewsItem ni, int numTokens, HashMap<String,Score> tokTable)
 	{
 		int matchScore = 0;
 		ArrayList<Category> matchedCats = new ArrayList<Category>();
@@ -956,7 +931,7 @@ public class Issue implements java.io.Serializable
 	 * Fetch the news item that is stored in 'newsItemFileName', examine the tokens
 	 * in 'tokTable', and classify the news item accordingly.
 	 */
-	private void classifyArticle(String newsItemFileName, HashMap tokTable, HashMap newsTable, List allArts, List unclassifiedArts)
+	private void classifyArticle(String newsItemFileName, HashMap<String,Score> tokTable, HashMap newsTable, List allArts, List unclassifiedArts)
 	{
 		NewsItem ni = (NewsItem)newsTable.get(newsItemFileName);
 		if (ni == null) {

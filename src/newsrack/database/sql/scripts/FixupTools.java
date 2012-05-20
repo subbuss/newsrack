@@ -574,6 +574,42 @@ public class FixupTools
 			pw.close();
 			r.close();
 		}
+		else if (action.equals("all-topics-trie")) {
+			// New trie
+			ConceptTrie trie = new ConceptTrie();
+
+			long t1 = System.currentTimeMillis();
+		   List<Issue> issues = _db.getAllValidatedIssues();
+			int n = 0;
+		   for (Issue i: issues) {
+				i.compileIntoTrie(trie);
+				n++;
+			}
+			System.out.println("trie build time for " + n + " topics: " + (System.currentTimeMillis() - t1));
+
+			// Test it
+			PrintWriter pw = IOUtils.getUTF8Writer("/tmp/test.tokens");
+			for (int j = 0; j < 1000; j++) {
+				pw.println("***** Iteration " + n + " *****"); 
+				Reader r;
+
+				pw.println("--- file 1 ---");
+				r = IOUtils.getUTF8Reader("/tmp/test_item");
+				trie.processArticle(r, pw);
+				r.close();
+
+				pw.println("--- file 2 ---");
+				r = IOUtils.getUTF8Reader("/tmp/test_item.2");
+				trie.processArticle(r, pw);
+				r.close();
+
+				pw.println("--- file 3 ---");
+				r = IOUtils.getUTF8Reader("/tmp/test_item.3");
+				trie.processArticle(r, pw);
+				r.close();
+			}
+			pw.close();
+		}
       else {
          System.out.println("Unknown action: " + action);
       }

@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import newsrack.util.Tuple;
-
 public class ConceptTrie {
    static public class Node {
 		Character                _c;
@@ -72,8 +70,8 @@ public class ConceptTrie {
    }
 
 	private void processMatchedConcepts(List<Concept> matchedConcepts, String matchedText, int tokenPosn, Map<Concept, Score> tokTable, PrintWriter pw) {
-			// Increment match score of the matched concept and record information
-			// about where in the article it was found
+		// Increment match score of the matched concept and record information
+		// about where in the article it was found
 		for (Concept c: matchedConcepts) {
 			Score cnt = (Score)tokTable.get(c);
 			if (cnt == null) {
@@ -180,7 +178,7 @@ public class ConceptTrie {
 			buf.delete(0, buf.length());
 
 			// Match token from the root
-         System.out.println(tokenPosn + ". TOKEN: " + token + "; separator: <" + separator + ">");
+         //System.out.println(tokenPosn + ". TOKEN: " + token + "; separator: <" + separator + ">");
 			Node match = matchString(null, token);
 			if (match != null) {
 				if (match._matchedConcepts != null) processMatchedConcepts(match._matchedConcepts, match._matchedString, tokenPosn, tokenMap, pw);
