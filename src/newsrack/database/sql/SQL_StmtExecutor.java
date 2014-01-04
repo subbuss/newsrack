@@ -180,8 +180,16 @@ public class SQL_StmtExecutor
             throw new SQL_ArgumentMismatchException("Mismatch in number of arguments(" + args.length + ") and argument types(" + argTypes.length + ")");
 
 			c = _dbPool.getConnection();
-			if (c == null)
+			if (c == null) {
 				_log.error("Got a null DB connection!");
+				// sleep 1 sec and retry
+				newsrack.util.StringUtils.sleep(1);
+				c = _dbPool.getConnection();
+				if (c == null) {
+				   _log.error("Unable to get DB connection execution stmt: " + stmtString);
+					return null;
+				}
+			}
 
 				// DBPool caches prepared statements, but not for stmts requiring auto-generated keys.
 				// So, carefully make the right call based on what we want

@@ -172,7 +172,7 @@ abstract public class NewsItem implements java.io.Serializable
          try { if (filtPw != null) filtPw.close(); } catch(Exception e) {}
       }
 
-         // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
+      // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
       newsrack.util.StringUtils.sleep(1);
 
          // Clear the cookie jar after each download so that you get fresh cookies for each article

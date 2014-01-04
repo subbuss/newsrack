@@ -86,7 +86,7 @@ create table if not exists news_item_url_md5_hashes (
 create table if not exists news_item_localnames (
    n_key           bigint       not null,
    local_file_name varchar(256) not null, /* FIXME: Deprecate references by full path and progressively get rid of this field! */
-   constraint fk_1 foreign key(n_key) references news_items(n_key),
+   constraint fk_news_item_local_names_1 foreign key(n_key) references news_items(n_key),
    index file_name_index(local_file_name)
 ) charset=utf8 collate=utf8_bin;
 
@@ -212,7 +212,7 @@ create table if not exists categories (
 	num_new_articles int  default 0,
    primary key(c_key),
    index uid_issue_index(u_key, t_key),
-   constraint fk_categories_1 foreign key(f_key) references cat_filters(f_key),
+   constraint fk_categories_1 foreign key(f_key) references filters(f_key),
    constraint fk_categories_2 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_bin;
 
@@ -280,7 +280,7 @@ create table if not exists user_collections (
 create table if not exists collection_entries (
    coll_key  bigint not null,  /* collection key */
    entry_key bigint not null,  /* key for the entry; sKey / c_key / cpt_key */ 
-   constraint fk_collection_entries_1 foreign key(coll_key) references collections(coll_key)
+   constraint fk_collection_entries_1 foreign key(coll_key) references user_collections(coll_key)
 );
 
 /** --- sources ---
@@ -319,7 +319,7 @@ create table if not exists topic_sources (
    src_key    bigint not null,
 	feed_key   bigint not null,  /* Duplicated from sources to avoid a join on sources */
    max_ni_key bigint default 0, /* Max id of news item processed for this <t_key,src_key> combination */
-   constraint fk_topic_sources_1 foreign key(t_key) references users(t_key),
+   constraint fk_topic_sources_1 foreign key(t_key) references users(u_key),
    constraint fk_topic_sources_2 foreign key(src_key) references sources(src_key),
    constraint fk_topic_sources_3 foreign key(feed_key) references feeds(feed_key)
 );

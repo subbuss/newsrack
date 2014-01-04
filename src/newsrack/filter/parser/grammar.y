@@ -56,10 +56,14 @@
 	{
 		public void syntaxError(Symbol s)
 		{
-			if (s.value != null)
+			if (s.value != null) {
+				System.err.println("File: " + _currFile.getName() + "; line #: " + Symbol.getLine(s.getStart()));
 				ParseUtils.parseError(_currFile, Symbol.getLine(s.getStart()), "ERROR: Encountered token <b>" + s.value + "</b>");
-			else
+			}
+			else {
+				System.err.println("File: " + _currFile.getName() + "; line #: " + Symbol.getLine(s.getStart()));
 				ParseUtils.parseError(_currFile, Symbol.getLine(s.getStart()), "Syntax error");
+			}
 		}
 	}
 
@@ -498,6 +502,7 @@
 			else {
 					// Record an unresolved ref. since this is a first pass.
 					// Hopefully, the ref will be resolved in the second pass!
+				System.out.println("UNRESOLVED Import for " + cType + ":" + _uid + ":" + cid);
 				_log.info("UNRESOLVED Import for " + cType + ":" + _uid + ":" + cid);
 				_haveUnresolvedRefs = true;
 				return null;
@@ -537,6 +542,7 @@
 			}
 				// Parse error
 			else {
+				System.err.println("Did not find any " + itemType + " with name <b>" + itemName + "</b>.  Did you (a) forget to define what the " + itemType + " is (b) forget to import the collection where it is defined (c) mis-spell the name?");
 				ParseUtils.parseError(_currFile, Symbol.getLine(_currSym.getStart()), "Did not find any " + itemType + " with name <b>" + itemName + "</b>.  Did you (a) forget to define what the " + itemType + " is (b) forget to import the collection where it is defined (c) mis-spell the name?");
 			}
 		}
@@ -668,6 +674,7 @@
 		}
 
 		if (_isFirstPass) {
+			System.out.println("getSourceCollection: Looking for " + _uid + ":" + sc);
 			_log.info("UNRESOLVED: ...");
 			_haveUnresolvedRefs = true;
 			return null;
