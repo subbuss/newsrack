@@ -26,19 +26,18 @@ import org.apache.commons.logging.LogFactory;
  * June 12, 2007 : Subramanya Sastry re-orged. Mary code and fixed some bugs.
  */
 
-public class DownloadNewsTask extends TimerTask
-{
+public class DownloadNewsTask extends TimerTask {
    /** This class handles the download of a single news feed (RSS/Atom)
      * and all the news articles in that feed
      */ 
-   private class FeedDownloader implements Runnable
-   {
+   private class FeedDownloader implements Runnable {
       private Feed feed;
 
-      FeedDownloader(Feed feedx) { feed = feedx; }
+      FeedDownloader(Feed feed) { 
+			this.feed = feed; 
+		}
 
-      public void run()
-      {
+      public void run() {
          boolean done  = false;
          int     count = 0;
 
@@ -48,6 +47,7 @@ public class DownloadNewsTask extends TimerTask
             try {
                count++;
                feed.download();
+					feed.classifyNews();
                done = true;
             }
             catch (Exception e) {
@@ -132,15 +132,6 @@ public class DownloadNewsTask extends TimerTask
          }
          finally {
 				synchronized(_completedIssuesCount) { _completedIssuesCount++; }
-
-/**
- * Will only do this for feed downloader for now ...
- *
-					// FIXME: Till we figure out why we are ending up with CLOSE_WAIT sockets because of mod_jk/tomcat problem,
-					// periodically gc while downloading, so that this forces tomcat to release sockets
-				if (mycount % 20 == 0)
-					System.gc();
-**/
          }
       }
    }
@@ -249,6 +240,12 @@ public class DownloadNewsTask extends TimerTask
 				// Create a thread pool for processing feeds in parallel
       	ExecutorService tpool = Executors.newFixedThreadPool(DOWNLOAD_MAX_THREADS);
 
+         int issueCount = 0;
+         Collection<User> users = User.getAllUsers();
+			for (User u: users) {
+				try { u.doPreDownloadBookkeeping(); } catch (Exception e) { _log.error("ERROR:", e); }
+			}
+
             // Randomize the download by shuffling the list
          int feedCount = 0;
 			List<Feed> activeFeeds = Feed.getActiveFeeds();
@@ -283,46 +280,6 @@ public class DownloadNewsTask extends TimerTask
             // Shut down the download thread pool .. if interrupted, the method will return false .. end execution in that case!
 			if (!shutDownThreadPool(tpool))
 				return;
-
-				// Create a thread pool for processing downloaded articles
-      	tpool = Executors.newFixedThreadPool(CLASSIFY_MAX_THREADS);
-
-         int issueCount = 0;
-         Collection<User> users = User.getAllUsers();
-			for (User u: users) {
-				try { u.doPreDownloadBookkeeping(); } catch (Exception e) { _log.error("ERROR:", e); }
-			}
-
-            // Parse and classify news for every validated issue 
-            // Randomize the list
-      	List<Issue> issues = User.getAllValidatedIssues();
-         java.util.Collections.shuffle(issues);
-			for (Issue i: issues) {
-				tpool.execute(new NewsClassifier(i));
-				issueCount++;
-         }
-
-            // loop until all the news classifier tasks are complete
-			noChangeIntervals = 0;
-			prev              = 0;
-         while (_completedIssuesCount < issueCount) {
-            StringUtils.sleep(30);
-            _log.info(" ... NCT: WAITING ... " + _completedIssuesCount + " of " + issueCount + " completed ...");
-
-				if (_completedIssuesCount == prev) {
-					noChangeIntervals++;
-
-						// Abort filtering if we have passed 30 minutes without making any progress
-					if (noChangeIntervals == 60) {
-						_log.error("No progress in news filtering for last 30 minutes ... Aborting filtering phase!");
-						break;
-					}
-				}
-				else {
-					prev = _completedIssuesCount;
-					noChangeIntervals = 0;
-				}
-         }
 
 				// Clear the downloaded news table -- since we are done processing all of them
 			NewsRack.getDBInterface().clearDownloadedNewsTable();
