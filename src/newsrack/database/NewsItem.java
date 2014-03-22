@@ -24,11 +24,8 @@ import org.apache.commons.logging.LogFactory;
  * @author  Subramanya Sastry
  * @version 1.0 23/05/04
  */
-
-abstract public class NewsItem implements java.io.Serializable
-{
-	public static NewsItem getNewsItemFromURL(String url)
-	{
+abstract public class NewsItem implements java.io.Serializable {
+	public static NewsItem getNewsItemFromURL(String url) {
 		return NewsRack.getDBInterface().getNewsItemFromURL(url);
 	}
 
@@ -70,18 +67,15 @@ abstract public class NewsItem implements java.io.Serializable
 	abstract public void     setAuthor(String a);
 	abstract public void     setURL(String u);
 
-	public boolean olderThan(NewsItem n)
-	{
+	public boolean olderThan(NewsItem n) {
 		return getDate().before(n.getDate());
 	}
 
-	public int compareTo(NewsItem n)
-	{
+	public int compareTo(NewsItem n) {
 		return getDate().compareTo(n.getDate());
 	}
 
-   public boolean download(DB_Interface dbi) throws Exception
-   {
+   public boolean download(DB_Interface dbi) throws Exception {
       PrintWriter filtPw = dbi.getWriterForFilteredArticle(this);
 		PrintWriter origPw = dbi.getWriterForOrigArticle(this);
       String url = getURL();
@@ -110,7 +104,7 @@ abstract public class NewsItem implements java.io.Serializable
 						if (len < 900) {
 							boolean flag = getFeed().getIgnoreCommentsHeuristic();
 							if (flag == true) {
-								// Close original open writer first 
+								// Close original open writer first
 								try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
 
 								// Retry (but without downloading first)
@@ -134,8 +128,7 @@ abstract public class NewsItem implements java.io.Serializable
 
 							}
 						}
-               }
-					else if ((origText != null) && (origText.length() <= 100)) {
+               } else if ((origText != null) && (origText.length() <= 100)) {
 						// Delete the files so they can be fetched afresh!
 						File origFile = getOrigFilePath();
 						if ((origFile != null) && origFile.exists()) {
@@ -147,26 +140,21 @@ abstract public class NewsItem implements java.io.Serializable
 							if (!filtFile.delete())
 								_log.error("Could not delete file " + filtFile);
 						}
-					}
-               else {
+					} else {
                   _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
                   newsrack.util.StringUtils.sleep(5);
                }
             } while (!done && (numTries < 3));
-         }
-         else {
+         } else {
             _log.info("Ignoring! There already exists a downloaded file for url: " + url);
          }
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
             // Delete the file for this article -- otherwise, it will
             // trigger a false hit in the archive later on!
-         if (filtPw != null)
-            dbi.deleteFilteredArticle(this);
+         if (filtPw != null) dbi.deleteFilteredArticle(this);
 
          throw e;
-      }
-      finally {
+      } finally {
             // close the files -- ignore any resulting exceptions
          try { if (origPw != null) origPw.close(); } catch(Exception e) {}
          try { if (filtPw != null) filtPw.close(); } catch(Exception e) {}

@@ -110,7 +110,7 @@ public final class IOUtils
 
 	/**
 	 * This method moves a file from one location to another
-	 * 
+	 *
 	 * @param oldLocn  old location of the file
 	 * @param newLocn  new location of the file
 	 */
@@ -140,7 +140,7 @@ public final class IOUtils
 			connection.addRequestProperty("User-Agent", ua);
 
 			String eTag = (String)_eTags.get(u);
-			if (eTag != null) {		                     
+			if (eTag != null) {
 				connection.addRequestProperty("If-None-Match", eTag);
 			}
 
@@ -200,7 +200,7 @@ public final class IOUtils
 
 				// Slurp the data into a byte array and return the byte array
 				// We are doing this so that we can close the http connection
-				// before returning from here! 
+				// before returning from here!
 			ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 			copyInputToOutput(inStream, outStream, false);
 			return new ByteArrayInputStream(outStream.toByteArray());
@@ -305,7 +305,7 @@ public final class IOUtils
 
 	   char[] chars = new char[1024];
 	   while (reader.read(chars) > -1) {
-		   sb.append(String.valueOf(chars));	
+		   sb.append(String.valueOf(chars));
 	   }
 
 	   reader.close();

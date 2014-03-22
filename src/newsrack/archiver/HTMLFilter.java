@@ -24,17 +24,16 @@ import org.htmlparser.tags.MetaTag;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.visitors.NodeVisitor;
 
-public class HTMLFilter extends NodeVisitor 
-{
+public class HTMLFilter extends NodeVisitor {
    	// Logging output for this class
    private static Log _log = LogFactory.getLog(HTMLFilter.class);
 
 	public static final String[] IGNORE_ELTS = {
-		"SCRIPT", "NOSCRIPT", "STYLE", "MARQUEE", "APPLET", "MAP", 
+		"SCRIPT", "NOSCRIPT", "STYLE", "MARQUEE", "APPLET", "MAP",
 		"SELECT", "A", "LABEL",
 // Note: Even though the following tags below are included here,
 // they NEED NOT BE included because these are standalone tags.
-// They dont come in the form <TAG> ... </TAG>. 
+// They dont come in the form <TAG> ... </TAG>.
 // They come in the form <TAG ... />
 // So, the only call to the Visitor will be to "visitTag" --
 // there wont be any corresponding call to "visitEndTag"
@@ -71,8 +70,7 @@ public class HTMLFilter extends NodeVisitor
 		java.net.HttpURLConnection.setFollowRedirects(false);	// Turn off automatic redirect processing
 	}
 
-	public static void clearCookieJar()
-	{
+	public static void clearCookieJar() {
          // Hack! disabling and enabling cookie processing on the connection manager clears the cookie jar!
       Parser.getConnectionManager().setCookieProcessingEnabled(false);
       Parser.getConnectionManager().setCookieProcessingEnabled(true);
@@ -86,8 +84,7 @@ public class HTMLFilter extends NodeVisitor
 	static private class DOM_Node_Info {
 		static int _overallApproxContentSize;
 
-		static void init()
-		{
+		static void init() {
 			_overallApproxContentSize = 0;
 		}
 
@@ -97,14 +94,13 @@ public class HTMLFilter extends NodeVisitor
 
 		String       tagName;						// Tag for this DOM node
 		int          totalContentSize;			// Total size of all content in the subtree rooted at this dom node
-		StringBuffer currUnfilteredContent;		// Buffer containing current unfiltered content 
+		StringBuffer currUnfilteredContent;		// Buffer containing current unfiltered content
 															// (all text from some DOM descendents might have been discarded)
-		StringBuffer currFilteredContent;		// Buffer containing current filtered content 
-															// (all text from some DOM descendents might have been discarded 
+		StringBuffer currFilteredContent;		// Buffer containing current filtered content
+															// (all text from some DOM descendents might have been discarded
 															//   + anchor text from some DOM descendents might have been discarded)
 
-		public DOM_Node_Info(String t) 
-		{
+		public DOM_Node_Info(String t) {
 			tagName = t;
 			totalContentSize = 0;
 			currUnfilteredContent = new StringBuffer();
@@ -112,19 +108,15 @@ public class HTMLFilter extends NodeVisitor
 			ignoreContent = false;
 		}
 
-		public void appendUnfilteredContent(String s)
-		{
-			if (ignoreContent)
-				return;
+		public void appendUnfilteredContent(String s) {
+			if (ignoreContent) return;
 
 			currUnfilteredContent.append(s);
 			totalContentSize += s.length();
 		}
 
-		public void appendContent(String s)
-		{
-			if (ignoreContent)
-				return;
+		public void appendContent(String s) {
+			if (ignoreContent) return;
 
 			currUnfilteredContent.append(s);
 			currFilteredContent.append(s);
@@ -132,30 +124,26 @@ public class HTMLFilter extends NodeVisitor
 			totalContentSize += n;
 			_overallApproxContentSize += n;
 		}
-	
-		public void discardContent()
-		{
+
+		public void discardContent() {
 			currUnfilteredContent = new StringBuffer();
 			currFilteredContent = new StringBuffer();
 		}
 
-		public boolean shouldKeepBlockContent()
-		{
+		public boolean shouldKeepBlockContent() {
 			// HEURISTIC:
 			// - If filtered content is less than 50% of the full text content, chuck it!
-			// - If over 50%, check if the content we are considering will lead to at least 5% of all content from this block 
+			// - If over 50%, check if the content we are considering will lead to at least 5% of all content from this block
 			//   If not, it might just be that this is just a header for some link block -- so no use retaining it!
-			int b1_len = currUnfilteredContent.length();  
+			int b1_len = currUnfilteredContent.length();
 			int b2_len = currFilteredContent.length();
 			if (debug) HTMLFilter.DEBUG("b1_len - " + b1_len + "; b2_len - " + b2_len + "; n1 - " + totalContentSize);
 			return (   (b2_len * 1.0 / b1_len) >= 0.5
 					  && (b1_len * 1.0 / (b1_len + totalContentSize) >= 0.05));
 		}
 
-		public void swallowChild(DOM_Node_Info child, boolean discardContent)
-		{
-			if (discardContent) {
-				if (debug) HTMLFilter.DEBUG("BLK: Discarding " + child.currUnfilteredContent.toString().replaceAll("\n", "|"));
+		public void swallowChild(DOM_Node_Info child, boolean discardContent) {
+			if (discardContent) { if (debug) HTMLFilter.DEBUG("BLK: Discarding " + child.currUnfilteredContent.toString().replaceAll("\n", "|"));
 			}
 			else {
 				String childContent = child.currUnfilteredContent.toString();
@@ -195,8 +183,7 @@ public class HTMLFilter extends NodeVisitor
 		// Next field is for PTI hack -- Aug 18, 2010
 	private boolean      _isPTI;
 
-	private void initFilter()
-	{
+	private void initFilter() {
 		_title            = "";
 		_content          = null;
 		_PREtagContent    = false;
@@ -219,21 +206,19 @@ public class HTMLFilter extends NodeVisitor
 		Hashtable headers = new Hashtable();
 		String ua = NewsRack.getProperty("useragent.string");
 		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
-		headers.put ("User-Agent", ua);
-      headers.put ("Accept-Encoding", "gzip, deflate");
+		headers.put("User-Agent", ua);
+      headers.put("Accept-Encoding", "gzip, deflate");
 
 		Parser.getConnectionManager().setCookieProcessingEnabled(true);
 		Parser.getConnectionManager().setRedirectionProcessingEnabled(true);
 		Parser.getConnectionManager().setDefaultRequestProperties(headers);
 	}
 
-	private HTMLFilter()
-	{
+	private HTMLFilter() {
 		initFilter();
 	}
 
-	private void setUrl(String url)
-	{
+	private void setUrl(String url) {
 		_url = url;
 		_urlDomain = StringUtils.getDomainForUrl(_url);
 
@@ -243,12 +228,11 @@ public class HTMLFilter extends NodeVisitor
 		   // PTI specific hack -- Aug 18, 2010
 		_isPTI = _urlDomain.equals("ptinews.com");
 	}
-	
+
 	/**
 	 * @param file File to parse
 	 */
-	public HTMLFilter(String file)
-	{
+	public HTMLFilter(String file) {
 		initFilter();
 		_outputToFile = false;
 		_file = file;
@@ -259,14 +243,11 @@ public class HTMLFilter extends NodeVisitor
 	 * @param pw         Print Writer to which filtered HTML should be written
 	 * @param isURL      True if 'fileOrUrl' is a URL
 	 **/
-	public HTMLFilter(String fileOrUrl, PrintWriter pw, boolean isURL)
-	{
+	public HTMLFilter(String fileOrUrl, PrintWriter pw, boolean isURL) {
 		initFilter();
 		_pw = pw;
-		if (isURL)
-			setUrl(fileOrUrl);
-		else
-			_file = fileOrUrl;
+		if (isURL) setUrl(fileOrUrl);
+		else _file = fileOrUrl;
 	}
 
 	/**
@@ -274,14 +255,11 @@ public class HTMLFilter extends NodeVisitor
 	 * @param os         Output Stream to which filtered HTML should be written
 	 * @param isURL      True if 'fileOrUrl' is a URL
 	 **/
-	public HTMLFilter(String fileOrUrl, OutputStream os, boolean isURL)
-	{
+	public HTMLFilter(String fileOrUrl, OutputStream os, boolean isURL) {
 		initFilter();
 		_os  = os;
-		if (isURL)
-			setUrl(fileOrUrl);
-		else
-			_file = fileOrUrl;
+		if (isURL) setUrl(fileOrUrl);
+		else _file = fileOrUrl;
 	}
 
 	/**
@@ -291,16 +269,14 @@ public class HTMLFilter extends NodeVisitor
 	 *
 	 * @throws IOException if there is an error trying to create the output file
 	 */
-	public HTMLFilter(String fileOrUrl, String outputDir, boolean isURL) throws java.io.IOException
-	{ 
+	public HTMLFilter(String fileOrUrl, String outputDir, boolean isURL) throws java.io.IOException {
 		initFilter();
 
 		char sep;
 		if (isURL) {
 			sep = '/';
 			setUrl(fileOrUrl);
-		}
-		else {
+		} else {
 			_file = fileOrUrl;
 			sep = File.separatorChar;
 		}
@@ -316,8 +292,7 @@ public class HTMLFilter extends NodeVisitor
 	 * @param outputDir  Directory where the filtered file has to be written
 	 * @throws IOException if there is an error trying to create the output file
 	 */
-	public HTMLFilter(String url, String file, String outputDir) throws java.io.IOException
-	{ 
+	public HTMLFilter(String url, String file, String outputDir) throws java.io.IOException {
 		initFilter();
 		setUrl(url);
 		_file = file;
@@ -332,21 +307,18 @@ public class HTMLFilter extends NodeVisitor
 
 	public String getUrl() { return _url; }
 
-	public void run() throws Exception
-	{
+	public void run() throws Exception {
 		Parser parser;
 		try {
 		   parser = new Parser((_file != null) ? _file : _url);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			String msg = e.toString();
 			int    i   = msg.indexOf("no protocol:");
 			if (i > 0 && _url != null) {
 				String urlSuffix = msg.substring(i + 13);
 				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + _urlDomain + urlSuffix);
 				parser = new Parser(_urlDomain + urlSuffix);
-			}
-			else {
+			} else {
 				throw e;
 			}
 		}
@@ -358,7 +330,7 @@ public class HTMLFilter extends NodeVisitor
 	public void setIgnoreCommentsHeuristic(boolean flag) { _ignoreComments = flag; }
 
    @Override
-	public boolean shouldRecurseSelf() { return true; } 
+	public boolean shouldRecurseSelf() { return true; }
 
    @Override
 	public boolean shouldRecurseChildren() { return true; }
@@ -366,32 +338,30 @@ public class HTMLFilter extends NodeVisitor
    @Override
 	public void beginParsing() { startDocument(); }
 
-	private void startDocument() 
-	{
+	private void startDocument() {
 		_content = new StringBuffer();
 	}
 
-	private void pushNewTag(String tagName)
-	{
+	private void pushNewTag(String tagName) {
 		DOM_Node_Info di = new DOM_Node_Info(tagName);
 		di.debug = _debug;
 
 		// If my parent is in ignore content mode, I'll do the same as well!
-		if (!_eltContentStack.empty() && _eltContentStack.peek().ignoreContent)
+		if (!_eltContentStack.empty() && _eltContentStack.peek().ignoreContent) {
 			di.ignoreContent = true;
+		}
 
 		_eltContentStack.push(di);
 	}
 
    @Override
-	public void visitTag(Tag tag) 
-	{
+	public void visitTag(Tag tag) {
 		String tagName = tag.getTagName();
 		if (_debug) DEBUG("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
 
 		if (IGNORE_ELTS_TBL.get(tagName) != null) {
 			if (tagName.equals("A")) {
-				// SPECIAL CASE: Don't ignore non-href anchor tags 
+				// SPECIAL CASE: Don't ignore non-href anchor tags
 				// Required so that Hindustan Times article titles don't get stripped out!
 				String href = tag.getAttribute("HREF");
 				if (href == null || href.equals("")) {
@@ -406,26 +376,21 @@ public class HTMLFilter extends NodeVisitor
 			}
 			_ignoreFlagStack.push(tagName);
 			if (_debug) DEBUG("--> PUSHED");
-		}
-		else if (tagName.equals("BR")) {
+		} else if (tagName.equals("BR")) {
 			// India together articles have some strange html that leads to empty stack here!
 			// Otherwise this check is normally not necessary!
 			if (!_eltContentStack.isEmpty()) {
 				DOM_Node_Info topElt = _eltContentStack.peek();
 				topElt.appendContent("\n");
 			}
-		}
-		else if (tagName.equals("PRE")) {
+		} else if (tagName.equals("PRE")) {
 			_PREtagContent = true;
-		}
-		else if (tagName.equals("TITLE")) {
+		} else if (tagName.equals("TITLE")) {
 			_isTitleTag = true;
-		}
-		else if (tagName.equals("HTML") || tagName.equals("BODY")) {
+		} else if (tagName.equals("HTML") || tagName.equals("BODY")) {
 			if (_debug) DEBUG("Pushing new dom-node-info for " + tagName);
 			pushNewTag(tagName);
-		}
-		else {
+		} else {
 				// Push a new dom-node-info only for block elements
 			if (BLOCK_ELTS_TBL.get(tagName) != null) {
 				if (_debug) DEBUG("Pushing new dom-node-info for " + tagName);
@@ -466,31 +431,27 @@ public class HTMLFilter extends NodeVisitor
 			if (!_ignoreEverything && (BLOCK_ELTS_TBL.get(tagName) != null)) {
 				DOM_Node_Info topElt = _eltContentStack.peek();
 				topElt.appendContent("\n\n");
-			}
+			} else if (tagName.equals("SPAN")) {
 				// Newkerala.com hack -- May 18, 2006
-			else if (tagName.equals("SPAN")) {
 				String nameAttr = tag.getAttribute("name");
 				if ((nameAttr != null) && nameAttr.equals("KonaBody")) {
 					_foundKonaBody = true;
 					_spanTagStack.push("KONABODY_SPAN");
-				}
-				else {
+				} else {
 					_spanTagStack.push("SPAN");
 				}
 			}
 		}
 	}
 
-	private void processCurrStackElt()
-	{
+	private void processCurrStackElt() {
 		DOM_Node_Info top = _eltContentStack.pop();
 		if (_debug) DEBUG("Popping dom-node-info for " + top.tagName);
 
 		// If we are the end, the unfiltered buffer contains our content
 		if (_eltContentStack.isEmpty()) {
 			_content.append(top.currUnfilteredContent.toString());
-		}
-		else {
+		} else {
 			DOM_Node_Info parent = _eltContentStack.peek();
 				// Rather than treat all siblings at a DOM-level identically, we assume that a block element
 				// effectively introduces an artificial block consisting of all DOM siblings seen so far!
@@ -504,16 +465,16 @@ public class HTMLFilter extends NodeVisitor
 			}
 
 				// Keep everything in child or dump it all!
-			if (top.shouldKeepBlockContent())
+			if (top.shouldKeepBlockContent()) {
 				parent.swallowChild(top, false);
-			else
+			} else {
 				parent.swallowChild(top, true);
+			}
 		}
 	}
 
    @Override
-	public void visitEndTag(Tag tag) 
-	{
+	public void visitEndTag(Tag tag) {
 		String tagName = tag.getTagName();
 
 		if (_debug) DEBUG("END : " + tagName);
@@ -521,10 +482,11 @@ public class HTMLFilter extends NodeVisitor
 		if (!_eltContentStack.isEmpty()) {
 			DOM_Node_Info topElt = _eltContentStack.peek();
 			if (topElt != null) {
-				if (topElt.tagName.equals(tagName))
+				if (topElt.tagName.equals(tagName)) {
 					processCurrStackElt();
-				else
+				} else {
 					if (_debug) DEBUG(" ... Waiting for " + topElt.tagName + "; got " + tagName);
+				}
 			}
 		}
 
@@ -535,30 +497,25 @@ public class HTMLFilter extends NodeVisitor
 
 		if (tagName.equals("PRE")) {
 			_PREtagContent = false;
-		}
-		else if (tagName.equals("TITLE")) {
+		} else if (tagName.equals("TITLE")) {
 			_isTitleTag = false;
-		}
+		} else if (!_ignoreEverything && _foundKonaBody && tagName.equals("SPAN")) {
 			// Newkerala.com hack -- May 18, 2006
-		else if (!_ignoreEverything && _foundKonaBody && tagName.equals("SPAN")) {
 			try {
 				Object spanTag = _spanTagStack.pop();
 				if (spanTag.equals("KONABODY_SPAN"))
 					_ignoreEverything = true;
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				if (_log.isErrorEnabled()) _log.error("popped out all span tags already! .. empty stack!");
 			}
 		}
 	}
 
-	public void visitStringNode(Text string) 
-	{
+	public void visitStringNode(Text string) {
 		String eltContent = string.getText();
 		if (_debug) DEBUG("TAG txt - " + eltContent);
 
-		if (_eltContentStack.isEmpty())
-			return;
+		if (_eltContentStack.isEmpty()) return;
 
 		DOM_Node_Info topElt = _eltContentStack.peek();
 
@@ -568,13 +525,13 @@ public class HTMLFilter extends NodeVisitor
 
 				// Add it to unfiltered buffer
 			String currIgnoreTag = _ignoreFlagStack.peek();
-			if (currIgnoreTag.equals("A") || currIgnoreTag.equals("LABEL"))
+			if (currIgnoreTag.equals("A") || currIgnoreTag.equals("LABEL")) {
 				topElt.appendUnfilteredContent(" " +eltContent.trim());
+			}
 
 			return;
-		}
+		} else if (_ignoreEverything) {
 			// Newkerala.com hack -- May 18, 2006
-		else if (_ignoreEverything) {
 		   if (_debug) DEBUG(" -- IGNORED");
 			return;
 		}
@@ -582,27 +539,23 @@ public class HTMLFilter extends NodeVisitor
 		if (_PREtagContent) {
 			topElt.appendContent(eltContent);
 			if (_debug) DEBUG("PRE: Accumulating " + eltContent);
-		}
-		else if (_isTitleTag) {
+		} else if (_isTitleTag) {
 			if (_debug) DEBUG("TITLE: ... " + eltContent);
 			if (_title.equals("")) {
 				_title = eltContent;
 			}
-		}
-		else {
+		} else {
 			eltContent = collapseWhiteSpace(eltContent);
 			if (!isJunk(eltContent)) { // skip spurious content!
 				topElt.appendContent(eltContent);
 				if (_debug) DEBUG("NORMAL: Accumulating " + eltContent);
-			}
-			else {
+			} else {
 				if (_debug) DEBUG("JUNK: Discarding " + eltContent);
 			}
 		}
 	}
 
-	public void finishedParsing()
-	{
+	public void finishedParsing() {
 		// We have unbalanced tags!
 		if (!_eltContentStack.isEmpty()) {
 			if (_debug) DEBUG("Malformed HTML? Got an unbalanced content stack!");
@@ -639,7 +592,7 @@ public class HTMLFilter extends NodeVisitor
 
 			// Split the content around matches of the title, if any ... But, check this out!
 			// 1. Replace all space characters with the "\s+" regexp so that variations in number of white space won't trip up the match!
-			// 2. Replace all special characters with "." allowing for the matching to be more lenient 
+			// 2. Replace all special characters with "." allowing for the matching to be more lenient
 			// 3. Replace colon(:), hyphen(-) with a regexp or (|) so that there is a greater chance of
 			//    finding a match of the title despite trailers / leaders in the title!  Since we are looking
 			//    for the smallest match, we are guaranteed that we'll hit the jackpot around the actual title!
@@ -665,8 +618,7 @@ public class HTMLFilter extends NodeVisitor
 				// New content!
 			_content = (new StringBuffer(dateLine)).append("\n\n").append(xs[1]);
 			if (_debug) DEBUG("Stripping away " + xs[0].length() + " chars; Leaving " + xs[1].length() + " chars;\n Stripping away: " + xs[0]);
-		}
-		else if (_debug) {
+		} else if (_debug) {
 			DEBUG("Got " + xs.length + " items from splitting around " + titleRE);
 			if (xs.length > 1)
 				DEBUG("xs[0] size: " + xs[0].length() + " chars; xs[1] size: " + xs[1].length() + " chars;\n xs[0]: " + xs[0]);
@@ -683,12 +635,10 @@ public class HTMLFilter extends NodeVisitor
 **/
 
 			// Finally, output new content!
-      if (_outputToFile)
-		   outputToFile(_content);
+      if (_outputToFile) outputToFile(_content);
 	}
 
-	private static String collapseWhiteSpace(String s)
-	{
+	private static String collapseWhiteSpace(String s) {
 		int          n     = s.length();
 		char[]       cs    = new char[n];
 		StringBuffer sb    = new StringBuffer();
@@ -700,10 +650,9 @@ public class HTMLFilter extends NodeVisitor
 			char c = cs[i];
 			if (Character.isWhitespace(c) || Character.isSpaceChar(c)) {
 				ws = true;
-			}
+			} else if ((c == '&')
 					// &nbsp; is considered white space
-			else if ((c == '&')
-				   && ((i+5) < n) 
+				   && ((i+5) < n)
 					&& (cs[i+1] == 'n')
 					&& (cs[i+2] == 'b')
 					&& (cs[i+3] == 's')
@@ -712,41 +661,39 @@ public class HTMLFilter extends NodeVisitor
 			{
 				i += 5;
 				ws = true;
-			}
-			else {
+			} else {
 				if (ws) {
 					sb.append(' ');
 					ws = false;
-				}
-				else if (empty) {
+				} else if (empty) {
 					sb.append(' ');	// ensure there is white space before content
 				}
 				empty = false;
 				sb.append(c);
 			}
 		}
-		if (!ws)
+		if (!ws) {
 			sb.append(' ');	// ensure there is white space after content
+		}
 
 		return sb.toString();
 	}
 
-	private static boolean isJunk(String sb) 
-	{
+	private static boolean isJunk(String sb) {
 		int     n  = sb.length();
 		char[]  cs = new char[n];
 		sb.getChars(0, n, cs, 0);
 		for (int i = 0; i < n; i++) {
 			char c = cs[i];
-			if (!Character.isWhitespace(c) && (c != '|') && (c != '-'))
+			if (!Character.isWhitespace(c) && (c != '|') && (c != '-')) {
 				return false;
+			}
 		}
 
 		return true;
 	}
 
-	private static String prettyPrint(StringBuffer s) 
-	{
+	private static String prettyPrint(StringBuffer s) {
 		// NOTE: In the node visitor methods, I am using "\n" and
 		// not _lineSep.  It does not matter, because, in all those
 		// methods, "\n" is used as the generic line separator.
@@ -768,14 +715,12 @@ public class HTMLFilter extends NodeVisitor
 			char c = cs[i];
 			if (c == '\n') {
 				numNLs++;
-			} 
-			else if (Character.isWhitespace(c)) {
+			} else if (Character.isWhitespace(c)) {
 				if (!ws) {
 					ws = true;
 					lastWsPosn = numChars + 1;
 				}
-			}
-			else {
+			} else {
 				if (numNLs > 0) {
 					lb.append(_lineSep);
 					numChars++;
@@ -791,8 +736,7 @@ public class HTMLFilter extends NodeVisitor
 					numChars = 0;
 					lastWsPosn = 0;
 					numNLs = 0;
-				}
-				else if (ws) {
+				} else if (ws) {
 					lb.append(' ');
 					numChars++;
 				}
@@ -802,8 +746,7 @@ public class HTMLFilter extends NodeVisitor
 				numChars++;
 				if (numChars > LINE_WIDTH) {
 						// If cannot properly break the line, arbitrarily break it!
-					if (lastWsPosn == 0)
-						lastWsPosn = LINE_WIDTH;
+					if (lastWsPosn == 0) lastWsPosn = LINE_WIDTH;
 
 						// Get the max full words in this line
 					String line = lb.substring(0, lastWsPosn - 1);
@@ -833,8 +776,7 @@ public class HTMLFilter extends NodeVisitor
     */
    public static String getHTMLTagSignallingEndOfPreamble() { return "h1"; }
 
-	private void outputToFile(StringBuffer data)
-	{
+	private void outputToFile(StringBuffer data) {
 		StringBuffer outBuf = new StringBuffer();
 		outBuf.append("<html>" + "\n" + "<head>\n");
 		outBuf.append("<title>" + _title + "</title>\n");
@@ -859,43 +801,36 @@ public class HTMLFilter extends NodeVisitor
 		if (_pw != null) {
 			_pw.println(outBuf);
 			_pw.flush();
-			if (_closeStream)
-				_pw.close();
-		}
-		else if (_os != null) {
+			if (_closeStream) _pw.close();
+		} else if (_os != null) {
 			try {
 				_os.write(outBuf.toString().getBytes("UTF-8"));
 				_os.flush();
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
             if (_log.isErrorEnabled()) _log.error("Error outputting data to output stream!");
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private static void ignoreCharSetChanges(Parser p)
-	{
+	private static void ignoreCharSetChanges(Parser p) {
 		PrototypicalNodeFactory factory = new PrototypicalNodeFactory ();
 		factory.unregisterTag(new MetaTag());
 			// Unregister meta tag so that char set changes are ignored!
 		p.setNodeFactory (factory);
 	}
 
-	private static String parseNow(Parser p, HTMLFilter visitor) throws org.htmlparser.util.ParserException
-	{
+	private static String parseNow(Parser p, HTMLFilter visitor) throws org.htmlparser.util.ParserException {
 		try {
          //if (_log.isInfoEnabled()) _log.info("START encoding is " + p.getEncoding());
 			p.visitAllNodesWith(visitor);
-		}
-		catch (org.htmlparser.util.EncodingChangeException e) {
+		} catch (org.htmlparser.util.EncodingChangeException e) {
 			try {
 				if (_log.isInfoEnabled()) _log.info("Caught you! CURRENT encoding is " + p.getEncoding());
 				visitor.initFilter();
 				p.reset();
 				p.visitAllNodesWith(visitor);
-			}
-			catch (org.htmlparser.util.EncodingChangeException e2) {
+			} catch (org.htmlparser.util.EncodingChangeException e2) {
 				if (_log.isInfoEnabled()) _log.info("CURRENT encoding is " + p.getEncoding());
 				if (_log.isInfoEnabled()) _log.info("--- CAUGHT you yet again! IGNORE meta tags now! ---");
 				visitor.initFilter();
@@ -912,8 +847,7 @@ public class HTMLFilter extends NodeVisitor
     * Extract text content from the file and return the content
     * @file  File from which the content needs to be extracted
     */
-   public static StringBuffer getFilteredText(String file) throws Exception
-   {
+   public static StringBuffer getFilteredText(String file) throws Exception {
       HTMLFilter hf = new HTMLFilter(file);
 		hf.run();
       return hf._content;
@@ -923,8 +857,7 @@ public class HTMLFilter extends NodeVisitor
     * Extract text content from a string and returns it
     * @htmlString  String from which the content needs to be extracted
     */
-   public static StringBuffer getFilteredTextFromString(String htmlString) throws Exception
-   {
+   public static StringBuffer getFilteredTextFromString(String htmlString) throws Exception {
       HTMLFilter hf = new HTMLFilter();
       hf._outputToFile = false;
 		Parser parser = Parser.createParser(htmlString, "UTF-8");
@@ -932,8 +865,7 @@ public class HTMLFilter extends NodeVisitor
       return hf._content;
    }
 
-	public static void main(String[] args) throws ParserException 
-	{
+	public static void main(String[] args) throws ParserException {
 		if (args.length == 0) {
 			System.out.println("USAGE: java HTMLFilter [-debug] [-o <output-dir>] [(-urllist <file>) OR (-filelist <file>) OR ((-u <url>) OR ([-url <url>] <file>))*]");
 			return;
@@ -954,8 +886,7 @@ public class HTMLFilter extends NodeVisitor
 			argIndex += 2;
 			nextArg = args[argIndex];
 			File d = new File(outDir);
-			if (!d.exists())
-				d.mkdir();
+			if (!d.exists()) d.mkdir();
 		}
 
 			/* Parse the other arguments .. the list of files/urls to be filtered */
@@ -965,25 +896,21 @@ public class HTMLFilter extends NodeVisitor
 				DataInputStream fileNameStream = new DataInputStream(new FileInputStream(args[argIndex+1]));
 				while (true) {
 					String line = fileNameStream.readLine();
-					if (line == null)
-						break;
+					if (line == null) break;
 					try {
 						HTMLFilter hf = new HTMLFilter(line, outDir, urls);
 						if (debug) hf.debug();
 						hf.run();
-					}
-					catch (Exception e) {
+					} catch (Exception e) {
 						System.err.println("ERROR filtering " + line);
 						System.err.println("Exception: " + e);
 						e.printStackTrace();
 					}
 				}
-			}
-			catch (java.io.IOException e) {
+			} catch (java.io.IOException e) {
 				System.err.println("IO exception " + e);
 			}
-		}
-		else {
+		} else {
 			for (int i = argIndex; i < args.length; i++) {
 				try {
 					boolean isUrl  = args[i].equals("-u");
@@ -992,27 +919,25 @@ public class HTMLFilter extends NodeVisitor
 						if (debug) hf.debug();
 						hf.run();
 						i++;
-					}
-					else {
+					} else {
 						if (args[i].equals("-url")) {
 //							System.out.println("URL - " + args[i+1] + "; fname - " + args[i+2]);
 							HTMLFilter hf = new HTMLFilter(args[i+1], args[i+2], outDir);
 							if (debug) hf.debug();
 							hf.run();
 							i += 2;
-						}
-						else {
+						} else {
 							HTMLFilter hf = new HTMLFilter(args[i], outDir, false);
 							if (debug) hf.debug();
 							hf.run();
 						}
 					}
-				}
-				catch (Exception e) {
-					if (args[i].equals("-u") || args[i].equals("-url"))
+				} catch (Exception e) {
+					if (args[i].equals("-u") || args[i].equals("-url")) {
 						System.err.println("ERROR filtering " + args[i+1]);
-					else
+					} else {
 						System.err.println("ERROR filtering " + args[i]);
+					}
 					System.err.println("Exception: " + e);
 					e.printStackTrace();
 				}
