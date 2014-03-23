@@ -10,208 +10,81 @@ import java.util.Hashtable;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
+import org.jsoup.Jsoup;
+import org.jsoup.Connection;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.nodes.Node;
+import org.jsoup.select.NodeTraversor;
+import org.jsoup.select.NodeVisitor;
+import com.wuman.jreadability.Readability;
+
 import newsrack.NewsRack;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.htmlparser.Parser;
-import org.htmlparser.PrototypicalNodeFactory;
-import org.htmlparser.Tag;
-import org.htmlparser.Text;
-import org.htmlparser.tags.MetaTag;
-import org.htmlparser.util.ParserException;
-import org.htmlparser.visitors.NodeVisitor;
 
-public class HTMLFilter extends NodeVisitor {
+public class HTMLFilter {
    	// Logging output for this class
    private static Log _log = LogFactory.getLog(HTMLFilter.class);
-
-	public static final String[] IGNORE_ELTS = {
-		"SCRIPT", "NOSCRIPT", "STYLE", "MARQUEE", "APPLET", "MAP",
-		"SELECT", "A", "LABEL",
-// Note: Even though the following tags below are included here,
-// they NEED NOT BE included because these are standalone tags.
-// They dont come in the form <TAG> ... </TAG>.
-// They come in the form <TAG ... />
-// So, the only call to the Visitor will be to "visitTag" --
-// there wont be any corresponding call to "visitEndTag"
-// But, including them in this list to avoid confusion
-//		"AREA", "OPTION", "IMG", "INPUT",
-	};
-
-	public static final String[] BLOCK_ELTS = {
-		"HTML", "BODY",
-		"P", "DIV", "PRE", "BLOCKQUOTE", "CENTER", "ADDRESS", "FORM",
-		"UL", "OL", "LI", "DL", "DD", "DT",
-		"H1", "H2", "H3", "H4", "H5", "H6",
-		"TABLE", "THEAD", "TBODY", "TFOOT", "TH", "TD", "TR"
-	};
-
-	public static final Hashtable BLOCK_ELTS_TBL;
-	public static final Hashtable IGNORE_ELTS_TBL;
-
 	private static String  _lineSep;	// Line separator
 
+	// This walks the DOM and emits readable text
+	private static class TextDumper implements NodeVisitor {
+		StringBuffer buf;
+		TextDumper() { this.buf = new StringBuffer(); }
+
+		public void head(Node n, int depth) {
+			if (n instanceof Element) {
+				Element e = (Element)n;
+				if (e.isBlock()) {
+					buf.append("\n\n");
+				}
+			} else if (n instanceof TextNode) {
+				buf.append(((TextNode)n).text());
+			}
+		}
+
+		public void tail(Node n, int depth) { }
+
+		public String dumpText(Document doc) {
+			NodeTraversor t = new NodeTraversor(this);
+			t.traverse(doc.body());
+			return buf.toString();
+		}
+	}
+
 	static {
-		IGNORE_ELTS_TBL = new Hashtable();
-		for (String element : IGNORE_ELTS)
-			IGNORE_ELTS_TBL.put(element, "");
-
-		BLOCK_ELTS_TBL = new Hashtable();
-		for (String element : BLOCK_ELTS)
-			BLOCK_ELTS_TBL.put(element, "");
-
 		_lineSep = System.getProperty("line.separator");
-
-		org.htmlparser.scanners.ScriptScanner.STRICT = false;	// Turn off strict parsing of cdata
-      org.htmlparser.lexer.Lexer.STRICT_REMARKS = false; 	// Turn off strict parsing of HTML comments
-		java.net.HttpURLConnection.setFollowRedirects(false);	// Turn off automatic redirect processing
-	}
-
-	public static void clearCookieJar() {
-         // Hack! disabling and enabling cookie processing on the connection manager clears the cookie jar!
-      Parser.getConnectionManager().setCookieProcessingEnabled(false);
-      Parser.getConnectionManager().setCookieProcessingEnabled(true);
-	}
-
-	private static void DEBUG(String msg) {
-		System.out.println(msg);
-		if (_log != null) _log.info("DEBUG: " + msg);
-	}
-
-	static private class DOM_Node_Info {
-		static int _overallApproxContentSize;
-
-		static void init() {
-			_overallApproxContentSize = 0;
-		}
-
-		boolean      debug;
-		boolean      ignoreContent;				// Flag to ignore all content contained in the DOM subtree rooted here
-															// Used for special-case hacks right now
-
-		String       tagName;						// Tag for this DOM node
-		int          totalContentSize;			// Total size of all content in the subtree rooted at this dom node
-		StringBuffer currUnfilteredContent;		// Buffer containing current unfiltered content
-															// (all text from some DOM descendents might have been discarded)
-		StringBuffer currFilteredContent;		// Buffer containing current filtered content
-															// (all text from some DOM descendents might have been discarded
-															//   + anchor text from some DOM descendents might have been discarded)
-
-		public DOM_Node_Info(String t) {
-			tagName = t;
-			totalContentSize = 0;
-			currUnfilteredContent = new StringBuffer();
-			currFilteredContent = new StringBuffer();
-			ignoreContent = false;
-		}
-
-		public void appendUnfilteredContent(String s) {
-			if (ignoreContent) return;
-
-			currUnfilteredContent.append(s);
-			totalContentSize += s.length();
-		}
-
-		public void appendContent(String s) {
-			if (ignoreContent) return;
-
-			currUnfilteredContent.append(s);
-			currFilteredContent.append(s);
-			int n = s.length();
-			totalContentSize += n;
-			_overallApproxContentSize += n;
-		}
-
-		public void discardContent() {
-			currUnfilteredContent = new StringBuffer();
-			currFilteredContent = new StringBuffer();
-		}
-
-		public boolean shouldKeepBlockContent() {
-			// HEURISTIC:
-			// - If filtered content is less than 50% of the full text content, chuck it!
-			// - If over 50%, check if the content we are considering will lead to at least 5% of all content from this block
-			//   If not, it might just be that this is just a header for some link block -- so no use retaining it!
-			int b1_len = currUnfilteredContent.length();
-			int b2_len = currFilteredContent.length();
-			if (debug) HTMLFilter.DEBUG("b1_len - " + b1_len + "; b2_len - " + b2_len + "; n1 - " + totalContentSize);
-			return (   (b2_len * 1.0 / b1_len) >= 0.5
-					  && (b1_len * 1.0 / (b1_len + totalContentSize) >= 0.05));
-		}
-
-		public void swallowChild(DOM_Node_Info child, boolean discardContent) {
-			if (discardContent) { if (debug) HTMLFilter.DEBUG("BLK: Discarding " + child.currUnfilteredContent.toString().replaceAll("\n", "|"));
-			}
-			else {
-				String childContent = child.currUnfilteredContent.toString();
-				currUnfilteredContent.append(childContent);
-				currFilteredContent.append(childContent);
-				if (debug) HTMLFilter.DEBUG("BLK: Accumulating " + childContent.replaceAll("\n", "|"));
-			}
-
-			// No matter whether we discarded child content or not, we accumulate how much content exists in this dom subtree
-			totalContentSize += child.totalContentSize;
-		}
 	}
 
    private boolean      _debug; // Debugging?
-	private Stack<String> _ignoreFlagStack;
-	private Stack<DOM_Node_Info> _eltContentStack;
 	private String		   _title;
-	private StringBuffer _content;
+	private String       _content;
 	private String       _origHtml;
 	private String       _url;
 	private String       _urlDomain;
-	private String       _file;
+	private File         _file;
 	private PrintWriter  _pw;
 	private OutputStream _os;
 	private boolean      _closeStream;	// Should I close output streams after I am done?
-	private boolean	   _PREtagContent;
-	private boolean	   _isTitleTag;
    private boolean      _outputToFile; // Should the content be output to a file?
-	private boolean	   _ignoreComments;	// Should we ignore comments?
-		// Next field is for domain-specific hacks
-	private boolean	   _ignoreEverything;
-		// Next 2 fields for Newkerala.com hack -- May 18, 2006
-	private boolean	   _foundKonaBody;
-	private Stack        _spanTagStack;
-		// Next field is for Mumbai/Bangalore Mirror hack -- June 7, 2009
-	private boolean      _isBMmirror;
-		// Next field is for PTI hack -- Aug 18, 2010
-	private boolean      _isPTI;
 
-	private void initFilter() {
-		_title            = "";
-		_content          = null;
-		_PREtagContent    = false;
-		_isTitleTag       = false;
-		_ignoreFlagStack  = new Stack<String>();
-		_eltContentStack  = new Stack<DOM_Node_Info>();
-		_closeStream      = false;
-		_spanTagStack     = new Stack();
-      _outputToFile     = true;     // By default, content is written to file!
-		_ignoreComments   = true;		// By default, we ignore comments and everything else after that.
-		_ignoreEverything = false;
-		_foundKonaBody    = false;
-		_isBMmirror       = false;
-		_isPTI            = false;
-		_debug            = false;
-
-		DOM_Node_Info.init();
-
-			// Set up some default connection properties!
-		Hashtable headers = new Hashtable();
+	public Connection setHeaders(Connection c) {
 		String ua = NewsRack.getProperty("useragent.string");
 		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
-		headers.put("User-Agent", ua);
-      headers.put("Accept-Encoding", "gzip, deflate");
+		return c.userAgent(ua).header("Accept-Encoding", "gzip, deflate");
+	}
 
-		Parser.getConnectionManager().setCookieProcessingEnabled(true);
-		Parser.getConnectionManager().setRedirectionProcessingEnabled(true);
-		Parser.getConnectionManager().setDefaultRequestProperties(headers);
+	private void initFilter() {
+		_title        = "";
+		_content      = null;
+		_closeStream  = false;
+      _outputToFile = true;     // By default, content is written to file!
+		_debug        = false;
 	}
 
 	private HTMLFilter() {
@@ -221,12 +94,6 @@ public class HTMLFilter extends NodeVisitor {
 	private void setUrl(String url) {
 		_url = url;
 		_urlDomain = StringUtils.getDomainForUrl(_url);
-
-			// Mumbai/Bangalore Mirror specific hack -- June 7, 2009
-		_isBMmirror = _urlDomain.equals("bangaloremirror.com") || _urlDomain.equals("mumbaimirror.com");
-
-		   // PTI specific hack -- Aug 18, 2010
-		_isPTI = _urlDomain.equals("ptinews.com");
 	}
 
 	/**
@@ -235,7 +102,7 @@ public class HTMLFilter extends NodeVisitor {
 	public HTMLFilter(String file) {
 		initFilter();
 		_outputToFile = false;
-		_file = file;
+		_file = new File(file);
 	}
 
 	/**
@@ -247,7 +114,7 @@ public class HTMLFilter extends NodeVisitor {
 		initFilter();
 		_pw = pw;
 		if (isURL) setUrl(fileOrUrl);
-		else _file = fileOrUrl;
+		else _file = new File(fileOrUrl);
 	}
 
 	/**
@@ -259,7 +126,7 @@ public class HTMLFilter extends NodeVisitor {
 		initFilter();
 		_os  = os;
 		if (isURL) setUrl(fileOrUrl);
-		else _file = fileOrUrl;
+		else _file = new File(fileOrUrl);
 	}
 
 	/**
@@ -277,11 +144,11 @@ public class HTMLFilter extends NodeVisitor {
 			sep = '/';
 			setUrl(fileOrUrl);
 		} else {
-			_file = fileOrUrl;
+			_file = new File(fileOrUrl);
 			sep = File.separatorChar;
 		}
 		_pw = IOUtils.getUTF8Writer(outputDir + File.separator + fileOrUrl.substring(1 + fileOrUrl.lastIndexOf(sep)));
-			// Since I have opened these streams, I should close them after I am done!
+		// Since I have opened these streams, I should close them after I am done!
 		_closeStream = true;
 	}
 
@@ -295,7 +162,7 @@ public class HTMLFilter extends NodeVisitor {
 	public HTMLFilter(String url, String file, String outputDir) throws java.io.IOException {
 		initFilter();
 		setUrl(url);
-		_file = file;
+		_file = new File(file);
 		_pw = IOUtils.getUTF8Writer(outputDir + File.separator + file.substring(1 + file.lastIndexOf(File.separatorChar)));
 			// Since I have opened these streams, I should close them after I am done!
 		_closeStream = true;
@@ -307,393 +174,53 @@ public class HTMLFilter extends NodeVisitor {
 
 	public String getUrl() { return _url; }
 
+	private void extractText(Document doc) {
+		// Init orig html and title
+		_origHtml = doc.outerHtml();
+		_title = doc.title();
+
+		// Clean it up!
+		Readability r = new Readability(doc);
+		r.init();
+
+		// Finally, output new content!
+		_content = (new TextDumper()).dumpText(doc);
+      if (_outputToFile) outputToFile(_content);
+	}
+
+	private Document fetchDoc(String url) throws IOException {
+		Connection c = Jsoup.connect(_url);
+		Document doc = setHeaders(c).get();
+		_url = c.request().url().toString();
+		return doc;
+	}
+
 	public void run() throws Exception {
-		Parser parser;
+		Document doc = null;
 		try {
-		   parser = new Parser((_file != null) ? _file : _url);
+			if (_file != null) {
+				doc = Jsoup.parse(_file, null);
+			} else {
+				doc = fetchDoc(_url);
+			}
 		} catch (Exception e) {
 			String msg = e.toString();
 			int    i   = msg.indexOf("no protocol:");
 			if (i > 0 && _url != null) {
 				String urlSuffix = msg.substring(i + 13);
 				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + _urlDomain + urlSuffix);
-				parser = new Parser(_urlDomain + urlSuffix);
+
+				// Retry
+				fetchDoc(_urlDomain + urlSuffix);
 			} else {
 				throw e;
 			}
 		}
-		parseNow(parser, this);
-		_url = parser.getURL();
-		_origHtml = parser.getLexer().getPage().getText();
+
+		extractText(doc);
 	}
 
-	public void setIgnoreCommentsHeuristic(boolean flag) { _ignoreComments = flag; }
-
-   @Override
-	public boolean shouldRecurseSelf() { return true; }
-
-   @Override
-	public boolean shouldRecurseChildren() { return true; }
-
-   @Override
-	public void beginParsing() { startDocument(); }
-
-	private void startDocument() {
-		_content = new StringBuffer();
-	}
-
-	private void pushNewTag(String tagName) {
-		DOM_Node_Info di = new DOM_Node_Info(tagName);
-		di.debug = _debug;
-
-		// If my parent is in ignore content mode, I'll do the same as well!
-		if (!_eltContentStack.empty() && _eltContentStack.peek().ignoreContent) {
-			di.ignoreContent = true;
-		}
-
-		_eltContentStack.push(di);
-	}
-
-   @Override
-	public void visitTag(Tag tag) {
-		String tagName = tag.getTagName();
-		if (_debug) DEBUG("ST. TAG - " + tagName + "; name attribute - " + tag.getAttribute("name"));
-
-		if (IGNORE_ELTS_TBL.get(tagName) != null) {
-			if (tagName.equals("A")) {
-				// SPECIAL CASE: Don't ignore non-href anchor tags
-				// Required so that Hindustan Times article titles don't get stripped out!
-				String href = tag.getAttribute("HREF");
-				if (href == null || href.equals("")) {
-					// If we hit an inline anchor named comments, we assume that we have run into comments on the page.
-					String name = tag.getAttribute("NAME");
-					if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && (name != null) && name.equals("comments")) {
-						if (_debug) DEBUG("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
-						_ignoreEverything = true;
-					}
-					return;
-				}
-			}
-			_ignoreFlagStack.push(tagName);
-			if (_debug) DEBUG("--> PUSHED");
-		} else if (tagName.equals("BR")) {
-			// India together articles have some strange html that leads to empty stack here!
-			// Otherwise this check is normally not necessary!
-			if (!_eltContentStack.isEmpty()) {
-				DOM_Node_Info topElt = _eltContentStack.peek();
-				topElt.appendContent("\n");
-			}
-		} else if (tagName.equals("PRE")) {
-			_PREtagContent = true;
-		} else if (tagName.equals("TITLE")) {
-			_isTitleTag = true;
-		} else if (tagName.equals("HTML") || tagName.equals("BODY")) {
-			if (_debug) DEBUG("Pushing new dom-node-info for " + tagName);
-			pushNewTag(tagName);
-		} else {
-				// Push a new dom-node-info only for block elements
-			if (BLOCK_ELTS_TBL.get(tagName) != null) {
-				if (_debug) DEBUG("Pushing new dom-node-info for " + tagName);
-				pushNewTag(tagName);
-			}
-
-			// DNA uses iframes
-			//   <iframe src="/comments_link.php?newsid=1346702" name="/comments_frame910.php?newsid=1346702" width="100%" id="comment_frame" marginheight="0" frameborder="0" scrolling="no" onload="frame_auto_resize('comment_frame',230);"></iframe>
-			if (tagName.equals("DIV") || tagName.equals("IFRAME")) {
-				String divClass = tag.getAttribute("class");
-				String divId = tag.getAttribute("id");
-				if (divId != null) {
-						// Mumbai/Bangalore Mirror hack -- June 7, 2009
-						// Everything after id="tags" is not required.
-					if (_isBMmirror && divId.equals("tags"))
-						_ignoreEverything = true;
-
-						// Assume that if we hit a div with an id that has comment in its name we have hit comments.
-				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divId.toLowerCase().matches(".*comments?$|^comment.*$")) {
-						if (_debug) DEBUG("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
-						_ignoreEverything = true;
-					}
-				}
-
-				if (divClass != null) {
-						// Ignore all content from the image carousel!
-					if (_isPTI && divClass.toLowerCase().matches("stepcarousel"))
-						_eltContentStack.peek().ignoreContent = true;
-
-						// Assume that if we hit a div with a class that has comment in its name we have hit comments.
-				   if (_ignoreComments && DOM_Node_Info._overallApproxContentSize > 2000 && divClass.toLowerCase().matches(".*comments?$|^comment.*$")) {
-						if (_debug) DEBUG("ignoring comments .. overall approx content size: " + DOM_Node_Info._overallApproxContentSize);
-						_ignoreEverything = true;
-					}
-				}
-			}
-
-			if (!_ignoreEverything && (BLOCK_ELTS_TBL.get(tagName) != null)) {
-				DOM_Node_Info topElt = _eltContentStack.peek();
-				topElt.appendContent("\n\n");
-			} else if (tagName.equals("SPAN")) {
-				// Newkerala.com hack -- May 18, 2006
-				String nameAttr = tag.getAttribute("name");
-				if ((nameAttr != null) && nameAttr.equals("KonaBody")) {
-					_foundKonaBody = true;
-					_spanTagStack.push("KONABODY_SPAN");
-				} else {
-					_spanTagStack.push("SPAN");
-				}
-			}
-		}
-	}
-
-	private void processCurrStackElt() {
-		DOM_Node_Info top = _eltContentStack.pop();
-		if (_debug) DEBUG("Popping dom-node-info for " + top.tagName);
-
-		// If we are the end, the unfiltered buffer contains our content
-		if (_eltContentStack.isEmpty()) {
-			_content.append(top.currUnfilteredContent.toString());
-		} else {
-			DOM_Node_Info parent = _eltContentStack.peek();
-				// Rather than treat all siblings at a DOM-level identically, we assume that a block element
-				// effectively introduces an artificial block consisting of all DOM siblings seen so far!
-				// i.e. if [ ... DIV ... ] represents the current tree-nesting level in the DOM tree,
-				// process siblings to the left of DIV as if it were in its own block.
-				//
-				// IMPORTANT: Process left siblings *before* processing the current block DOM element
-			if (!parent.shouldKeepBlockContent()) {
-				if (_debug) DEBUG("BLK: Discarding " + parent.currUnfilteredContent.toString().replaceAll("\n", "|"));
-				parent.discardContent();
-			}
-
-				// Keep everything in child or dump it all!
-			if (top.shouldKeepBlockContent()) {
-				parent.swallowChild(top, false);
-			} else {
-				parent.swallowChild(top, true);
-			}
-		}
-	}
-
-   @Override
-	public void visitEndTag(Tag tag) {
-		String tagName = tag.getTagName();
-
-		if (_debug) DEBUG("END : " + tagName);
-
-		if (!_eltContentStack.isEmpty()) {
-			DOM_Node_Info topElt = _eltContentStack.peek();
-			if (topElt != null) {
-				if (topElt.tagName.equals(tagName)) {
-					processCurrStackElt();
-				} else {
-					if (_debug) DEBUG(" ... Waiting for " + topElt.tagName + "; got " + tagName);
-				}
-			}
-		}
-
-		if (!_ignoreFlagStack.isEmpty() && _ignoreFlagStack.peek().equals(tagName)) {
-			if (_debug) DEBUG("--> POPPED");
-			_ignoreFlagStack.pop();
-		}
-
-		if (tagName.equals("PRE")) {
-			_PREtagContent = false;
-		} else if (tagName.equals("TITLE")) {
-			_isTitleTag = false;
-		} else if (!_ignoreEverything && _foundKonaBody && tagName.equals("SPAN")) {
-			// Newkerala.com hack -- May 18, 2006
-			try {
-				Object spanTag = _spanTagStack.pop();
-				if (spanTag.equals("KONABODY_SPAN"))
-					_ignoreEverything = true;
-			} catch (Exception e) {
-				if (_log.isErrorEnabled()) _log.error("popped out all span tags already! .. empty stack!");
-			}
-		}
-	}
-
-	public void visitStringNode(Text string) {
-		String eltContent = string.getText();
-		if (_debug) DEBUG("TAG txt - " + eltContent);
-
-		if (_eltContentStack.isEmpty()) return;
-
-		DOM_Node_Info topElt = _eltContentStack.peek();
-
-			// If this text is coming in the context of a ignoreable tag, discard
-		if (!_ignoreFlagStack.isEmpty()) {
-		   if (_debug) DEBUG(" -- IGNORED");
-
-				// Add it to unfiltered buffer
-			String currIgnoreTag = _ignoreFlagStack.peek();
-			if (currIgnoreTag.equals("A") || currIgnoreTag.equals("LABEL")) {
-				topElt.appendUnfilteredContent(" " +eltContent.trim());
-			}
-
-			return;
-		} else if (_ignoreEverything) {
-			// Newkerala.com hack -- May 18, 2006
-		   if (_debug) DEBUG(" -- IGNORED");
-			return;
-		}
-
-		if (_PREtagContent) {
-			topElt.appendContent(eltContent);
-			if (_debug) DEBUG("PRE: Accumulating " + eltContent);
-		} else if (_isTitleTag) {
-			if (_debug) DEBUG("TITLE: ... " + eltContent);
-			if (_title.equals("")) {
-				_title = eltContent;
-			}
-		} else {
-			eltContent = collapseWhiteSpace(eltContent);
-			if (!isJunk(eltContent)) { // skip spurious content!
-				topElt.appendContent(eltContent);
-				if (_debug) DEBUG("NORMAL: Accumulating " + eltContent);
-			} else {
-				if (_debug) DEBUG("JUNK: Discarding " + eltContent);
-			}
-		}
-	}
-
-	public void finishedParsing() {
-		// We have unbalanced tags!
-		if (!_eltContentStack.isEmpty()) {
-			if (_debug) DEBUG("Malformed HTML? Got an unbalanced content stack!");
-			while (!_eltContentStack.isEmpty())
-				processCurrStackElt();
-		}
-
-		if (_url != null) {
-			String t1 = _title;
-
-				// Normalize white space
-			t1 = _title.replaceAll("(\n|\\s+)", " ").trim();
-
-				// Strip domain from title!
-			t1 = (Pattern.compile("^\\s*" + _urlDomain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
-			t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + _urlDomain + "\\s*$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
-
-				// If the title hasn't changed, check if we are actually in a subdomain -- retry with the main domain
-				// Ex: dealbook.blogs.nytimes.com --> retry with nytimes.com!
-			if (t1.equals(_title)) {
-				String[] domainParts = _urlDomain.split("\\.");
-				int      n           = domainParts.length;
-				if (n > 2) {
-					String domain = domainParts[n-2] + "." + domainParts[n-1];
-					t1 = (Pattern.compile("^" + domain + "\\s*[|\\-:]?\\s*", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
-					t1 = (Pattern.compile("\\s*[|\\-:]?\\s*" + domain + "\\s*[|\\-:]?$", Pattern.CASE_INSENSITIVE)).matcher(t1).replaceAll("");
-				}
-			}
-
-				// New title!
-			_title = t1;
-			if (_debug) DEBUG("ORIG TITLE: " + _title + "\nNEW TITLE: " + _title);
-		}
-
-			// Split the content around matches of the title, if any ... But, check this out!
-			// 1. Replace all space characters with the "\s+" regexp so that variations in number of white space won't trip up the match!
-			// 2. Replace all special characters with "." allowing for the matching to be more lenient
-			// 3. Replace colon(:), hyphen(-) with a regexp or (|) so that there is a greater chance of
-			//    finding a match of the title despite trailers / leaders in the title!  Since we are looking
-			//    for the smallest match, we are guaranteed that we'll hit the jackpot around the actual title!
-			// 4. Do two REs one where the '-' matches with anything, and another where '-' is converted to an "|"
-			//    Without this fix to the above strategy (3. above), we will have partial replacements
-			//    Ex: With title "Attack-hit women of Bangalore vent ire on the Web", only "Attack" will be
-			//        removed leaving a partial title in the article which is not as good as we can do.
-		String  titleRE = _title.replaceAll("\\s+","\\\\s+").replaceAll("(\\$|\\?|\\(|\\)|\\[|\\]|\\|\\*|\\^|\\.)", ".");
-		titleRE = titleRE.replaceAll("[:\\-]", ".") + "|" + titleRE.replaceAll("[:\\-]+", "|");
-		String[] xs = Pattern.compile(titleRE, Pattern.CASE_INSENSITIVE).split(_content, 2);
-		if ((xs.length > 1) && (xs[0].length() < xs[1].length())) {
-				// We are discarding xs[0] -- but, let us preserve any information about publishing date!
-			String[] linesBeingDiscarded = Pattern.compile("\n").split(xs[0]);
-			Pattern  datePattern         = Pattern.compile("^.*(volume|posted|published|updated).*(\\d+).*$");
-			String   dateLine            = "";
-			for (String line: linesBeingDiscarded) {
-				if (datePattern.matcher(line).matches()) {
-					dateLine = line.trim();
-					break;
-				}
-			}
-
-				// New content!
-			_content = (new StringBuffer(dateLine)).append("\n\n").append(xs[1]);
-			if (_debug) DEBUG("Stripping away " + xs[0].length() + " chars; Leaving " + xs[1].length() + " chars;\n Stripping away: " + xs[0]);
-		} else if (_debug) {
-			DEBUG("Got " + xs.length + " items from splitting around " + titleRE);
-			if (xs.length > 1)
-				DEBUG("xs[0] size: " + xs[0].length() + " chars; xs[1] size: " + xs[1].length() + " chars;\n xs[0]: " + xs[0]);
-		}
-
-/**
- * Not foolproof yet!
-
-			// Remove copyright notices
-		String[] strs = Pattern.compile("((Copyright|\\d+|&copy;)[\\s,;-]*){2,}((\\w+[\\s,;-]+){0,5}?\\s*((rights|reserved)\\s*)+)?").split(_content.toString());
-		_content = new StringBuffer();
-		for (String s: strs)
-			_content.append(s);
-**/
-
-			// Finally, output new content!
-      if (_outputToFile) outputToFile(_content);
-	}
-
-	private static String collapseWhiteSpace(String s) {
-		int          n     = s.length();
-		char[]       cs    = new char[n];
-		StringBuffer sb    = new StringBuffer();
-		boolean      ws    = false;
-		boolean      empty = true;
-
-		s.getChars(0, n, cs, 0);
-		for (int i = 0; i < n; i++) {
-			char c = cs[i];
-			if (Character.isWhitespace(c) || Character.isSpaceChar(c)) {
-				ws = true;
-			} else if ((c == '&')
-					// &nbsp; is considered white space
-				   && ((i+5) < n)
-					&& (cs[i+1] == 'n')
-					&& (cs[i+2] == 'b')
-					&& (cs[i+3] == 's')
-					&& (cs[i+4] == 'p')
-					&& (cs[i+5] == ';'))
-			{
-				i += 5;
-				ws = true;
-			} else {
-				if (ws) {
-					sb.append(' ');
-					ws = false;
-				} else if (empty) {
-					sb.append(' ');	// ensure there is white space before content
-				}
-				empty = false;
-				sb.append(c);
-			}
-		}
-		if (!ws) {
-			sb.append(' ');	// ensure there is white space after content
-		}
-
-		return sb.toString();
-	}
-
-	private static boolean isJunk(String sb) {
-		int     n  = sb.length();
-		char[]  cs = new char[n];
-		sb.getChars(0, n, cs, 0);
-		for (int i = 0; i < n; i++) {
-			char c = cs[i];
-			if (!Character.isWhitespace(c) && (c != '|') && (c != '-')) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private static String prettyPrint(StringBuffer s) {
+	private static String prettyPrint(String s) {
 		// NOTE: In the node visitor methods, I am using "\n" and
 		// not _lineSep.  It does not matter, because, in all those
 		// methods, "\n" is used as the generic line separator.
@@ -770,13 +297,14 @@ public class HTMLFilter extends NodeVisitor {
 		return sb.toString();
 	}
 
+
    /**
     * Returns the HTML tag that signals the beginning of the body text and
     * end of the preamble / header in the body text (see code for outputToFile)
     */
    public static String getHTMLTagSignallingEndOfPreamble() { return "h1"; }
 
-	private void outputToFile(StringBuffer data) {
+	private void outputToFile(String data) {
 		StringBuffer outBuf = new StringBuffer();
 		outBuf.append("<html>" + "\n" + "<head>\n");
 		outBuf.append("<title>" + _title + "</title>\n");
@@ -813,41 +341,11 @@ public class HTMLFilter extends NodeVisitor {
 		}
 	}
 
-	private static void ignoreCharSetChanges(Parser p) {
-		PrototypicalNodeFactory factory = new PrototypicalNodeFactory ();
-		factory.unregisterTag(new MetaTag());
-			// Unregister meta tag so that char set changes are ignored!
-		p.setNodeFactory (factory);
-	}
-
-	private static String parseNow(Parser p, HTMLFilter visitor) throws org.htmlparser.util.ParserException {
-		try {
-         //if (_log.isInfoEnabled()) _log.info("START encoding is " + p.getEncoding());
-			p.visitAllNodesWith(visitor);
-		} catch (org.htmlparser.util.EncodingChangeException e) {
-			try {
-				if (_log.isInfoEnabled()) _log.info("Caught you! CURRENT encoding is " + p.getEncoding());
-				visitor.initFilter();
-				p.reset();
-				p.visitAllNodesWith(visitor);
-			} catch (org.htmlparser.util.EncodingChangeException e2) {
-				if (_log.isInfoEnabled()) _log.info("CURRENT encoding is " + p.getEncoding());
-				if (_log.isInfoEnabled()) _log.info("--- CAUGHT you yet again! IGNORE meta tags now! ---");
-				visitor.initFilter();
-				p.reset();
-				ignoreCharSetChanges(p);
-				p.visitAllNodesWith(visitor);
-			}
-		}
-		//if (_log.isInfoEnabled()) _log.info("ENCODING IS " + p.getEncoding());
-		return p.getEncoding();
-	}
-
    /**
     * Extract text content from the file and return the content
     * @file  File from which the content needs to be extracted
     */
-   public static StringBuffer getFilteredText(String file) throws Exception {
+   public static String getFilteredText(String file) throws Exception {
       HTMLFilter hf = new HTMLFilter(file);
 		hf.run();
       return hf._content;
@@ -857,15 +355,14 @@ public class HTMLFilter extends NodeVisitor {
     * Extract text content from a string and returns it
     * @htmlString  String from which the content needs to be extracted
     */
-   public static StringBuffer getFilteredTextFromString(String htmlString) throws Exception {
+   public static String getFilteredTextFromString(String htmlString) throws Exception {
       HTMLFilter hf = new HTMLFilter();
       hf._outputToFile = false;
-		Parser parser = Parser.createParser(htmlString, "UTF-8");
-		parseNow(parser, hf);
+		hf.extractText(Jsoup.parse(htmlString));
       return hf._content;
    }
 
-	public static void main(String[] args) throws ParserException {
+	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.println("USAGE: java HTMLFilter [-debug] [-o <output-dir>] [(-urllist <file>) OR (-filelist <file>) OR ((-u <url>) OR ([-url <url>] <file>))*]");
 			return;

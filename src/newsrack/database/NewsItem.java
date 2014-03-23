@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
  * to the news archive.
  *
  * @author  Subramanya Sastry
- * @version 1.0 23/05/04
+ * @version 1.0 23/05/2004
  */
 abstract public class NewsItem implements java.io.Serializable {
 	public static NewsItem getNewsItemFromURL(String url) {
@@ -111,7 +111,6 @@ abstract public class NewsItem implements java.io.Serializable {
 								String origPath = getOrigFilePath().toString();
 								String filtPath = filtFile.toString();
 								hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
-								hf.setIgnoreCommentsHeuristic(false);
 								hf.run();
                   		_log.info("For file with path " + filtPath + ", filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
 								// See what happened now!
@@ -122,7 +121,6 @@ abstract public class NewsItem implements java.io.Serializable {
 									// Retry with debugging this time around (but without downloading first)
 									hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
 									hf.debug();
-									hf.setIgnoreCommentsHeuristic(false);
 									hf.run();
 								}
 
@@ -163,8 +161,8 @@ abstract public class NewsItem implements java.io.Serializable {
       // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
       newsrack.util.StringUtils.sleep(1);
 
-         // Clear the cookie jar after each download so that you get fresh cookies for each article
-		HTMLFilter.clearCookieJar();
+      // Clear the cookie jar after each download so that you get fresh cookies for each article
+		// HTMLFilter.clearCookieJar();
 
 		// We succeeded if the filtered file exists
 		return (getFilteredFilePath().exists());
