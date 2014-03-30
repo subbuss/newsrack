@@ -252,7 +252,7 @@ public final class IOUtils
 	 */
 	public static PrintWriter getUTF8Writer(String file) throws java.io.IOException
 	{
-		return new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")));
+		return getUTF8Writer(new FileOutputStream(file));
 	}
 
 	/**
@@ -278,20 +278,31 @@ public final class IOUtils
 	 */
 	public static Reader getUTF8Reader(String file) throws java.io.IOException
 	{
-		return new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+		return getUTF8Reader(new FileInputStream(file));
 	}
 
 	/**
-	 * Returns a buffered reader that reads data from UTF-8 encoded files.
-	 * The data to be read from the file need not all be English -- this
-	 * makes it important for the data to be read as UTF-8 rather than read
-	 * it using the default platform encoding
+	 * Returns a buffered reader that reads data from UTF-8 encoded streams.
 	 *
 	 * @param is InputStream from which data will be read
 	 */
 	public static Reader getUTF8Reader(InputStream is) throws java.io.IOException
 	{
 		return new BufferedReader(new InputStreamReader(is, "UTF-8"));
+	}
+
+	/**
+	 * Returns a buffered reader that reads data from UTF-8 encoded streams.
+	 * A certain number of tries are made to open an input stream within a
+	 * fixed time duration. Beyond that, a null stream is returned.
+	 * The timeout period is set at system initialization time -- default 5 seconds.
+	 *
+	 * @param u          URL which needs to be opened
+	 * @param numRetries number of times to try opening the input stream
+	 *                   in the face of socket time-outs
+	 */
+	public static Reader getUTF8Reader(URL u, int numRetries) throws IOException {
+		return getUTF8Reader(getURLInputStream(u, numRetries));
 	}
 
 	/**
