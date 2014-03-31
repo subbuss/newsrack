@@ -64,8 +64,7 @@ public class HTMLFilter {
    private boolean      _debug; // Debugging?
 	private String		   _title;
 	private String       _content;
-	private String       _origHtml;
-	private String       _url;
+    private String       _url;
 	private String       _urlDomain;
 	private File         _file;
 	private PrintWriter  _pw;
@@ -97,36 +96,15 @@ public class HTMLFilter {
 	}
 
 	/**
-	 * @param file File to parse
-	 */
-	public HTMLFilter(String file) {
-		initFilter();
-		_outputToFile = false;
-		_file = new File(file);
-	}
-
-	/**
-	 * @param fileOrUrl  File/URL that has to be filtered
-	 * @param pw         Print Writer to which filtered HTML should be written
-	 * @param isURL      True if 'fileOrUrl' is a URL
+	 * @param url   URL from which HTML was downloaded
+	 * @param input File containing HTML to filger
+	 * @param os    Output Stream to which filtered HTML should be written
 	 **/
-	public HTMLFilter(String fileOrUrl, PrintWriter pw, boolean isURL) {
+	public HTMLFilter(String url, File input, OutputStream os) {
 		initFilter();
-		_pw = pw;
-		if (isURL) setUrl(fileOrUrl);
-		else _file = new File(fileOrUrl);
-	}
-
-	/**
-	 * @param fileOrUrl  File/URL that has to be filtered
-	 * @param os         Output Stream to which filtered HTML should be written
-	 * @param isURL      True if 'fileOrUrl' is a URL
-	 **/
-	public HTMLFilter(String fileOrUrl, OutputStream os, boolean isURL) {
-		initFilter();
-		_os  = os;
-		if (isURL) setUrl(fileOrUrl);
-		else _file = new File(fileOrUrl);
+		_os = os;
+		_file = input;
+		setUrl(url);
 	}
 
 	/**
@@ -170,13 +148,8 @@ public class HTMLFilter {
 
 	public void debug() { _debug = true; }
 
-	public String getOrigHtml() { return _origHtml; }
-
-	public String getUrl() { return _url; }
-
-	private void extractText(Document doc) {
-		// Init orig html and title
-		_origHtml = doc.outerHtml();
+    private void extractText(Document doc) {
+		// Init title
 		_title = doc.title();
 
 		// Clean it up!
@@ -340,16 +313,6 @@ public class HTMLFilter {
 			}
 		}
 	}
-
-   /**
-    * Extract text content from the file and return the content
-    * @file  File from which the content needs to be extracted
-    */
-   public static String getFilteredText(String file) throws Exception {
-      HTMLFilter hf = new HTMLFilter(file);
-		hf.run();
-      return hf._content;
-   }
 
    /**
     * Extract text content from a string and returns it
