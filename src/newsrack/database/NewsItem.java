@@ -1,8 +1,10 @@
 package newsrack.database;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 
@@ -78,69 +80,45 @@ abstract public class NewsItem implements java.io.Serializable {
 
    public boolean download(DB_Interface dbi) throws Exception {
       PrintWriter filtPw = IOUtils.getUTF8Writer(dbi.getOutputStreamForFilteredArticle(this));
-		PrintWriter origPw = IOUtils.getUTF8Writer(dbi.getOutputStreamForOrigArticle(this));
+		OutputStream origOS = dbi.getOutputStreamForOrigArticle(this);
       String url = getURL();
       try {
-         if ((filtPw != null) && (origPw != null)) {
+         if ((filtPw != null) && (origOS != null)) {
             boolean done = false;
             int numTries = 0;
 				int MAX_RETRIES = 3;
             do {
                numTries++;
 
-               HTMLFilter hf = new HTMLFilter(url, filtPw, true);
-               hf.run();
-               String origText = hf.getOrigHtml();
+					IOUtils.copyInputToOutput(IOUtils.getURLInputStream(new URL(url), MAX_RETRIES), origOS, true);
+					File origFile = getOrigFilePath();
 
 					// Null or small file lengths implies there was an error downloading the url
-               if ((origText != null) && (origText.length() > 100)) {
-                  origPw.println(origText);
-						origPw.flush();
+					if (origFile.length() > 100) {
+						(new HTMLFilter(url, origFile, filtPw)).run();
+
                   done = true;
 
-						// Check the size of the filtered output.
-						// If we got a file size that is too small, try to filter again, this time while not using the comment ignoring heuristic.
 						filtPw.flush();
 						File filtFile = getFilteredFilePath();
 						long len = filtFile.length();
 						if (len < 900) {
-							boolean flag = getFeed().getIgnoreCommentsHeuristic();
-							if (flag == true) {
-								// Close original open writer first
-								try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
-
-								// Retry (but without downloading first)
-								String origPath = getOrigFilePath().toString();
-								String filtPath = filtFile.toString();
-								hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
-								hf.run();
-                  		_log.info("For file with path " + filtPath + ", filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
-								// See what happened now!
-								filtFile = getFilteredFilePath();
-								len = filtFile.length();
-								if (len < 600) {
-									try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
-									// Retry with debugging this time around (but without downloading first)
-									hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
-									hf.debug();
-									hf.run();
-								}
-
-							}
+                  	_log.info("For file with path " + filtFile.getPath() + ", filtered file length is " + len + ".");
 						}
-               } else if ((origText != null) && (origText.length() <= 100)) {
+               } else {
 						// Delete the files so they can be fetched afresh!
-						File origFile = getOrigFilePath();
 						if ((origFile != null) && origFile.exists()) {
-							if (!origFile.delete())
+							if (!origFile.delete()) {
 								_log.error("Could not delete file " + origFile);
+							}
 						}
 						File filtFile = getFilteredFilePath();
 						if ((filtFile != null) && filtFile.exists()) {
-							if (!filtFile.delete())
+							if (!filtFile.delete()) {
 								_log.error("Could not delete file " + filtFile);
+							}
 						}
-					} else {
+
                   _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
                   newsrack.util.StringUtils.sleep(5);
                }
@@ -156,7 +134,7 @@ abstract public class NewsItem implements java.io.Serializable {
          throw e;
       } finally {
             // close the files -- ignore any resulting exceptions
-         try { if (origPw != null) origPw.close(); } catch(Exception e) {}
+         try { if (origOS != null) origOS.close(); } catch(Exception e) {}
          try { if (filtPw != null) filtPw.close(); } catch(Exception e) {}
       }
 

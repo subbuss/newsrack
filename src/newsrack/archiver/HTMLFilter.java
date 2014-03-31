@@ -6,19 +6,18 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URL;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
-import org.jsoup.Jsoup;
-import org.jsoup.Connection;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
-import org.jsoup.nodes.Node;
-import org.jsoup.select.NodeTraversor;
-import org.jsoup.select.NodeVisitor;
-import com.wuman.jreadability.Readability;
+import org.xml.sax.InputSource;
+
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import de.l3s.boilerpipe.document.TextDocument;
+import de.l3s.boilerpipe.sax.BoilerpipeSAXInput;
 
 import newsrack.NewsRack;
 import newsrack.util.IOUtils;
@@ -32,31 +31,6 @@ public class HTMLFilter {
    private static Log _log = LogFactory.getLog(HTMLFilter.class);
 	private static String  _lineSep;	// Line separator
 
-	// This walks the DOM and emits readable text
-	private static class TextDumper implements NodeVisitor {
-		StringBuffer buf;
-		TextDumper() { this.buf = new StringBuffer(); }
-
-		public void head(Node n, int depth) {
-			if (n instanceof Element) {
-				Element e = (Element)n;
-				if (e.isBlock()) {
-					buf.append("\n\n");
-				}
-			} else if (n instanceof TextNode) {
-				buf.append(((TextNode)n).text());
-			}
-		}
-
-		public void tail(Node n, int depth) { }
-
-		public String dumpText(Document doc) {
-			NodeTraversor t = new NodeTraversor(this);
-			t.traverse(doc.body());
-			return buf.toString();
-		}
-	}
-
 	static {
 		_lineSep = System.getProperty("line.separator");
 	}
@@ -64,19 +38,12 @@ public class HTMLFilter {
    private boolean      _debug; // Debugging?
 	private String		   _title;
 	private String       _content;
-    private String       _url;
+	private String       _url;
 	private String       _urlDomain;
 	private File         _file;
 	private PrintWriter  _pw;
-	private OutputStream _os;
 	private boolean      _closeStream;	// Should I close output streams after I am done?
    private boolean      _outputToFile; // Should the content be output to a file?
-
-	public Connection setHeaders(Connection c) {
-		String ua = NewsRack.getProperty("useragent.string");
-		if (ua == null) ua = "NewsRack/1.0 (http://newsrack.in)";
-		return c.userAgent(ua).header("Accept-Encoding", "gzip, deflate");
-	}
 
 	private void initFilter() {
 		_title        = "";
@@ -98,11 +65,11 @@ public class HTMLFilter {
 	/**
 	 * @param url   URL from which HTML was downloaded
 	 * @param input File containing HTML to filger
-	 * @param os    Output Stream to which filtered HTML should be written
+	 * @param pw    Printwriter to which filtered HTML should be written
 	 **/
-	public HTMLFilter(String url, File input, OutputStream os) {
+	public HTMLFilter(String url, File input, PrintWriter pw) {
 		initFilter();
-		_os = os;
+		_pw = pw;
 		_file = input;
 		setUrl(url);
 	}
@@ -148,49 +115,24 @@ public class HTMLFilter {
 
 	public void debug() { _debug = true; }
 
-    private void extractText(Document doc) {
+	private void extractText(TextDocument doc) throws Exception {
 		// Init title
-		_title = doc.title();
-
-		// Clean it up!
-		Readability r = new Readability(doc);
-		r.init();
+		_title = doc.getTitle();
 
 		// Finally, output new content!
-		_content = (new TextDumper()).dumpText(doc);
+		_content = ArticleExtractor.INSTANCE.getText(doc);
       if (_outputToFile) outputToFile(_content);
 	}
 
-	private Document fetchDoc(String url) throws IOException {
-		Connection c = Jsoup.connect(_url);
-		Document doc = setHeaders(c).get();
-		_url = c.request().url().toString();
-		return doc;
-	}
-
 	public void run() throws Exception {
-		Document doc = null;
-		try {
-			if (_file != null) {
-				doc = Jsoup.parse(_file, null);
-			} else {
-				doc = fetchDoc(_url);
-			}
-		} catch (Exception e) {
-			String msg = e.toString();
-			int    i   = msg.indexOf("no protocol:");
-			if (i > 0 && _url != null) {
-				String urlSuffix = msg.substring(i + 13);
-				_log.info("Got malformed url exception " + msg + "; Retrying with url - " + _urlDomain + urlSuffix);
-
-				// Retry
-				fetchDoc(_urlDomain + urlSuffix);
-			} else {
-				throw e;
-			}
+		Reader r;
+		if (_file != null) {
+			r = IOUtils.getUTF8Reader(new FileInputStream(_file));
+		} else {
+			r = IOUtils.getUTF8Reader(new URL(_url), 3);
 		}
 
-		extractText(doc);
+		extractText(new BoilerpipeSAXInput(new InputSource(r)).getTextDocument());
 	}
 
 	private static String prettyPrint(String s) {
@@ -224,11 +166,9 @@ public class HTMLFilter {
 				if (numNLs > 0) {
 					lb.append(_lineSep);
 					numChars++;
-						// Replace 2 or more new lines by exactly 2 new lines
-					if (numNLs > 1) {
-						lb.append(_lineSep);
-						numChars++;
-					}
+					lb.append(_lineSep);
+					numChars++;
+
 						// Since the line is not junk,
 						// append the entire line to 'sb' and clear it out
 					sb.append(lb);
@@ -303,14 +243,6 @@ public class HTMLFilter {
 			_pw.println(outBuf);
 			_pw.flush();
 			if (_closeStream) _pw.close();
-		} else if (_os != null) {
-			try {
-				_os.write(outBuf.toString().getBytes("UTF-8"));
-				_os.flush();
-			} catch (Exception e) {
-            if (_log.isErrorEnabled()) _log.error("Error outputting data to output stream!");
-				e.printStackTrace();
-			}
 		}
 	}
 
@@ -321,7 +253,8 @@ public class HTMLFilter {
    public static String getFilteredTextFromString(String htmlString) throws Exception {
       HTMLFilter hf = new HTMLFilter();
       hf._outputToFile = false;
-		hf.extractText(Jsoup.parse(htmlString));
+		TextDocument doc = new BoilerpipeSAXInput(new InputSource(new StringReader(htmlString))).getTextDocument();
+		hf.extractText(doc);
       return hf._content;
    }
 
