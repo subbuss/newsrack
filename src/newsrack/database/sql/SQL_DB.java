@@ -2469,13 +2469,13 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * Get a print writer for writing the raw HTML of the article into
+	 * Get an output stream for writing the raw HTML of the article into
 	 *
 	 * @param ni The news item for which the writer is requested
     *
     * @returns null if a file exists for this news item!
 	 */
-	public PrintWriter getWriterForOrigArticle(NewsItem ni)
+	public OutputStream getOutputStreamForOrigArticle(NewsItem ni)
 	{
 		File f = ((SQL_NewsItem)ni).getOrigFilePath();
 			// Allow overwriting for empty files
@@ -2484,7 +2484,7 @@ public class SQL_DB extends DB_Interface
 		}
 
 		try {
-			return IOUtils.getUTF8Writer(f.getPath());
+			return new FileOutputStream(f.getPath());
 		} catch (java.io.IOException e) {
 			_log.error("SQL: getWriterForOrigArt: Error opening file for " + f.getPath());
 			return null;
@@ -2492,13 +2492,13 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * Get a print writer for writing the filtered article into (i.e. after their text content is extracted)
+	 * Get an output stream for writing the filtered article into (i.e. after their text content is extracted)
 	 *
 	 * @param ni The news item for which the writer is requested
     *
     * @returns null if a file exists for this news item!
 	 */
-	public PrintWriter getWriterForFilteredArticle(NewsItem ni)
+	public OutputStream getOutputStreamForFilteredArticle(NewsItem ni)
 	{
 		File f = ((SQL_NewsItem)ni).getFilteredFilePath();
 			// Allow overwriting for empty files
@@ -2508,7 +2508,7 @@ public class SQL_DB extends DB_Interface
 
 		if (_log.isInfoEnabled()) _log.info("Will write (in UTF-8) to " + f.getPath());
 		try {
-			return IOUtils.getUTF8Writer(f.getPath());
+			return new FileOutputStream(f.getPath());
 		} catch (java.io.IOException e) {
 			_log.error("SQL: getWriterForFilteredArt: Error opening file for " + f.getPath());
 			return null;

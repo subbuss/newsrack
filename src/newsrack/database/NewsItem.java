@@ -11,6 +11,7 @@ import newsrack.archiver.Feed;
 import newsrack.archiver.HTMLFilter;
 import newsrack.filter.Category;
 import newsrack.user.User;
+import newsrack.util.IOUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,13 +77,14 @@ abstract public class NewsItem implements java.io.Serializable {
 	}
 
    public boolean download(DB_Interface dbi) throws Exception {
-      PrintWriter filtPw = dbi.getWriterForFilteredArticle(this);
-		PrintWriter origPw = dbi.getWriterForOrigArticle(this);
+      PrintWriter filtPw = IOUtils.getUTF8Writer(dbi.getOutputStreamForFilteredArticle(this));
+		PrintWriter origPw = IOUtils.getUTF8Writer(dbi.getOutputStreamForOrigArticle(this));
       String url = getURL();
       try {
          if ((filtPw != null) && (origPw != null)) {
             boolean done = false;
             int numTries = 0;
+				int MAX_RETRIES = 3;
             do {
                numTries++;
 
@@ -142,7 +144,7 @@ abstract public class NewsItem implements java.io.Serializable {
                   _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
                   newsrack.util.StringUtils.sleep(5);
                }
-            } while (!done && (numTries < 3));
+            } while (!done && (numTries < MAX_RETRIES));
          } else {
             _log.info("Ignoring! There already exists a downloaded file for url: " + url);
          }
