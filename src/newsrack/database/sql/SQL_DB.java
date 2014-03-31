@@ -2477,20 +2477,16 @@ public class SQL_DB extends DB_Interface
 	 */
 	public PrintWriter getWriterForOrigArticle(NewsItem ni)
 	{
-		String url  = ni.getURL();
-		Feed   feed = ni.getFeed();
-		Date   d    = ni.getDate();
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
-      File f = new File(fpath);
+		File f = ((SQL_NewsItem)ni).getOrigFilePath();
 			// Allow overwriting for empty files
-      if (f.exists() && (f.length() > 0))
+      if (f.exists() && (f.length() > 0)) {
          return null;
+		}
 
 		try {
-			return IOUtils.getUTF8Writer(fpath);
-		}
-		catch (java.io.IOException e) {
-			_log.error("SQL: getWriterForOrigArt: Error opening file for " + fpath);
+			return IOUtils.getUTF8Writer(f.getPath());
+		} catch (java.io.IOException e) {
+			_log.error("SQL: getWriterForOrigArt: Error opening file for " + f.getPath());
 			return null;
 		}
 	}
@@ -2504,21 +2500,17 @@ public class SQL_DB extends DB_Interface
 	 */
 	public PrintWriter getWriterForFilteredArticle(NewsItem ni)
 	{
-		String url  = ni.getURL();
-		Feed   feed = ni.getFeed();
-		Date   d    = ni.getDate();
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) +  ((SQL_NewsItem)ni).getLocalFileName();
-      File f = new File(fpath);
+		File f = ((SQL_NewsItem)ni).getFilteredFilePath();
 			// Allow overwriting for empty files
-      if (f.exists() && (f.length() > 0))
+      if (f.exists() && (f.length() > 0)) {
          return null;
-
-		if (_log.isInfoEnabled()) _log.info("Will write (in UTF-8) to " + fpath);
-		try {
-			return IOUtils.getUTF8Writer(fpath);
 		}
-		catch (java.io.IOException e) {
-			_log.error("SQL: getWriterForFilteredArt: Error opening file for " + fpath);
+
+		if (_log.isInfoEnabled()) _log.info("Will write (in UTF-8) to " + f.getPath());
+		try {
+			return IOUtils.getUTF8Writer(f.getPath());
+		} catch (java.io.IOException e) {
+			_log.error("SQL: getWriterForFilteredArt: Error opening file for " + f.getPath());
 			return null;
 		}
 	}
