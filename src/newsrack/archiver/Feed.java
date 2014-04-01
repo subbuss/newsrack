@@ -430,7 +430,7 @@ public class Feed implements java.io.Serializable, Comparable {
             downloadRssFeed();
     }
 
-    private void downloadRssFeed() throws Exception {
+    private void downloadRssFeed() {
         if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 
         if (_numFetches > 100 && (_numFetches == _numFailures)) {

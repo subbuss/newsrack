@@ -21,7 +21,6 @@ public class Filter implements java.io.Serializable {
     private static int _defaultMinConceptHitScore;          // Minimum # of hits for a concept-rule to be triggered
     private static int _defaultMinMatchScore;             // Minimum score for a filter to be triggered
 
-    ;
     private static String _indent = "";
     private static Log _log = LogFactory.getLog(Filter.class);
     static {
