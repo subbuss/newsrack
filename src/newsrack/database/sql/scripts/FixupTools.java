@@ -1,34 +1,28 @@
 package newsrack.database.sql.scripts;
 
+import newsrack.NewsRack;
+import newsrack.archiver.Feed;
+import newsrack.archiver.HTMLFilter;
+import newsrack.archiver.Source;
+import newsrack.database.DB_Interface;
+import newsrack.database.NewsIndex;
+import newsrack.database.NewsItem;
+import newsrack.database.sql.*;
+import newsrack.filter.Category;
+import newsrack.filter.Issue;
+import newsrack.user.User;
+import newsrack.util.StringUtils;
+import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.xmlrules.DigesterLoader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.List;
-
-import newsrack.NewsRack;
-import newsrack.archiver.Feed;
-import newsrack.archiver.Source;
-import newsrack.archiver.HTMLFilter;
-import newsrack.database.DB_Interface;
-import newsrack.database.NewsIndex;
-import newsrack.database.NewsItem;
-import newsrack.database.sql.SQL_NewsIndex;
-import newsrack.database.sql.SQL_NewsItem;
-import newsrack.database.sql.SQL_Stmt;
-import newsrack.database.sql.SQL_StmtExecutor;
-import newsrack.database.sql.SQL_ValType;
-import newsrack.filter.Category;
-import newsrack.filter.Issue;
-import newsrack.user.User;
-import newsrack.util.StringUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.xmlrules.DigesterLoader;
 
 public class FixupTools
 {

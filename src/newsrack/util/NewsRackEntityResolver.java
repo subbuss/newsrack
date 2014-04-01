@@ -1,13 +1,12 @@
 package newsrack.util;
 
+import newsrack.NewsRack;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-
-import newsrack.NewsRack;
-
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
 
 /**
  * This class implements a newsrack-specific entity resolver,

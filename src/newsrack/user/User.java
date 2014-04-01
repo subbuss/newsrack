@@ -1,26 +1,9 @@
 package newsrack.user;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import newsrack.NewsRack;
 import newsrack.archiver.Source;
 import newsrack.database.DB_Interface;
-import newsrack.filter.Issue;
-import newsrack.filter.NR_Collection;
-import newsrack.filter.NR_CollectionType;
-import newsrack.filter.NR_SourceCollection;
-import newsrack.filter.PublicFile;
-import newsrack.filter.UserFile;
+import newsrack.filter.*;
 import newsrack.filter.parser.NRLanguageParser;
 import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
@@ -28,9 +11,14 @@ import newsrack.util.PasswordService;
 import newsrack.web.EditProfileException;
 import newsrack.web.InvalidPasswordException;
 import newsrack.web.UnknownUserException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.util.*;
 
 /**
  * class <code>User</code> encapsulates information about

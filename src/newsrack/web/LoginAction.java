@@ -1,12 +1,10 @@
 package newsrack.web;
 
+import com.opensymphony.xwork2.Action;
 import newsrack.NewsRack;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.opensymphony.xwork2.Action;
 
 public class LoginAction extends BaseAction
 {

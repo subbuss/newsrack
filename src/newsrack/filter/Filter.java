@@ -1,20 +1,14 @@
 package newsrack.filter;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import newsrack.NewsRack;
 import newsrack.database.DB_Interface;
 import newsrack.database.NewsItem;
 import newsrack.util.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.PrintWriter;
+import java.util.*;
 
 public class Filter implements java.io.Serializable
 {

@@ -1,11 +1,11 @@
 package newsrack.filter;
 
+import newsrack.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import newsrack.util.StringUtils;
 
 /**
  * The class <code>Concept</code> represents a concept which is

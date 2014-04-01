@@ -1,17 +1,15 @@
 package newsrack.util;
 
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.regex.Pattern;
-
+import com.opensymphony.oscache.base.NeedsRefreshException;
+import com.opensymphony.oscache.general.GeneralCacheAdministrator;
 import newsrack.NewsRack;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.htmlparser.http.ConnectionManager;
 
-import com.opensymphony.oscache.base.NeedsRefreshException;
-import com.opensymphony.oscache.general.GeneralCacheAdministrator;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.regex.Pattern;
 
 // This class canonicalizes urls of news stories so that we can more
 // easily recognize identical urls.  For now, this class hardcodes rules

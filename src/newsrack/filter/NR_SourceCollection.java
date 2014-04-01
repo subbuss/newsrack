@@ -1,12 +1,11 @@
 package newsrack.filter;
 
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import newsrack.archiver.Feed;
-import newsrack.archiver.Source;
-import newsrack.user.User;
 
 public final class NR_SourceCollection extends NR_Collection
 {

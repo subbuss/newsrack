@@ -1,16 +1,7 @@
 package newsrack.util;
 
-import java.io.Reader;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import newsrack.filter.UserFile;
 import newsrack.user.User;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -18,6 +9,13 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.Reader;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * This class provides auxilliary functionality to

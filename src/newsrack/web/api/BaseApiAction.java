@@ -1,7 +1,6 @@
 package newsrack.web.api;
 
 import newsrack.web.BaseAction;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

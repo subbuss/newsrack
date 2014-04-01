@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import newsrack.user.User;
-
 public final class NR_CategoryCollection extends NR_Collection
 {
 	private transient Map<String, Category> _map = null;  // Name --> Category mapping .. optimization!

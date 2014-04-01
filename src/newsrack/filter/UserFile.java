@@ -1,11 +1,11 @@
 package newsrack.filter;
 
-import java.io.Reader;
-import java.net.URL;
-
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
+
+import java.io.Reader;
+import java.net.URL;
 
 /**
  * The class <code>UserFile</code> represents a file in the user's profile

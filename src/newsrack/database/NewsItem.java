@@ -1,5 +1,14 @@
 package newsrack.database;
 
+import newsrack.NewsRack;
+import newsrack.archiver.Feed;
+import newsrack.archiver.HTMLFilter;
+import newsrack.filter.Category;
+import newsrack.user.User;
+import newsrack.util.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -7,16 +16,6 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
-
-import newsrack.NewsRack;
-import newsrack.archiver.Feed;
-import newsrack.archiver.HTMLFilter;
-import newsrack.filter.Category;
-import newsrack.user.User;
-import newsrack.util.IOUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * The class <code>NewsItem</code> represents a news item.

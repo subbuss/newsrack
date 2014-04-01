@@ -1,19 +1,16 @@
 package newsrack.web;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.PrintWriter;
-import java.io.Reader;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.opensymphony.xwork2.Action;
 import newsrack.util.IOUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.struts2.interceptor.ServletResponseAware;
 
-import com.opensymphony.xwork2.Action;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
 
 /**
  * class <code>FileActions</code> supports various file-related actions: 

@@ -1,27 +1,19 @@
 package newsrack.database;
 
+import newsrack.NewsRack;
+import newsrack.archiver.Feed;
+import newsrack.archiver.Source;
+import newsrack.filter.*;
+import newsrack.user.User;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-import newsrack.NewsRack;
-import newsrack.archiver.Feed;
-import newsrack.archiver.Source;
-import newsrack.filter.Category;
-import newsrack.filter.Concept;
-import newsrack.filter.Filter;
-import newsrack.filter.Issue;
-import newsrack.filter.NR_Collection;
-import newsrack.filter.NR_CollectionType;
-import newsrack.filter.PublicFile;
-import newsrack.filter.UserFile;
-import newsrack.user.User;
 
 /**
  * class <code>DB_Interface</code> encodes an interface to the

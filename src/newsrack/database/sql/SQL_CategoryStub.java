@@ -1,18 +1,10 @@
 package newsrack.database.sql;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
-
 import newsrack.database.NewsItem;
-import newsrack.filter.Category;
-import newsrack.filter.Concept;
-import newsrack.filter.Score;
-import newsrack.filter.Filter;
-import newsrack.filter.Issue;
+import newsrack.filter.*;
 import newsrack.user.User;
+
+import java.util.*;
 
 class SQL_CategoryStub extends Category
 {

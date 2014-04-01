@@ -1,16 +1,14 @@
 package newsrack.util;
 
+import newsrack.archiver.HTMLFilter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.File;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
-
-import newsrack.archiver.HTMLFilter;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * The class <code>StringUtils</code> provides string and other functionality

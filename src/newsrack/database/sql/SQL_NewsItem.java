@@ -1,21 +1,20 @@
 package newsrack.database.sql;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
 import newsrack.archiver.Feed;
 import newsrack.database.NewsItem;
 import newsrack.filter.Category;
 import newsrack.user.User;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * The class <code>SQL_NewsItem</code> represents a news item.

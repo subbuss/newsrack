@@ -1,12 +1,11 @@
 package newsrack.web;
 
-import java.util.Calendar;
-import java.util.Date;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * class <code>ReclassifyAction</code> implements the functionality

@@ -1,21 +1,14 @@
 package newsrack.archiver;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import newsrack.NewsRack;
 import newsrack.util.ProcessReader;
 import newsrack.util.ThreadManager;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.*;
 
 /**
  * class <code>SiteCrawlerTask</code> implements the functionality

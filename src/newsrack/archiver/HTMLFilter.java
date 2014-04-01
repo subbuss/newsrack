@@ -1,30 +1,16 @@
 package newsrack.archiver;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.net.URL;
-import java.util.Hashtable;
-import java.util.Stack;
-import java.util.regex.Pattern;
-
-import org.xml.sax.InputSource;
-
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import de.l3s.boilerpipe.document.TextDocument;
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import de.l3s.boilerpipe.sax.BoilerpipeSAXInput;
-
-import newsrack.NewsRack;
 import newsrack.util.IOUtils;
 import newsrack.util.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.xml.sax.InputSource;
+
+import java.io.*;
+import java.net.URL;
 
 public class HTMLFilter {
    	// Logging output for this class

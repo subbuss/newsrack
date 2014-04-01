@@ -1,12 +1,11 @@
 package newsrack.filter;
 
-import java.util.Collection;
-
 import newsrack.database.DB_Interface;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.util.Collection;
 
 public abstract class NR_Collection implements java.io.Serializable
 {

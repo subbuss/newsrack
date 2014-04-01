@@ -1,5 +1,9 @@
 package newsrack.database.sql;
 
+import newsrack.database.DB_Interface;
+import org.apache.commons.logging.Log;
+import snaq.db.ConnectionPool;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,12 +11,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import newsrack.database.DB_Interface;
-
-import org.apache.commons.logging.Log;
-
-import snaq.db.ConnectionPool;
 
 class GetStringResultProcessor extends AbstractResultProcessor
 {

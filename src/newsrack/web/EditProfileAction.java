@@ -1,13 +1,11 @@
 package newsrack.web;
 
-import java.util.Iterator;
-
+import com.opensymphony.xwork2.Action;
 import newsrack.util.ParseUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Iterator;
 
 /**
  * class <code>EditProfileAction</code> implements the functionality of editing the user profile.

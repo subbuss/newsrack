@@ -1,19 +1,17 @@
 package newsrack.database;
 
-import java.util.Map;
-import java.util.Properties;
-
-import newsrack.NewsRack;
-import newsrack.user.User;
-import newsrack.util.Tuple;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.opensymphony.oscache.base.NeedsRefreshException;
 import com.opensymphony.oscache.extra.CacheEntryEventListenerImpl;
 import com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl;
 import com.opensymphony.oscache.general.GeneralCacheAdministrator;
+import newsrack.NewsRack;
+import newsrack.user.User;
+import newsrack.util.Tuple;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.Map;
+import java.util.Properties;
 
 public class ObjectCache
 {

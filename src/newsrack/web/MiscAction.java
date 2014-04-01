@@ -1,19 +1,17 @@
 package newsrack.web;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import newsrack.archiver.Feed;
 import newsrack.archiver.Source;
 import newsrack.filter.NR_SourceCollection;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * class <code>MiscAction</code> implements miscellaneous functionality

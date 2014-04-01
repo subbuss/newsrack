@@ -1,20 +1,14 @@
 package newsrack.database.sql;
 
-import static newsrack.database.sql.SQL_ColumnSize.CAT_TBL_NAME;
-import static newsrack.database.sql.SQL_ColumnSize.FEED_TBL_FEEDURL;
-import static newsrack.database.sql.SQL_ColumnSize.NEWS_ITEM_TBL_URLROOT;
-import static newsrack.database.sql.SQL_ColumnSize.NEWS_ITEM_TBL_URLTAIL;
-import static newsrack.database.sql.SQL_ColumnSize.NONE;
-import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_EMAIL;
-import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_NAME;
-import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_PASSWORD;
-import static newsrack.database.sql.SQL_ColumnSize.USER_TBL_UID;
-import static newsrack.database.sql.SQL_ValType.BOOLEAN;
-import static newsrack.database.sql.SQL_ValType.DATE;
-import static newsrack.database.sql.SQL_ValType.INT;
-import static newsrack.database.sql.SQL_ValType.LONG;
-import static newsrack.database.sql.SQL_ValType.STRING;
-import static newsrack.database.sql.SQL_ValType.TIMESTAMP;
+import newsrack.archiver.Feed;
+import newsrack.database.DB_Interface;
+import newsrack.filter.*;
+import newsrack.filter.Filter.FilterOp;
+import newsrack.filter.Filter.RuleTerm;
+import newsrack.user.User;
+import newsrack.util.Triple;
+import newsrack.util.Tuple;
+import org.apache.commons.logging.Log;
 
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -24,27 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import newsrack.archiver.Feed;
-import newsrack.database.DB_Interface;
-import newsrack.filter.Category;
-import newsrack.filter.Concept;
-import newsrack.filter.Filter;
-import newsrack.filter.NR_CategoryCollection;
-import newsrack.filter.NR_Collection;
-import newsrack.filter.NR_CollectionType;
-import newsrack.filter.NR_ConceptCollection;
-import newsrack.filter.NR_FilterCollection;
-import newsrack.filter.NR_SourceCollection;
-import newsrack.filter.PublicFile;
-import newsrack.filter.Filter.FilterOp;
-import newsrack.filter.Filter.RuleTerm;
-import newsrack.filter.Filter.ProximityTerm;
-import newsrack.filter.UserFile;
-import newsrack.user.User;
-import newsrack.util.Triple;
-import newsrack.util.Tuple;
-
-import org.apache.commons.logging.Log;
+import static newsrack.database.sql.SQL_ColumnSize.*;
+import static newsrack.database.sql.SQL_ValType.*;
 
 class GetCollectionResultProcessor extends AbstractResultProcessor
 {

@@ -1,8 +1,8 @@
-package newsrack.database; 
-
-import java.sql.Date;
+package newsrack.database;
 
 import newsrack.archiver.Feed;
+
+import java.sql.Date;
 
 /**
  * This abstract class represents a news index in the back end -- it can either be a file handle

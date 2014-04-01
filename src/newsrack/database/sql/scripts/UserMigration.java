@@ -1,8 +1,5 @@
 package newsrack.database.sql.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import newsrack.NewsRack;
 import newsrack.archiver.Feed;
 import newsrack.archiver.Source;
@@ -10,9 +7,11 @@ import newsrack.database.sql.SQL_StmtExecutor;
 import newsrack.database.sql.SQL_ValType;
 import newsrack.filter.Issue;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserMigration
 {

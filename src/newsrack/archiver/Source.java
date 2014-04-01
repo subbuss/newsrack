@@ -1,13 +1,12 @@
 package newsrack.archiver;
 
-import java.util.Collection;
-
 import newsrack.database.DB_Interface;
 import newsrack.database.NewsItem;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.util.Collection;
 
 /**
  * The class <code>Source</code> represents a news source.

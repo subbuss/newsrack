@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import newsrack.user.User;
-
 public final class NR_ConceptCollection extends NR_Collection
 {
 	private transient Map<String, Concept> _map = null;  // Name --> Concept mapping .. optimization!

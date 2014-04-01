@@ -1,16 +1,14 @@
 package newsrack;
 
+import newsrack.database.DB_Interface;
+import newsrack.util.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import javax.servlet.ServletContext;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Properties;
-
-import javax.servlet.ServletContext;
-
-import newsrack.database.DB_Interface;
-import newsrack.util.IOUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * class <code>NewsRack</code> records system information

@@ -1,11 +1,11 @@
 package newsrack.database.sql;
 
-import java.util.Arrays;
-import java.util.Iterator;
-
 import newsrack.filter.Concept;
 import newsrack.filter.ConceptToken;
 import newsrack.filter.NR_ConceptCollection;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 public class SQL_ConceptStub extends Concept
 {

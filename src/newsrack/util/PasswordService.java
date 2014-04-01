@@ -1,5 +1,9 @@
 package newsrack.util;
 
+import newsrack.NewsRack;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.PrintWriter;
@@ -8,11 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import newsrack.NewsRack;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /** Adapted from http://www.devbistro.com/articles/Java/Password-Encryption **/
 

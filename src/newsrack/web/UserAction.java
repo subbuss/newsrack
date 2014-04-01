@@ -1,11 +1,9 @@
 package newsrack.web;
 
+import com.opensymphony.xwork2.Action;
 import newsrack.NewsRack;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * class <code>UserAction</code> supports various user-screen specific tasks

@@ -1,20 +1,18 @@
 package newsrack.web.api;
 
-import org.apache.struts2.interceptor.ServletRequestAware;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-
+import com.opensymphony.xwork2.Action;
 import newsrack.archiver.Source;
 import newsrack.database.NewsItem;
 import newsrack.filter.Category;
 import newsrack.filter.Issue;
 import newsrack.user.User;
+import org.apache.struts2.interceptor.ServletRequestAware;
 
-import com.opensymphony.xwork2.Action;
+import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * class <code>NewsAction</code> implements the functionality of fetching news and other news-related info

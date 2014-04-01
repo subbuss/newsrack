@@ -1,22 +1,16 @@
 package newsrack.web;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import newsrack.NewsRack;
 import newsrack.archiver.Source;
 import newsrack.database.NewsItem;
 import newsrack.filter.Category;
 import newsrack.filter.Issue;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.opensymphony.xwork2.Action;
+import java.util.*;
 
 /**
  * class <code>DeleteArticlesAction</code> implements the functionality

@@ -1,14 +1,5 @@
 package newsrack.filter;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import newsrack.NewsRack;
 import newsrack.archiver.Source;
 import newsrack.database.DB_Interface;
@@ -16,9 +7,11 @@ import newsrack.database.NewsItem;
 import newsrack.filter.Filter.RuleTerm;
 import newsrack.user.User;
 import newsrack.util.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.File;
+import java.util.*;
 
 /**
  * The class <code>Category</code> represents a category for

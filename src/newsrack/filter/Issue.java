@@ -1,25 +1,5 @@
 package newsrack.filter;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import newsrack.NewsRack;
 import newsrack.archiver.Feed;
 import newsrack.archiver.Source;
@@ -31,11 +11,19 @@ import newsrack.util.IOUtils;
 import newsrack.util.ParseUtils;
 import newsrack.util.ProcessReader;
 import newsrack.util.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 /**
  * The class <code>Issue</code> encapsulates an issue that some

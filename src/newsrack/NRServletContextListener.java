@@ -1,15 +1,13 @@
 package newsrack;
 
-import java.io.File;
+import newsrack.util.ThreadManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
-import newsrack.util.ThreadManager;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.File;
 
 /**
  * class <code>NRServletContextListener</code> is the main entry point for the News Rack Application.

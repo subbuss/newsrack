@@ -1,15 +1,14 @@
 package newsrack.util;
 
+import newsrack.archiver.DownloadNewsTask;
+import newsrack.archiver.SiteCrawlerTask;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.File;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Timer;
-
-import newsrack.archiver.DownloadNewsTask;
-import newsrack.archiver.SiteCrawlerTask;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * class <code>ThreadManager</code> keeps track of threads

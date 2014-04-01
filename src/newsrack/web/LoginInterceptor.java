@@ -1,16 +1,14 @@
 package newsrack.web;
 
-import java.util.Map;
-import java.util.Set;
-
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
 import newsrack.NewsRack;
 import newsrack.user.User;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
+import java.util.Map;
+import java.util.Set;
 
 public class LoginInterceptor extends AbstractInterceptor
 {
