@@ -81,11 +81,11 @@ public class Filter implements java.io.Serializable {
         }
     }
 
-    public final static void setMinConceptHitScore(int n) {
+    public static void setMinConceptHitScore(int n) {
         _defaultMinConceptHitScore = (n < 1) ? 1 : n;
     }
 
-    public final static void resetMinScores() {
+    public static void resetMinScores() {
         setMinMatchScore(GLOBAL_MIN_MATCH_SCORE);
         setMinConceptHitScore(GLOBAL_MIN_CONCEPT_HIT_SCORE);
     }
@@ -115,7 +115,7 @@ public class Filter implements java.io.Serializable {
     }
 
     // Set global minimum hit score for all filters
-    public final static void setMinMatchScore(int n) {
+    public static void setMinMatchScore(int n) {
         _defaultMinMatchScore = (n < 1) ? 1 : n;
     }
 

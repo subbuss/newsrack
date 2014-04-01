@@ -25,7 +25,6 @@ public class HTMLFilter {
     private String _title;
     private String _content;
     private String _url;
-    private String _urlDomain;
     private File _file;
     private PrintWriter _pw;
     private boolean _closeStream;    // Should I close output streams after I am done?
@@ -271,7 +270,6 @@ public class HTMLFilter {
 
     private void setUrl(String url) {
         _url = url;
-        _urlDomain = StringUtils.getDomainForUrl(_url);
     }
 
     public void debug() {

@@ -46,7 +46,7 @@ public class Histogram {
      will, may, might, can
  */
 
-    public final static void main(String[] args) {
+    public static void main(String[] args) {
         try {
             String fname = args[0];
             FileInputStream fis = new FileInputStream(new File(fname));

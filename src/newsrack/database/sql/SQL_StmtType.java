@@ -12,4 +12,4 @@ enum SQL_StmtType {
     public String toString() {
         return _name;
     }
-};
+}

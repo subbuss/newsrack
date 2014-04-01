@@ -31,10 +31,7 @@ public class IssueAction extends BaseApiAction {
         // Issue - mandatory
         String issueName = getApiParamValue("issue", false);
         _issue = (issueName == null) ? null : u.getIssue(issueName);
-        if (!validateParam(_issue, "issue_name", issueName))
-            return false;
-
-        return true;
+        return validateParam(_issue, "issue_name", issueName);
     }
 
     private String setupResults() {
