@@ -25,544 +25,552 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 
-public class Feed implements java.io.Serializable, Comparable
-{
-// ############### STATIC FIELDS AND METHODS ############
-   private static Log _log = LogFactory.getLog(Feed.class);
+public class Feed implements java.io.Serializable, Comparable {
+    // number of retries for connecting to a server
+    public static final short NUM_RETRIES = 2;
+    private static final HashMap<URL, File> _rssFeedCache = new HashMap<URL, File>();
 
-		// number of retries for connecting to a server
-	public static final short NUM_RETRIES = 2;
+    // NOTE: For the same _feedTag, there can be multiple Source objects.
+    // because different users might refer to the feeds using different tags and/or names.
+    // ############### STATIC FIELDS AND METHODS ############
+    private static Log _log = LogFactory.getLog(Feed.class);
+    // Sets that specify for which feeds / domains, the cached text for
+    // news articles cannot be displayed
+    private static Set<String> _feedsWithoutCachedTextDisplay;
+    private static Set<String> _domainsWithoutCachedTextDisplay;
 
-   // NOTE: For the same _feedTag, there can be multiple Source objects.
-   // because different users might refer to the feeds using different tags and/or names.
+    private static DB_Interface _db;        // Interface to the underlying database -- just a cached value
+    private static String _newsArchiveDir;    // Global news archive where all downloaded news is archived
 
-	private static final HashMap<URL, File> _rssFeedCache = new HashMap<URL, File>();
-
-      // Sets that specify for which feeds / domains, the cached text for
-      // news articles cannot be displayed
-   private static Set<String> _feedsWithoutCachedTextDisplay;
-   private static Set<String> _domainsWithoutCachedTextDisplay;
-
-	private static DB_Interface _db; 		// Interface to the underlying database -- just a cached value
-	private static String _newsArchiveDir;	// Global news archive where all downloaded news is archived
-
-      // Default value for MAX_DESC_SIZE
-   private static int MAX_DESC_SIZE = 2048;
-
-      // Read in a file that specifies for which feeds / domains,
-      // cached text cannot be displayed!
-   public static void init(DB_Interface db)
-   {
-		_db = db;
-		_newsArchiveDir = NewsRack.getGlobalNewsArchive();
-      MAX_DESC_SIZE = Integer.parseInt(NewsRack.getProperty("rss.max_description_size"));
-      readCachedTextDisplayRules();
-   }
-
-	public static Feed getFeed(String feedUrl, String tag, String feedName)
-	{
-		Feed f = _db.getFeed(feedUrl, tag, feedName);
-		f.setCachedTextDisplayFlag();
-		f._cacheableFlag = true; // @TODO fix this ... by default, setting cacheable flag to true
-
-		return f;
-	}
-
-	public static Feed buildNewFeed(String feedUrl, String tag, String feedName)
-	{
-		Feed f = new Feed();
-		f._feedUrl = feedUrl;
-
-		if (feedName == null) {
-			try {
-				if (f.isNewsRackFilter()) {
-					feedName = "NewsRack Filter";	// Dummy name!
-				}
-				else {
-					Triple<SyndFeed, String, Date> t = f.fetchFeed();
-					if (t == null)
-						return null;
-					SyndFeed sf = t._a;
-					feedName = sf.getTitle();
-				}
-			}
-			catch (Exception e) {
-				_log.error("Caught error parsing feed for name: ", e);
-				feedName = StringUtils.getDomainForUrl(feedUrl);
-			}
-		}
-
-		if (tag == null)
-			tag = StringUtils.getDomainForUrl(feedUrl);
-
-		f._feedName = feedName.trim();
-		f._feedTag = tag;
-
-		return f;
-	}
-
-	public static List<Feed> getActiveFeeds()
-	{
-		return _db.getAllActiveFeeds();
-	}
-
-   /**
-    * public because the xml digester requires the methods to be public
-    */
-   public static void recordFeed(String feed)
-   {
-         // Normalize URL
-      feed = normalizeURL(feed);
-      _feedsWithoutCachedTextDisplay.add(feed);
-      _log.debug("Got " + feed);
-   }
-
-   /**
-    * public because the xml digester requires the methods to be public
-    */
-   public static void recordDomain(String domain)
-   {
-         // Normalize URL
-      domain = normalizeURL(domain);
-      _domainsWithoutCachedTextDisplay.add(domain);
-      _log.debug("Got " + domain);
-   }
-
-   private static void readCachedTextDisplayRules()
-   {
-         // Allocate tables
-      _feedsWithoutCachedTextDisplay   = new HashSet<String>();
-      _domainsWithoutCachedTextDisplay = new HashSet<String>();
-
-         // Read the file
-		String    rulesFile     = "feeds.without.cachedtext.display.digester.rules.xml";
-		URL       digesterRules = Feed.class.getClassLoader().getResource(rulesFile);
-		boolean   info = _log.isInfoEnabled();
-		if (info) _log.info("rules file name is  " + rulesFile + "\nrules file URL  is  " + digesterRules);
-      try {
-		   URL  inputFile = Source.class.getClassLoader().getResource("cachedtext.nodisplay.xml");
-         File input     = new File(inputFile.toURI());
-			if (info) _log.info("rules - " + digesterRules + "\ninput - " + inputFile);
-			if (input.exists()) {
-				Digester d = DigesterLoader.createDigester(digesterRules);
-               // The digester API needs an object on the stack even for calling
-               // static methods .. so, just adding a dummy method there!
-            d.push(new Feed());
-            d.parse(input);
-			}
-			else {
-				if (info) _log.info("Did not find the file " + inputFile);
-			}
-      }
-		catch (Exception exc) {
-         exc.printStackTrace();
-      }
-   }
-
-   public static void refreshCachedTextDisplayRules()
-   {
-		readCachedTextDisplayRules();
-		List<Feed> allFeeds = _db.getAllFeeds();
-		for (Feed f: allFeeds) {
-			f.setCachedTextDisplayFlag();
-			_db.updateFeedCacheability(f);
-		}
-   }
-
-   private static String normalizeURL(String url)
-   {
-         // Make sure all urls begin with "http://"
-      if (!url.startsWith("http://"))
-         url = "http://" + url;
-
-         // If there is a "http://www." at the beginning,
-         // get rid of the "www."
-      if (url.startsWith("http://www."))
-			url = "http://" + url.substring(11);
-
-      return url;
-   }
+    // Default value for MAX_DESC_SIZE
+    private static int MAX_DESC_SIZE = 2048;
+    private Long _id;            // System-assigned unique id (int) for this feed
+    private String _feedTag;    // System-assigned unique id (String) for this feed
+    // INVARIANT: "_feedTag" has "_id" at the beginning!
+    private String _feedUrl;    // URL of the feed, if any exists.  null if none exists
+    private String _feedName;    // Display name for the feed
+    private int _numFetches;    // Number of fetches of this feed
+    private int _numFailures;    // Number of failed fetches
+    private boolean _cacheableFlag;
+    private boolean _cachedTextDisplayFlag;
+    private boolean _useIgnoreCommentsHeuristic;
 
 // ############### NON-STATIC FIELDS AND METHODS ############
-	/* 256 bytes for most => 4 feeds per KB => 4000 feeds per MB RAM */
+    /* 256 bytes for most => 4 feeds per KB => 4000 feeds per MB RAM */
 
-	private Long   _id;			// System-assigned unique id (int) for this feed
-	private String _feedTag;	// System-assigned unique id (String) for this feed
-		// INVARIANT: "_feedTag" has "_id" at the beginning!
-	private String _feedUrl;	// URL of the feed, if any exists.  null if none exists
-	private String _feedName;	// Display name for the feed
-	private int    _numFetches;	// Number of fetches of this feed
-	private int    _numFailures;	// Number of failed fetches
+    public Feed() {
+    } /* Default constructor */
+    public Feed(Long key, String tag, String name, String url, int fetches, int failures) {
+        _id = key;
+        _feedTag = tag;
+        _feedUrl = url;
+        _feedName = name.trim();    // trim white space at the beginning and end
+        _numFetches = fetches;
+        _numFailures = failures;
+    }
+    public Feed(Long key, String tag, String name, String url) {
+        this(key, tag, name, url, 0, 0);
+    }
 
-   private boolean _cacheableFlag;
-   private boolean _cachedTextDisplayFlag;
-   private boolean _useIgnoreCommentsHeuristic;
+    // Read in a file that specifies for which feeds / domains,
+    // cached text cannot be displayed!
+    public static void init(DB_Interface db) {
+        _db = db;
+        _newsArchiveDir = NewsRack.getGlobalNewsArchive();
+        MAX_DESC_SIZE = Integer.parseInt(NewsRack.getProperty("rss.max_description_size"));
+        readCachedTextDisplayRules();
+    }
 
-	public  Feed() { } /* Default constructor */
+    public static Feed getFeed(String feedUrl, String tag, String feedName) {
+        Feed f = _db.getFeed(feedUrl, tag, feedName);
+        f.setCachedTextDisplayFlag();
+        f._cacheableFlag = true; // @TODO fix this ... by default, setting cacheable flag to true
 
-	public Feed(Long key, String tag, String name, String url, int fetches, int failures)
-	{
-		_id       = key;
-		_feedTag  = tag;
-		_feedUrl  = url;
-		_feedName = name.trim();	// trim white space at the beginning and end
-		_numFetches = fetches;
-		_numFailures = failures;
-	}
+        return f;
+    }
 
-	public Feed(Long key, String tag, String name, String url)
-	{
-		this(key, tag, name, url, 0, 0);
-	}
+    public static Feed buildNewFeed(String feedUrl, String tag, String feedName) {
+        Feed f = new Feed();
+        f._feedUrl = feedUrl;
 
-	public boolean equals(Object o) { return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed)o)._feedUrl); }
+        if (feedName == null) {
+            try {
+                if (f.isNewsRackFilter()) {
+                    feedName = "NewsRack Filter";    // Dummy name!
+                } else {
+                    Triple<SyndFeed, String, Date> t = f.fetchFeed();
+                    if (t == null)
+                        return null;
+                    SyndFeed sf = t._a;
+                    feedName = sf.getTitle();
+                }
+            } catch (Exception e) {
+                _log.error("Caught error parsing feed for name: ", e);
+                feedName = StringUtils.getDomainForUrl(feedUrl);
+            }
+        }
 
-   public int compareTo(Object o)
-   {
-      if (o instanceof Feed) {
-         Feed other = (Feed)o;
-         return getName().compareTo(other.getName());
-      }
-      else {
-         throw new ClassCastException("Feed cannot be compared with " + o.getClass().getName());
-      }
-   }
+        if (tag == null)
+            tag = StringUtils.getDomainForUrl(feedUrl);
 
-	public int hashCode() { return _feedUrl.hashCode(); }
+        f._feedName = feedName.trim();
+        f._feedTag = tag;
 
-	public Long    getKey()    { return _id; }
-	public String  getTag()    { return _feedTag; }
-	public String  getName()   { return _feedName; }
-	public String  getUrl()    { return _feedUrl; }
-	public boolean getCacheableFlag() { return _cacheableFlag; }
-	public boolean getCachedTextDisplayFlag() { return _cachedTextDisplayFlag; }
-	public boolean getIgnoreCommentsHeuristic() { return _useIgnoreCommentsHeuristic; }
-	public int     getNumFetches() { return _numFetches; }
-	public int     getNumFailures() { return _numFailures; }
+        return f;
+    }
 
-	public void setCacheableFlag(boolean flag) { _cacheableFlag = flag; }
-	public void setShowCachedTextDisplayFlag(boolean flag) { _cachedTextDisplayFlag = flag; }
-	public void setIgnoreCommentsHeuristic(boolean flag) { _useIgnoreCommentsHeuristic = flag; }
+    public static List<Feed> getActiveFeeds() {
+        return _db.getAllActiveFeeds();
+    }
 
-	public boolean isNewsRackFilter() { return _feedUrl.startsWith("newsrack://"); }
+    /**
+     * public because the xml digester requires the methods to be public
+     */
+    public static void recordFeed(String feed) {
+        // Normalize URL
+        feed = normalizeURL(feed);
+        _feedsWithoutCachedTextDisplay.add(feed);
+        _log.debug("Got " + feed);
+    }
 
-   /**
-    * For this news source, decide whether the cached news text has to be displayed or not
-    */
-   private void setCachedTextDisplayFlag()
-   {
-         // Global default
-      if (NewsRack.isFalse("cached.links.display")) {
-         _cachedTextDisplayFlag = false;
-         return;
-      }
+    /**
+     * public because the xml digester requires the methods to be public
+     */
+    public static void recordDomain(String domain) {
+        // Normalize URL
+        domain = normalizeURL(domain);
+        _domainsWithoutCachedTextDisplay.add(domain);
+        _log.debug("Got " + domain);
+    }
 
-      String f = normalizeURL(_feedUrl);
-      if (_log.isDebugEnabled())_log.debug("Checking feed turn off for: " + f);
-      if (_feedsWithoutCachedTextDisplay.contains(f)) {
-         _cachedTextDisplayFlag = false;
-         if (_log.isInfoEnabled())_log.info("Turning off cached text display for (feed) " + _feedUrl);
-      }
-      else {
-            // Get the domain name!
-         f = f.substring(0, f.indexOf("/", 7));
-         if (_log.isDebugEnabled()) _log.debug("Checking domain turn off for: " + f);
-         if (_domainsWithoutCachedTextDisplay.contains(f)) {
+    private static void readCachedTextDisplayRules() {
+        // Allocate tables
+        _feedsWithoutCachedTextDisplay = new HashSet<String>();
+        _domainsWithoutCachedTextDisplay = new HashSet<String>();
+
+        // Read the file
+        String rulesFile = "feeds.without.cachedtext.display.digester.rules.xml";
+        URL digesterRules = Feed.class.getClassLoader().getResource(rulesFile);
+        boolean info = _log.isInfoEnabled();
+        if (info) _log.info("rules file name is  " + rulesFile + "\nrules file URL  is  " + digesterRules);
+        try {
+            URL inputFile = Source.class.getClassLoader().getResource("cachedtext.nodisplay.xml");
+            File input = new File(inputFile.toURI());
+            if (info) _log.info("rules - " + digesterRules + "\ninput - " + inputFile);
+            if (input.exists()) {
+                Digester d = DigesterLoader.createDigester(digesterRules);
+                // The digester API needs an object on the stack even for calling
+                // static methods .. so, just adding a dummy method there!
+                d.push(new Feed());
+                d.parse(input);
+            } else {
+                if (info) _log.info("Did not find the file " + inputFile);
+            }
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
+    }
+
+    public static void refreshCachedTextDisplayRules() {
+        readCachedTextDisplayRules();
+        List<Feed> allFeeds = _db.getAllFeeds();
+        for (Feed f : allFeeds) {
+            f.setCachedTextDisplayFlag();
+            _db.updateFeedCacheability(f);
+        }
+    }
+
+    private static String normalizeURL(String url) {
+        // Make sure all urls begin with "http://"
+        if (!url.startsWith("http://"))
+            url = "http://" + url;
+
+        // If there is a "http://www." at the beginning,
+        // get rid of the "www."
+        if (url.startsWith("http://www."))
+            url = "http://" + url.substring(11);
+
+        return url;
+    }
+
+    public boolean equals(Object o) {
+        return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed) o)._feedUrl);
+    }
+
+    public int compareTo(Object o) {
+        if (o instanceof Feed) {
+            Feed other = (Feed) o;
+            return getName().compareTo(other.getName());
+        } else {
+            throw new ClassCastException("Feed cannot be compared with " + o.getClass().getName());
+        }
+    }
+
+    public int hashCode() {
+        return _feedUrl.hashCode();
+    }
+
+    public Long getKey() {
+        return _id;
+    }
+
+    public String getTag() {
+        return _feedTag;
+    }
+
+    public String getName() {
+        return _feedName;
+    }
+
+    public String getUrl() {
+        return _feedUrl;
+    }
+
+    public boolean getCacheableFlag() {
+        return _cacheableFlag;
+    }
+
+    public void setCacheableFlag(boolean flag) {
+        _cacheableFlag = flag;
+    }
+
+    public boolean getCachedTextDisplayFlag() {
+        return _cachedTextDisplayFlag;
+    }
+
+    public boolean getIgnoreCommentsHeuristic() {
+        return _useIgnoreCommentsHeuristic;
+    }
+
+    public void setIgnoreCommentsHeuristic(boolean flag) {
+        _useIgnoreCommentsHeuristic = flag;
+    }
+
+    public int getNumFetches() {
+        return _numFetches;
+    }
+
+    public int getNumFailures() {
+        return _numFailures;
+    }
+
+    public void setShowCachedTextDisplayFlag(boolean flag) {
+        _cachedTextDisplayFlag = flag;
+    }
+
+    public boolean isNewsRackFilter() {
+        return _feedUrl.startsWith("newsrack://");
+    }
+
+    /**
+     * For this news source, decide whether the cached news text has to be displayed or not
+     */
+    private void setCachedTextDisplayFlag() {
+        // Global default
+        if (NewsRack.isFalse("cached.links.display")) {
             _cachedTextDisplayFlag = false;
-            if (_log.isInfoEnabled())_log.info("Turning off cached text display for (domain) " + _feedUrl);
-         }
-      }
-   }
+            return;
+        }
 
-	public Collection<NewsItem> getDownloadedNews()
-	{
-		return _db.getDownloadedNews(this);
-	}
+        String f = normalizeURL(_feedUrl);
+        if (_log.isDebugEnabled()) _log.debug("Checking feed turn off for: " + f);
+        if (_feedsWithoutCachedTextDisplay.contains(f)) {
+            _cachedTextDisplayFlag = false;
+            if (_log.isInfoEnabled()) _log.info("Turning off cached text display for (feed) " + _feedUrl);
+        } else {
+            // Get the domain name!
+            f = f.substring(0, f.indexOf("/", 7));
+            if (_log.isDebugEnabled()) _log.debug("Checking domain turn off for: " + f);
+            if (_domainsWithoutCachedTextDisplay.contains(f)) {
+                _cachedTextDisplayFlag = false;
+                if (_log.isInfoEnabled()) _log.info("Turning off cached text display for (domain) " + _feedUrl);
+            }
+        }
+    }
 
-	public Triple<SyndFeed,String,Date> fetchFeed() throws Exception
-	{
-			// 1. Download the feed and write it to the feed file in the output dir
-			//    or if it has previously been downloaded, get access to the file
-			//    This block is synchronized to prevent multiple threads
-	 		//    from downloading the same feed at the same time!
-		boolean downloaded = true;
-		URL     u          = new URL(_feedUrl);
-		String rssFeedBase = "rss." + StringUtils.getBaseFileName(u.toString()); // Add "rss." prefix to prevent clash with "index.xml" index file names
-		File   rssFeedFile;
-		synchronized (this) {
-			InputStream      is  = null;
-			FileOutputStream fos = null;
-			try {
-				is = IOUtils.getURLInputStream(u, NUM_RETRIES); // FIXME: Note that info about HTTP encoding is lost here!
-				if (is == null) {
-						// We will get a null value ONLY IF the feed has not changed since the previous download.
-					rssFeedFile = _rssFeedCache.get(u);
-					if (rssFeedFile == null) {
-						_log.error("Could not open RSS url, and there is no local cached copy either");
-						return null;
-					}
-					downloaded = false;
-				}
-				else {
-						// Download the feed into a temporary file and record the location in the cache
-						// NOTE:
-						// 1. Before we download and parse the feed, we won't know its final location!
-						// 2. We cannot use the "WireFeedOutput" to output the feeds directly to the location
-						//    after parsing, because if the input feeds do not conform to the standard
-						//    (Hindustan Times, Times Now), then, the output modules that are strict in
-						//    enforcing standards will fail!
-						// Hence the dance of storing in a temporary file and moving it to its final location.
-					rssFeedFile = _db.getTempFilePath(rssFeedBase);
-					fos = new FileOutputStream(rssFeedFile);
-					IOUtils.copyInputToOutput(is, fos, false);
+    public Collection<NewsItem> getDownloadedNews() {
+        return _db.getDownloadedNews(this);
+    }
 
-						// FIXME: Why not just store the feed in the cache
-						// as opposed to just the file path of the cached feed??
-					_rssFeedCache.put(u, rssFeedFile);
-				}
-			}
-			finally {
-				if (is != null) is.close();
-				if (fos != null) fos.close();
-			}
-		}
+    public Triple<SyndFeed, String, Date> fetchFeed() throws Exception {
+        // 1. Download the feed and write it to the feed file in the output dir
+        //    or if it has previously been downloaded, get access to the file
+        //    This block is synchronized to prevent multiple threads
+        //    from downloading the same feed at the same time!
+        boolean downloaded = true;
+        URL u = new URL(_feedUrl);
+        String rssFeedBase = "rss." + StringUtils.getBaseFileName(u.toString()); // Add "rss." prefix to prevent clash with "index.xml" index file names
+        File rssFeedFile;
+        synchronized (this) {
+            InputStream is = null;
+            FileOutputStream fos = null;
+            try {
+                is = IOUtils.getURLInputStream(u, NUM_RETRIES); // FIXME: Note that info about HTTP encoding is lost here!
+                if (is == null) {
+                    // We will get a null value ONLY IF the feed has not changed since the previous download.
+                    rssFeedFile = _rssFeedCache.get(u);
+                    if (rssFeedFile == null) {
+                        _log.error("Could not open RSS url, and there is no local cached copy either");
+                        return null;
+                    }
+                    downloaded = false;
+                } else {
+                    // Download the feed into a temporary file and record the location in the cache
+                    // NOTE:
+                    // 1. Before we download and parse the feed, we won't know its final location!
+                    // 2. We cannot use the "WireFeedOutput" to output the feeds directly to the location
+                    //    after parsing, because if the input feeds do not conform to the standard
+                    //    (Hindustan Times, Times Now), then, the output modules that are strict in
+                    //    enforcing standards will fail!
+                    // Hence the dance of storing in a temporary file and moving it to its final location.
+                    rssFeedFile = _db.getTempFilePath(rssFeedBase);
+                    fos = new FileOutputStream(rssFeedFile);
+                    IOUtils.copyInputToOutput(is, fos, false);
 
-			// 2. Open the feed (stored on file now) for parsing, parse it, and build a wire feed and close it!
-		WireFeed  wf = null;
-		XmlReader r = null;
-		try {
-		   r  = new XmlReader(rssFeedFile);
-			wf = (new WireFeedInput()).build(r);
-		}
-		catch (com.sun.syndication.io.ParsingFeedException e) {
-			if (r != null) r.close();
+                    // FIXME: Why not just store the feed in the cache
+                    // as opposed to just the file path of the cached feed??
+                    _rssFeedCache.put(u, rssFeedFile);
+                }
+            } finally {
+                if (is != null) is.close();
+                if (fos != null) fos.close();
+            }
+        }
 
-				// FIXME: Caught trailing character exception!
-				// This can happen for feeds like "The Telegraph"
-			_log.error("For feed " + _feedUrl + ", found trailing content ... getting rid of it and re-parsing!");
+        // 2. Open the feed (stored on file now) for parsing, parse it, and build a wire feed and close it!
+        WireFeed wf = null;
+        XmlReader r = null;
+        try {
+            r = new XmlReader(rssFeedFile);
+            wf = (new WireFeedInput()).build(r);
+        } catch (com.sun.syndication.io.ParsingFeedException e) {
+            if (r != null) r.close();
 
-				// Read the file content into a string, get rid of trailing content, and overwrite the file
-			IOUtils.writeFile(rssFeedFile, IOUtils.readFile(rssFeedFile).replaceAll("(?s)</rss>.*", "</rss>"));
+            // FIXME: Caught trailing character exception!
+            // This can happen for feeds like "The Telegraph"
+            _log.error("For feed " + _feedUrl + ", found trailing content ... getting rid of it and re-parsing!");
 
-				// Retry building the wirefeed!
-			r  = new XmlReader(rssFeedFile);
-			wf = (new WireFeedInput()).build(r);
-		}
-		finally {
-			if (r != null) r.close();
-		}
+            // Read the file content into a string, get rid of trailing content, and overwrite the file
+            IOUtils.writeFile(rssFeedFile, IOUtils.readFile(rssFeedFile).replaceAll("(?s)</rss>.*", "</rss>"));
 
-			// 2b. Handle some special cases when the feed is a RSS feed
-			//     and it has a 'lastBuildDate' but no 'pubDate'.  This is because
-			//     when Rome builds a 'SyndFeed' object, it normalizes information
-			//     and throws away the 'lastBuildDate' information!
-			//     This is a problem for RSS 0.91, 0.92, 0.93, 0.94, and 2.0
-			// REFER http://wiki.java.net/bin/view/Javawsxml/Rome05DateMapping
-		Date   rssPubDate = null;
-		String wfType = wf.getFeedType();
-		String baseUrl = "";
-		if (wfType.startsWith("rss")) {
-				// Check if there is 'lastBuildDate' but no 'pubDate' (BBC feeds?)
-			Channel ch = (Channel)wf;
-			baseUrl = ch.getLink();
-			Date lbd = ch.getLastBuildDate();
-			Date pd  = ch.getPubDate();
-			if ((pd == null) && (lbd != null))
-				rssPubDate = lbd;
-			if (_log.isInfoEnabled()) {
-				_log.info("RSS pd  - " + pd);
-				_log.info("RSS lbd - " + lbd);
-			}
-		}
-		else {
-				// For atom feeds, set base url to ""
-				// FIXME: correct?  baseUrl is only used in the case of feeds that don't provide absolute links for feed entries.
-				// This should hopefully be rare!
-			baseUrl = "";
-		}
+            // Retry building the wirefeed!
+            r = new XmlReader(rssFeedFile);
+            wf = (new WireFeedInput()).build(r);
+        } finally {
+            if (r != null) r.close();
+        }
 
-			// 3. Convert the wire feed to a syndfeed!
-		SyndFeed f = new SyndFeedImpl(wf);
-		if (rssPubDate == null)
-			rssPubDate = f.getPublishedDate();
+        // 2b. Handle some special cases when the feed is a RSS feed
+        //     and it has a 'lastBuildDate' but no 'pubDate'.  This is because
+        //     when Rome builds a 'SyndFeed' object, it normalizes information
+        //     and throws away the 'lastBuildDate' information!
+        //     This is a problem for RSS 0.91, 0.92, 0.93, 0.94, and 2.0
+        // REFER http://wiki.java.net/bin/view/Javawsxml/Rome05DateMapping
+        Date rssPubDate = null;
+        String wfType = wf.getFeedType();
+        String baseUrl = "";
+        if (wfType.startsWith("rss")) {
+            // Check if there is 'lastBuildDate' but no 'pubDate' (BBC feeds?)
+            Channel ch = (Channel) wf;
+            baseUrl = ch.getLink();
+            Date lbd = ch.getLastBuildDate();
+            Date pd = ch.getPubDate();
+            if ((pd == null) && (lbd != null))
+                rssPubDate = lbd;
+            if (_log.isInfoEnabled()) {
+                _log.info("RSS pd  - " + pd);
+                _log.info("RSS lbd - " + lbd);
+            }
+        } else {
+            // For atom feeds, set base url to ""
+            // FIXME: correct?  baseUrl is only used in the case of feeds that don't provide absolute links for feed entries.
+            // This should hopefully be rare!
+            baseUrl = "";
+        }
 
-		if (rssPubDate == null) {
-			if (_log.isDebugEnabled()) _log.debug("ERROR: For feed " + _feedUrl + "; Publishing date : null .. using today's date");
-			rssPubDate = new Date();
-		}
+        // 3. Convert the wire feed to a syndfeed!
+        SyndFeed f = new SyndFeedImpl(wf);
+        if (rssPubDate == null)
+            rssPubDate = f.getPublishedDate();
 
-		if (_log.isInfoEnabled()) _log.info("Publishing date : " + rssPubDate);
+        if (rssPubDate == null) {
+            if (_log.isDebugEnabled())
+                _log.debug("ERROR: For feed " + _feedUrl + "; Publishing date : null .. using today's date");
+            rssPubDate = new Date();
+        }
 
-			// 4. Move the feed to its final location!
-		if (downloaded) {
-			File finalRssFeedFile = new File(_newsArchiveDir + File.separator
-														+ _db.getArchiveDirForIndexFiles(this, rssPubDate) + File.separator + rssFeedBase);
+        if (_log.isInfoEnabled()) _log.info("Publishing date : " + rssPubDate);
 
-				// The rename will probably fail in the rare case when one thread has reached here and trying to move the file
-				// whereas another thread has simultaneously opened the file in its temporary location (2. above) to build the feed
-				// FIXME: It is not worth the effort to try and prevent this .. simultaneous access to the same feed from multiple
-				// threads is expected to be really rare and even then, the rss feed file is being stored only for archival access
-				// and it is unlikely that these archived feeds will ever be accessed!
-			if (rssFeedFile.renameTo(finalRssFeedFile)) {
-				_rssFeedCache.put(u, finalRssFeedFile);
-			}
-			else {
-				if (_log.isErrorEnabled()) _log.error("ERROR: For feed " + _feedUrl + "; Failed to rename " + rssFeedFile + " to " + finalRssFeedFile);
-			}
-		}
+        // 4. Move the feed to its final location!
+        if (downloaded) {
+            File finalRssFeedFile = new File(_newsArchiveDir + File.separator
+                    + _db.getArchiveDirForIndexFiles(this, rssPubDate) + File.separator + rssFeedBase);
 
-		return new Triple<SyndFeed, String, Date>(f, baseUrl, rssPubDate);
-	}
+            // The rename will probably fail in the rare case when one thread has reached here and trying to move the file
+            // whereas another thread has simultaneously opened the file in its temporary location (2. above) to build the feed
+            // FIXME: It is not worth the effort to try and prevent this .. simultaneous access to the same feed from multiple
+            // threads is expected to be really rare and even then, the rss feed file is being stored only for archival access
+            // and it is unlikely that these archived feeds will ever be accessed!
+            if (rssFeedFile.renameTo(finalRssFeedFile)) {
+                _rssFeedCache.put(u, finalRssFeedFile);
+            } else {
+                if (_log.isErrorEnabled())
+                    _log.error("ERROR: For feed " + _feedUrl + "; Failed to rename " + rssFeedFile + " to " + finalRssFeedFile);
+            }
+        }
 
-	/**
-	 * Read the feed, store it locally, and download all the news items referenced in the feed.
-	 */
-	public void download() throws Exception
-	{
-		if (!isNewsRackFilter())
-			downloadRssFeed();
-	}
+        return new Triple<SyndFeed, String, Date>(f, baseUrl, rssPubDate);
+    }
 
-	private void downloadRssFeed() throws Exception
-	{
-		if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
+    /**
+     * Read the feed, store it locally, and download all the news items referenced in the feed.
+     */
+    public void download() throws Exception {
+        if (!isNewsRackFilter())
+            downloadRssFeed();
+    }
 
-      if (_numFetches > 100 && (_numFetches == _numFailures)) {
-         _log.info("... Ignoring feed: " + getKey() + "; too many past failures.  Probably a dead feed!");
-         return;
-      }
+    private void downloadRssFeed() throws Exception {
+        if (_log.isInfoEnabled()) _log.info("reading rss feed " + _feedUrl);
 
-		_numFetches++;
-		try {
-				// 1. Read the feed
-			Triple<SyndFeed, String, Date> t = fetchFeed();
-			if (t == null)
-				return;
+        if (_numFetches > 100 && (_numFetches == _numFailures)) {
+            _log.info("... Ignoring feed: " + getKey() + "; too many past failures.  Probably a dead feed!");
+            return;
+        }
 
-			SyndFeed sf         = t._a;
-			String   baseUrl    = t._b;
-			Date     rssPubDate = t._c;
+        _numFetches++;
+        try {
+            // 1. Read the feed
+            Triple<SyndFeed, String, Date> t = fetchFeed();
+            if (t == null)
+                return;
 
-				// 2. Inform the DB before news downloading
-			_db.initializeNewsDownload(this, rssPubDate);
+            SyndFeed sf = t._a;
+            String baseUrl = t._b;
+            Date rssPubDate = t._c;
 
-				// 3. Process the news items in the feed
-			Iterator items = sf.getEntries().iterator();
-			while (items.hasNext()) {
-					// 4. Process a news item
-				SyndEntry se = (SyndEntry)items.next();
+            // 2. Inform the DB before news downloading
+            _db.initializeNewsDownload(this, rssPubDate);
 
-					// 4a. Try getting published date of the news item
-					// If no item date, default is the pub date of the RSS feed
-				Date itemDate = se.getPublishedDate();
-				Date niDate   = (itemDate != null) ? itemDate: rssPubDate;
-					// HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
-				if (_id == 241)
-					niDate = new Date();
+            // 3. Process the news items in the feed
+            Iterator items = sf.getEntries().iterator();
+            while (items.hasNext()) {
+                // 4. Process a news item
+                SyndEntry se = (SyndEntry) items.next();
 
-					// 4b. Spit out some debug information
-				if (_log.isInfoEnabled()) {
-					StringBuffer sb = new StringBuffer();
-					sb.append("\ntitle     - " + se.getTitle());
-					sb.append("\nlink      - " + se.getLink());
-					sb.append("\nITEM date - " + itemDate);
-					_log.info(sb);
-				}
+                // 4a. Try getting published date of the news item
+                // If no item date, default is the pub date of the RSS feed
+                Date itemDate = se.getPublishedDate();
+                Date niDate = (itemDate != null) ? itemDate : rssPubDate;
+                // HBL HACK: Hindu Business Line Update has a bug in its date field which leads to pubDate going into the future!
+                if (_id == 241)
+                    niDate = new Date();
 
-					// 4c. Download the news item
-					//
-					// For some bad RSS feeds (Doordarshan), there exist initial
-					// <item> objects that have all their entries set to null!
-					// Hence the check below!
-				if (se.getLink() != null) {
-					NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), se.getTitle(), niDate);
-					if (ni != null) {
-							// Set up the various fields of the news item only if the item is not already in the db!
-						if (ni.getKey() == null) {
-							String auth  = se.getAuthor();
-							String desc  = (se.getDescription() == null) ? null : se.getDescription().getValue();
-							try { desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE); } catch (Exception e) { desc = se.getTitle(); }
-							ni.setAuthor((auth != null) ? auth.trim() : null);
-							ni.setDescription((desc != null) ? desc.trim() : null);
-						}
+                // 4b. Spit out some debug information
+                if (_log.isInfoEnabled()) {
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("\ntitle     - " + se.getTitle());
+                    sb.append("\nlink      - " + se.getLink());
+                    sb.append("\nITEM date - " + itemDate);
+                    _log.info(sb);
+                }
 
-							// 7d. Record the news item with the DB
-							//
-							// IMPORTANT: Even though ni might already be the db, we are passing it in because ni might have
-							// been downloaded by another feed.  By making this call, we ensure that ni gets added to all
-							// feeds that it belongs to!
-						_db.recordDownloadedNewsItem(this, ni);
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			_numFailures++;
-			_log.error("ERROR: For feed " + this._id + ", got exception " + e + "; bumping failure count to " + _numFailures);
-		}
-		finally {
-				// 5. Inform the DB after news downloading
-			_db.finalizeNewsDownload(this);
-		}
-	}
+                // 4c. Download the news item
+                //
+                // For some bad RSS feeds (Doordarshan), there exist initial
+                // <item> objects that have all their entries set to null!
+                // Hence the check below!
+                if (se.getLink() != null) {
+                    NewsItem ni = downloadNewsItem(baseUrl, se.getLink(), se.getTitle(), niDate);
+                    if (ni != null) {
+                        // Set up the various fields of the news item only if the item is not already in the db!
+                        if (ni.getKey() == null) {
+                            String auth = se.getAuthor();
+                            String desc = (se.getDescription() == null) ? null : se.getDescription().getValue();
+                            try {
+                                desc = StringUtils.truncateHTMLString(desc, MAX_DESC_SIZE);
+                            } catch (Exception e) {
+                                desc = se.getTitle();
+                            }
+                            ni.setAuthor((auth != null) ? auth.trim() : null);
+                            ni.setDescription((desc != null) ? desc.trim() : null);
+                        }
 
-	private NewsItem downloadNewsItem(String baseUrl, String storyUrl, String title, Date date)
-	{
+                        // 7d. Record the news item with the DB
+                        //
+                        // IMPORTANT: Even though ni might already be the db, we are passing it in because ni might have
+                        // been downloaded by another feed.  By making this call, we ensure that ni gets added to all
+                        // feeds that it belongs to!
+                        _db.recordDownloadedNewsItem(this, ni);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            _numFailures++;
+            _log.error("ERROR: For feed " + this._id + ", got exception " + e + "; bumping failure count to " + _numFailures);
+        } finally {
+            // 5. Inform the DB after news downloading
+            _db.finalizeNewsDownload(this);
+        }
+    }
+
+    private NewsItem downloadNewsItem(String baseUrl, String storyUrl, String title, Date date) {
 	/* Download the news item identified by the URL 'u' and create
 	 * (1) local copy of the article, and
 	 * (2) a filtered version of the same article
 	 */
 
-		NewsItem ni = null;
-		try {
-			boolean logInfo = _log.isInfoEnabled();
+        NewsItem ni = null;
+        try {
+            boolean logInfo = _log.isInfoEnabled();
 
-				// 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
-				// 1b. Canonicalize it so that we can catch duplicate urls more easily!
-			String canonicalUrl = URLCanonicalizer.canonicalize(URLCanonicalizer.cleanup(baseUrl, storyUrl));
-			if (logInfo) _log.info("URL :" + canonicalUrl);
+            // 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
+            // 1b. Canonicalize it so that we can catch duplicate urls more easily!
+            String canonicalUrl = URLCanonicalizer.canonicalize(URLCanonicalizer.cleanup(baseUrl, storyUrl));
+            if (logInfo) _log.info("URL :" + canonicalUrl);
 
-			if (title != null)
-				title = title.trim();
+            if (title != null)
+                title = title.trim();
 
-				// 2a. Check if the article has already been downloaded previously (by url)
-			ni = _db.getNewsItemFromURL(canonicalUrl);
-			if (ni != null) {
-				if (logInfo) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
-				return ni;
-			}
+            // 2a. Check if the article has already been downloaded previously (by url)
+            ni = _db.getNewsItemFromURL(canonicalUrl);
+            if (ni != null) {
+                if (logInfo) _log.info("PREVIOUSLY DOWNLOADED: FOUND AT " + ni.getRelativeFilePath());
+                return ni;
+            }
 
-				// 2b. Check if the article has already been downloaded previously (by title)
-			if (title.length() > 30) {
-				List<NewsItem> nis = _db.getNewsItemFromTitle(title);
-				if ((nis != null) && nis.size() > 0) {
-					// Title matched, is at least 30 characters long -- check for domain matches!
-					String d = StringUtils.getDomainForUrl(canonicalUrl);
-					for (NewsItem x: nis) {
-						if (d.equals(StringUtils.getDomainForUrl(x.getURL()))) {
-							if (logInfo) _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + x.getRelativeFilePath());
-							return x;
-						}
-						if (logInfo) _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + x.getURL());
-					}
-				}
-			}
+            // 2b. Check if the article has already been downloaded previously (by title)
+            if (title.length() > 30) {
+                List<NewsItem> nis = _db.getNewsItemFromTitle(title);
+                if ((nis != null) && nis.size() > 0) {
+                    // Title matched, is at least 30 characters long -- check for domain matches!
+                    String d = StringUtils.getDomainForUrl(canonicalUrl);
+                    for (NewsItem x : nis) {
+                        if (d.equals(StringUtils.getDomainForUrl(x.getURL()))) {
+                            if (logInfo)
+                                _log.info("TITLE HIT FOR " + title + ". PREVIOUSLY DOWNLOADED: FOUND AT " + x.getRelativeFilePath());
+                            return x;
+                        }
+                        if (logInfo)
+                            _log.info("FALSE TITLE HIT: " + title + " for url: " + canonicalUrl + ".  Found item with url: " + x.getURL());
+                    }
+                }
+            }
 
-				// 3. Else, create a new item.  NOTE: This won't be stored to the db yet!
-			ni = _db.createNewsItem(canonicalUrl, this, date);
+            // 3. Else, create a new item.  NOTE: This won't be stored to the db yet!
+            ni = _db.createNewsItem(canonicalUrl, this, date);
 
             // 4. Download it
-				// Set title prior to downloading because the title is used for some smart content extraction
-			ni.setTitle(title);
+            // Set title prior to downloading because the title is used for some smart content extraction
+            ni.setTitle(title);
 
-				// 5. Create the news item and return it!
-         return (ni.download(_db)) ? ni : null;
-		}
-		catch (Exception e) {
-			if (_log.isInfoEnabled()) _log.info(" ... FAILED!");
-			_log.error("Exception downloading news item : " + storyUrl.trim(), e);
+            // 5. Create the news item and return it!
+            return (ni.download(_db)) ? ni : null;
+        } catch (Exception e) {
+            if (_log.isInfoEnabled()) _log.info(" ... FAILED!");
+            _log.error("Exception downloading news item : " + storyUrl.trim(), e);
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 }

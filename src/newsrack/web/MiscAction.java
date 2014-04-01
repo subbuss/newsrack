@@ -17,28 +17,29 @@ import java.util.List;
  * class <code>MiscAction</code> implements miscellaneous functionality
  */
 
-public class MiscAction extends BaseAction
-{
-   private static Log _log = LogFactory.getLog(MiscAction.class);	// Logger for this action class
+public class MiscAction extends BaseAction {
+    private static Log _log = LogFactory.getLog(MiscAction.class);    // Logger for this action class
 
-	private static List<Feed> _indianFeeds = null;
-	public List<Feed> getIndianFeeds() { return _indianFeeds; }
+    private static List<Feed> _indianFeeds = null;
 
-	public static void cacheKnownIndianFeeds() {
-		// SSS: Hardcoded for newsrack.in install
-		User libraryUser = User.getUser("library");
-		Collection srcs = ((NR_SourceCollection)libraryUser.getSourceCollection("Indian News Media Feeds")).getSources();
-		_indianFeeds = new ArrayList<Feed>();
-		for (Object o: srcs) {
-			_indianFeeds.add(((Source)o).getFeed());
-		}
-      Collections.sort(_indianFeeds);
-	}
+    public static void cacheKnownIndianFeeds() {
+        // SSS: Hardcoded for newsrack.in install
+        User libraryUser = User.getUser("library");
+        Collection srcs = ((NR_SourceCollection) libraryUser.getSourceCollection("Indian News Media Feeds")).getSources();
+        _indianFeeds = new ArrayList<Feed>();
+        for (Object o : srcs) {
+            _indianFeeds.add(((Source) o).getFeed());
+        }
+        Collections.sort(_indianFeeds);
+    }
 
-   public String knownIndianFeeds()
-	{
-		// Cached
-		if (_indianFeeds == null) cacheKnownIndianFeeds();
-		return Action.SUCCESS;
-	}
+    public List<Feed> getIndianFeeds() {
+        return _indianFeeds;
+    }
+
+    public String knownIndianFeeds() {
+        // Cached
+        if (_indianFeeds == null) cacheKnownIndianFeeds();
+        return Action.SUCCESS;
+    }
 }

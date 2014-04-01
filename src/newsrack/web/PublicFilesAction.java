@@ -15,16 +15,17 @@ import java.util.List;
  * (categories, profiles, concepts, news sources)
  */
 
-public class PublicFilesAction extends BaseAction
-{
-   // private static Log _log = LogFactory.getLog(PublicFilesAction.class);	// Logger for this action class
+public class PublicFilesAction extends BaseAction {
+    // private static Log _log = LogFactory.getLog(PublicFilesAction.class);	// Logger for this action class
 
-	private List<PublicFile> _publicFiles;
-	public List<PublicFile> getPublicFiles() { return _publicFiles; }
+    private List<PublicFile> _publicFiles;
 
-   public String execute()
-	{
-		_publicFiles = User.getPublicFiles();
-		return Action.SUCCESS;
-	}
+    public List<PublicFile> getPublicFiles() {
+        return _publicFiles;
+    }
+
+    public String execute() {
+        _publicFiles = User.getPublicFiles();
+        return Action.SUCCESS;
+    }
 }

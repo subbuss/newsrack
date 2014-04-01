@@ -13,223 +13,202 @@ import org.apache.commons.logging.LogFactory;
 import java.util.Map;
 import java.util.Properties;
 
-public class ObjectCache
-{
-   private static Log _log = LogFactory.getLog(ObjectCache.class);
+public class ObjectCache {
+    private static Log _log = LogFactory.getLog(ObjectCache.class);
+    private Map<String, OCache> _caches;    // Item-specific caches
+    private OCache _objectCache;            // Special catch-all cache
+    public ObjectCache() {
+        buildAllCaches();
+    }
 
-	private class OCache
-	{
-		private String _name;
-		private GeneralCacheAdministrator _osCacheAdmin;
+    private OCache buildCache(String name, Properties p) {
+        String cacheSize = NewsRack.getProperty(name.toLowerCase() + ".cache.size");
+        if (cacheSize == null)
+            cacheSize = "1000";    // DEFAULT
 
-		OCache(String name, Properties p) 
-		{ 
-			_name = name; 
-			_osCacheAdmin = new GeneralCacheAdministrator(p);
-		}
+        p.setProperty("cache.capacity", cacheSize);
+        OCache c = new OCache(name.toUpperCase(), p);
+        _caches.put(name.toUpperCase(), c);
+        return c;
+    }
 
-		synchronized void add(String[] groups, String key, Object o)
-		{
-			if (_log.isDebugEnabled()) _log.debug(_name + " CACHE: adding key " + key);
-			if (groups == null)
-				_osCacheAdmin.putInCache(key, o);
-			else
-				_osCacheAdmin.putInCache(key, o, groups);
-		}
+    private OCache buildCache(String name) {
+        Properties p = new Properties();
 
-		void remove(String key) { _osCacheAdmin.removeEntry(key); }
+        // No disk persistence!
+        // p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
+        // p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
 
-		void removeGroup(String group) { _osCacheAdmin.flushGroup(group); }
+        p.setProperty("cache.memory", "true");
+        p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
 
-		void removeGroups(String[] groups)
-		{
-			for (String g: groups)
-				_osCacheAdmin.flushGroup(g);
-		}
+        return buildCache(name, p);
+    }
 
-		void clear() { _osCacheAdmin.flushAll(); }
+    private void buildAllCaches() {
+        _caches = new java.util.HashMap<String, OCache>(10);
 
-      void destroy() { _osCacheAdmin.destroy(); }
+        Properties p = new Properties();
 
-		Object get(String key)
-		{
-				// We won't try to update the cache if we don't find an entry
-			try {
-				return _osCacheAdmin.getFromCache(key);
-			}
-			catch (NeedsRefreshException nre) {
-         	_osCacheAdmin.cancelUpdate(key);
-				return null;
-			}
-		}
+        // No disk persistence!
+        // p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
+        // p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
 
-		void printStats(StringBuffer sb)
-		{
-			sb.append("#### CACHE STATS for " + _name + " ####").append("\n");
-			Object[] elList = _osCacheAdmin.getCache().getCacheEventListenerList().getListenerList();
-			for (Object el : elList) {
-				if (el instanceof CacheEntryEventListenerImpl) {
-					sb.append("Cache Entry Event Listener Stats: ").append(el.toString()).append("\n");
-				}
-				else if (el instanceof CacheMapAccessEventListenerImpl) {
-					sb.append("Cache Map Access Event Listener Stats: ").append(el.toString()).append("\n");
-				}
-				else {
-					sb.append("OTHER stats: " + el.toString()).append("\n");
-				}
-			}
-		}
-	}
+        p.setProperty("cache.memory", "true");
+        p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
 
-	private Map<String, OCache> _caches;	// Item-specific caches
-	private OCache _objectCache;			// Special catch-all cache
+        buildCache("user", p);
+        buildCache("issue", p);
+        buildCache("feed", p);
+        buildCache("source", p);
+        buildCache("category", p);
+        buildCache("filter", p);
+        buildCache("newsitem", p);
+        buildCache("news_cats", p);    // Categories for news items
 
-	private OCache buildCache(String name, Properties p)
-	{
-		String cacheSize = NewsRack.getProperty(name.toLowerCase() + ".cache.size");
-		if (cacheSize == null)
-			cacheSize = "1000";	// DEFAULT
+        // Lastly, a generic object cache
+        _objectCache = buildCache("object", p);    // 10000
+    }
 
-		p.setProperty("cache.capacity", cacheSize);
-		OCache c = new OCache(name.toUpperCase(), p);
-		_caches.put(name.toUpperCase(), c);
-		return c;
-	}
+    private Tuple<OCache, String> getCacheAndKey(String cacheName, Object key) {
+        String nKey;
+        OCache cache = _caches.get(cacheName);
 
-	private OCache buildCache(String name)
-	{
-		Properties p = new Properties();
+        if (cache == null) {
+            nKey = cacheName + ":" + key.toString();
+            cache = _objectCache;
+        } else {
+            nKey = key.toString();
+        }
 
-		// No disk persistence!
-		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
-		// p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
+        return new Tuple<OCache, String>(cache, nKey);
+    }
 
-		p.setProperty("cache.memory", "true");
-		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
+    public void printStats(StringBuffer sb) {
+        for (OCache c : _caches.values())
+            c.printStats(sb);
+    }
 
-		return buildCache(name, p);
-	}
+    public void add(String cacheName, String[] cacheGroups, Object key, Object o) {
+        Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
+        t._a.add(cacheGroups, t._b, o);
+    }
 
-	private void buildAllCaches()
-	{
-		_caches = new java.util.HashMap<String, OCache>(10);
+    public void add(String cacheName, Long userKey, Object key, Object o) {
+        String[] cacheGroups = null;
+        if (userKey != null)
+            cacheGroups = new String[]{userKey.toString()};
 
-		Properties p = new Properties();
+        add(cacheName, cacheGroups, key, o);
+    }
 
-		// No disk persistence!
-		// p.setProperty("cache.persistence.class", "com.opensymphony.oscache.plugins.diskpersistence.HashDiskPersistenceListener");
-		// p.setProperty("cache.path", NewsRack.getProperty("cache.path"));
+    public void add(String cacheName, Object key, Object o) {
+        add(cacheName, (String[]) null, key, o);
+    }
 
-		p.setProperty("cache.memory", "true");
-		p.setProperty("cache.event.listeners", "com.opensymphony.oscache.extra.CacheEntryEventListenerImpl, com.opensymphony.oscache.extra.CacheMapAccessEventListenerImpl");
+    public Object get(String cacheName, Object key) {
+        Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
+        return t._a.get(t._b);
+    }
 
-		buildCache("user", p);
-		buildCache("issue", p);
-		buildCache("feed", p);
-		buildCache("source", p);
-		buildCache("category", p);
-		buildCache("filter", p);
-		buildCache("newsitem", p);
-		buildCache("news_cats", p);	// Categories for news items
+    public void remove(String cacheName, Object key) {
+        Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
+        t._a.remove(t._b);
+    }
 
-			// Lastly, a generic object cache
-		_objectCache = buildCache("object", p); 	// 10000
-	}
+    public void removeEntriesForGroups(String[] cacheGroups) {
+        for (OCache c : _caches.values())
+            c.removeGroups(cacheGroups);
+    }
 
-	private Tuple<OCache, String> getCacheAndKey(String cacheName, Object key)
-	{
-		String nKey;
-		OCache cache = _caches.get(cacheName);
+    public void purgeCacheEntriesForUser(User u) {
+        removeEntriesForGroups(new String[]{u.getUid(), u.getKey().toString()});
+    }
 
-		if (cache == null) {
-			nKey = cacheName + ":" + key.toString();
-			cache = _objectCache;
-		}
-		else {
-			nKey = key.toString();
-		}
+    public void clearCache(String cacheName) {
+        OCache cache = _caches.get(cacheName);
 
-		return new Tuple<OCache, String>(cache, nKey);
-	}
+        // Destroy the old cache and build a new one!
+        if (cache == null) {
+            _objectCache.destroy();
+            _objectCache = buildCache("object");
+        } else {
+            cache.destroy();
+            buildCache(cacheName);
+        }
+    }
 
-	public ObjectCache()
-	{
-		buildAllCaches();
-	}
+    public void clearCaches() {
+        Map<String, OCache> oldCaches = _caches;
 
-	public void printStats(StringBuffer sb)
-	{
-		for (OCache c: _caches.values())
-			c.printStats(sb);
-	}
+        // Build all caches from scratch!
+        buildAllCaches();
 
-	public void add(String cacheName, String[] cacheGroups, Object key, Object o)
-	{
-		Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
-		t._a.add(cacheGroups, t._b, o);
-	}
+        // Destroy all the old caches
+        for (OCache c : oldCaches.values())
+            c.destroy();
+    }
 
-	public void add(String cacheName, Long userKey, Object key, Object o)
-	{
-		String[] cacheGroups = null;
-		if (userKey != null)
-			cacheGroups = new String[]{userKey.toString()};
+    private class OCache {
+        private String _name;
+        private GeneralCacheAdministrator _osCacheAdmin;
 
-		add(cacheName, cacheGroups, key, o);
-	}
+        OCache(String name, Properties p) {
+            _name = name;
+            _osCacheAdmin = new GeneralCacheAdministrator(p);
+        }
 
-	public void add(String cacheName, Object key, Object o)
-	{
-		add(cacheName, (String[])null, key, o);
-	}
+        synchronized void add(String[] groups, String key, Object o) {
+            if (_log.isDebugEnabled()) _log.debug(_name + " CACHE: adding key " + key);
+            if (groups == null)
+                _osCacheAdmin.putInCache(key, o);
+            else
+                _osCacheAdmin.putInCache(key, o, groups);
+        }
 
-	public Object get(String cacheName, Object key)
-	{
-		Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
-		return t._a.get(t._b);
-	}
+        void remove(String key) {
+            _osCacheAdmin.removeEntry(key);
+        }
 
-	public void remove(String cacheName, Object key)
-	{
-		Tuple<OCache, String> t = getCacheAndKey(cacheName, key);
-		t._a.remove(t._b);
-	}
+        void removeGroup(String group) {
+            _osCacheAdmin.flushGroup(group);
+        }
 
-	public void removeEntriesForGroups(String[] cacheGroups)
-	{
-		for (OCache c: _caches.values())
-			c.removeGroups(cacheGroups);
-	}
+        void removeGroups(String[] groups) {
+            for (String g : groups)
+                _osCacheAdmin.flushGroup(g);
+        }
 
-	public void purgeCacheEntriesForUser(User u)
-	{
-		removeEntriesForGroups(new String[]{u.getUid(), u.getKey().toString()});
-	}
+        void clear() {
+            _osCacheAdmin.flushAll();
+        }
 
-	public void clearCache(String cacheName)
-	{
-		OCache cache = _caches.get(cacheName);
+        void destroy() {
+            _osCacheAdmin.destroy();
+        }
 
-			// Destroy the old cache and build a new one!
-		if (cache == null) {
-			_objectCache.destroy();
-			_objectCache = buildCache("object");
-		}
-		else {
-			cache.destroy();
-			buildCache(cacheName);
-		}
-	}
+        Object get(String key) {
+            // We won't try to update the cache if we don't find an entry
+            try {
+                return _osCacheAdmin.getFromCache(key);
+            } catch (NeedsRefreshException nre) {
+                _osCacheAdmin.cancelUpdate(key);
+                return null;
+            }
+        }
 
-	public void clearCaches()
-	{
-		Map<String, OCache> oldCaches = _caches;
-
-			// Build all caches from scratch!
-		buildAllCaches();
-
-			// Destroy all the old caches
-		for (OCache c: oldCaches.values())
-			c.destroy();
-	}
+        void printStats(StringBuffer sb) {
+            sb.append("#### CACHE STATS for " + _name + " ####").append("\n");
+            Object[] elList = _osCacheAdmin.getCache().getCacheEventListenerList().getListenerList();
+            for (Object el : elList) {
+                if (el instanceof CacheEntryEventListenerImpl) {
+                    sb.append("Cache Entry Event Listener Stats: ").append(el.toString()).append("\n");
+                } else if (el instanceof CacheMapAccessEventListenerImpl) {
+                    sb.append("Cache Map Access Event Listener Stats: ").append(el.toString()).append("\n");
+                } else {
+                    sb.append("OTHER stats: " + el.toString()).append("\n");
+                }
+            }
+        }
+    }
 }
