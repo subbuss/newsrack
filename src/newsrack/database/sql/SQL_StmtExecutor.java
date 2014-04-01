@@ -215,7 +215,7 @@ public class SQL_StmtExecutor {
                     if (_log.isDebugEnabled())
                         _log.debug("Insert statement " + stmt + " completed without exceptions!");
                     // Don't complain if the stmt. is an insert ignore!
-                    if ((n == 0) && (stmtString.toLowerCase().indexOf(" ignore ") == -1))
+                    if ((n == 0) && (!stmtString.toLowerCase().contains(" ignore ")))
                         _log.error("Insert statement " + stmt + " returned 0 rows!");
 
                     if (rp == null) {

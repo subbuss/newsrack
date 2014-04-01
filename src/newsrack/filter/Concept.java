@@ -194,9 +194,8 @@ public class Concept implements java.io.Serializable {
                     } else {
 							/* Add the 3 combinations for every sub-string */
                         final List nkws = new LinkedList();
-                        final Iterator it = kws.iterator();
-                        while (it.hasNext()) {
-                            s = (String) it.next();
+                        for (Object kw : kws) {
+                            s = (String) kw;
                             nkws.add(s + ss);
                             nkws.add(s + ss + " ");
                             nkws.add(s + ss + "-");
@@ -256,9 +255,7 @@ public class Concept implements java.io.Serializable {
      */
     public String toString() {
         final StringBuffer sb = new StringBuffer(_name + ":\n");
-        final Iterator it = _keywords.iterator();
-        while (it.hasNext())
-            sb.append("   <- " + it.next() + "\n");
+        for (Object _keyword : _keywords) sb.append("   <- " + _keyword + "\n");
 
         return sb.toString();
     }

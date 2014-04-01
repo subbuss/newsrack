@@ -615,9 +615,9 @@ public class User implements java.io.Serializable {
 
     public void renameFile(final String oldName, final String newName) throws EditProfileException {
             /* Check for bad file names first */
-        if (oldName.indexOf(File.separator) != -1)
+        if (oldName.contains(File.separator))
             throw new EditProfileException("Invalid source file name: " + oldName);
-        else if (newName.indexOf(File.separator) != -1)
+        else if (newName.contains(File.separator))
             throw new EditProfileException("No " + File.separator + " allowed in file name! Invalid file name: " + newName);
 
 			/* Check if renaming will fail next */

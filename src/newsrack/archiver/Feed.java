@@ -453,10 +453,9 @@ public class Feed implements java.io.Serializable, Comparable {
             _db.initializeNewsDownload(this, rssPubDate);
 
             // 3. Process the news items in the feed
-            Iterator items = sf.getEntries().iterator();
-            while (items.hasNext()) {
+            for (Object o : sf.getEntries()) {
                 // 4. Process a news item
-                SyndEntry se = (SyndEntry) items.next();
+                SyndEntry se = (SyndEntry) o;
 
                 // 4a. Try getting published date of the news item
                 // If no item date, default is the pub date of the RSS feed

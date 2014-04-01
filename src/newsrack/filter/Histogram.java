@@ -36,8 +36,7 @@ public class Histogram {
         SKIP_TABLE = new Hashtable();
 
         int n = SKIP_WORDS.length;
-        for (int i = 0; i < n; i++) {
-            String s = SKIP_WORDS[i];
+        for (String s : SKIP_WORDS) {
             SKIP_TABLE.put(s, s);
         }
     }
@@ -107,9 +106,7 @@ public class Histogram {
                 l.add(e.nextElement());
 
             Collections.sort(l);
-            Iterator it = l.iterator();
-            while (it.hasNext())
-                System.out.println(it.next().toString());
+            for (Object aL : l) System.out.println(aL.toString());
         } catch (java.io.IOException e) {
             System.err.println("Exception : " + e);
         }

@@ -359,7 +359,7 @@ public class Category implements Comparable, java.io.Serializable {
             sb.append(_filter._ruleString);
             sb.append(")\n");
         } else if (!isLeafCategory()) {
-            _indent = new String(old + StringUtils.TAB);
+            _indent = old + StringUtils.TAB;
 
             sb.append(": [\n");
             for (Category c : _children)

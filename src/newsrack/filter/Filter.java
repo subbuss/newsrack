@@ -374,9 +374,8 @@ public class Filter implements java.io.Serializable {
         }
 
         public void collectUsedConcepts(final Set<Concept> usedConcepts) {
-            final Iterator it = _context.iterator();
-            while (it.hasNext()) {
-                final Concept c = (Concept) it.next();
+            for (Object a_context : _context) {
+                final Concept c = (Concept) a_context;
                 usedConcepts.add(c);
             }
             _r.collectUsedConcepts(usedConcepts);
@@ -385,9 +384,8 @@ public class Filter implements java.io.Serializable {
         public int getMatchScore(Filter f, NewsItem article, int numTokens, Hashtable matchScores) {
             // First, check if the context matches
             boolean contextMatched = false;
-            final Iterator it = _context.iterator();
-            while (it.hasNext()) {
-                final Concept c = (Concept) it.next();
+            for (Object a_context : _context) {
+                final Concept c = (Concept) a_context;
                 if (matchScores.get(c.getLexerToken().getToken()) != null) {
                     contextMatched = true;
                     break;

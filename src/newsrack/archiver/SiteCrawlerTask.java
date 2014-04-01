@@ -91,7 +91,7 @@ public class SiteCrawlerTask extends TimerTask {
 
                 final String cPath = crawlers.getProperty(cName);
                 // Read in the crawler name!
-                if (cPath.indexOf(File.separator) != -1) {
+                if (cPath.contains(File.separator)) {
                     final String errMsg = "Cannot have '" + File.separator + "' in crawler path.  IGNORING crawler " + cName;
                     if (_log.isErrorEnabled()) _log.error(errMsg);
                     crawlers.remove(cName);

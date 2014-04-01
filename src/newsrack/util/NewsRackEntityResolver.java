@@ -24,7 +24,7 @@ public class NewsRackEntityResolver implements EntityResolver {
      * exists and is accessible.  Else throws an IO exception
      */
     public InputStream getDTD(String dtd) throws java.io.IOException {
-        if (dtd.indexOf(File.separator) != -1)
+        if (dtd.contains(File.separator))
             throw new java.io.IOException("Cannot have / in dtd name.  Access denied");
         String DTD_DIR = NewsRack.getWebappPath() + File.separator + NewsRack.getProperty("dtdDir");
         String dtdPath = DTD_DIR + File.separator + dtd;

@@ -775,7 +775,7 @@ public class SQL_DB extends DB_Interface {
     public Long uploadFile(UserFile f, InputStream is) throws java.io.IOException {
         String fname = f.getName();
         User u = f.getUser();
-        if (fname.indexOf(File.separator) != -1)
+        if (fname.contains(File.separator))
             throw new java.io.IOException("Cannot have / in file name.  Access denied");
 
         String localFileName = getFileUploadArea(u) + fname;
@@ -797,7 +797,7 @@ public class SQL_DB extends DB_Interface {
     public Long addFile(UserFile f) throws java.io.IOException {
         String fname = f.getName();
         User u = f.getUser();
-        if (fname.indexOf(File.separator) != -1)
+        if (fname.contains(File.separator))
             throw new java.io.IOException("Cannot have / in file name.  Access denied");
 
         String localFileName = getFileUploadArea(u) + fname;
@@ -824,7 +824,7 @@ public class SQL_DB extends DB_Interface {
      * @return Returns a byte stream for reading the file
      */
     public InputStream getInputStream(User u, String fname) throws java.io.IOException {
-        if (fname.indexOf(File.separator) != -1)
+        if (fname.contains(File.separator))
             throw new java.io.IOException("Cannot have / in file name.  Access denied");
         return new FileInputStream(getFileUploadArea(u) + fname);
     }
@@ -837,7 +837,7 @@ public class SQL_DB extends DB_Interface {
      * @return Returns a reader for reading the file
      */
     public Reader getFileReader(User u, String fname) throws java.io.IOException {
-        if (fname.indexOf(File.separator) != -1)
+        if (fname.contains(File.separator))
             throw new java.io.IOException("Cannot have / in file name.  Access denied");
         return IOUtils.getUTF8Reader(getFileUploadArea(u) + fname);
     }
@@ -850,7 +850,7 @@ public class SQL_DB extends DB_Interface {
      * @return Returns an output stream for writing the file
      */
     public OutputStream getOutputStream(User u, String fname) throws java.io.IOException {
-        if (fname.indexOf(File.separator) != -1)
+        if (fname.contains(File.separator))
             throw new java.io.IOException("Cannot have / in file name.  Access denied");
         return new FileOutputStream(getFileUploadArea(u) + fname);
     }
@@ -872,7 +872,7 @@ public class SQL_DB extends DB_Interface {
             throw new java.io.IOException("User " + uid + " unknown!");
         } else if (!u.fileAccessible(reqUser, fname)) {
             throw new java.io.IOException("File " + fname + " in " + uid + "'s space is not accessible.");
-        } else if (fname.indexOf(File.separator) != -1) {
+        } else if (fname.contains(File.separator)) {
             throw new java.io.IOException("Cannot have " + File.separator + " in file name.  Access denied!");
         } else {
             return new FileInputStream(getFileUploadArea(u) + fname);
@@ -896,7 +896,7 @@ public class SQL_DB extends DB_Interface {
             throw new java.io.IOException("User " + uid + " unknown!");
         } else if (!u.fileAccessible(reqUser, fname)) {
             throw new java.io.IOException("File " + fname + " in " + uid + "'s space is not accessible");
-        } else if (fname.indexOf(File.separator) != -1) {
+        } else if (fname.contains(File.separator)) {
             throw new java.io.IOException("Cannot have " + File.separator + " in file name.  Access denied!");
         } else {
             return getFileReader(u, fname);
@@ -1168,7 +1168,7 @@ public class SQL_DB extends DB_Interface {
      * @returns a news item object for the article
      */
     public NewsItem getNewsItemFromLocalCopyPath(String path) {
-        if (path.indexOf("/") != -1) {
+        if (path.contains("/")) {
                 /* Request for OLD style local copy path names!
                  * Potentially 3 separate queries! ... but, this is a deprecated request
                  * and present only for backward compatibility.  Won't worry about performance */
@@ -1375,7 +1375,7 @@ public class SQL_DB extends DB_Interface {
         i += uid.length() + 1;
         rest = url.substring(i);
 
-        if (rest.indexOf("/") == -1) {
+        if (!rest.contains("/")) {
             i = rest.indexOf(":");
             if (i > 0) {
                 String topic = rest.substring(0, i);
