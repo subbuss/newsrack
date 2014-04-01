@@ -447,7 +447,7 @@ public class Issue implements java.io.Serializable {
      * @param catID ID of the category
      */
     public Category getCategory(int catID) {
-        return (Category) _catMap.get(new Integer(catID));
+        return (Category) _catMap.get(catID);
     }
 
     /**
@@ -463,12 +463,12 @@ public class Issue implements java.io.Serializable {
 
         // Set up a cat-id <--> category map
         // Issue nodes always have id 0
-        _catMap.put(new Integer(0), this);
+        _catMap.put(0, this);
         LinkedList<Category> l = new LinkedList<Category>();
         l.addAll(_topLevelCats);
         while (!l.isEmpty()) {
             Category c = l.removeFirst();
-            _catMap.put(new Integer(c.getCatId()), c);
+            _catMap.put(c.getCatId(), c);
             l.addAll(c.getChildren());
         }
     }
@@ -484,7 +484,7 @@ public class Issue implements java.io.Serializable {
 
         // Read, update, and output a cat-id <--> category map
         // Issue nodes always have id 0
-        Integer iid = new Integer(0);
+        Integer iid = 0;
         _catMap.put(this, iid);
         _catMap.put(iid, this);
 
@@ -509,7 +509,7 @@ public class Issue implements java.io.Serializable {
                     int cId = Integer.parseInt(xId);
                     if (_log.isDebugEnabled()) _log.debug("CAT Name = " + xName + "; id = " + xId);
                     // Add a mapping from category -> catID
-                    _catMap.put(c, new Integer(cId));
+                    _catMap.put(c, cId);
                     if (maxID < cId)
                         maxID = cId;
                     maxID = parseChildren(c.getName(), c.getChildren(), maxID, x);

@@ -20,13 +20,13 @@ class GetStringResultProcessor extends AbstractResultProcessor {
 
 class GetIntResultProcessor extends AbstractResultProcessor {
     public Object processResultSet(ResultSet rs) throws java.sql.SQLException {
-        return new Integer(rs.getInt(1));
+        return rs.getInt(1);
     }
 }
 
 class GetLongResultProcessor extends AbstractResultProcessor {
     public Object processResultSet(ResultSet rs) throws java.sql.SQLException {
-        return new Long(rs.getLong(1));
+        return rs.getLong(1);
     }
 }
 

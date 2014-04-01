@@ -256,7 +256,7 @@ public class BrowseAction extends BaseAction {
                 // Filter by source
                 String srcKey = getParam("source_key");
                 Source src = null;
-                if ((srcKey != null) && (srcKey != ""))
+                if ((srcKey != null) && (!srcKey.equals("")))
                     try {
                         src = _issue.getUser().getSourceByKey(Long.parseLong(srcKey));
                     } catch (Exception e) {

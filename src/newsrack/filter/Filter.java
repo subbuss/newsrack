@@ -507,7 +507,7 @@ public class Filter implements java.io.Serializable {
         public ProximityTerm(final Concept c1, final Concept c2, Integer pval) {
             _c1 = c1;
             _c2 = c2;
-            _proximityVal = pval.intValue();
+            _proximityVal = pval;
         }
 
         public FilterOp getType() {

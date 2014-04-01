@@ -368,7 +368,7 @@ public class Feed implements java.io.Serializable, Comparable {
         // REFER http://wiki.java.net/bin/view/Javawsxml/Rome05DateMapping
         Date rssPubDate = null;
         String wfType = wf.getFeedType();
-        String baseUrl = "";
+        String baseUrl;
         if (wfType.startsWith("rss")) {
             // Check if there is 'lastBuildDate' but no 'pubDate' (BBC feeds?)
             Channel ch = (Channel) wf;

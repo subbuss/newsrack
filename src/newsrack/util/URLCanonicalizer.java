@@ -177,7 +177,7 @@ public class URLCanonicalizer {
 
                 // Record in cache / cancel the update depending on whether we successfully resolved the proxy url!
                 if (targetUrl != null) {
-                    if (targetUrl != url)
+                    if (!targetUrl.equals(url))
                         _urlCache.putInCache(url, targetUrl);
                     else
                         _urlCache.cancelUpdate(url);

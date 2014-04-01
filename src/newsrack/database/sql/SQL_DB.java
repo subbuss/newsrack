@@ -1468,7 +1468,7 @@ public class SQL_DB extends DB_Interface {
                 _log.error("ERROR! Unpersisted concept: " + c);
                 // Trigger a null pointer exception!
                 // Workaround to avoid declaring a throws clause everywhere if I use a throw here...  I know ... BAD SUBBU
-                _log.error("Dummy: " + cKey.longValue());
+                _log.error("Dummy: " + cKey);
             }
         }
         return cKey;
@@ -1485,7 +1485,7 @@ public class SQL_DB extends DB_Interface {
         switch (r.getType()) {
             case LEAF_CONCEPT:
                 op1Key = persistConcept(uKey, (Concept) op1);
-                op2Key = new Long(((Filter.LeafConcept) r).getMinOccurences());
+                op2Key = (long) ((Filter.LeafConcept) r).getMinOccurences();
                 rtKey = (Long) INSERT_RULE_TERM.execute(new Object[]{filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
                 break;
 
@@ -1495,7 +1495,7 @@ public class SQL_DB extends DB_Interface {
                     _log.error("ERROR! Unpersisted category: " + op1);
                     // Trigger a null pointer exception!  Workaround to avoid declaring a throws clause everywhere
                     // if I use a throw here...  I know ... BAD SUBBU
-                    _log.error("Dummy: " + op1Key.longValue());
+                    _log.error("Dummy: " + op1Key);
                 }
                 rtKey = (Long) INSERT_RULE_TERM.execute(new Object[]{filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
                 break;
@@ -1512,7 +1512,7 @@ public class SQL_DB extends DB_Interface {
                     // Trigger a null pointer exception!  Workaround to avoid declaring a throws clause everywhere
                     // if I use a throw here...  I know ... BAD SUBBU
                     op1Key = null;
-                    _log.error("Dummy: " + op1Key.longValue());
+                    _log.error("Dummy: " + op1Key);
                 }
                 rtKey = (Long) INSERT_RULE_TERM.execute(new Object[]{filtKey, Filter.getValue(r.getType()), op1Key, op2Key});
                 break;
@@ -2325,7 +2325,7 @@ public class SQL_DB extends DB_Interface {
      * @returns null if a file exists for this news item!
      */
     public OutputStream getOutputStreamForOrigArticle(NewsItem ni) {
-        File f = ((SQL_NewsItem) ni).getOrigFilePath();
+        File f = ni.getOrigFilePath();
         if (f == null) {
             Feed feed = ni.getFeed();
             Date d = ni.getDate();
@@ -2353,7 +2353,7 @@ public class SQL_DB extends DB_Interface {
      * @returns null if a file exists for this news item!
      */
     public OutputStream getOutputStreamForFilteredArticle(NewsItem ni) {
-        File f = ((SQL_NewsItem) ni).getFilteredFilePath();
+        File f = ni.getFilteredFilePath();
         if (f == null) {
             Feed feed = ni.getFeed();
             Date d = ni.getDate();
@@ -2513,7 +2513,7 @@ public class SQL_DB extends DB_Interface {
     }
 
     public Collection<NewsItem> getArchivedNews(NewsIndex index) {
-        return getNewsForIndex(((SQL_NewsIndex) index).getKey());
+        return getNewsForIndex(index.getKey());
     }
 
     /**

@@ -532,11 +532,11 @@ public class Category implements Comparable, java.io.Serializable {
 
         // If there is a pre-existing ID for this category use that!
         if (o != null) {
-            _catId = ((Integer) o).intValue();
+            _catId = (Integer) o;
         } else {
             catId++;
             _catId = catId;
-            o = new Integer(catId);
+            o = catId;
         }
         // Add a mapping from catId --> category
         catMap.put(o, this);
