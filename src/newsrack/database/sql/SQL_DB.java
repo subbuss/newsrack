@@ -2475,12 +2475,18 @@ public class SQL_DB extends DB_Interface
     *
     * @returns null if a file exists for this news item!
 	 */
-	public OutputStream getOutputStreamForOrigArticle(NewsItem ni)
-	{
+	public OutputStream getOutputStreamForOrigArticle(NewsItem ni) {
 		File f = ((SQL_NewsItem)ni).getOrigFilePath();
-			// Allow overwriting for empty files
-      if (f.exists() && (f.length() > 0)) {
-         return null;
+		if (f == null) {
+			Feed   feed = ni.getFeed();
+			Date   d    = ni.getDate();
+			String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
+			f = new File(fpath);
+		}
+
+		// Allow overwriting for empty files
+		if (f.exists() && f.length() > 0) {
+			return null;
 		}
 
 		try {
@@ -2498,12 +2504,18 @@ public class SQL_DB extends DB_Interface
     *
     * @returns null if a file exists for this news item!
 	 */
-	public OutputStream getOutputStreamForFilteredArticle(NewsItem ni)
-	{
+	public OutputStream getOutputStreamForFilteredArticle(NewsItem ni) {
 		File f = ((SQL_NewsItem)ni).getFilteredFilePath();
-			// Allow overwriting for empty files
-      if (f.exists() && (f.length() > 0)) {
-         return null;
+		if (f == null) {
+			Feed   feed = ni.getFeed();
+			Date   d    = ni.getDate();
+			String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
+			f = new File(fpath);
+		}
+
+		// Allow overwriting for empty files
+		if (f.exists() && f.length() > 0) {
+			return null;
 		}
 
 		if (_log.isInfoEnabled()) _log.info("Will write (in UTF-8) to " + f.getPath());
