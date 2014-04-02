@@ -73,7 +73,7 @@ public class SiteCrawlerTask extends TimerTask
 
 			// Get a date object set to 6 am -- this is the default time
 			// for running site crawlers
-		final GregorianCalendar cal = new GregorianCalendar();	
+		final GregorianCalendar cal = new GregorianCalendar();
 		cal.set(Calendar.HOUR_OF_DAY, 6);
 		cal.set(Calendar.MINUTE, 0);
 		final Date d6am = cal.getTime();
@@ -160,11 +160,11 @@ public class SiteCrawlerTask extends TimerTask
 		if (_log.isInfoEnabled()) _log.info("New crawler <" + name + "> with path <" + path + "> scheduled at time <" + time + ">");
 	}
 
-	/** Runs the site crawler task -- the site-specific crawlers are 
+	/** Runs the site crawler task -- the site-specific crawlers are
 	 *  run for all registered crawlers */
 	public void run()
 	{
-			// Check if the site crawlers file has been modified 
+			// Check if the site crawlers file has been modified
 			// since last read.  If so, cancel all tasks and reschedule!
 		if (SiteCrawlerTask.checkCrawlersFile())
 			return;
@@ -199,7 +199,7 @@ public class SiteCrawlerTask extends TimerTask
 			// Set the last crawled time
 		_crawledTimes.put(_name, nowTime);
 
-			/* Run the crawler, read the stdout and stderr streams 
+			/* Run the crawler, read the stdout and stderr streams
 			 * (which are simply sent to System.out -- FIXME --),
 			 * wait for the crawler to return and exit */
 		try {

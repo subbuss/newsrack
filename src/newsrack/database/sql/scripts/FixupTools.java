@@ -160,7 +160,6 @@ public class FixupTools
 					try {
 						String f = origFilt.toString();
 						HTMLFilter hf = new HTMLFilter(n.getURL(), origOrig.toString(), f.substring(0, f.lastIndexOf(File.separatorChar)));
-						hf.setIgnoreCommentsHeuristic(n.getFeed().getIgnoreCommentsHeuristic());
 						hf.run();
 						SQL_StmtExecutor.delete("DELETE FROM cat_news WHERE n_key = ?", new SQL_ValType[] {SQL_ValType.LONG}, new Object[]{n.getKey()});
 						refilteredNews.add(n);

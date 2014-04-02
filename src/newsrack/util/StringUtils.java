@@ -17,7 +17,7 @@ import org.apache.commons.logging.LogFactory;
  * which does not go anywhere else in the system.
  *
  * @author  Subramanya Sastry
- * @version 1.0 06/05/04
+ * @version 1.0 06/05/2004
  */
 public final class StringUtils
 {
@@ -298,7 +298,7 @@ public final class StringUtils
 		  return str;
       }
 		else {
-         StringBuffer sbText = HTMLFilter.getFilteredTextFromString(str);
+         String       sbText = HTMLFilter.getFilteredTextFromString(str);
          int          k      = sbText.lastIndexOf(" ", maxLen - 5);
          String       newStr = filterForXMLOutput(sbText.substring(0, k)) + " ...";
          if (_log.isDebugEnabled()) {

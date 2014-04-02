@@ -88,7 +88,7 @@ public class Feed implements java.io.Serializable, Comparable
 				}
 				else {
 					Triple<SyndFeed, String, Date> t = f.fetchFeed();
-					if (t == null) 
+					if (t == null)
 						return null;
 					SyndFeed sf = t._a;
 					feedName = sf.getTitle();
@@ -226,7 +226,7 @@ public class Feed implements java.io.Serializable, Comparable
 	public boolean equals(Object o) { return (o != null) && (o instanceof Feed) && _feedUrl.equals(((Feed)o)._feedUrl); }
 
    public int compareTo(Object o)
-   { 
+   {
       if (o instanceof Feed) {
          Feed other = (Feed)o;
          return getName().compareTo(other.getName());
@@ -254,8 +254,8 @@ public class Feed implements java.io.Serializable, Comparable
 
 	public boolean isNewsRackFilter() { return _feedUrl.startsWith("newsrack://"); }
 
-   /** 
-    * For this news source, decide whether the cached news text has to be displayed or not 
+   /**
+    * For this news source, decide whether the cached news text has to be displayed or not
     */
    private void setCachedTextDisplayFlag()
    {
@@ -313,7 +313,7 @@ public class Feed implements java.io.Serializable, Comparable
 				}
 				else {
 						// Download the feed into a temporary file and record the location in the cache
-						// NOTE: 
+						// NOTE:
 						// 1. Before we download and parse the feed, we won't know its final location!
 						// 2. We cannot use the "WireFeedOutput" to output the feeds directly to the location
 						//    after parsing, because if the input feeds do not conform to the standard
@@ -362,8 +362,8 @@ public class Feed implements java.io.Serializable, Comparable
 
 			// 2b. Handle some special cases when the feed is a RSS feed
 			//     and it has a 'lastBuildDate' but no 'pubDate'.  This is because
-			//     when Rome builds a 'SyndFeed' object, it normalizes information 
-			//     and throws away the 'lastBuildDate' information! 
+			//     when Rome builds a 'SyndFeed' object, it normalizes information
+			//     and throws away the 'lastBuildDate' information!
 			//     This is a problem for RSS 0.91, 0.92, 0.93, 0.94, and 2.0
 			// REFER http://wiki.java.net/bin/view/Javawsxml/Rome05DateMapping
 		Date   rssPubDate = null;
@@ -403,13 +403,13 @@ public class Feed implements java.io.Serializable, Comparable
 
 			// 4. Move the feed to its final location!
 		if (downloaded) {
-			File finalRssFeedFile = new File(_newsArchiveDir + File.separator 
+			File finalRssFeedFile = new File(_newsArchiveDir + File.separator
 														+ _db.getArchiveDirForIndexFiles(this, rssPubDate) + File.separator + rssFeedBase);
 
-				// The rename will probably fail in the rare case when one thread has reached here and trying to move the file 
+				// The rename will probably fail in the rare case when one thread has reached here and trying to move the file
 				// whereas another thread has simultaneously opened the file in its temporary location (2. above) to build the feed
 				// FIXME: It is not worth the effort to try and prevent this .. simultaneous access to the same feed from multiple
-				// threads is expected to be really rare and even then, the rss feed file is being stored only for archival access 
+				// threads is expected to be really rare and even then, the rss feed file is being stored only for archival access
 				// and it is unlikely that these archived feeds will ever be accessed!
 			if (rssFeedFile.renameTo(finalRssFeedFile)) {
 				_rssFeedCache.put(u, finalRssFeedFile);
@@ -444,14 +444,14 @@ public class Feed implements java.io.Serializable, Comparable
 		try {
 				// 1. Read the feed
 			Triple<SyndFeed, String, Date> t = fetchFeed();
-			if (t == null) 
+			if (t == null)
 				return;
 
 			SyndFeed sf         = t._a;
 			String   baseUrl    = t._b;
 			Date     rssPubDate = t._c;
 
-				// 2. Inform the DB before news downloading  
+				// 2. Inform the DB before news downloading
 			_db.initializeNewsDownload(this, rssPubDate);
 
 				// 3. Process the news items in the feed
@@ -460,7 +460,7 @@ public class Feed implements java.io.Serializable, Comparable
 					// 4. Process a news item
 				SyndEntry se = (SyndEntry)items.next();
 
-					// 4a. Try getting published date of the news item 
+					// 4a. Try getting published date of the news item
 					// If no item date, default is the pub date of the RSS feed
 				Date itemDate = se.getPublishedDate();
 				Date niDate   = (itemDate != null) ? itemDate: rssPubDate;
@@ -509,7 +509,7 @@ public class Feed implements java.io.Serializable, Comparable
 			_log.error("ERROR: For feed " + this._id + ", got exception " + e + "; bumping failure count to " + _numFailures);
 		}
 		finally {
-				// 5. Inform the DB after news downloading  
+				// 5. Inform the DB after news downloading
 			_db.finalizeNewsDownload(this);
 		}
 	}
@@ -517,8 +517,8 @@ public class Feed implements java.io.Serializable, Comparable
 	private NewsItem downloadNewsItem(String baseUrl, String storyUrl, String title, Date date)
 	{
 	/* Download the news item identified by the URL 'u' and create
-	 * (1) local copy of the article, and 
-	 * (2) a filtered version of the same article 
+	 * (1) local copy of the article, and
+	 * (2) a filtered version of the same article
 	 */
 
 		NewsItem ni = null;
@@ -526,7 +526,7 @@ public class Feed implements java.io.Serializable, Comparable
 			boolean logInfo = _log.isInfoEnabled();
 
 				// 1a. Find the url and attempt to bypass redirects and forwarding urls/scripts
-				// 1b. Canonicalize it so that we can catch duplicate urls more easily! 
+				// 1b. Canonicalize it so that we can catch duplicate urls more easily!
 			String canonicalUrl = URLCanonicalizer.canonicalize(URLCanonicalizer.cleanup(baseUrl, storyUrl));
 			if (logInfo) _log.info("URL :" + canonicalUrl);
 

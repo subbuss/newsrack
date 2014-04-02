@@ -85,7 +85,7 @@ public class Source implements java.io.Serializable
 
 	private       Long   _key;		// DB key for this source
 	private       User   _user;	// The user who created this source
-	private       Feed   _feed;	// The feed that this source uses 
+	private       Feed   _feed;	// The feed that this source uses
 	public final  String _utag;	// A custom id assigned (by the user) to this source for easy reference
 	public final  String _name;	// Name of this news source
 

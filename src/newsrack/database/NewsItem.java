@@ -1,8 +1,10 @@
 package newsrack.database;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import newsrack.archiver.Feed;
 import newsrack.archiver.HTMLFilter;
 import newsrack.filter.Category;
 import newsrack.user.User;
+import newsrack.util.IOUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,13 +25,10 @@ import org.apache.commons.logging.LogFactory;
  * to the news archive.
  *
  * @author  Subramanya Sastry
- * @version 1.0 23/05/04
+ * @version 1.0 23/05/2004
  */
-
-abstract public class NewsItem implements java.io.Serializable
-{
-	public static NewsItem getNewsItemFromURL(String url)
-	{
+abstract public class NewsItem implements java.io.Serializable {
+	public static NewsItem getNewsItemFromURL(String url) {
 		return NewsRack.getDBInterface().getNewsItemFromURL(url);
 	}
 
@@ -70,113 +70,79 @@ abstract public class NewsItem implements java.io.Serializable
 	abstract public void     setAuthor(String a);
 	abstract public void     setURL(String u);
 
-	public boolean olderThan(NewsItem n)
-	{
+	public boolean olderThan(NewsItem n) {
 		return getDate().before(n.getDate());
 	}
 
-	public int compareTo(NewsItem n)
-	{
+	public int compareTo(NewsItem n) {
 		return getDate().compareTo(n.getDate());
 	}
 
-   public boolean download(DB_Interface dbi) throws Exception
-   {
-      PrintWriter filtPw = dbi.getWriterForFilteredArticle(this);
-		PrintWriter origPw = dbi.getWriterForOrigArticle(this);
+   public boolean download(DB_Interface dbi) throws Exception {
+      PrintWriter filtPw = IOUtils.getUTF8Writer(dbi.getOutputStreamForFilteredArticle(this));
+		OutputStream origOS = dbi.getOutputStreamForOrigArticle(this);
       String url = getURL();
       try {
-         if ((filtPw != null) && (origPw != null)) {
+         if ((filtPw != null) && (origOS != null)) {
             boolean done = false;
             int numTries = 0;
+				int MAX_RETRIES = 3;
             do {
                numTries++;
 
-               HTMLFilter hf = new HTMLFilter(url, filtPw, true);
-               hf.run();
-               String origText = hf.getOrigHtml();
+					IOUtils.copyInputToOutput(IOUtils.getURLInputStream(new URL(url), MAX_RETRIES), origOS, true);
+					File origFile = getOrigFilePath();
 
 					// Null or small file lengths implies there was an error downloading the url
-               if ((origText != null) && (origText.length() > 100)) {
-                  origPw.println(origText);
-						origPw.flush();
+					if (origFile.length() > 100) {
+						(new HTMLFilter(url, origFile, filtPw)).run();
+
                   done = true;
 
-						// Check the size of the filtered output.
-						// If we got a file size that is too small, try to filter again, this time while not using the comment ignoring heuristic.
 						filtPw.flush();
 						File filtFile = getFilteredFilePath();
 						long len = filtFile.length();
 						if (len < 900) {
-							boolean flag = getFeed().getIgnoreCommentsHeuristic();
-							if (flag == true) {
-								// Close original open writer first 
-								try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
-
-								// Retry (but without downloading first)
-								String origPath = getOrigFilePath().toString();
-								String filtPath = filtFile.toString();
-								hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
-								hf.setIgnoreCommentsHeuristic(false);
-								hf.run();
-                  		_log.info("For file with path " + filtPath + ", filtered file length is " + len + ".  Refiltered ... new length is " + filtFile.length());
-								// See what happened now!
-								filtFile = getFilteredFilePath();
-								len = filtFile.length();
-								if (len < 600) {
-									try { if (filtPw != null) filtPw.close(); filtPw = null; } catch(Exception e) {}
-									// Retry with debugging this time around (but without downloading first)
-									hf = new HTMLFilter(url, origPath, filtPath.substring(0, filtPath.lastIndexOf(File.separatorChar)));
-									hf.debug();
-									hf.setIgnoreCommentsHeuristic(false);
-									hf.run();
-								}
-
-							}
+                  	_log.info("For file with path " + filtFile.getPath() + ", filtered file length is " + len + ".");
 						}
-               }
-					else if ((origText != null) && (origText.length() <= 100)) {
+               } else {
 						// Delete the files so they can be fetched afresh!
-						File origFile = getOrigFilePath();
 						if ((origFile != null) && origFile.exists()) {
-							if (!origFile.delete())
+							if (!origFile.delete()) {
 								_log.error("Could not delete file " + origFile);
+							}
 						}
 						File filtFile = getFilteredFilePath();
 						if ((filtFile != null) && filtFile.exists()) {
-							if (!filtFile.delete())
+							if (!filtFile.delete()) {
 								_log.error("Could not delete file " + filtFile);
+							}
 						}
-					}
-               else {
+
                   _log.info("Error downloading from url: " + url + " Retrying (max 3 times) once more after 5 seconds!");
                   newsrack.util.StringUtils.sleep(5);
                }
-            } while (!done && (numTries < 3));
-         }
-         else {
+            } while (!done && (numTries < MAX_RETRIES));
+         } else {
             _log.info("Ignoring! There already exists a downloaded file for url: " + url);
          }
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
             // Delete the file for this article -- otherwise, it will
             // trigger a false hit in the archive later on!
-         if (filtPw != null)
-            dbi.deleteFilteredArticle(this);
+         if (filtPw != null) dbi.deleteFilteredArticle(this);
 
          throw e;
-      }
-      finally {
+      } finally {
             // close the files -- ignore any resulting exceptions
-         try { if (origPw != null) origPw.close(); } catch(Exception e) {}
+         try { if (origOS != null) origOS.close(); } catch(Exception e) {}
          try { if (filtPw != null) filtPw.close(); } catch(Exception e) {}
       }
 
-         // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
+      // After a download, sleep for 1 second to prevent bombarding the remote server with downloads
       newsrack.util.StringUtils.sleep(1);
 
-         // Clear the cookie jar after each download so that you get fresh cookies for each article
-		HTMLFilter.clearCookieJar();
+      // Clear the cookie jar after each download so that you get fresh cookies for each article
+		// HTMLFilter.clearCookieJar();
 
 		// We succeeded if the filtered file exists
 		return (getFilteredFilePath().exists());

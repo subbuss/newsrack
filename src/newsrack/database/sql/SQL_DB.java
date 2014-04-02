@@ -2469,56 +2469,60 @@ public class SQL_DB extends DB_Interface
 	}
 
 	/**
-	 * Get a print writer for writing the raw HTML of the article into
+	 * Get an output stream for writing the raw HTML of the article into
 	 *
 	 * @param ni The news item for which the writer is requested
     *
     * @returns null if a file exists for this news item!
 	 */
-	public PrintWriter getWriterForOrigArticle(NewsItem ni)
-	{
-		String url  = ni.getURL();
-		Feed   feed = ni.getFeed();
-		Date   d    = ni.getDate();
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
-      File f = new File(fpath);
-			// Allow overwriting for empty files
-      if (f.exists() && (f.length() > 0))
-         return null;
+	public OutputStream getOutputStreamForOrigArticle(NewsItem ni) {
+		File f = ((SQL_NewsItem)ni).getOrigFilePath();
+		if (f == null) {
+			Feed   feed = ni.getFeed();
+			Date   d    = ni.getDate();
+			String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForOrigArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
+			f = new File(fpath);
+		}
+
+		// Allow overwriting for empty files
+		if (f.exists() && f.length() > 0) {
+			return null;
+		}
 
 		try {
-			return IOUtils.getUTF8Writer(fpath);
-		}
-		catch (java.io.IOException e) {
-			_log.error("SQL: getWriterForOrigArt: Error opening file for " + fpath);
+			return new FileOutputStream(f.getPath());
+		} catch (java.io.IOException e) {
+			_log.error("SQL: getWriterForOrigArt: Error opening file for " + f.getPath());
 			return null;
 		}
 	}
 
 	/**
-	 * Get a print writer for writing the filtered article into (i.e. after their text content is extracted)
+	 * Get an output stream for writing the filtered article into (i.e. after their text content is extracted)
 	 *
 	 * @param ni The news item for which the writer is requested
     *
     * @returns null if a file exists for this news item!
 	 */
-	public PrintWriter getWriterForFilteredArticle(NewsItem ni)
-	{
-		String url  = ni.getURL();
-		Feed   feed = ni.getFeed();
-		Date   d    = ni.getDate();
-		String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) +  ((SQL_NewsItem)ni).getLocalFileName();
-      File f = new File(fpath);
-			// Allow overwriting for empty files
-      if (f.exists() && (f.length() > 0))
-         return null;
-
-		if (_log.isInfoEnabled()) _log.info("Will write (in UTF-8) to " + fpath);
-		try {
-			return IOUtils.getUTF8Writer(fpath);
+	public OutputStream getOutputStreamForFilteredArticle(NewsItem ni) {
+		File f = ((SQL_NewsItem)ni).getFilteredFilePath();
+		if (f == null) {
+			Feed   feed = ni.getFeed();
+			Date   d    = ni.getDate();
+			String fpath = GLOBAL_NEWS_ARCHIVE_DIR + getArchiveDirForFilteredArticles(feed, d) + ((SQL_NewsItem)ni).getLocalFileName();
+			f = new File(fpath);
 		}
-		catch (java.io.IOException e) {
-			_log.error("SQL: getWriterForFilteredArt: Error opening file for " + fpath);
+
+		// Allow overwriting for empty files
+		if (f.exists() && f.length() > 0) {
+			return null;
+		}
+
+		if (_log.isInfoEnabled()) _log.info("Will write (in UTF-8) to " + f.getPath());
+		try {
+			return new FileOutputStream(f.getPath());
+		} catch (java.io.IOException e) {
+			_log.error("SQL: getWriterForFilteredArt: Error opening file for " + f.getPath());
 			return null;
 		}
 	}

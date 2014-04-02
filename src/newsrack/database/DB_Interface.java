@@ -581,29 +581,29 @@ public abstract class DB_Interface
 	 * reprocessing the same news item over and over
 	 *
 	 * NOTE: This method and the updateMaxNewsIdForIssue method assume that
-	 * ids of news items increase monotonically as new items are downloaded. 
+	 * ids of news items increase monotonically as new items are downloaded.
 	 * This is probably not the best design decision ... but, for now, this is how it is.
 	 */
 	public abstract boolean newsItemHasBeenProcessedForIssue(NewsItem ni, Issue i);
 
 	/**
-	 * Get a print writer for writing the raw HTML of the article into
+	 * Get an output stream for writing the raw HTML of the article into
 	 *
 	 * @param ni The news item for which the writer is requested
     *
     * @returns null if a file exists for this news item!
 	 */
-	public abstract PrintWriter getWriterForOrigArticle(NewsItem ni);
+	public abstract OutputStream getOutputStreamForOrigArticle(NewsItem ni);
 
 	/**
-	 * Get a print writer for writing the filtered article into (i.e. after their text 
+	 * Get an output stream for writing the filtered article into (i.e. after their text
 	 * content is extracted)
 	 *
 	 * @param ni The news item for which the writer is requested
     *
     * @returns null if a file exists for this news item!
 	 */
-	public abstract PrintWriter getWriterForFilteredArticle(NewsItem ni);
+	public abstract OutputStream getOutputStreamForFilteredArticle(NewsItem ni);
 
 	/**
 	 * Delete the requested filtered article from the archive!

@@ -62,9 +62,9 @@ public class DownloadNewsTask extends TimerTask {
             _log.error("For feed " + feed.getTag() + " aborting news download after " + MAX_ATTEMPTS + " attempts.");
 
 			int mycount = 0;
-         synchronized(_completedDownloadsCount) { 
-				_completedDownloadsCount++; 
-				mycount = _completedDownloadsCount; 
+         synchronized(_completedDownloadsCount) {
+				_completedDownloadsCount++;
+				mycount = _completedDownloadsCount;
 				_log.info("Completed # " + _completedDownloadsCount);
 			}
 
@@ -76,30 +76,30 @@ public class DownloadNewsTask extends TimerTask {
    }
 
    /** This class processes news for a single user and classifies
-     * recently downloaded news for all the user's issues 
+     * recently downloaded news for all the user's issues
      */
    private class NewsClassifier implements Runnable
    {
       private final Issue _i;
-       
-      NewsClassifier(Issue i) { _i = i; } 
+
+      NewsClassifier(Issue i) { _i = i; }
 
       public void run()
       {
          try {
             if (_i.getUser().concurrentProfileModification())
 					return;
-                
+
 				if (_i.isFrozen()) {
 					_log.info("For user " + _i.getUser().getUid() + ", issue " + _i.getName() + " is frozen!");
 					return;
 				}
-				 
+
 					// Initialize before classification
 				_i.readInCurrentRSSFeed();
 
 				_log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", starting classifying news!");
-				 
+
 				Collection<Source> iSrcs = _i.getMonitoredSources();
 				for (Source s: iSrcs) {
 					try {
@@ -117,7 +117,7 @@ public class DownloadNewsTask extends TimerTask {
 						_log.error("Exception classifying news for source: " + s.getName() + " for issue: " + _i.getName() + " for user: " + _i.getUser().getUid(), e);
 					}
 				}
-				 
+
 				_log.info("For user " + _i.getUser().getUid() + " and issue " + _i.getName() + ", done classifying news!");
 
 					 // Now that all feeds are processed, store back classified news
@@ -125,7 +125,7 @@ public class DownloadNewsTask extends TimerTask {
 				_i.storeNewsToArchive();
 				_i.freeRSSFeed(); 	// Clean up after classification is done
 				_i.unloadScanners();	// Free space allocated to scanners!
-         } 
+         }
          catch (Exception e) {
             _log.error("Exception classifying news for issue " + _i.getName());
             e.printStackTrace();
@@ -139,10 +139,10 @@ public class DownloadNewsTask extends TimerTask {
 
    /* Logging output for this class. */
    private static Log _log = LogFactory.getLog(DownloadNewsTask.class);
-    
+
    /** Initial delay after system startup before news is downloaded. */
    public static long INIT_DELAY = 10 * 60 * 1000;
-    
+
    /** Time period between consecutive downloads */
    public static long PERIOD     = 144 * 60 * 1000; // run every 144 minutes (10 times a day)
 
@@ -152,13 +152,13 @@ public class DownloadNewsTask extends TimerTask {
    /** Number of parallel threads for downloading news */
    public static int DOWNLOAD_MAX_THREADS;
    public static int CLASSIFY_MAX_THREADS;
-    
+
    /** Keep track of number of download and classifier tasks that have completed */
    private static Integer _completedDownloadsCount;
    private static Integer _completedIssuesCount;
 
    private static Date _lastDownloadTime = new Date();
-   private static int  _count            = 0; 
+   private static int  _count            = 0;
 
    private static int loadPropertyValue(String propName, int defaultVal)
    {
@@ -206,7 +206,7 @@ public class DownloadNewsTask extends TimerTask {
 		}
 	}
 
-    
+
     /** Returns the time of the last download */
    public static Date getLastDownloadTime() { return _lastDownloadTime; }
 
@@ -217,11 +217,11 @@ public class DownloadNewsTask extends TimerTask {
       if (NewsRack.testing() || NewsRack.isTrue("readonly"))
          return;
 
-         // Check if the site crawlers file has been modified 
+         // Check if the site crawlers file has been modified
          // since last read.  If so, cancel all tasks and reschedule!
       if (SiteCrawlerTask.checkCrawlersFile())
          return;
-      
+
 		if (_log.isInfoEnabled()) {
          _log.info("---------------------------------------------------------");
 		   _log.info("DNT: Called " + _count + " at time " + (new java.util.Date()));
@@ -284,7 +284,7 @@ public class DownloadNewsTask extends TimerTask {
 
 				// Clear the downloaded news table -- since we are done processing all of them
 			NewsRack.getDBInterface().clearDownloadedNewsTable();
-            
+
 			for (User u: users)
             u.doPostDownloadBookkeeping();
 
