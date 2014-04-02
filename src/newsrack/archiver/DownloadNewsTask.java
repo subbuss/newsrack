@@ -47,7 +47,8 @@ public class DownloadNewsTask extends TimerTask {
             try {
                count++;
                feed.download();
-					feed.classifyNews();
+					// SSS FIXME: Yet to be implemented!
+					// feed.classifyNews();
                done = true;
             }
             catch (Exception e) {
