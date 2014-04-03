@@ -422,7 +422,7 @@
 		for (int i = 0; i < filters.length; i++)
 			x.add(filters[i]);
 
-		recordFilterCollection(c, filters);
+		recordFilterCollection(c, x);
 	}
 
 	private void recordFilterCollection(String c, Collection<Filter> filters)
