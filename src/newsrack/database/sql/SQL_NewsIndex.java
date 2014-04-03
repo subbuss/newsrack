@@ -52,13 +52,13 @@ public class SQL_NewsIndex extends NewsIndex {
         // Move all news items in this collection to their new destination in the archive
         Collection<NewsItem> news = SQL_DB._sqldb.getArchivedNews(this);
         for (NewsItem n : news) {
-            File origOrig = ((SQL_NewsItem) n).getOrigFilePath();
-            File origFilt = ((SQL_NewsItem) n).getFilteredFilePath();
+            File origOrig = n.getOrigFilePath();
+            File origFilt = n.getFilteredFilePath();
 
             n.setDate(newDate);
 
-            File newOrig = ((SQL_NewsItem) n).getOrigFilePath();
-            File newFilt = ((SQL_NewsItem) n).getFilteredFilePath();
+            File newOrig = n.getOrigFilePath();
+            File newFilt = n.getFilteredFilePath();
 
             System.out.println("ORIG: For news item: " + n.getKey() + "; RENAMING: " + origOrig + "; TO: " + newOrig);
             System.out.println("FILT: For news item: " + n.getKey() + "; RENAMING: " + origFilt + "; TO: " + newFilt);

@@ -80,4 +80,4 @@ public enum SQL_ValType {
     };
 
     abstract void setStmtArg(PreparedStatement stmt, int argPos, Object argVal) throws SQLException;
-};
+}

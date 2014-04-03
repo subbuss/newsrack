@@ -177,7 +177,7 @@ public class URLCanonicalizer {
 
                 // Record in cache / cancel the update depending on whether we successfully resolved the proxy url!
                 if (targetUrl != null) {
-                    if (targetUrl != url)
+                    if (!targetUrl.equals(url))
                         _urlCache.putInCache(url, targetUrl);
                     else
                         _urlCache.cancelUpdate(url);
@@ -194,7 +194,7 @@ public class URLCanonicalizer {
             repeat = false;
 
             // Special rule for news.google.com: FIXME: Merge this into existing rules!
-            if (url.indexOf("news.google.com/") != -1) {
+            if (url.contains("news.google.com/")) {
                 // Unescape the url
                 try {
                     url = java.net.URLDecoder.decode(url, "UTF-8");
@@ -247,7 +247,7 @@ public class URLCanonicalizer {
             // Default fixup rule
             if (!done) {
                 for (String d : domainsWithDefaultFixupRule) {
-                    if (domain.indexOf(d) != -1) {
+                    if (domain.contains(d)) {
                         int i = url.indexOf("?");
                         if (i > 0) {
                             url = url.substring(0, i);

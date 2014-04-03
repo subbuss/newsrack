@@ -118,7 +118,7 @@ public enum SQL_Stmt {
             null,
             new AbstractResultProcessor() {
                 public Object processResultSet(ResultSet rs) throws java.sql.SQLException {
-                    return new Boolean(true);
+                    return true;
                 }
             },
             true

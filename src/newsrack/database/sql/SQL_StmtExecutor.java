@@ -20,13 +20,13 @@ class GetStringResultProcessor extends AbstractResultProcessor {
 
 class GetIntResultProcessor extends AbstractResultProcessor {
     public Object processResultSet(ResultSet rs) throws java.sql.SQLException {
-        return new Integer(rs.getInt(1));
+        return rs.getInt(1);
     }
 }
 
 class GetLongResultProcessor extends AbstractResultProcessor {
     public Object processResultSet(ResultSet rs) throws java.sql.SQLException {
-        return new Long(rs.getLong(1));
+        return rs.getLong(1);
     }
 }
 
@@ -215,11 +215,11 @@ public class SQL_StmtExecutor {
                     if (_log.isDebugEnabled())
                         _log.debug("Insert statement " + stmt + " completed without exceptions!");
                     // Don't complain if the stmt. is an insert ignore!
-                    if ((n == 0) && (stmtString.toLowerCase().indexOf(" ignore ") == -1))
+                    if ((n == 0) && (!stmtString.toLowerCase().contains(" ignore ")))
                         _log.error("Insert statement " + stmt + " returned 0 rows!");
 
                     if (rp == null) {
-                        retVal = new Integer(n);
+                        retVal = n;
                     } else {
                         rs = stmt.getGeneratedKeys();
                         retVal = processResults(rp, c, stmt, rs, singleRowOutput);
@@ -232,13 +232,13 @@ public class SQL_StmtExecutor {
                     return retVal;
 
                 case UPDATE:
-                    retVal = new Integer(stmt.executeUpdate());
+                    retVal = stmt.executeUpdate();
                     if (_log.isDebugEnabled())
                         _log.debug("Update statement " + stmt + " completed without exceptions!");
                     return retVal;
 
                 case DELETE:
-                    retVal = new Integer(stmt.executeUpdate());
+                    retVal = stmt.executeUpdate();
                     if (_log.isDebugEnabled())
                         _log.debug("Delete statement " + stmt + " completed without exceptions!");
                     return retVal;

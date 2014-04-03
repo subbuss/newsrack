@@ -108,7 +108,7 @@ public class User implements java.io.Serializable {
         final User u = getUser(uname);
         if (u == null)
             throw new UnknownUserException(uname);
-        if (!u.passwordMatches(passwd))
+        if (u.passwordMismatch(passwd))
             throw new InvalidPasswordException(uname);
 
         u._isAdmin = uname.equals("admin");
@@ -184,7 +184,7 @@ public class User implements java.io.Serializable {
      */
     public void changePassword(final String oldPwd, final String newPwd) throws InvalidPasswordException {
         // Match password
-        if (!passwordMatches(oldPwd))
+        if (passwordMismatch(oldPwd))
             throw new InvalidPasswordException(_uid);
 
         // Set new password
@@ -615,9 +615,9 @@ public class User implements java.io.Serializable {
 
     public void renameFile(final String oldName, final String newName) throws EditProfileException {
             /* Check for bad file names first */
-        if (oldName.indexOf(File.separator) != -1)
+        if (oldName.contains(File.separator))
             throw new EditProfileException("Invalid source file name: " + oldName);
-        else if (newName.indexOf(File.separator) != -1)
+        else if (newName.contains(File.separator))
             throw new EditProfileException("No " + File.separator + " allowed in file name! Invalid file name: " + newName);
 
 			/* Check if renaming will fail next */
@@ -825,9 +825,9 @@ public class User implements java.io.Serializable {
      *
      * @param p The password to be checked
      */
-    public boolean passwordMatches(final String p) {
+    public boolean passwordMismatch(final String p) {
         final String encPassword = PasswordService.encrypt(p);
-        return encPassword.equals(_password);
+        return !encPassword.equals(_password);
     }
 
     /**

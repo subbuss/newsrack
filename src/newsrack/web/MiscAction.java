@@ -25,7 +25,7 @@ public class MiscAction extends BaseAction {
     public static void cacheKnownIndianFeeds() {
         // SSS: Hardcoded for newsrack.in install
         User libraryUser = User.getUser("library");
-        Collection srcs = ((NR_SourceCollection) libraryUser.getSourceCollection("Indian News Media Feeds")).getSources();
+        Collection srcs = libraryUser.getSourceCollection("Indian News Media Feeds").getSources();
         _indianFeeds = new ArrayList<Feed>();
         for (Object o : srcs) {
             _indianFeeds.add(((Source) o).getFeed());

@@ -25,7 +25,7 @@ public class ConceptTrie {
         // Walk down the trie, creating new nodes as needed
         for (int i = 0; i < strLen; i++) {
             // Normalize trie chars to lower case
-            Character c = new Character(Character.toLowerCase(chars[i]));
+            Character c = Character.toLowerCase(chars[i]);
             Node child = n._children.get(c);
             if (child == null) {
                 child = new Node(c, str.substring(0, i + 1));
@@ -46,8 +46,7 @@ public class ConceptTrie {
         Node n = startState == null ? _root : (Node) startState;
 
         // Walk down the trie
-        for (int i = 0; i < strLen; i++) {
-            char c = chars[i];
+        for (char c : chars) {
             Node child = n._children.get(c);
             if (child == null) return null;
             n = child;
@@ -60,7 +59,7 @@ public class ConceptTrie {
         // Increment match score of the matched concept and record information
         // about where in the article it was found
         for (Concept c : matchedConcepts) {
-            Score cnt = (Score) tokTable.get(c);
+            Score cnt = tokTable.get(c);
             if (cnt == null) {
                 tokTable.put(c, new Score(tokenPosn));
             } else {

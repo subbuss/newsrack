@@ -31,7 +31,7 @@ public class LoginInterceptor extends AbstractInterceptor {
             for (String k : keys) {
                 String[] val = (String[]) requestParams.get(k);
                 requestString += (count == 0) ? "?" : "&";        // if it's the first parameter add a '?' else add a '&'
-                requestString += k + "=" + val[0].toString(); // append the key = val param string
+                requestString += k + "=" + val[0]; // append the key = val param string
                 count++;
             }
 

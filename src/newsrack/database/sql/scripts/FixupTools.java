@@ -126,8 +126,8 @@ public class FixupTools {
         List<NewsItem> refilteredNews = new ArrayList<NewsItem>();
         for (NewsItem n : news) {
             try {
-                File origOrig = ((SQL_NewsItem) n).getOrigFilePath();
-                File origFilt = ((SQL_NewsItem) n).getFilteredFilePath();
+                File origOrig = n.getOrigFilePath();
+                File origFilt = n.getFilteredFilePath();
                 if (origOrig.exists() && origFilt.exists() && (origFilt.length() < minLength)) {
                     System.out.println("Will have to filter " + origFilt + " again!");
                     origFilt.delete();
@@ -176,8 +176,8 @@ public class FixupTools {
         Collection<NewsItem> news = _db.getArchivedNews(ni);
         List<NewsItem> downloadedNews = new ArrayList<NewsItem>();
         for (NewsItem n : news) {
-            File origOrig = ((SQL_NewsItem) n).getOrigFilePath();
-            File origFilt = ((SQL_NewsItem) n).getFilteredFilePath();
+            File origOrig = n.getOrigFilePath();
+            File origFilt = n.getFilteredFilePath();
             if (origFilt == null || !origFilt.exists() || (origFilt.length() < minLength)) {
                 if ((origFilt == null) || !origFilt.exists())
                     System.out.println("Missing file ... have to download .." + n.getKey() + ": " + n.getURL() + " again!");
@@ -435,12 +435,12 @@ public class FixupTools {
         } else if (action.equals("canonicalize-urls-for-feed")) {
             Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
             Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
-            boolean refetch = (args.length > 4) && (args[5].equals("true")) ? true : false;
+            boolean refetch = (args.length > 4) && (args[5].equals("true"));
             canonicalizeURLs(Long.parseLong(args[2]), sd, ed, refetch);
         } else if (action.equals("canonicalize-urls-for-domain")) {
             Date sd = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]);
             Date ed = newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[4]);
-            boolean refetch = (args.length > 4) && (args[5].equals("true")) ? true : false;
+            boolean refetch = (args.length > 4) && (args[5].equals("true"));
             canonicalizeURLs(args[2], sd, ed, refetch);
         } else if (action.equals("refetch-news")) {
             refetchNewsForNewsIndex(Long.parseLong(args[2]), Long.parseLong(args[3]));

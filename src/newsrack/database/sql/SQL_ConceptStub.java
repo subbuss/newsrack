@@ -41,7 +41,7 @@ public class SQL_ConceptStub extends Concept {
                     null,
                     new GetStringResultProcessor(),
                     true);
-            super.setKeywords((java.util.List<String>) Arrays.asList(keywords.split("\n")));
+            super.setKeywords(Arrays.asList(keywords.split("\n")));
             return super.getKeywords();
         }
     }

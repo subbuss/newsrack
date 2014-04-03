@@ -334,7 +334,7 @@ public class Category implements Comparable, java.io.Serializable {
 
         final long now = System.currentTimeMillis();
         final long lut = _lastUpdateTime.getTime();
-        return ((now - lut) < (numHours * 3600 * 1000)) ? true : false;
+        return ((now - lut) < (numHours * 3600 * 1000));
     }
 
     /*
@@ -363,7 +363,7 @@ public class Category implements Comparable, java.io.Serializable {
             sb.append(_filter._ruleString);
             sb.append(")\n");
         } else if (!isLeafCategory()) {
-            _indent = new String(old + StringUtils.TAB);
+            _indent = old + StringUtils.TAB;
 
             sb.append(": [\n");
             for (Category c : _children)
@@ -565,11 +565,11 @@ public class Category implements Comparable, java.io.Serializable {
 
         // If there is a pre-existing ID for this category use that!
         if (o != null) {
-            _catId = ((Integer) o).intValue();
+            _catId = (Integer) o;
         } else {
             catId++;
             _catId = catId;
-            o = new Integer(catId);
+            o = catId;
         }
         // Add a mapping from catId --> category
         catMap.put(o, this);

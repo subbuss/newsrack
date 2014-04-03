@@ -51,18 +51,18 @@ public class FileAction extends BaseAction implements ServletResponseAware {
         _file = n;
     }
 
-    private boolean haveValidParams() {
+    private boolean haveInvalidParams() {
         _file = getParam("file");
         if ((_file == null) || _file.equals("")) {
             addActionError(getText("error.missing.filename"));
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     public String edit() {
-        if (!haveValidParams())
+        if (haveInvalidParams())
             return Action.ERROR;
 
         try {
@@ -104,7 +104,7 @@ public class FileAction extends BaseAction implements ServletResponseAware {
     }
 
     public String display() {
-        if (!haveValidParams())
+        if (haveInvalidParams())
             return Action.ERROR;
 
 			/* Set output content type to 'text/plain' to prevent the
@@ -147,7 +147,7 @@ public class FileAction extends BaseAction implements ServletResponseAware {
     }
 
     public String save() {
-        if (!haveValidParams())
+        if (haveInvalidParams())
             return Action.ERROR;
 
         return storeFileContent(getParam("fileContent"));
@@ -155,7 +155,7 @@ public class FileAction extends BaseAction implements ServletResponseAware {
 
     public String createNew() {
         _fileContent = getParam("fileContent");
-        if (!haveValidParams())
+        if (haveInvalidParams())
             return Action.ERROR;
 
         try {
@@ -189,7 +189,7 @@ public class FileAction extends BaseAction implements ServletResponseAware {
     }
 
     public String download() {
-        if (!haveValidParams())
+        if (haveInvalidParams())
             return Action.ERROR;
 
         String owner = getParam("owner");
@@ -217,7 +217,7 @@ public class FileAction extends BaseAction implements ServletResponseAware {
     }
 
     public String copy() {
-        if (!haveValidParams())
+        if (haveInvalidParams())
             return Action.ERROR;
 
         String owner = getParam("owner");

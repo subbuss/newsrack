@@ -105,11 +105,7 @@ public class SQL_NewsItem extends NewsItem {
      * URL is sufficient to check for equality!
      */
     public boolean equals(Object o) {
-        if ((o != null) && (o instanceof SQL_NewsItem)) {
-            return getURL().equals(((SQL_NewsItem) o).getURL());
-        } else {
-            return false;
-        }
+        return (o != null) && (o instanceof SQL_NewsItem) && getURL().equals(((SQL_NewsItem) o).getURL());
     }
 
     /**

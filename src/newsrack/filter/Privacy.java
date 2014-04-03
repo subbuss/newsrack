@@ -17,4 +17,4 @@ public enum Privacy {
     static public Privacy getValue(int index) {
         return pvals[index];
     }
-};
+}
