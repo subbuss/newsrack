@@ -1,11 +1,10 @@
 package newsrack.web;
 
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import newsrack.filter.PublicFile;
 import newsrack.user.User;
 
-import com.opensymphony.xwork2.Action;
+import java.util.List;
 
 // import org.apache.commons.logging.Log;
 // import org.apache.commons.logging.LogFactory;
@@ -16,16 +15,17 @@ import com.opensymphony.xwork2.Action;
  * (categories, profiles, concepts, news sources)
  */
 
-public class PublicFilesAction extends BaseAction
-{
-   // private static Log _log = LogFactory.getLog(PublicFilesAction.class);	// Logger for this action class
+public class PublicFilesAction extends BaseAction {
+    // private static Log _log = LogFactory.getLog(PublicFilesAction.class);	// Logger for this action class
 
-	private List<PublicFile> _publicFiles;
-	public List<PublicFile> getPublicFiles() { return _publicFiles; }
+    private List<PublicFile> _publicFiles;
 
-   public String execute()
-	{
-		_publicFiles = User.getPublicFiles();
-		return Action.SUCCESS;
-	}
+    public List<PublicFile> getPublicFiles() {
+        return _publicFiles;
+    }
+
+    public String execute() {
+        _publicFiles = User.getPublicFiles();
+        return Action.SUCCESS;
+    }
 }

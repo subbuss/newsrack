@@ -6,25 +6,26 @@ package newsrack.filter;
  * the database, and if the names or the order is changed,
  * the collection types stored in the database will be lost!
  */
-public enum NR_CollectionType
-{
-	SOURCE("SRC"),
-	CONCEPT("CPT"),
-	CATEGORY("CAT"),
-	FILTER("FIL");
+public enum NR_CollectionType {
+    SOURCE("SRC"),
+    CONCEPT("CPT"),
+    CATEGORY("CAT"),
+    FILTER("FIL");
+    public final String _typeStr;
 
-	static public NR_CollectionType getType(String typeStr)
-	{
-		if (typeStr.equals("SRC")) return SOURCE;
-		else if (typeStr.equals("CPT")) return CONCEPT;
-		else if (typeStr.equals("CAT")) return CATEGORY;
-		else if (typeStr.equals("FIL")) return FILTER;
-		else return null;
-	}
-	
-	public final String _typeStr;
+    NR_CollectionType(String typeStr) {
+        _typeStr = typeStr;
+    }
 
-	NR_CollectionType(String typeStr) { _typeStr = typeStr; }
+    static public NR_CollectionType getType(String typeStr) {
+        if (typeStr.equals("SRC")) return SOURCE;
+        else if (typeStr.equals("CPT")) return CONCEPT;
+        else if (typeStr.equals("CAT")) return CATEGORY;
+        else if (typeStr.equals("FIL")) return FILTER;
+        else return null;
+    }
 
-	public String toString() { return _typeStr; }
+    public String toString() {
+        return _typeStr;
+    }
 }
