@@ -1376,7 +1376,7 @@ class GetFilterResultProcessor extends AbstractResultProcessor {
             // Set up context concept lists for those rule term tuples for which the op-type value is CONTEXT_TERM_OPERAND_TYPE
             // rtVals[2] is the key for the context-rule term
             if (((Integer) rtVals[1]) == SQL_DB.CONTEXT_TERM_OPERAND_TYPE) {
-                List context = (List) operandMap.get(rtVals[2]);
+                List context = (List) operandMap.get((Long)rtVals[2]);
                 if (context == null) {
                     context = new ArrayList<Concept>();
                     operandMap.put((Long) rtVals[2], context);
