@@ -429,7 +429,7 @@ public class FixupTools {
         } else if (action.equals("find-newsitems-without-files")) {
             findNewsItemsWithMissingFiles(Long.parseLong(args[2]));
         } else if (action.equals("change-newsindex-date")) {
-            changeNewsIndexDate(Long.parseLong(args[2]), newsrack.database.sql.SQL_NewsItem.DATE_PARSER.get().parse(args[3]));
+            changeNewsIndexDate(Long.parseLong(args[2]), newsrack.web.BrowseAction.DATE_PARSER.get().parse(args[3]));
         } else if (action.equals("add-news-to-cat")) {
             addNewsItemsToCat(Long.parseLong(args[2]), args[3]);
         } else if (action.equals("canonicalize-urls-for-feed")) {
