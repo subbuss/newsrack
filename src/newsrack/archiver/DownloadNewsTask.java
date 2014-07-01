@@ -19,25 +19,21 @@ import java.util.concurrent.TimeUnit;
 /**
  * class <code>DownloadNewsTask</code> implements the functionality
  * of periodically downloading news.
- * <p/>
- * Original code : Subramanya Sastry.
- * June 4, 2007  : T Meyarivan changed code to use a thread pool for downloading / filter in parallel.
- * June 12, 2007 : Subramanya Sastry re-orged. Mary code and fixed some bugs.
  */
 
 public class DownloadNewsTask extends TimerTask {
     /**
      * Initial delay after system startup before news is downloaded.
      */
-    public static long INIT_DELAY = 10 * 60 * 1000;
+    public static long INIT_DELAY = 0;
     /**
      * Time period between consecutive downloads
      */
-    public static long PERIOD = 144 * 60 * 1000; // run every 144 minutes (10 times a day)
+    public static long PERIOD = 0;
     /**
      * Maximum number of attempts to download a feed and its articles
      */
-    public static int MAX_ATTEMPTS = 10;
+    public static int MAX_ATTEMPTS = 0;
     /**
      * Number of parallel threads for downloading news
      */
@@ -174,14 +170,16 @@ public class DownloadNewsTask extends TimerTask {
             }
 
             // Shut down the download thread pool .. if interrupted, the method will return false .. end execution in that case!
-            if (!shutDownThreadPool(tpool))
+            if (!shutDownThreadPool(tpool)) {
                 return;
+                }
 
             // Clear the downloaded news table -- since we are done processing all of them
             NewsRack.getDBInterface().clearDownloadedNewsTable();
 
-            for (User u : users)
+            for (User u : users) {
                 u.doPostDownloadBookkeeping();
+            }
 
             // Shut down the thread pool
             shutDownThreadPool(tpool);
@@ -237,8 +235,9 @@ public class DownloadNewsTask extends TimerTask {
 
             // FIXME: Till we figure out why we are ending up with CLOSE_WAIT sockets because of mod_jk/tomcat problem,
             // periodically gc while downloading, so that this forces tomcat to release sockets
-            if (mycount % 20 == 0)
+            if (mycount % 20 == 0) {
                 System.gc();
+            }
         }
     }
 

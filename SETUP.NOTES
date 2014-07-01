@@ -1,4 +1,11 @@
-1. edit /etc/init.d/tomcat6 and change 
+* Set up local dns so that dns is resolved via the local resolver
+  running with a different uid than tomcat.
+
+* Set up firewall to block all outgoing udp traffic.
+  $ sudo iptables -A OUTPUT -o eth0 -p udp -m owner --uid-owner tomcat6 -j DROP
+  Only after local dns has been configured.
+
+1. edit /etc/init.d/tomcat6 and change
    - umask to 002
 
 # -- sample commands --
