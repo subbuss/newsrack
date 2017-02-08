@@ -23,7 +23,7 @@ sub ProcessPage
       # Suck in the entire file into 1 line
    $x=$/;
    undef $/;
-   open (FILE, "<$fileName");
+   open(FILE, "<:encoding(utf-8)", $fileName);
    $content = <FILE>;
    close FILE;
    $/=$x;
@@ -140,7 +140,7 @@ $artnum1     = &OpenArtNumFile("60000");
 ##
 
 ## Initialize
-&Initialize("", $startPage);
+&Initialize("utf-8", $startPage);
 
 ## Process the url list while crawling the site
 while (@urlList) {
