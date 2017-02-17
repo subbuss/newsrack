@@ -11,11 +11,14 @@ require "$scriptDir/crawler.lib.pl";
 sub ProcessPage
 {
    my ($fileName, $url) = ($_[0], $_[1]);
-   ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?(\?.*)?$}i);
+   ($baseHref) = ($url =~ m{(http://.*?)(\/[^/]*)?$}i);
+   ($baseHref2) = ($url =~ m{(http://[^/]*)(.*)?$}i);
    $baseHref .= "/";
+   $baseHref2 .= "/";
    print LOG "URL               - $url\n";
    print LOG "FILE              - $fileName\n";
    print LOG "DEFAULT BASE HREF - $baseHref\n";
+   print LOG "DEFAULT BASE HREF 2 - $baseHref2\n";
 
       # Suck in the entire file into 1 line
    $x=$/;
@@ -44,16 +47,16 @@ sub ProcessPage
       $siteRoot = $defSiteRoot;
    }
 
-      # Check if absolute URLs are okay with this page 
+      # Check if absolute URLs are okay with this page
 	$rejectAbsoluteUrls = &AbsoluteUrlsOkay($baseHref, $defSiteRoot);
 
       # Initialize the list of new urls
    my $urlList = ();
 
       # Match anchors -- across multiple lines, and match all instances
-   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)([^ "<>]+)\1.*?>(.+?)</a>}isg) {
+   while ($content =~ m{<a.*?href\s*=\s*(['|"]?)([^ '"<>]+)\1.*?>(.+?)</a>}isg) {
       ($urlRef, $link) = ($2, $3);
-      print LOG "REF - $urlRef; LINK - $link; \n"; 
+      print LOG "REF - $urlRef; LINK - $link; ";
       $msg="";
       $ignore = 0;
          # Check this before the "^http" check because
@@ -80,9 +83,9 @@ sub ProcessPage
 			}
       }
       elsif ($urlRef =~ /^\.\./) {
-         $newUrl = $baseHref.$urlRef;
-         $msg    = "-..-";
-         $ignore = 1;
+			$newUrl = $baseHref.$urlRef;
+			$msg    = "-..-";
+			$ignore = 1;
       }
       elsif ($urlRef =~ /^mailto/i) {
          $newUrl = $urlRef;
@@ -93,24 +96,25 @@ sub ProcessPage
          $newUrl = $baseHref.$urlRef;
       }
 
-      ($newUrl =~ s{://}{###}g); 
-      ($newUrl =~ s{//}{/}g); 
-      ($newUrl =~ s{###}{://}g); 
-		($newUrl =~ s{\\}{/});
+      ($newUrl =~ s{://}{###}g);
+      ($newUrl =~ s{//}{/}g);
+      ($newUrl =~ s{###}{://}g);
 
          # Add or ignore, as appropriate
       if ($ignore) {
          print LOG "IGNORING NEW ($msg) - $newUrl\n"
       }
-      elsif (!($newUrl =~ /.*\s*#$/) && !$links{$newUrl}) {
+      elsif (!($newUrl =~ /.*\s*#$/)) {
          $link =~ s/\s+/ /g;
          print LOG "ADDING NEW - $newUrl\n";
-         $urlList[scalar(@urlList)] = $newUrl; 
-         $links{$newUrl} = $link;
+			if ($links{$newUrl} && ($link =~ /full story/i)) {
+				print LOG "Skipping already existing link - $link; $newUrl\n";
+			}
+			else {
+				$urlList[scalar(@urlList)] = $newUrl;
+				$links{$newUrl} = $link;
+			}
       }
-		else {
-			print LOG "Trishanku swarga $newUrl\n";
-		}
    }
 
    return $urlList;
@@ -123,37 +127,28 @@ sub ProcessPage
 ##
 ## BEGIN CUSTOM CODE 1: This section needs to be customized for every
 ## newspaper depending on how their site is structured.
-##
-$newspaper   = "Oheraldo";
-$prefix      = "oh";
-$defSiteRoot = "http://oheraldo.in";
-$url         = "$defSiteRoot/";
-$artnum1     = &OpenArtNumFile("10000");
+## Url Structure for Orissa
+
+$newspaper   = "O Heraldo";
+$prefix      = "oheraldo";
+$defSiteRoot = "http://www.heraldgoa.in";
+$startPage   = "$defSiteRoot/index.php";
+$artnum1     = &OpenArtNumFile("100000");
+
 ##
 ## END CUSTOM CODE 1
 ##
 
 ## Initialize
-&Initialize("", $url);
-
+&Initialize("", $startPage);
 ## Process the url list while crawling the site
 while (@urlList) {
    $total++;
    $url = shift @urlList;
    next if ($urlMap{$url});       # Skip if this URL has already been processed;
-   next if (! ($url =~ /http/i)); # Skip if this URL is not valid
+   next if (!($url =~ /http/i)); # Skip if this URL is not valid
 
-	$skipit = 0;
-	if ($url =~ /nid=(\d+)/) {
-		$artNum = $1;
-		$skipit = ($artNum < $startingArtNum);
-		print "Article number = $artNum; skipit = $skipit\n";
-		$maxArtNum = $artNum if ($artNum > $maxArtNum);
-	}
-
-	next if $skipit;
-
-      # Get the new page and process it
+   # Get the new page and process it
    $processed++;
    print     "PROCESSING $url ==> $links{$url}\n";
    print LOG "PROCESSING $url ==> $links{$url}\n";
@@ -167,20 +162,26 @@ while (@urlList) {
 ## structure and organization and needs to be customized for different
 ## newspapers.
 ##
-   if ($url =~ /pagedetails.asp/) {
+      ## The next line uses information about Jaya News Live URL structure
+   if ($url =~ m{$defSiteRoot(/[\w\-]+)+/(\d+).html})  {
+			# For most sites, the next line suffices!
+      $artNum = $2;
+		print "Article number = $artNum\n";
+		next if ($artNum < $startingArtNum);
+
+		if ($artNum > $maxArtNum) {
+			$maxArtNum = $artNum;
+		}
+
+		$title = &ReadTitle($url);
 ##
 ## END CUSTOM CODE 2
 ##
-      $title = $links{$url};
-      $title =~ s/<.*?>//g;
-      if ($title =~ /^\s*more\s*/i) {
-         $title = &ReadTitle($url);
-         $title =~ s/\s*oHeraldo\s*::\s*//i;
-      }
+		$title =~ s/<.*?>//g;
+		print "TITLE of $url is \'$title\'\n";
       $desc  = $title;
 		&PrintRSSItem();
-   }
-   else {
+   } elsif ($url =~ $startPage || $url =~ m{$defSiteRoot(/[\w\-]+)+$}) {
 		&CrawlWebPage($url);
    }
 }
