@@ -162,7 +162,7 @@ while (@urlList) {
 ## structure and organization and needs to be customized for different
 ## newspapers.
 ##
-      ## The next line uses information about Jaya News Live URL structure
+   ## The next line uses information about OHeraldo URL structure
    if ($url =~ m{$defSiteRoot(/[\w\-]+)+/(\d+).html})  {
 			# For most sites, the next line suffices!
       $artNum = $2;
