@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
  
-<!DOCTYPE web-app
-    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-    "http://java.sun.com/dtd/web-app_2_3.dtd">
- 
-<web-app>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    version="2.4">
+
   <display-name>NewsRack </display-name>
   <description> News Rack -- newsrack.in installation </description>
 
@@ -49,7 +49,7 @@
 <!-- Struts 2 filter -->
   <filter>
     <filter-name>struts2</filter-name>
-    <filter-class> org.apache.struts2.dispatcher.FilterDispatcher </filter-class>
+    <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
   </filter>
 
 <!-- filter mappings -->

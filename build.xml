@@ -16,8 +16,8 @@
 
   <property file="build.properties"/>
   
-  <property name="tomcat"            value="tomcat6" />
-  <property name="servlet-jar-dir"   value="/usr/share/tomcat6" />
+  <property name="tomcat"            value="tomcat7" />
+  <property name="servlet-jar-dir"   value="/usr/share/tomcat7" />
   <property name="container.dir"     value="/var/lib/${tomcat}/webapps" />
   <property name="webapp.name"       value="ROOT" /> <!-- override in build.properties -->
   <property name="webapp.target.dir" location="${container.dir}/${webapp.name}" />
