@@ -124,7 +124,7 @@ public class SQL_DB extends DB_Interface {
             _dbPool.init(1);
         } catch (Exception e) {
             _log.error("Error initializing SQL DB -- ");
-            e.printStackTrace();
+            IOUtils.printStackTrace(e, _log);
         }
 
         // Initialize the sql stament

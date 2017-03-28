@@ -1,6 +1,7 @@
 package newsrack.database.sql;
 
 import newsrack.database.DB_Interface;
+import newsrack.util.IOUtils;
 import org.apache.commons.logging.Log;
 import snaq.db.ConnectionPool;
 
@@ -11,6 +12,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 
 class GetStringResultProcessor extends AbstractResultProcessor {
     public Object processResultSet(ResultSet rs) throws java.sql.SQLException {
@@ -70,7 +72,7 @@ public class SQL_StmtExecutor {
             }
         } catch (Exception e) {
             _log.error("Exception closing SQL connection: " + e);
-            e.printStackTrace();
+            IOUtils.printStackTrace(e, _log);
         }
     }
 
@@ -81,7 +83,7 @@ public class SQL_StmtExecutor {
             }
         } catch (Exception e) {
             _log.error("Exception closing SQL statment: " + e);
-            e.printStackTrace();
+            IOUtils.printStackTrace(e, _log);
         }
     }
 
@@ -92,7 +94,7 @@ public class SQL_StmtExecutor {
             }
         } catch (Exception e) {
             _log.error("Exception closing result set: " + e);
-            e.printStackTrace();
+            IOUtils.printStackTrace(e, _log);
         }
     }
 

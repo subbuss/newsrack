@@ -71,7 +71,7 @@ public final class NewsRack {
     public static void loadGlobalProperties() {
         loadProperties(_resourcesFile);
 
-			/* Load override properties: things like user name, password, etc. which shouldn't be
+            /* Load override properties: things like user name, password, etc. which shouldn't be
              * stored in the main properties file and checked in svn/cvs (unless you happen to be me!) */
         loadProperties(_resourcesFile + ".override");
     }
@@ -87,7 +87,7 @@ public final class NewsRack {
         } catch (java.io.IOException e) {
             _log.error("Exception while loading properties file: " + propertiesFile);
             _log.error(e.toString());
-            e.printStackTrace();
+            IOUtils.printStackTrace(e, _log);
         }
         _globalNewsArchive = getProperty("flatfiledb.globalArchive");
     }
@@ -128,6 +128,7 @@ public final class NewsRack {
             _log.error("Error loading database!", e);
             _log.error("CAUSE: ", e);
         }
+
         _db.init();
         _globalNewsArchive = _db.getGlobalNewsArchive();
         newsrack.util.MailUtils.init();

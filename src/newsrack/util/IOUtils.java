@@ -29,6 +29,12 @@ public final class IOUtils {
         if (_log.isInfoEnabled()) _log.info(msg);
     }
 
+    public static void printStackTrace(Throwable e, Log log) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        log.info("Stack Trace: " + sw.toString());
+    }
+
     /**
      * This method copies the contents of an input stream to the output stream
      *

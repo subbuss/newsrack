@@ -388,7 +388,7 @@ public class User implements java.io.Serializable {
             getIssue(name).freeze();
         } catch (final Exception e) {
             _log.error("Error freezing issue " + name + " for user " + _uid + ".  Exception: " + e.toString());
-            e.printStackTrace();
+            IOUtils.printStackTrace(e, _log);
         }
     }
 

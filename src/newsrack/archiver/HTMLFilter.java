@@ -219,7 +219,7 @@ public class HTMLFilter {
                     } catch (Exception e) {
                         System.err.println("ERROR filtering " + line);
                         System.err.println("Exception: " + e);
-                        e.printStackTrace();
+                        IOUtils.printStackTrace(e, _log);
                     }
                 }
             } catch (java.io.IOException e) {
@@ -254,7 +254,7 @@ public class HTMLFilter {
                         System.err.println("ERROR filtering " + args[i]);
                     }
                     System.err.println("Exception: " + e);
-                    e.printStackTrace();
+                    IOUtils.printStackTrace(e, _log);
                 }
             }
         }

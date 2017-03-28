@@ -167,7 +167,7 @@ public class Feed implements java.io.Serializable, Comparable {
                 if (info) _log.info("Did not find the file " + inputFile);
             }
         } catch (Exception exc) {
-            exc.printStackTrace();
+            IOUtils.printStackTrace(exc, _log);
         }
     }
 

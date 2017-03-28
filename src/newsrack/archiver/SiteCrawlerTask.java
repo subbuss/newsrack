@@ -1,6 +1,7 @@
 package newsrack.archiver;
 
 import newsrack.NewsRack;
+import newsrack.util.IOUtils;
 import newsrack.util.ProcessReader;
 import newsrack.util.ThreadManager;
 import org.apache.commons.logging.Log;
@@ -194,12 +195,16 @@ public class SiteCrawlerTask extends TimerTask {
                 if (cProc.waitFor() != 0)
                     if (_log.isInfoEnabled()) _log.info(cPath + ": Got a non-zero exit status!");
             } catch (final Exception e) {
-                if (_log.isErrorEnabled()) _log.error("ERROR running crawler " + cPath + ": " + e);
-                e.printStackTrace();
+                if (_log.isErrorEnabled()) {
+                    _log.error("ERROR running crawler " + cPath + ": " + e);
+                    IOUtils.printStackTrace(e, _log);
+                }
             }
         } catch (final Exception e) {
-            if (_log.isErrorEnabled()) _log.error("ERROR invoking crawler " + cPath + ": " + e);
-            e.printStackTrace();
+            if (_log.isErrorEnabled()) {
+                _log.error("ERROR invoking crawler " + cPath + ": " + e);
+                IOUtils.printStackTrace(e, _log);
+            }
         }
         if (_log.isInfoEnabled()) _log.info("---------------------------------------------------------");
 
