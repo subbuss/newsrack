@@ -3,6 +3,7 @@
 <web-app xmlns="http://java.sun.com/xml/ns/j2ee"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    id="NewsRack"
     version="2.4">
 
   <display-name>NewsRack </display-name>
@@ -76,42 +77,6 @@
     <dispatcher> forward </dispatcher>
     <dispatcher> request </dispatcher>
   </filter-mapping>
-
-  <servlet>
-    <servlet-name>jspSupportServlet</servlet-name>
-    <servlet-class>org.apache.struts2.views.JspSupportServlet</servlet-class>
-    <load-on-startup>10</load-on-startup>
-  </servlet>
-
-<!-- let the default servlet handle things like js, css, images, icons, etc. -->
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.js</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.css</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.jpg</url-pattern>
-  </servlet-mapping>  
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.gif</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.ico</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.xml</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>default</servlet-name>
-    <url-pattern>*.html</url-pattern>
-  </servlet-mapping>
 
 <!-- Force the use of Xerces validating parser independent of which servlet container I use ...  -->
   <system-property javax.xml.parsers.DocumentBuilderFactory="org.apache.xerces.jaxp.DocumentBuilderFactoryImpl" />
