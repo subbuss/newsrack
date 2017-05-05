@@ -1,0 +1,40 @@
+version: "2.0"
+
+volumes:
+  maria_db: {}
+  newsrack_data: {}
+  apache_log: {}
+  
+services:
+  mysql:
+    image: mariadb
+    volumes:
+      - maria_db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=change-me
+      - MYSQL_DATABASE=newsrack
+      - MYSQL_USER=newsrack
+      - MYSQL_PASSWORD=change-me
+
+  tomcat:
+    build: 
+      context: ..
+      dockerfile: ./docker/tomcat/Dockerfile
+    volumes:
+      - newsrack_data:/data
+    environment:
+      - DB_NAME=newsrack
+      - DB_USER=newsrack
+      - DB_PASSWORD=change-me
+    expose:
+      - 8009
+    depends_on:
+      - mysql
+
+  apache:
+    build:
+      context: ./apache/
+    volumes:
+      - apache_log:/var/log/apache
+    depends_on:
+      - tomcat
