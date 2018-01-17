@@ -51,7 +51,7 @@ SPACE  = {WS}*
 	"(*"                        { yybegin(COMMENT); }
 	\"                          { string.setLength(0); yybegin(STRING); }
 	{SPACE}                     { }
-	"http://"[^ \t\n\r]*        { return token(Terminals.URL_TOK); }
+	"https?://"[^ \t\n\r]*        { return token(Terminals.URL_TOK); }
 	"newsrack://"[^ \t\n\r]*    { return token(Terminals.URL_TOK); }
 	"---""-"*                   { /** separator line (3 or more hyphens) ! ignore **/ }
 	"~"								 { return token(Terminals.TILDE); }
