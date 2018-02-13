@@ -7,6 +7,7 @@
     <url val="${n.getURL()}" />
     <source val="${n.feed.name}" />
     <date val="${n.dateString}" />
+    <desc val="${n.description}" />
   </newsitem>
   </#escape>
 </#foreach>
