@@ -36,9 +36,6 @@
 [#-- Check if there is a currently signed in user and if so, if the user owns the issue being displayed --]
 [#assign dispDelFlag = user?exists && user.uid.equals(ownerID)]
 
-[#-- Check if user newstrust is signed in --]
-[#assign addNTButton = user?exists && user.uid.equals("newstrust")]
-
 [#-- Compute base url based on various params --]
 [#if unknownNewsCount]
   [#if Parameters.start_date?exists && Parameters.source_key?exists]
@@ -285,17 +282,6 @@ function show(obj, style) { obj.style.display = style; }
          <td class="newstitle">
       [#if !storyTitle?exists || storyTitle.length() == 0]
         [#assign storyTitle = "<span>ERROR: Missing Story Title</span>"]
-      [/#if]
-      [#if addNTButton]
-<script type="text/javascript">
-newstrust_publication_name = '${srcName?js_string}';
-newstrust_story_url = '${url}';
-newstrust_story_title = '${storyTitle?js_string}';
-newstrust_story_subject = '${issueName}';
-newstrust_story_topic = '${cat.name}';
-newstrust_story_date = '${ni.date?string("yyyy-MM-dd")}';
-</script>
-<script src="http://www.newstrust.net/js/submit_story.js" type="text/javascript"></script>
       [/#if]
       [#if dispDelFlag]
 				<input class="delbox" type="checkbox" name="key${nc}" value="${ni.key?c}">
