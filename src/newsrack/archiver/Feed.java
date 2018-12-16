@@ -299,7 +299,7 @@ public class Feed implements java.io.Serializable, Comparable {
         //    from downloading the same feed at the same time!
         boolean downloaded = true;
         URL u = new URL(_feedUrl);
-        String rssFeedBase = "rss." + StringUtils.getBaseFileName(u.toString()); // Add "rss." prefix to prevent clash with "index.xml" index file names
+        String rssFeedBase = "rss." + getKey() + "." + StringUtils.getBaseFileName(u.toString()); // Add "rss." prefix to prevent clash with "index.xml" index file names
         File rssFeedFile;
         synchronized (this) {
             InputStream is = null;
