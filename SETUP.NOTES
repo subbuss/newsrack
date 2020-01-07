@@ -1,17 +1,17 @@
-1. edit /etc/init.d/tomcat7 and change
+1. edit /etc/init.d/tomcat8 and change
    - umask to 002
 
 # -- sample commands --
-sudo chown -R tomcat7:nogroup /var/lib/tomcat7/webapps
-sudo chown -R tomcat7:nogroup /var/log/tomcat6
-sudo chmod 777 /var/lib/tomcat7/webapps
-sudo chmod 775 /var/log/tomcat7
-cd /var/log/tomcat7/
+sudo chown -R tomcat8:nogroup /var/lib/tomcat8/webapps
+sudo chown -R tomcat8:nogroup /var/log/tomcat6
+sudo chmod 777 /var/lib/tomcat8/webapps
+sudo chmod 775 /var/log/tomcat8
+cd /var/log/tomcat8/
 
-2. edit /etc/default/tomcat7 and change
+2. edit /etc/default/tomcat8 and change
    - jvm path, if necessary
-	- add TOMCAT5_GROUP=tomcat7
-	- disable tomcat7 security
+	- add TOMCAT5_GROUP=tomcat8
+	- disable tomcat8 security
 	- edit jvm options to add heap sizes, server vm, gc settings
 
 3. for enabling access logs, edit server.xml and uncomment FastCommonAccessLogValve
@@ -33,7 +33,7 @@ cd /var/log/tomcat7/
    - Make sure that default site is not enabled in /sites.enabled
 
 5. make sure permissions for files in data/users/ and data/news.archive/ are
-   set to g+w and that ownership is tomcat7:nogroup
+   set to g+w and that ownership is tomcat8:nogroup
 
 6. Edit /etc/security/limits.conf and double nofile limit for newsrack
    from 1024 to 2048 -- to give me breathing space while I figure out

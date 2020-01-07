@@ -61,7 +61,8 @@ public final class PasswordService {
             synchronized (md5) {
                 md5.update(plaintext.getBytes("UTF-8"));
                 byte raw[] = md5.digest();
-                return (new sun.misc.BASE64Encoder()).encode(raw);
+                return new String(java.util.Base64.getMimeEncoder().encode(raw),
+                    java.nio.charset.StandardCharsets.UTF_8);
             }
         } catch (Exception e) {
             _log.error("PasswordService", e);
@@ -105,38 +106,7 @@ public final class PasswordService {
             _passwordResetKeys.remove(uid);
     }
 
-
-    public static void fixUserTable() throws Exception {
-        PrintWriter pw = IOUtils.getUTF8Writer("user.table.xml.NEW");
-        BufferedReader br = new BufferedReader(new FileReader("user.table.xml"));
-        String line;
-        while ((line = br.readLine()) != null) {
-            int x = line.indexOf("password=\"");
-            if (x == -1) {
-                pw.println(line);
-            } else {
-                x += 10;
-                int y = line.indexOf("\"", x);
-                String a = line.substring(0, x);
-                String pwd = line.substring(x, y);
-                String b = getInstance().encrypt(pwd);
-                String c = line.substring(y);
-                pw.println(a + b + c);
-                pw.println("\t\t\tpassword-plain=\"" + pwd + c);
-                System.out.println("a        = '" + a + "'");
-                System.out.println("password = '" + pwd + "'");
-                System.out.println("b        = '" + b + "'");
-                System.out.println("c        = '" + c + "'");
-                System.out.println("ORIG     = '" + a + pwd + c + "'");
-                System.out.println("a+b+c    = '" + a + b + c + "'");
-            }
-        }
-        br.close();
-        pw.close();
-    }
-
     public static void main(String[] args) throws Exception {
-        //	FixUserTable();
         System.out.println("Got key " + getRandomKey());
     }
 }

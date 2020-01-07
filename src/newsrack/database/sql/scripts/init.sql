@@ -184,6 +184,25 @@ create table if not exists topics (
    constraint fk_topics_1 foreign key(u_key) references users(u_key)
 ) charset=utf8 collate=utf8_bin;
 
+/** --- filters ---
+ * This table tracks all defined filters across all collections across all users
+ * The filter rule is retained unparsed "as is" ... The semantics of the filter
+ * will vary depending on the context within which it is parsed.  For example
+ * a rule: "x AND y" will mean different things depending on the available
+ * concept definitions for 'x' and 'y'
+ */
+create table if not exists filters (
+   f_key        bigint       not null auto_increment,
+--   coll_key     bigint   not null,  	/* the collection that this filter belongs to */
+   u_key        bigint       not null,	/* the user that defined this filter */
+   name         varchar(256) not null,	/* name of the filter */
+   rule_string  text         not null, /* the rule string for this filter */
+	rule_key     bigint,						/* root of the rule tree */
+	min_match_score int default 2,		/* minimum hit score for this filter -- default 2 */
+	primary key(f_key)
+--   constraint fk_filters_3 foreign key(coll_key) references user_collections(coll_key)
+) charset=utf8 collate=utf8_bin;
+
 /** --- categories ---
  * This is the table that stores information about categories.
  * IMPORTANT: Categories as containers, not categories as filters!!
@@ -345,24 +364,6 @@ create table if not exists concepts (
 --   constraint fk_concepts_2 foreign key(coll_key) references user_collections(coll_key)
 ) charset=utf8 collate=utf8_bin;
 
-/** --- filters ---
- * This table tracks all defined filters across all collections across all users
- * The filter rule is retained unparsed "as is" ... The semantics of the filter
- * will vary depending on the context within which it is parsed.  For example
- * a rule: "x AND y" will mean different things depending on the available
- * concept definitions for 'x' and 'y'
- */
-create table if not exists filters (
-   f_key        bigint       not null auto_increment,
---   coll_key     bigint   not null,  	/* the collection that this filter belongs to */
-   u_key        bigint       not null,	/* the user that defined this filter */
-   name         varchar(256) not null,	/* name of the filter */
-   rule_string  text         not null, /* the rule string for this filter */
-	rule_key     bigint,						/* root of the rule tree */
-	min_match_score int default 2,		/* minimum hit score for this filter -- default 2 */
-	primary key(f_key)
---   constraint fk_filters_3 foreign key(coll_key) references user_collections(coll_key)
-) charset=utf8 collate=utf8_bin;
 
 create table if not exists filter_rule_terms (
 	rt_key	 bigint not null auto_increment,
